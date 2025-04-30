@@ -2,7 +2,6 @@
 using Toolbox.Rest;
 using Toolbox.TestApi;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Rest;
@@ -23,9 +22,9 @@ public class RestOptionCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<Option>();
 
-        response.IsOk().Should().BeTrue();
+        response.IsOk().BeTrue();
         response.Error.BeNull();
-        response.Return().StatusCode.Should().Be(StatusCode.OK);
+        response.Return().StatusCode.Be(StatusCode.OK);
         response.Return().Error.BeNull();
     }
 
@@ -39,10 +38,10 @@ public class RestOptionCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<Option>();
 
-        response.IsOk().Should().BeTrue();
+        response.IsOk().BeTrue();
         response.Error.BeNull();
-        response.HasValue.Should().BeTrue();
-        response.Return().StatusCode.Should().Be(StatusCode.BadRequest);
-        response.Return().Error.Should().Be(ModelDefaults.BadRequestResponse);
+        response.HasValue.BeTrue();
+        response.Return().StatusCode.Be(StatusCode.BadRequest);
+        response.Return().Error.Be(ModelDefaults.BadRequestResponse);
     }
 }

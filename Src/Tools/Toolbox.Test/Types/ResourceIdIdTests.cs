@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -13,14 +12,14 @@ public class ResourceIdIdTests
     public void ValidSubscription(string id, string schema, string systemName)
     {
         var result = ResourceId.Create(id);
-        result.IsOk().Should().BeTrue(result.Error);
+        result.IsOk().BeTrue(result.Error);
 
         ResourceId resourceId = result.Return();
-        resourceId.ToString().Should().Be(id);
-        resourceId.Type.Should().Be(ResourceType.System);
-        resourceId.Schema.Should().Be(schema);
+        resourceId.ToString().Be(id);
+        resourceId.Type.Be(ResourceType.System);
+        resourceId.Schema.Be(schema);
         resourceId.User.BeNull();
-        resourceId.SystemName.Should().Be(systemName);
+        resourceId.SystemName.Be(systemName);
         resourceId.Domain.BeNull();
         resourceId.Path.BeNull();
         resourceId.PrincipalId.BeNull();
@@ -32,15 +31,15 @@ public class ResourceIdIdTests
     public void ValidTenant(string id)
     {
         var result = ResourceId.Create(id);
-        result.IsOk().Should().BeTrue(result.Error);
+        result.IsOk().BeTrue(result.Error);
 
         ResourceId resourceId = result.Return();
-        resourceId.ToString().Should().Be(id);
-        resourceId.Type.Should().Be(ResourceType.Tenant);
-        resourceId.Schema.Should().Be("tenant");
+        resourceId.ToString().Be(id);
+        resourceId.Type.Be(ResourceType.Tenant);
+        resourceId.Schema.Be("tenant");
         resourceId.User.BeNull();
         resourceId.SystemName.BeNull();
-        resourceId.Domain.Should().Be("domain.com");
+        resourceId.Domain.Be("domain.com");
         resourceId.Path.BeNull();
         resourceId.PrincipalId.BeNull();
         resourceId.AccountId.BeNull();
@@ -52,17 +51,17 @@ public class ResourceIdIdTests
     public void ValidPrincipal(string id, string user, string domain, string principalId)
     {
         var result = ResourceId.Create(id);
-        result.IsOk().Should().BeTrue(result.Error);
+        result.IsOk().BeTrue(result.Error);
 
         ResourceId resourceId = result.Return();
-        resourceId.ToString().Should().Be(id);
-        resourceId.Type.Should().Be(ResourceType.Principal);
+        resourceId.ToString().Be(id);
+        resourceId.Type.Be(ResourceType.Principal);
         resourceId.Schema.BeNull();
-        resourceId.User.Should().Be(user);
+        resourceId.User.Be(user);
         resourceId.SystemName.BeNull();
-        resourceId.Domain.Should().Be(domain);
+        resourceId.Domain.Be(domain);
         resourceId.Path.BeNull();
-        resourceId.PrincipalId.Should().Be(principalId);
+        resourceId.PrincipalId.Be(principalId);
         resourceId.AccountId.BeNull();
     }
 
@@ -75,18 +74,18 @@ public class ResourceIdIdTests
     public void ValidOwned(string id, string schema, string user, string domain, string? path)
     {
         var result = ResourceId.Create(id);
-        result.IsOk().Should().BeTrue(result.Error);
+        result.IsOk().BeTrue(result.Error);
 
         ResourceId resourceId = result.Return();
-        resourceId.ToString().Should().Be(id);
-        resourceId.Type.Should().Be(ResourceType.Owned);
-        resourceId.Schema.Should().Be(schema);
-        resourceId.User.Should().Be(user);
+        resourceId.ToString().Be(id);
+        resourceId.Type.Be(ResourceType.Owned);
+        resourceId.Schema.Be(schema);
+        resourceId.User.Be(user);
         resourceId.SystemName.BeNull();
-        resourceId.Domain.Should().Be(domain);
-        resourceId.Path.Should().Be(path);
-        resourceId.PrincipalId.Should().Be($"{user}@{domain}");
-        resourceId.AccountId.Should().Be(path != null ? $"{domain}/{path}" : null);
+        resourceId.Domain.Be(domain);
+        resourceId.Path.Be(path);
+        resourceId.PrincipalId.Be($"{user}@{domain}");
+        resourceId.AccountId.Be(path != null ? $"{domain}/{path}" : null);
     }
 
     [Theory]
@@ -96,18 +95,18 @@ public class ResourceIdIdTests
     public void ValidAccount(string id, string schema, string domain, string path)
     {
         var result = ResourceId.Create(id);
-        result.IsOk().Should().BeTrue(result.Error);
+        result.IsOk().BeTrue(result.Error);
 
         ResourceId resourceId = result.Return();
-        resourceId.ToString().Should().Be(id);
-        resourceId.Type.Should().Be(ResourceType.DomainOwned);
-        resourceId.Schema.Should().Be(schema);
+        resourceId.ToString().Be(id);
+        resourceId.Type.Be(ResourceType.DomainOwned);
+        resourceId.Schema.Be(schema);
         resourceId.User.BeNull();
         resourceId.SystemName.BeNull();
-        resourceId.Domain.Should().Be(domain);
-        resourceId.Path.Should().Be(path);
+        resourceId.Domain.Be(domain);
+        resourceId.Path.Be(path);
         resourceId.PrincipalId.BeNull();
-        resourceId.AccountId.Should().Be($"{domain}/{path}");
+        resourceId.AccountId.Be($"{domain}/{path}");
     }
 
     [Theory]
@@ -128,7 +127,7 @@ public class ResourceIdIdTests
     public void InvalidResourceId(string? id)
     {
         var result = ResourceId.Create(id!);
-        result.IsError().Should().BeTrue();
+        result.IsError().BeTrue();
     }
 
     [Fact]
@@ -139,7 +138,7 @@ public class ResourceIdIdTests
         ResourceId result = ResourceId.Create(id).Return();
         ResourceId result2 = ResourceId.Create(id).Return();
 
-        (result == result2).Should().BeTrue();
+        (result == result2).BeTrue();
     }
 
     [Fact]
@@ -150,7 +149,7 @@ public class ResourceIdIdTests
         ResourceId result = ResourceId.Create(id).Return();
         ResourceId result2 = ResourceId.Create(id).Return();
 
-        (result == result2).Should().BeTrue();
+        (result == result2).BeTrue();
     }
 
     [Fact]
@@ -163,14 +162,14 @@ public class ResourceIdIdTests
 
         ResourceId result2 = json.ToObject<ResourceId>();
 
-        (result == result2).Should().BeTrue();
+        (result == result2).BeTrue();
 
-        result.Id.Should().Be(result2.Id);
-        result.Schema.Should().Be(result2.Schema);
-        result.User.Should().Be(result2.User);
-        result.Domain.Should().Be(result2.Domain);
-        result.Path.Should().Be(result2.Path);
-        result.AccountId.Should().Be("company3.com/path1/path2");
+        result.Id.Be(result2.Id);
+        result.Schema.Be(result2.Schema);
+        result.User.Be(result2.User);
+        result.Domain.Be(result2.Domain);
+        result.Path.Be(result2.Path);
+        result.AccountId.Be("company3.com/path1/path2");
         result.PrincipalId.BeNull();
     }
 
@@ -181,15 +180,15 @@ public class ResourceIdIdTests
         string systemName = "WKID-" + Guid.NewGuid().ToString();
 
         var id = $"{schema}:{systemName}";
-        ResourceId.IsValid(id, ResourceType.System, schema).Should().BeTrue();
+        ResourceId.IsValid(id, ResourceType.System, schema).BeTrue();
 
         Option<ResourceId> resourceIdOption = ResourceId.Create(id);
-        resourceIdOption.IsOk().Should().BeTrue();
+        resourceIdOption.IsOk().BeTrue();
 
         ResourceId resourceId = resourceIdOption.Return();
-        resourceId.Id.Should().Be(id);
-        resourceId.Schema.Should().Be(schema);
-        resourceId.SystemName.Should().Be(systemName);
+        resourceId.Id.Be(id);
+        resourceId.Schema.Be(schema);
+        resourceId.SystemName.Be(systemName);
         resourceId.User.BeNull();
         resourceId.Domain.BeNull();
         resourceId.Path.BeNull();

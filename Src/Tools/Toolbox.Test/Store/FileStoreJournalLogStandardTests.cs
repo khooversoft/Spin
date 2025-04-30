@@ -6,7 +6,6 @@ using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -56,18 +55,18 @@ public class FileStoreJournalLogStandardTests
         await journal.Write([journalEntry], _context);
 
         search = await fileStore.Search(_searchPath, _context);
-        search.Count.Should().Be(1);
-        search[0].Path.Contains("journal3/data").Should().BeTrue();
-        search[0].Path.EndsWith(".journal3Key.json").Should().BeTrue();
+        search.Count.Be(1);
+        search[0].Path.Contains("journal3/data").BeTrue();
+        search[0].Path.EndsWith(".journal3Key.json").BeTrue();
 
         var journals = await journal.ReadJournals(_context);
 
         journals.Action(x =>
         {
-            x.Count.Should().Be(1);
+            x.Count.Be(1);
 
             var readData = x[0];
-            (journalEntry == readData).Should().Be(true);
+            (journalEntry == readData).Be(true);
         });
     }
 
@@ -114,20 +113,20 @@ public class FileStoreJournalLogStandardTests
         }
 
         search = await fileStore.Search(_searchPath, _context);
-        search.Count.Should().Be(1);
+        search.Count.Be(1);
         search.ForEach(x =>
         {
-            x.Path.StartsWith("journal3/data").Should().BeTrue();
-            x.Path.EndsWith(".journal3Key.json").Should().BeTrue();
+            x.Path.StartsWith("journal3/data").BeTrue();
+            x.Path.EndsWith(".journal3Key.json").BeTrue();
         });
 
         var journals = await journal.ReadJournals(_context);
-        journals.Count.Should().Be(createdJournals.Count);
+        journals.Count.Be(createdJournals.Count);
 
         for (int i = 0; i < createdJournals.Count; i++)
         {
             var createdJournalUpdated = createdJournals[i] with { LogSequenceNumber = journals[i].LogSequenceNumber };
-            (journals[i] == createdJournalUpdated).Should().BeTrue($"index={i}");
+            (journals[i] == createdJournalUpdated).BeTrue($"index={i}");
         }
     }
 
@@ -175,15 +174,15 @@ public class FileStoreJournalLogStandardTests
         }
 
         search = await fileStore.Search(_searchPath, _context);
-        search.Count.Should().Be(1);
+        search.Count.Be(1);
         search.ForEach(x =>
         {
-            x.Path.StartsWith("journal3/data").Should().BeTrue();
-            x.Path.EndsWith(".journal3Key.json").Should().BeTrue();
+            x.Path.StartsWith("journal3/data").BeTrue();
+            x.Path.EndsWith(".journal3Key.json").BeTrue();
         });
 
         var journals = await journal.ReadJournals(_context);
-        journals.Count.Should().Be(createdJournals.Count + batchCount * 2);
+        journals.Count.Be(createdJournals.Count + batchCount * 2);
 
         int count = 0;
         int createdJournalIndex = 0;
@@ -194,13 +193,13 @@ public class FileStoreJournalLogStandardTests
             if (lookForStart)
             {
                 lookForStart = false;
-                journals[i].Type.Should().Be(JournalType.Start);
+                journals[i].Type.Be(JournalType.Start);
                 continue;
             }
 
             if (count == batchSize)
             {
-                journals[i].Type.Should().Be(JournalType.Commit);
+                journals[i].Type.Be(JournalType.Commit);
                 count = 0;
                 lookForStart = true;
                 continue;
@@ -213,7 +212,7 @@ public class FileStoreJournalLogStandardTests
                 LogSequenceNumber = journals[i].LogSequenceNumber,
             };
 
-            (journals[i] == createdJournalUpdated).Should().BeTrue($"index={i}");
+            (journals[i] == createdJournalUpdated).BeTrue($"index={i}");
         }
     }
 }

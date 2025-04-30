@@ -1,7 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Toolbox.Types;
-
-namespace Toolbox.Tools;
+﻿namespace Toolbox.Tools;
 
 public static class ScopeContextTools
 {

@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -101,11 +101,11 @@ internal class WorkerThreeNodesAndEdges : IWorker
 
         GraphNode? readNode = null;
         CheckState(token, () => _map.Nodes.TryGetValue(nodeKey, out readNode) == true, nodeKey + " node check");
-        (node == readNode).Should().BeTrue();
+        (node == readNode).BeTrue();
 
         //var lookupTag = _map.Nodes.LookupTag("t1");
-        //lookupTag.Count.Should().BeGreaterThan(0);
-        //lookupTag.Contains(nodeKey).Should().BeTrue();
+        //lookupTag.Count.BeGreaterThan(0);
+        //lookupTag.Contains(nodeKey).BeTrue();
 
         return nodeKey;
     }

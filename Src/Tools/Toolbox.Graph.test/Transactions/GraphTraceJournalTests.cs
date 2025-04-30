@@ -28,8 +28,8 @@
 
 //            (await testClient.ExecuteBatch(q, NullScopeContext.Default)).Action(x =>
 //            {
-//                x.IsOk().Should().BeTrue(x.ToString());
-//                x.Value.Items.Count.Should().Be(2);
+//                x.IsOk().BeTrue(x.ToString());
+//                x.Value.Items.Count.Be(2);
 //                x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
 //                x.Value.Items[1].Action(y => TestReturn(y, StatusCode.OK));
 //            });
@@ -42,16 +42,16 @@
 //            var context = new ScopeContext(logger);
 
 //            var journals = await traceLog.ReadJournals(context);
-//            journals.Count.Should().Be(7);
+//            journals.Count.Be(7);
 
 //            int index = 0;
-//            journals[index++].Type.Should().Be(JournalType.Start);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Data);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Data);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Commit);
+//            journals[index++].Type.Be(JournalType.Start);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Data);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Data);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Commit);
 //        }
 //    }
 
@@ -72,8 +72,8 @@
 
 //            (await testClient.ExecuteBatch(q, NullScopeContext.Default)).Action(x =>
 //            {
-//                x.IsOk().Should().BeTrue(x.ToString());
-//                x.Value.Items.Count.Should().Be(2);
+//                x.IsOk().BeTrue(x.ToString());
+//                x.Value.Items.Count.Be(2);
 //                x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
 //                x.Value.Items[1].Action(y => TestReturn(y, StatusCode.OK));
 //            });
@@ -87,8 +87,8 @@
 
 //            (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
 //            {
-//                x.IsOk().Should().BeTrue(x.ToString());
-//                x.Value.Items.Count.Should().Be(4);
+//                x.IsOk().BeTrue(x.ToString());
+//                x.Value.Items.Count.Be(4);
 
 //                int index = 0;
 //                x.Value.Items[index++].Action(y => TestReturn(y, StatusCode.OK));
@@ -105,33 +105,33 @@
 //            var context = new ScopeContext(logger);
 
 //            var journals = await traceLog.ReadJournals(context);
-//            journals.Count.Should().Be(18);
+//            journals.Count.Be(18);
 
 //            int index = 0;
-//            journals[index++].Type.Should().Be(JournalType.Start);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Data);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Data);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Commit);
+//            journals[index++].Type.Be(JournalType.Start);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Data);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Data);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Commit);
 
-//            journals[index++].Type.Should().Be(JournalType.Start);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Data);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Data);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Data);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Data);
-//            journals[index++].Type.Should().Be(JournalType.Action);
-//            journals[index++].Type.Should().Be(JournalType.Commit);
+//            journals[index++].Type.Be(JournalType.Start);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Data);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Data);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Data);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Data);
+//            journals[index++].Type.Be(JournalType.Action);
+//            journals[index++].Type.Be(JournalType.Commit);
 //        }
 //    }
 
 //    private void TestReturn(QueryResult graphResult, StatusCode statusCode)
 //    {
-//        graphResult.Option.StatusCode.Should().Be(statusCode, graphResult.Option.ToString());
+//        graphResult.Option.StatusCode.Be(statusCode, graphResult.Option.ToString());
 //    }
 //}

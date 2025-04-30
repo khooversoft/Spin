@@ -1,7 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Application;
@@ -105,12 +104,12 @@ internal static class MetaTestTool
     {
         var matchTo = syntaxes.Flatten();
         var matchFrom = expected.Flatten();
-        matchTo.Count.Should().Be(matchFrom.Count);
+        matchTo.Count.Be(matchFrom.Count);
 
         foreach (var (to, from) in matchTo.Zip(matchFrom))
         {
             bool match = to.Equals(from);
-            match.Should().BeTrue();
+            match.BeTrue();
         }
     }
 

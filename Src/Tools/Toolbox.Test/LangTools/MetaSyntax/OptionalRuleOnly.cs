@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -22,7 +22,7 @@ public class OptionalRuleOnly : TestBase
         }.Join(Environment.NewLine);
 
         _schema = MetaParser.ParseRules(schemaText);
-        _schema.StatusCode.IsOk().Should().BeTrue();
+        _schema.StatusCode.IsOk().BeTrue();
     }
 
     [Theory]
@@ -35,7 +35,7 @@ public class OptionalRuleOnly : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse(rawValue, logger);
-        parse.Status.IsError().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class OptionalRuleOnly : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("->", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -71,7 +71,7 @@ public class OptionalRuleOnly : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -81,7 +81,7 @@ public class OptionalRuleOnly : TestBase
             new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class OptionalRuleOnly : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("<->", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -117,7 +117,7 @@ public class OptionalRuleOnly : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -127,6 +127,6 @@ public class OptionalRuleOnly : TestBase
             new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 }

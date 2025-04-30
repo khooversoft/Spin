@@ -1,5 +1,4 @@
 ﻿using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Tools;
 
@@ -16,7 +15,7 @@ public class StandardValidationTests
     public void NameValidationTest(string value)
     {
         bool result = StandardValidation.IsName(value);
-        result.Should().BeTrue(value);
+        result.BeTrue(value);
     }
 
     [Theory]
@@ -48,7 +47,7 @@ public class StandardValidationTests
     public void NameValidationFailTest(string? value)
     {
         bool result = StandardValidation.IsName(value!);
-        result.Should().BeFalse(value);
+        result.BeFalse(value);
     }
 
     [Theory]
@@ -56,7 +55,7 @@ public class StandardValidationTests
     public void DescriptionValidationTest(string value)
     {
         bool result = StandardValidation.IsDescrption(value);
-        result.Should().BeTrue(value);
+        result.BeTrue(value);
     }
 
     [Theory]
@@ -68,6 +67,6 @@ public class StandardValidationTests
     public void DescriptionValidationFailTest(string? value)
     {
         bool result = StandardValidation.IsDescrption(value!);
-        result.Should().BeFalse(value);
+        result.BeFalse(value);
     }
 }

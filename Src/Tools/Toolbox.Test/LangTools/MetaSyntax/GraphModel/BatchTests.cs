@@ -2,7 +2,6 @@
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class BatchTests : TestBase<BatchTests>
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -37,7 +36,7 @@ public class BatchTests : TestBase<BatchTests>
         }.Join(Environment.NewLine);
 
         var parse = _parser.Parse(lines, _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -58,7 +57,7 @@ public class BatchTests : TestBase<BatchTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -73,7 +72,7 @@ public class BatchTests : TestBase<BatchTests>
         }.Join(Environment.NewLine);
 
         var parse = _parser.Parse(lines, _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -137,6 +136,6 @@ public class BatchTests : TestBase<BatchTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 }

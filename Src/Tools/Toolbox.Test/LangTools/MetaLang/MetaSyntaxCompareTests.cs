@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.LangTools.Meta;
@@ -14,14 +14,14 @@ public class MetaSyntaxCompareTests
         var rule = "number  = regex '[+-]?[0-9]+' ;";
 
         var root = MetaParser.ParseRules(rule);
-        root.StatusCode.IsOk().Should().BeTrue();
+        root.StatusCode.IsOk().BeTrue();
 
         var tree = new IMetaSyntax[]
         {
             new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex },
         };
 
-        Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
+        Enumerable.SequenceEqual(root.Rule.Children, tree).BeTrue();
     }
 
     [Fact]
@@ -30,14 +30,14 @@ public class MetaSyntaxCompareTests
         var rule = "number  = regex '[+-]?[0-9]+' ;";
 
         var root = MetaParser.ParseRules(rule);
-        root.StatusCode.IsOk().Should().BeTrue();
+        root.StatusCode.IsOk().BeTrue();
 
         var tree = new IMetaSyntax[]
         {
             new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+", Type = TerminalType.Regex },
         };
 
-        Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
+        Enumerable.SequenceEqual(root.Rule.Children, tree).BeTrue();
     }
 
     [Fact]
@@ -46,14 +46,14 @@ public class MetaSyntaxCompareTests
         var rule = "number  = '[+-]?[0-9]+' ;";
 
         var root = MetaParser.ParseRules(rule);
-        root.StatusCode.IsOk().Should().BeTrue();
+        root.StatusCode.IsOk().BeTrue();
 
         var tree = new IMetaSyntax[]
         {
             new TerminalSymbol { Name = "number", Text = "[+-]?[0-9]+ *", Type = TerminalType.Regex },
         };
 
-        Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeFalse();
+        Enumerable.SequenceEqual(root.Rule.Children, tree).BeFalse();
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class MetaSyntaxCompareTests
             ];
 
         var root = MetaParser.ParseRules(rules.Join(Environment.NewLine));
-        root.StatusCode.IsOk().Should().BeTrue();
+        root.StatusCode.IsOk().BeTrue();
 
         var lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
 
@@ -75,7 +75,7 @@ public class MetaSyntaxCompareTests
             new TerminalSymbol { Name = "alias", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
         };
 
-        Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
+        Enumerable.SequenceEqual(root.Rule.Children, tree).BeTrue();
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public class MetaSyntaxCompareTests
             ];
 
         var root = MetaParser.ParseRules(rules.Join(Environment.NewLine));
-        root.StatusCode.IsOk().Should().BeTrue();
+        root.StatusCode.IsOk().BeTrue();
 
         var lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
 
@@ -97,7 +97,7 @@ public class MetaSyntaxCompareTests
             new TerminalSymbol { Name = "alias", Text = "[a-zA-Z][a-zA-Z0-9\\-/]*", Type = TerminalType.Regex },
         };
 
-        Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
+        Enumerable.SequenceEqual(root.Rule.Children, tree).BeTrue();
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class MetaSyntaxCompareTests
             ];
 
         var root = MetaParser.ParseRules(rules.Join(Environment.NewLine));
-        root.StatusCode.IsOk().Should().BeTrue();
+        root.StatusCode.IsOk().BeTrue();
 
         string lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
 
@@ -141,7 +141,7 @@ public class MetaSyntaxCompareTests
 
         tree.FlattenMatch(tree);
 
-        Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
+        Enumerable.SequenceEqual(root.Rule.Children, tree).BeTrue();
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class MetaSyntaxCompareTests
 
         string rule = rules.Join(Environment.NewLine);
         var root = MetaParser.ParseRules(rule);
-        root.StatusCode.IsOk().Should().BeTrue(root.Error);
+        root.StatusCode.IsOk().BeTrue(root.Error);
 
         var lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
 
@@ -206,6 +206,6 @@ public class MetaSyntaxCompareTests
             new TerminalSymbol { Name = "term", Text = ";" },
         };
 
-        Enumerable.SequenceEqual(root.Rule.Children, tree).Should().BeTrue();
+        Enumerable.SequenceEqual(root.Rule.Children, tree).BeTrue();
     }
 }

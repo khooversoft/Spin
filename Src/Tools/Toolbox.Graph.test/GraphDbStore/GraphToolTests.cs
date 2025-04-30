@@ -1,4 +1,4 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
 
 namespace Toolbox.Graph.test.GraphDbStore;
 
@@ -16,6 +16,6 @@ public class GraphToolTests
     public void CreateFileId(string source, string expected)
     {
         string result = GraphTool.CreateFileId(source, "main");
-        result.Should().Be(expected);
+        result.Be(expected);
     }
 }

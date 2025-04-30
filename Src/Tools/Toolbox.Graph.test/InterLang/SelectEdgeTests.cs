@@ -2,7 +2,6 @@
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
 
         string schema = GraphLanguageTool.ReadGraphLanguageRules();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -31,11 +30,11 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
     public void SelectAllEdges()
     {
         var parse = _parser.Parse("select [*] ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -54,18 +53,18 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SelectEdge()
     {
         var parse = _parser.Parse("select [from=user:f1, to=t1, type=user] ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -83,18 +82,18 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SelectEdgeWithTag()
     {
         var parse = _parser.Parse("select [from=user:f1, to=t1, type=user, t1=contact*] ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -116,7 +115,7 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
 
@@ -124,11 +123,11 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
     public void SelectEdgeWithData()
     {
         var parse = _parser.Parse("select [from=user:f1, to=t1, type=user, t1=contact*] return entity, data ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -154,6 +153,6 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 }

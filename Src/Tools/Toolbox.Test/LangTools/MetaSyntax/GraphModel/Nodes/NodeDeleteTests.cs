@@ -2,7 +2,6 @@
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -31,7 +30,7 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
     public void DeleteAll()
     {
         var parse = _parser.Parse("delete (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -45,14 +44,14 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
     public void DeleteNodeByKey()
     {
         var parse = _parser.Parse("delete (key=k1) a1 ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -69,14 +68,14 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
     public void DeleteNodeByKeyAndTag()
     {
         var parse = _parser.Parse("delete (key=k1, t2) a1 ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -95,6 +94,6 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 }

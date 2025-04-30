@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 
 namespace Toolbox.Test;
@@ -44,10 +43,10 @@ public class JsonNodeTests
         JsonElement current = doc.RootElement;
         foreach (var key in keys)
         {
-            current.TryGetProperty(key, out current).Should().BeTrue();
+            current.TryGetProperty(key, out current).BeTrue();
         }
 
         var value = current.GetString();
-        value.Should().Be("123 Main St");
+        value.Be("123 Main St");
     }
 }

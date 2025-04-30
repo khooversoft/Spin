@@ -1,8 +1,8 @@
 ﻿using Toolbox.Tools;
 
-namespace Toolbox.Test.Validation.Should2;
+namespace Toolbox.Test.Validation.ScalarValidationTests;
 
-public class ShouldStringTests
+public class VerifyStringTests
 {
     [Fact]
     public void Be()

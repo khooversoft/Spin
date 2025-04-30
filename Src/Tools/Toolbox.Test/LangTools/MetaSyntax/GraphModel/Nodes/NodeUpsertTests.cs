@@ -2,7 +2,6 @@
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class NodeUpsertTests : TestBase<NodeUpsertTests>
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -32,7 +31,7 @@ public class NodeUpsertTests : TestBase<NodeUpsertTests>
     public void UpsertCommand()
     {
         var parse = _parser.Parse("upsert node key=k1 ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -47,14 +46,14 @@ public class NodeUpsertTests : TestBase<NodeUpsertTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
     public void UpsertCommandWithTagsTwoData()
     {
         var parse = _parser.Parse("upsert node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 } ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -87,6 +86,6 @@ public class NodeUpsertTests : TestBase<NodeUpsertTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -24,7 +24,7 @@ public class OptionalWithPrefix : TestBase
         }.Join(Environment.NewLine);
 
         _schema = MetaParser.ParseRules(schemaText);
-        _schema.StatusCode.IsOk().Should().BeTrue();
+        _schema.StatusCode.IsOk().BeTrue();
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class OptionalWithPrefix : TestBase
         var logger = GetScopeContext<OptionalRuleOnly>();
 
         var parse = parser.Parse("first", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -53,7 +53,7 @@ public class OptionalWithPrefix : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -63,7 +63,7 @@ public class OptionalWithPrefix : TestBase
             new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class OptionalWithPrefix : TestBase
         var logger = GetScopeContext<OptionalRuleOnly>();
 
         var parse = parser.Parse("first ->", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -114,7 +114,7 @@ public class OptionalWithPrefix : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -125,7 +125,7 @@ public class OptionalWithPrefix : TestBase
             new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public class OptionalWithPrefix : TestBase
         var logger = GetScopeContext<OptionalRuleOnly>();
 
         var parse = parser.Parse("first <->", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -176,7 +176,7 @@ public class OptionalWithPrefix : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -187,6 +187,6 @@ public class OptionalWithPrefix : TestBase
             new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 }

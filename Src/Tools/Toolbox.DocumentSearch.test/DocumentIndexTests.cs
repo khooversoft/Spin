@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.DocumentSearch.test;
 
@@ -14,8 +13,8 @@ public class DocumentIndexTests
             .Add("doc1", _text)
             .Build();
 
-        index.Index.Count.Should().Be(1);
-        index.InvertedIndex.Index.Count.Should().Be(43);
+        index.Index.Count.Be(1);
+        index.InvertedIndex.Index.Count.Be(43);
     }
 
     [Fact]
@@ -28,8 +27,8 @@ public class DocumentIndexTests
 
         IReadOnlyList<DocumentReference> result = index.Search("Process");
         result.NotNull();
-        result.Count.Should().Be(1);
-        result[0].DocumentId.Should().Be("doc1");
+        result.Count.Be(1);
+        result[0].DocumentId.Be("doc1");
     }
 
 
@@ -43,7 +42,7 @@ public class DocumentIndexTests
 
         IReadOnlyList<DocumentReference> result = index.Search("hoover");
         result.NotNull();
-        result.Count.Should().Be(0);
+        result.Count.Be(0);
     }
 
     [Fact]
@@ -56,41 +55,41 @@ public class DocumentIndexTests
             .Add("doc3", "This is document two and three", ["tag1", "tag2"])
             .Build();
 
-        index.Index.Count.Should().Be(3);
-        index.InvertedIndex.Index.Count.Should().Be(6);
+        index.Index.Count.Be(3);
+        index.InvertedIndex.Index.Count.Be(6);
 
         IReadOnlyList<DocumentReference> result = index.Search("this");
         result.NotNull();
-        result.Count.Should().Be(0);
+        result.Count.Be(0);
 
         result = index.Search("Document");
-        result.Count.Should().Be(3);
-        result.Count(x => x.DocumentId == "doc1").Should().Be(1);
-        result.Count(x => x.DocumentId == "doc2").Should().Be(1);
-        result.Count(x => x.DocumentId == "doc3").Should().Be(1);
+        result.Count.Be(3);
+        result.Count(x => x.DocumentId == "doc1").Be(1);
+        result.Count(x => x.DocumentId == "doc2").Be(1);
+        result.Count(x => x.DocumentId == "doc3").Be(1);
 
         result = index.Search("one");
-        result.Count.Should().Be(1);
-        result.Count(x => x.DocumentId == "doc1").Should().Be(1);
+        result.Count.Be(1);
+        result.Count(x => x.DocumentId == "doc1").Be(1);
 
         result = index.Search("two");
-        result.Count.Should().Be(2);
-        result.Count(x => x.DocumentId == "doc2").Should().Be(1);
-        result.Count(x => x.DocumentId == "doc3").Should().Be(1);
+        result.Count.Be(2);
+        result.Count(x => x.DocumentId == "doc2").Be(1);
+        result.Count(x => x.DocumentId == "doc3").Be(1);
 
         result = index.Search("three two");
-        result.Count.Should().Be(2);
-        result.Count(x => x.DocumentId == "doc2").Should().Be(1);
-        result.Count(x => x.DocumentId == "doc3").Should().Be(1);
+        result.Count.Be(2);
+        result.Count(x => x.DocumentId == "doc2").Be(1);
+        result.Count(x => x.DocumentId == "doc3").Be(1);
 
         result = index.Search("tag1");
-        result.Count.Should().Be(1);
-        result.Count(x => x.DocumentId == "doc3").Should().Be(1);
+        result.Count.Be(1);
+        result.Count(x => x.DocumentId == "doc3").Be(1);
 
         result = index.Search("tag2");
-        result.Count.Should().Be(2);
-        result.Count(x => x.DocumentId == "doc2").Should().Be(1);
-        result.Count(x => x.DocumentId == "doc3").Should().Be(1);
+        result.Count.Be(2);
+        result.Count(x => x.DocumentId == "doc2").Be(1);
+        result.Count(x => x.DocumentId == "doc3").Be(1);
     }
 
     [Fact]
@@ -105,16 +104,16 @@ public class DocumentIndexTests
             .Add("doc3", "This is document two and three", ["tag2", "tag1"])
             .Build();
 
-        index.Index.Count.Should().Be(3);
-        index.InvertedIndex.Index.Count.Should().Be(6);
+        index.Index.Count.Be(3);
+        index.InvertedIndex.Index.Count.Be(6);
 
         string json = index.ToJson();
-        json.Should().NotBeEmpty();
+        json.NotEmpty();
 
         DocumentIndex newIndex = json.ToObject<DocumentIndexSerialization>().NotNull().FromSerialization();
         newIndex.NotNull();
-        newIndex.Index.Count.Should().Be(3);
-        newIndex.InvertedIndex.Index.Count.Should().Be(6);
+        newIndex.Index.Count.Be(3);
+        newIndex.InvertedIndex.Index.Count.Be(6);
     }
 
     private WordTokenList CreateWorkWeight()

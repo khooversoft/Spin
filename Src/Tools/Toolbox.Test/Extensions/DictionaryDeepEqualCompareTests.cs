@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Extensions;
 
@@ -11,7 +11,7 @@ public class DictionaryDeepEqualCompareTests
         Dictionary<string, string> list1 = new();
         Dictionary<string, string> list2 = new();
 
-        list1.DeepEqualsComparer(list2).Should().BeTrue();
+        list1.DeepEqualsComparer(list2).BeTrue();
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class DictionaryDeepEqualCompareTests
             [10] = 101,
         };
 
-        list1.DeepEqualsComparer(list2).Should().BeTrue();
+        list1.DeepEqualsComparer(list2).BeTrue();
     }
 
     public record RecA(string name, int age) : IComparable
@@ -51,7 +51,7 @@ public class DictionaryDeepEqualCompareTests
             [10] = new RecA("n1", 10),
         };
 
-        list1.DeepEqualsComparer(list2).Should().BeTrue();
+        list1.DeepEqualsComparer(list2).BeTrue();
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class DictionaryDeepEqualCompareTests
             [10] = 102,
         };
 
-        list1.DeepEqualsComparer(list2).Should().BeFalse();
+        list1.DeepEqualsComparer(list2).BeFalse();
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class DictionaryDeepEqualCompareTests
             ["Key1"] = "Value1",
         };
 
-        list1.DeepEqualsComparer(list2, StringComparer.Ordinal, StringComparer.Ordinal).Should().BeFalse();
+        list1.DeepEqualsComparer(list2, StringComparer.Ordinal, StringComparer.Ordinal).BeFalse();
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class DictionaryDeepEqualCompareTests
             ["Key1"] = "value1",
         };
 
-        list1.DeepEqualsComparer(list2, StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal).Should().BeTrue();
+        list1.DeepEqualsComparer(list2, StringComparer.OrdinalIgnoreCase, StringComparer.Ordinal).BeTrue();
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class DictionaryDeepEqualCompareTests
             ["Key1"] = "Value1",
         };
 
-        list1.DeepEqualsComparer(list2).Should().BeTrue();
+        list1.DeepEqualsComparer(list2).BeTrue();
     }
 
 
@@ -130,7 +130,7 @@ public class DictionaryDeepEqualCompareTests
             ["key3"] = "value2-x",
         };
 
-        list1.DeepEqualsComparer(list2).Should().BeFalse();
+        list1.DeepEqualsComparer(list2).BeFalse();
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public class DictionaryDeepEqualCompareTests
             ["key2"] = "value2-x",
         };
 
-        list1.DeepEqualsComparer(list2).Should().BeFalse();
+        list1.DeepEqualsComparer(list2).BeFalse();
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public class DictionaryDeepEqualCompareTests
             ["key2"] = "value2",
         };
 
-        list1.DeepEqualsComparer(list2).Should().BeTrue();
+        list1.DeepEqualsComparer(list2).BeTrue();
     }
 
 }

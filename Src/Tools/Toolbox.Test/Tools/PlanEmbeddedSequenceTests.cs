@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Tools;
@@ -24,13 +23,13 @@ public class PlanEmbeddedSequenceTests
             .Add(plan2)
             .Run(service, _context);
 
-        plan.IsOk().Should().BeTrue();
-        value.Should().Be(1);
+        plan.IsOk().BeTrue();
+        value.Be(1);
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(2);
+            x.History.Count.Be(2);
             x.History.All(x => x.StatusCode == StatusCode.OK);
-            x.States.Count.Should().Be(0);
+            x.States.Count.Be(0);
         });
 
     }
@@ -52,13 +51,13 @@ public class PlanEmbeddedSequenceTests
             .Add(plan3)
             .Run(service, _context);
 
-        plan.IsOk().Should().BeTrue();
-        value.Should().Be(2);
+        plan.IsOk().BeTrue();
+        value.Be(2);
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(4);
+            x.History.Count.Be(4);
             x.History.All(x => x.StatusCode == StatusCode.OK);
-            x.States.Count.Should().Be(0);
+            x.States.Count.Be(0);
         });
     }
 
@@ -79,13 +78,13 @@ public class PlanEmbeddedSequenceTests
             .Add(plan3)
             .Run(service, _context);
 
-        plan.IsOk().Should().BeTrue();
-        value.Should().Be(2);
+        plan.IsOk().BeTrue();
+        value.Be(2);
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(4);
+            x.History.Count.Be(4);
             x.History.All(x => x.StatusCode == StatusCode.OK);
-            x.States.Count.Should().Be(0);
+            x.States.Count.Be(0);
         });
 
         Task<Option> upValue()

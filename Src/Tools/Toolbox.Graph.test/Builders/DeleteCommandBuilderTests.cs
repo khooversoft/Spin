@@ -1,4 +1,4 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Builders;
@@ -12,10 +12,10 @@ public class DeleteCommandBuilderTests
             .SetNodeKey("nodeKey1")
             .Build();
 
-        graphQuery.Should().Be("delete node key=nodeKey1 ;");
+        graphQuery.Be("delete node key=nodeKey1 ;");
 
         var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
     }
 
     [Fact]
@@ -26,9 +26,9 @@ public class DeleteCommandBuilderTests
             .SetIfExist()
             .Build();
 
-        graphQuery.Should().Be("delete node ifexist key=nodeKey1 ;");
+        graphQuery.Be("delete node ifexist key=nodeKey1 ;");
 
         var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Transactions;
@@ -19,10 +19,10 @@ public class GraphTrxEdgeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().BeTrue();
 
-        testClient.Map.Nodes.Count.Should().Be(3);
-        testClient.Map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Be(3);
+        testClient.Map.Edges.Count.Be(1);
 
         string q2 = """
             add edge from=node2, to=node3, type=default;
@@ -31,13 +31,13 @@ public class GraphTrxEdgeTests
 
         (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
         {
-            x.Value.Items.Count.Should().Be(2);
+            x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
-        testClient.Map.Nodes.Count.Should().Be(3);
-        testClient.Map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Be(3);
+        testClient.Map.Edges.Count.Be(1);
     }
 
     [Fact]
@@ -53,10 +53,10 @@ public class GraphTrxEdgeTests
             add edge from=node2, to=node3, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().BeTrue();
 
-        testClient.Map.Nodes.Count.Should().Be(3);
-        testClient.Map.Edges.Count.Should().Be(2);
+        testClient.Map.Nodes.Count.Be(3);
+        testClient.Map.Edges.Count.Be(2);
 
         string q2 = """
             set edge from=node2, to=node3, type=default set t1;
@@ -65,13 +65,13 @@ public class GraphTrxEdgeTests
 
         (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
         {
-            x.Value.Items.Count.Should().Be(2);
+            x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
-        testClient.Map.Nodes.Count.Should().Be(3);
-        testClient.Map.Edges.Count.Should().Be(2);
+        testClient.Map.Nodes.Count.Be(3);
+        testClient.Map.Edges.Count.Be(2);
     }
 
     [Fact]
@@ -88,10 +88,10 @@ public class GraphTrxEdgeTests
             add edge from=node2, to=node3, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().BeTrue();
 
-        testClient.Map.Nodes.Count.Should().Be(3);
-        testClient.Map.Edges.Count.Should().Be(2);
+        testClient.Map.Nodes.Count.Be(3);
+        testClient.Map.Edges.Count.Be(2);
 
         string q2 = """
             delete edge from=node2, to=node3, type=default;
@@ -100,18 +100,18 @@ public class GraphTrxEdgeTests
 
         (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
         {
-            x.Value.Items.Count.Should().Be(2);
+            x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
 
-        testClient.Map.Nodes.Count.Should().Be(3);
-        testClient.Map.Edges.Count.Should().Be(2);
+        testClient.Map.Nodes.Count.Be(3);
+        testClient.Map.Edges.Count.Be(2);
     }
 
     private void TestReturn(QueryResult graphResult, StatusCode statusCode)
     {
-        graphResult.Option.StatusCode.Should().Be(statusCode, graphResult.Option.ToString());
+        graphResult.Option.StatusCode.Be(statusCode, graphResult.Option.ToString());
     }
 }

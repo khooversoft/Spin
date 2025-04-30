@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions.test.Tools;
@@ -19,6 +19,6 @@ internal class IdentityTestTool
         };
 
         var result = await client.Set(user, context);
-        result.IsOk().Should().BeTrue(result.ToString());
+        result.IsOk().BeTrue(result.ToString());
     }
 }

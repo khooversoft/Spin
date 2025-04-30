@@ -2,7 +2,6 @@
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
 
         string schema = GraphLanguageTool.ReadGraphLanguageRules();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -32,11 +31,11 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     public void SelectAllNodesToEdgesLeftJoin()
     {
         var parse = _parser.Parse("select (*) -> [*] ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -63,18 +62,18 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SelectAllNodesToEdgesRightJoin()
     {
         var parse = _parser.Parse("select (*) <- [*] ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -101,18 +100,18 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SelectAllNodesToEdgesToNodesLeftJoin()
     {
         var parse = _parser.Parse("select (*) -> [*] -> (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -147,18 +146,18 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SelectAllNodesToEdgesToNodesRightJoin()
     {
         var parse = _parser.Parse("select (*) <- [*] <- (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -193,18 +192,18 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SelectFullNodesToEdgesToNodes()
     {
         var parse = _parser.Parse("select (*) <-> [*] <-> (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -239,18 +238,18 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SelectFullAndRightNodesToEdgesToNodes()
     {
         var parse = _parser.Parse("select (*) <-> [*] <- (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -285,29 +284,29 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SelectAllIncorrectJoinsShouldFailAnalysis()
     {
         var parse = _parser.Parse("select (*) -> (*) -> (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsError().Should().BeTrue(instructions.Error);
+        instructions.IsError().BeTrue(instructions.Error);
     }
 
     [Fact]
     public void SelectRelationship()
     {
         var parse = _parser.Parse("select (key=userEmail:user.com, indexer) <-> [userProfile] -> (*) return data, entity, player ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -347,6 +346,6 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 }

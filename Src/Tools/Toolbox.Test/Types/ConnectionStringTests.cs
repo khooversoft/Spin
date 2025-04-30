@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -37,18 +36,18 @@ public class ConnectionStringTests
     public void IsSetValid(string? key, bool expected)
     {
         var result = PropertyStringSchema.ConnectionString.Parse(key);
-        result.IsOk().Should().Be(expected);
+        result.IsOk().Be(expected);
     }
 
     [Fact]
     public void SingleKey()
     {
         var resultOption = PropertyStringSchema.ConnectionString.Parse("key1");
-        resultOption.IsOk().Should().BeTrue();
+        resultOption.IsOk().BeTrue();
 
         var result = resultOption.Return();
-        result.Count.Should().Be(1);
-        result[0].Key.Should().Be("key1");
+        result.Count.Be(1);
+        result[0].Key.Be("key1");
         result[0].Value.BeNull();
     }
 
@@ -56,50 +55,50 @@ public class ConnectionStringTests
     public void KeyValue()
     {
         var resultOption = PropertyStringSchema.ConnectionString.Parse("key1=value1");
-        resultOption.IsOk().Should().BeTrue();
+        resultOption.IsOk().BeTrue();
 
         var result = resultOption.Return();
-        result.Count.Should().Be(1);
-        result[0].Key.Should().Be("key1");
-        result[0].Value.Should().Be("value1");
+        result.Count.Be(1);
+        result[0].Key.Be("key1");
+        result[0].Value.Be("value1");
     }
 
     [Fact]
     public void JournalConnection()
     {
         var resultOption = PropertyStringSchema.ConnectionString.Parse("journal1=/journal1/data");
-        resultOption.IsOk().Should().BeTrue();
+        resultOption.IsOk().BeTrue();
 
         var result = resultOption.Return();
-        result.Count.Should().Be(1);
-        result[0].Key.Should().Be("journal1");
-        result[0].Value.Should().Be("/journal1/data");
+        result.Count.Be(1);
+        result[0].Key.Be("journal1");
+        result[0].Value.Be("/journal1/data");
     }
 
     [Fact]
     public void KeysAndValues()
     {
         var resultOption = PropertyStringSchema.ConnectionString.Parse("key=node1; t1; t2=v2; unique:logonProvider={LoginProvider}/{ProviderKey}");
-        resultOption.IsOk().Should().BeTrue(resultOption.ToString());
+        resultOption.IsOk().BeTrue(resultOption.ToString());
 
         var result = resultOption.Return();
-        result.Count.Should().Be(4);
+        result.Count.Be(4);
         var cursor = result.ToCursor();
 
-        cursor.MoveNext().Should().BeTrue();
-        cursor.Current.Key.Should().Be("key");
-        cursor.Current.Value.Should().Be("node1");
+        cursor.MoveNext().BeTrue();
+        cursor.Current.Key.Be("key");
+        cursor.Current.Value.Be("node1");
 
-        cursor.MoveNext().Should().BeTrue();
-        cursor.Current.Key.Should().Be("t1");
+        cursor.MoveNext().BeTrue();
+        cursor.Current.Key.Be("t1");
         cursor.Current.Value.BeNull();
 
-        cursor.MoveNext().Should().BeTrue();
-        cursor.Current.Key.Should().Be("t2");
-        cursor.Current.Value.Should().Be("v2");
+        cursor.MoveNext().BeTrue();
+        cursor.Current.Key.Be("t2");
+        cursor.Current.Value.Be("v2");
 
-        cursor.MoveNext().Should().BeTrue();
-        cursor.Current.Key.Should().Be("unique:logonProvider");
-        cursor.Current.Value.Should().Be("{LoginProvider}/{ProviderKey}");
+        cursor.MoveNext().BeTrue();
+        cursor.Current.Key.Be("unique:logonProvider");
+        cursor.Current.Value.Be("{LoginProvider}/{ProviderKey}");
     }
 }

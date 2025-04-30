@@ -1,7 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Journal;
 
@@ -15,7 +14,7 @@ public class JournalEntryTest
         var json = subject.ToJson();
         var s2 = json.ToObject<JournalEntry>();
         s2.NotNull();
-        (subject == s2).Should().BeTrue();
+        (subject == s2).BeTrue();
     }
 
     [Fact]

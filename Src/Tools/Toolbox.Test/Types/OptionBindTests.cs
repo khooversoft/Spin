@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -15,7 +15,7 @@ public class OptionBindTests
             .Bind(x => x + 20)
             .Return();
 
-        value.Should().Be(35);
+        value.Be(35);
 
         var value1 = 10.ToOption()
             .Bind(x => x + 10)
@@ -25,7 +25,7 @@ public class OptionBindTests
             var v => v.Return(),
         };
 
-        value1.Should().Be(40);
+        value1.Be(40);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class OptionBindTests
             var v => v.Return(),
         };
 
-        value.Should().Be(-1);
+        value.Be(-1);
 
         var value1 = 5.ToOption()
             .Bind(x => x + 10)
@@ -51,34 +51,34 @@ public class OptionBindTests
             var v => v.Return(),
         };
 
-        value.Should().Be(-1);
+        value.Be(-1);
     }
 
     [Fact]
     public void BindWithErrors()
     {
         Option<string> option1 = new Option<string>("hello").Bind(x => "that works");
-        option1.IsOk().Should().BeTrue();
-        option1.Return().Should().Be("that works");
+        option1.IsOk().BeTrue();
+        option1.Return().Be("that works");
 
         Option<string> option2 = new Option<string>(StatusCode.BadRequest).Bind(x => "that works");
-        option2.IsError().Should().BeTrue();
-        option2.StatusCode.Should().Be(StatusCode.BadRequest);
-        option2.Value.Should().BeEmpty();
+        option2.IsError().BeTrue();
+        option2.StatusCode.Be(StatusCode.BadRequest);
+        option2.Value.BeEmpty();
 
         Option<string> option3 = "hello".ToOption()
             .Bind(x => x + ":suffix")
             .Bind(x => x + ":suffix2")
             .Bind(x => new Option<string>(StatusCode.Forbidden));
 
-        option3.IsOk().Should().BeFalse();
-        option3.StatusCode.Should().Be(StatusCode.Forbidden);
-        option3.Value.Should().BeEmpty();
+        option3.IsOk().BeFalse();
+        option3.StatusCode.Be(StatusCode.Forbidden);
+        option3.Value.BeEmpty();
 
         Option<string> option4 = new Option<string>(StatusCode.OK).Bind(x => "that works");
-        option4.IsError().Should().BeFalse();
-        option4.StatusCode.Should().Be(StatusCode.OK);
-        option4.Value.Should().BeEmpty();
+        option4.IsError().BeFalse();
+        option4.StatusCode.Be(StatusCode.OK);
+        option4.Value.BeEmpty();
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class OptionBindTests
             .BindAsync<int, int>(async x => await add20(x))
             .Return();
 
-        value.Should().Be(55);
+        value.Be(55);
 
         Task<int> add20(int value) => (value + 20).ToTaskResult();
     }

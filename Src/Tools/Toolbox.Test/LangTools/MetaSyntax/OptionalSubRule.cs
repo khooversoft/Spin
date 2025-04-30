@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -27,13 +27,13 @@ public class OptionalSubRule : TestBase
         }.Join(Environment.NewLine);
 
         var schema = MetaParser.ParseRules(schemaText);
-        schema.StatusCode.IsOk().Should().BeTrue(schema.Error);
+        schema.StatusCode.IsOk().BeTrue(schema.Error);
 
         var parser = new SyntaxParser(schema);
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("sym", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -52,7 +52,7 @@ public class OptionalSubRule : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -62,6 +62,6 @@ public class OptionalSubRule : TestBase
             new SyntaxPair { Token = new TokenValue("sym"), MetaSyntaxName = "symbol" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 }

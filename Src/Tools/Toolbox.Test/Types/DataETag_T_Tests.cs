@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -28,7 +27,7 @@ public class DataETag_T_Tests
         var e = new DataETag<TestData>(td);
         e.NotNull();
         e.Value.Assert(x => x == td);
-        e.ETag.Should().BeEmpty();
+        e.ETag.BeEmpty();
     }
 
     [Fact]
@@ -39,7 +38,7 @@ public class DataETag_T_Tests
         var e = new DataETag<TestData>(td, eTag);
         e.NotNull();
         e.Value.Assert(x => x == td);
-        e.ETag.Should().Be(eTag);
+        e.ETag.Be(eTag);
     }
 
     [Fact]
@@ -53,7 +52,7 @@ public class DataETag_T_Tests
         DataETag<TestData> result = json.ToObject<DataETag<TestData>>().NotNull();
         result.NotNull();
         result.Value.Assert(x => x == e.Value);
-        result.ETag.Should().Be(e.ETag);
+        result.ETag.Be(e.ETag);
     }
 
     private record TestData(string Name, int Age);

@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions.test.Channel;
@@ -37,13 +36,13 @@ public class ChannelRecordTests
             }
         };
 
-        r1.Validate().IsOk().Should().BeTrue();
+        r1.Validate().IsOk().BeTrue();
 
         var json = r1.ToJson();
         json.NotEmpty();
 
         var r2 = json.ToObject<ChannelRecord>();
 
-        (r1 == r2).Should().BeTrue();
+        (r1 == r2).BeTrue();
     }
 }

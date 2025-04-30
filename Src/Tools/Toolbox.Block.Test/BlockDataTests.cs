@@ -2,7 +2,6 @@
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Block.Test
@@ -45,19 +44,19 @@ namespace Toolbox.Block.Test
             DataBlock received = Json.Default.Deserialize<DataBlock>(json).NotNull(name: "Json is null");
             await received.ValidateDigest(principleSignature, _context);
 
-            received.BlockType.Should().Be("blockType");
-            received.ClassType.Should().Be("blockClass");
-            received.BlockId.Should().Be("blockId");
-            received.Data.Should().Be(payloadJson);
-            received.JwtSignature.Should().Be(data.JwtSignature);
-            received.Digest.Should().Be(received.CalculateDigest());
+            received.BlockType.Be("blockType");
+            received.ClassType.Be("blockClass");
+            received.BlockId.Be("blockId");
+            received.Data.Be(payloadJson);
+            received.JwtSignature.Be(data.JwtSignature);
+            received.Digest.Be(received.CalculateDigest());
 
             Dictionary<string, string>? readData = Json.Default.Deserialize<Dictionary<string, string>>(data.Data)!;
 
-            readData["name"].Should().Be(dataPayload.Name);
-            readData["type"].Should().Be(dataPayload.Type);
-            readData["author"].Should().Be(dataPayload.Author);
-            readData["data"].Should().Be(dataPayload.Data);
+            readData["name"].Be(dataPayload.Name);
+            readData["type"].Be(dataPayload.Type);
+            readData["author"].Be(dataPayload.Author);
+            readData["data"].Be(dataPayload.Data);
         }
 
         [Fact]
@@ -102,13 +101,13 @@ namespace Toolbox.Block.Test
                 .Sign(principleSignature, _context)
                 .Return();
 
-            data1.BlockType.Should().Be(data2.BlockType);
-            data1.ClassType.Should().Be(data2.ClassType);
-            data1.Data.Should().Be(data2.Data);
-            //data1.JwtSignature.Should().Be(data2.JwtSignature);
-            data1.Digest.Should().Be(data2.Digest);
+            data1.BlockType.Be(data2.BlockType);
+            data1.ClassType.Be(data2.ClassType);
+            data1.Data.Be(data2.Data);
+            //data1.JwtSignature.Be(data2.JwtSignature);
+            data1.Digest.Be(data2.Digest);
 
-            //(data1 == data2).Should().BeTrue();
+            //(data1 == data2).BeTrue();
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -29,16 +29,16 @@ public class DeleteInstructionTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.Execute("delete (*) ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Nodes.Count.Should().Be(7);
-        result.Edges.Count.Should().Be(0);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Nodes.Count.Be(7);
+        result.Edges.Count.Be(0);
+        result.DataLinks.Count.Be(0);
 
-        testClient.Map.Nodes.Count.Should().Be(0);
-        testClient.Map.Edges.Count.Should().Be(0);
+        testClient.Map.Nodes.Count.Be(0);
+        testClient.Map.Edges.Count.Be(0);
     }
 
     [Fact]
@@ -47,16 +47,16 @@ public class DeleteInstructionTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.Execute("delete [*] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Nodes.Count.Should().Be(0);
-        result.Edges.Count.Should().Be(5);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Nodes.Count.Be(0);
+        result.Edges.Count.Be(5);
+        result.DataLinks.Count.Be(0);
 
-        testClient.Map.Nodes.Count.Should().Be(7);
-        testClient.Map.Edges.Count.Should().Be(0);
+        testClient.Map.Nodes.Count.Be(7);
+        testClient.Map.Edges.Count.Be(0);
     }
 
     [Fact]
@@ -65,26 +65,26 @@ public class DeleteInstructionTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.Execute("delete (key=node2) a1 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().Be("a1");
-        result.Nodes.Count.Should().Be(1);
-        result.Edges.Count.Should().Be(0);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.Be("a1");
+        result.Nodes.Count.Be(1);
+        result.Edges.Count.Be(0);
+        result.DataLinks.Count.Be(0);
 
         var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
-        compareMap.Count.Should().Be(2);
+        compareMap.Count.Be(2);
         compareMap.OfType<GraphNode>().Single().Action(x =>
         {
-            x.Key.Should().Be("node2");
+            x.Key.Be("node2");
         });
         compareMap.OfType<GraphEdge>().Single().Action(x =>
         {
-            x.FromKey.Should().Be("node1");
-            x.ToKey.Should().Be("node2");
+            x.FromKey.Be("node1");
+            x.ToKey.Be("node2");
         });
     }
 
@@ -94,21 +94,21 @@ public class DeleteInstructionTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.Execute("delete (key=node6) -> [*] ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Nodes.Count.Should().Be(0);
-        result.Edges.Count.Should().Be(1);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Nodes.Count.Be(0);
+        result.Edges.Count.Be(1);
+        result.DataLinks.Count.Be(0);
 
         var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap.OfType<GraphEdge>().Single().Action(x =>
         {
-            x.FromKey.Should().Be("node6");
-            x.ToKey.Should().Be("node3");
+            x.FromKey.Be("node6");
+            x.ToKey.Be("node3");
         });
     }
 
@@ -118,20 +118,20 @@ public class DeleteInstructionTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.Execute("delete (key=node6) -> [*] -> (*) ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Nodes.Count.Should().Be(1);
-        result.Edges.Count.Should().Be(0);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Nodes.Count.Be(1);
+        result.Edges.Count.Be(0);
+        result.DataLinks.Count.Be(0);
 
         var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
-        compareMap.Count.Should().Be(4);
+        compareMap.Count.Be(4);
         compareMap.OfType<GraphNode>().Single().Action(x =>
         {
-            x.Key.Should().Be("node3");
+            x.Key.Be("node3");
         });
 
         var expect = new (string from, string to)[]
@@ -145,6 +145,6 @@ public class DeleteInstructionTests
             .Select(x => (x.FromKey, x.ToKey))
             .OrderBy(x => x);
 
-        Enumerable.SequenceEqual(expect, resultList).Should().BeTrue();
+        Enumerable.SequenceEqual(expect, resultList).BeTrue();
     }
 }

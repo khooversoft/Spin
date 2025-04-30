@@ -22,21 +22,21 @@
 //    {
 //        var ins = new LsOption() + (new LsRoot() + new LsToken("=", "equal")) + (new LsRoot() + new LsToken("+", "plus"));
 //        LangResult tree = ins.Parse("=");
-//        tree.StatusCode.IsOk().Should().BeTrue(tree.StatusCode.ToString());
+//        tree.StatusCode.IsOk().BeTrue(tree.StatusCode.ToString());
 
 //        LangNodes nodes = tree.LangNodes.NotNull();
-//        nodes.Children.Count.Should().Be(1);
-//        nodes.Children[0].SyntaxNode.Name.Should().Be("equal");
+//        nodes.Children.Count.Be(1);
+//        nodes.Children[0].SyntaxNode.Name.Be("equal");
 
 //        tree = ins.Parse("+");
-//        tree.StatusCode.IsOk().Should().BeTrue();
+//        tree.StatusCode.IsOk().BeTrue();
 
 //        nodes = tree.LangNodes.NotNull();
-//        nodes.Children.Count.Should().Be(1);
-//        nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
+//        nodes.Children.Count.Be(1);
+//        nodes.Children[0].SyntaxNode.Name.Be("plus");
 
 //        tree = ins.Parse("*");
-//        tree.StatusCode.IsError().Should().BeTrue(tree.StatusCode.ToString());
+//        tree.StatusCode.IsError().BeTrue(tree.StatusCode.ToString());
 //    }
 
 //    [Fact]
@@ -47,24 +47,24 @@
 //            + new LsValue("catch", true);
 
 //        LangResult tree = ins.Parse("=");
-//        tree.StatusCode.IsOk().Should().BeTrue();
+//        tree.StatusCode.IsOk().BeTrue();
 
 //        LangNodes nodes = tree.LangNodes.NotNull();
-//        nodes.Children.Count.Should().Be(1);
-//        nodes.Children[0].SyntaxNode.Name.Should().Be("equal");
+//        nodes.Children.Count.Be(1);
+//        nodes.Children[0].SyntaxNode.Name.Be("equal");
 
 //        tree = ins.Parse("+");
-//        tree.StatusCode.IsOk().Should().BeTrue();
+//        tree.StatusCode.IsOk().BeTrue();
 
 //        nodes = tree.LangNodes.NotNull();
-//        nodes.Children.Count.Should().Be(1);
-//        nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
+//        nodes.Children.Count.Be(1);
+//        nodes.Children[0].SyntaxNode.Name.Be("plus");
 
 //        tree = ins.Parse("*");
-//        tree.StatusCode.IsOk().Should().BeTrue(tree.StatusCode.ToString());
+//        tree.StatusCode.IsOk().BeTrue(tree.StatusCode.ToString());
 //        nodes = tree.LangNodes.NotNull();
-//        nodes.Children.Count.Should().Be(1);
-//        nodes.Children[0].SyntaxNode.Name.Should().Be("catch");
+//        nodes.Children.Count.Be(1);
+//        nodes.Children[0].SyntaxNode.Name.Be("catch");
 //    }
 
 //    [Fact]

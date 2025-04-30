@@ -2,7 +2,6 @@
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -43,14 +42,14 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
     public void FailedReturn(string command)
     {
         var parse = _parser.Parse(command, _context);
-        parse.Status.IsError().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void MinAddCommand()
     {
         var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -73,14 +72,14 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
     public void AddWithSetTagCommand()
     {
         var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label set t1;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -105,14 +104,14 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
     public void AddWithSetMultipleTagCommand()
     {
         var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label set t1, t2=v3, t3;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -143,6 +142,6 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 }

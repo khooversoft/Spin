@@ -2,7 +2,6 @@
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -31,7 +30,7 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
     public void SelectAllNodesCommand()
     {
         var parse = _parser.Parse("select (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -45,14 +44,14 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
     public void SelectAllNodesAndReturnDataCommand()
     {
         var parse = _parser.Parse("select (*) return data, entity ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -70,14 +69,14 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
     public void SelectNodeAndReturnDataCommand()
     {
         var parse = _parser.Parse("select (key=k1, t2) a1 return data, entity ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -100,14 +99,14 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
     public void SelectNodeByTypeCommand()
     {
         var parse = _parser.Parse("select (label) a1 ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -122,6 +121,6 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Security;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Block.Test;
@@ -40,8 +40,8 @@ public class BlockChainSignAccessTests
             .Return();
 
         Option status = blockChain.Add(data);
-        status.StatusCode.IsOk().Should().BeTrue();
-        blockChain.Count.Should().Be(3);
+        status.StatusCode.IsOk().BeTrue();
+        blockChain.Count.Be(3);
     }
 
     [Fact]
@@ -88,8 +88,8 @@ public class BlockChainSignAccessTests
             .Return();
 
         Option status = blockChain.Add(data2);
-        status.StatusCode.IsOk().Should().BeTrue();
-        blockChain.Count.Should().Be(3);
+        status.StatusCode.IsOk().BeTrue();
+        blockChain.Count.Be(3);
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class BlockChainSignAccessTests
             .Return();
 
         Option status = blockChain.Add(data);
-        status.StatusCode.IsOk().Should().BeFalse();
+        status.StatusCode.IsOk().BeFalse();
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class BlockChainSignAccessTests
             .Return();
 
         Option status = blockChain.Add(data);
-        status.StatusCode.IsOk().Should().BeTrue();
+        status.StatusCode.IsOk().BeTrue();
 
         var p2 = new Payload2
         {
@@ -173,8 +173,8 @@ public class BlockChainSignAccessTests
             .Return();
 
         Option status2 = blockChain.Add(data2);
-        status2.StatusCode.IsOk().Should().BeFalse();
-        blockChain.Count.Should().Be(2);
+        status2.StatusCode.IsOk().BeFalse();
+        blockChain.Count.Be(2);
     }
 
     private record Payload1

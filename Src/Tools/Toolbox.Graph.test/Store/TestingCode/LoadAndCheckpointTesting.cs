@@ -4,7 +4,6 @@ using Toolbox.Graph;
 using Toolbox.Graph.test.Command;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Store.TestingCode;
@@ -19,12 +18,12 @@ internal static class LoadAndCheckpointTesting
 
         (await fileStore.File(GraphConstants.MapDatabasePath).Get(context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
 
             GraphSerialization readRec = x.Return().ToObject<GraphSerialization>();
             readRec.NotNull();
-            readRec.Nodes.Count.Should().Be(0);
-            readRec.Edges.Count.Should().Be(0);
+            readRec.Nodes.Count.Be(0);
+            readRec.Edges.Count.Be(0);
         });
     }
 
@@ -40,16 +39,16 @@ internal static class LoadAndCheckpointTesting
 
         var cmd = seq.Join(Environment.NewLine);
         var eResult = await testClient.ExecuteBatch(cmd, context);
-        eResult.IsOk().Should().BeTrue(eResult.ToString());
+        eResult.IsOk().BeTrue(eResult.ToString());
 
         (await fileStore.File(GraphConstants.MapDatabasePath).Get(context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue(x.ToString());
+            x.IsOk().BeTrue(x.ToString());
 
             GraphSerialization readRec = x.Return().ToObject<GraphSerialization>();
             readRec.NotNull();
-            readRec.Nodes.Count.Should().Be(count);
-            readRec.Edges.Count.Should().Be(count - 1);
+            readRec.Nodes.Count.Be(count);
+            readRec.Edges.Count.Be(count - 1);
 
             var expectedMap = new GraphMap();
             Enumerable.Range(0, count).ForEach(x => expectedMap.Add(new GraphNode($"node-{x}")));
@@ -58,7 +57,7 @@ internal static class LoadAndCheckpointTesting
             GraphMap readMap = readRec.FromSerialization();
             var compareMap = GraphCommandTools.CompareMap(expectedMap, readMap, true);
 
-            compareMap.Count.Should().Be(0);
+            compareMap.Count.Be(0);
         });
     }
 
@@ -73,11 +72,11 @@ internal static class LoadAndCheckpointTesting
         Enumerable.Range(0, count - 1).ForEach(x => expectedMap.Add(new GraphEdge($"node-{x}", $"node-{x + 1}", "et")));
 
         string dbJson = expectedMap.ToSerialization().ToJson();
-        (await fileStore.File(GraphConstants.MapDatabasePath).Set(dbJson.ToDataETag(), context)).IsOk().Should().BeTrue();
+        (await fileStore.File(GraphConstants.MapDatabasePath).Set(dbJson.ToDataETag(), context)).IsOk().BeTrue();
 
-        (await host.InitializeDatabase(context)).IsOk().Should().BeTrue();
+        (await host.InitializeDatabase(context)).IsOk().BeTrue();
 
         var compareMap = GraphCommandTools.CompareMap(expectedMap, testClient.Map, true);
-        compareMap.Count.Should().Be(0);
+        compareMap.Count.Be(0);
     }
 }

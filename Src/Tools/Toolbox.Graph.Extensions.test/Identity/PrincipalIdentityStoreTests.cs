@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -38,31 +37,31 @@ public class PrincipalIdentityStoreTests
             ProviderDisplayName = "testProvider",
         };
 
-        user.Validate().IsOk().Should().BeTrue();
+        user.Validate().IsOk().BeTrue();
 
         await TestTool.CreateAndVerify(user, graphTestClient, context);
-        graphTestClient.Map.Nodes.Count.Should().Be(1);
+        graphTestClient.Map.Nodes.Count.Be(1);
         graphTestClient.Map.Nodes.First().Action(x =>
         {
-            x.Key.Should().Be("user:username1@company.com");
-            x.TagsString.Should().Be("email=username1@domain1.com,loginProvider=loginprovider/loginprovider.key1,principalIdentity,userName=username1");
+            x.Key.Be("user:username1@company.com");
+            x.TagsString.Be("email=username1@domain1.com,loginProvider=loginprovider/loginprovider.key1,principalIdentity,userName=username1");
         });
 
-        graphTestClient.Map.Edges.Count.Should().Be(0);
+        graphTestClient.Map.Edges.Count.Be(0);
 
         var deleteResult = await identityClient.Delete(userId, context);
-        deleteResult.IsOk().Should().BeTrue();
-        graphTestClient.Map.Nodes.Count.Should().Be(0);
-        graphTestClient.Map.Edges.Count.Should().Be(0);
+        deleteResult.IsOk().BeTrue();
+        graphTestClient.Map.Nodes.Count.Be(0);
+        graphTestClient.Map.Edges.Count.Be(0);
 
         var selectCmd = new SelectCommandBuilder().AddNodeSearch(x => x.SetNodeKey(userId)).Build();
 
         var deleteOption = await graphTestClient.Execute(selectCmd, context);
-        deleteOption.IsOk().Should().BeTrue();
+        deleteOption.IsOk().BeTrue();
         deleteOption.Return().Action(x =>
         {
-            x.Nodes.Count.Should().Be(0);
-            x.Edges.Count.Should().Be(0);
+            x.Nodes.Count.Be(0);
+            x.Edges.Count.Be(0);
         });
     }
 
@@ -86,25 +85,25 @@ public class PrincipalIdentityStoreTests
             NormalizedUserName = userName.ToLower(),
         };
 
-        user.Validate().IsOk().Should().BeTrue();
+        user.Validate().IsOk().BeTrue();
 
         await TestTool.CreateAndVerify(user, graphTestClient, context);
-        graphTestClient.Map.Nodes.Count.Should().Be(1);
-        graphTestClient.Map.Edges.Count.Should().Be(0);
+        graphTestClient.Map.Nodes.Count.Be(1);
+        graphTestClient.Map.Edges.Count.Be(0);
 
         var deleteResult = await identityClient.Delete(userId, context);
-        deleteResult.IsOk().Should().BeTrue();
-        graphTestClient.Map.Nodes.Count.Should().Be(0);
-        graphTestClient.Map.Edges.Count.Should().Be(0);
+        deleteResult.IsOk().BeTrue();
+        graphTestClient.Map.Nodes.Count.Be(0);
+        graphTestClient.Map.Edges.Count.Be(0);
 
         var selectCmd = new SelectCommandBuilder().AddNodeSearch(x => x.SetNodeKey(userId)).Build();
 
         var deleteOption = await graphTestClient.Execute(selectCmd, context);
-        deleteOption.IsOk().Should().BeTrue();
+        deleteOption.IsOk().BeTrue();
         deleteOption.Return().Action(x =>
         {
-            x.Nodes.Count.Should().Be(0);
-            x.Edges.Count.Should().Be(0);
+            x.Nodes.Count.Be(0);
+            x.Edges.Count.Be(0);
         });
     }
 }

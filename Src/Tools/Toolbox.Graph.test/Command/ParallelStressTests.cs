@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -16,8 +15,8 @@ public class ParallelStressTests
         await ActionParallel.Run(x => AddNodes(testClient, x), Enumerable.Range(0, count), 5);
         await ActionParallel.Run(x => AddEdges(testClient, x), Enumerable.Range(0, count - 1), 5);
 
-        testClient.Map.Nodes.Count.Should().Be(count);
-        testClient.Map.Edges.Count.Should().Be(count - 1);
+        testClient.Map.Nodes.Count.Be(count);
+        testClient.Map.Edges.Count.Be(count - 1);
     }
 
     private async Task AddNodes(GraphHostService testClient, int index)
@@ -27,7 +26,7 @@ public class ParallelStressTests
 
         string cmd = $"set node key={key} set {tags};";
         var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
-        option.IsOk().Should().BeTrue();
+        option.IsOk().BeTrue();
     }
 
     private async Task<Option> AddEdges(GraphHostService testClient, int index)
@@ -38,7 +37,7 @@ public class ParallelStressTests
 
         string cmd = $"set edge from={fromKey}, to={toKey}, type=et set {tags};";
         var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
-        option.IsOk().Should().BeTrue();
+        option.IsOk().BeTrue();
         return option.ToOptionStatus();
     }
 
@@ -61,7 +60,7 @@ public class ParallelStressTests
 
     //    string command = cmds.Join();
     //    var option = await testClient.ExecuteBatch(command, NullScopeContext.Default);
-    //    option.IsOk().Should().BeTrue();
+    //    option.IsOk().BeTrue();
     //    return option.ToOptionStatus();
     //}
 }

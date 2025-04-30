@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Extensions;
 
@@ -17,7 +17,7 @@ public class StringExtensionsTests
     public void TestRemoveTrailing(string? subject, char ch, string? expected)
     {
         string? result = subject.RemoveTrailing(ch);
-        result.Should().Be(expected);
+        result.Be(expected);
     }
 
     [Theory]
@@ -34,6 +34,6 @@ public class StringExtensionsTests
     public void TestWildcardTest(string? input, string? pattern, bool expected)
     {
         bool result = input.Like(pattern);
-        result.Should().Be(expected);
+        result.Be(expected);
     }
 }

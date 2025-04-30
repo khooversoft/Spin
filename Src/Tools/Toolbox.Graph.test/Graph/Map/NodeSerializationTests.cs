@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
@@ -12,10 +11,10 @@ public class NodeSerializationTests
         var v = new GraphNode("Node1", "t1=v");
 
         string json = v.ToJson();
-        json.Should().NotBeEmpty();
+        json.NotEmpty();
 
         var v2 = json.ToObject<GraphNode>();
-        (v == v2).Should().BeTrue();
+        (v == v2).BeTrue();
     }
 
     [Fact]
@@ -27,7 +26,7 @@ public class NodeSerializationTests
 
         var graphNode = json.ToObject<GraphNode>();
         graphNode.NotNull();
-        graphNode!.Key.Should().Be("node1");
+        graphNode!.Key.Be("node1");
         graphNode.Tags.NotNull();
     }
 
@@ -40,11 +39,11 @@ public class NodeSerializationTests
 
         var graphNode = json.ToObject<GraphNode>();
         graphNode.NotNull();
-        graphNode!.Key.Should().Be("node1");
+        graphNode!.Key.Be("node1");
         graphNode.Tags.NotNull();
-        graphNode.Tags.Count.Should().Be(2);
+        graphNode.Tags.Count.Be(2);
         graphNode.Tags["t1"].BeNull();
-        graphNode.Tags["t2"].Should().Be("v2");
+        graphNode.Tags["t2"].Be("v2");
     }
 
     [Fact]
@@ -56,12 +55,12 @@ public class NodeSerializationTests
 
         var graphNode = json.ToObject<GraphNode>();
         graphNode.NotNull();
-        graphNode!.Key.Should().Be("node1");
+        graphNode!.Key.Be("node1");
         graphNode.Tags.NotNull();
-        graphNode.Tags.Count.Should().Be(0);
-        graphNode.Indexes.Count.Should().Be(2);
-        graphNode.Indexes.Contains("i1").Should().BeTrue();
-        graphNode.Indexes.Contains("t2").Should().BeTrue();
+        graphNode.Tags.Count.Be(0);
+        graphNode.Indexes.Count.Be(2);
+        graphNode.Indexes.Contains("i1").BeTrue();
+        graphNode.Indexes.Contains("t2").BeTrue();
     }
 
     [Fact]
@@ -73,16 +72,16 @@ public class NodeSerializationTests
 
         var graphNode = json.ToObject<GraphNode>();
         graphNode.NotNull();
-        graphNode!.Key.Should().Be("node1");
+        graphNode!.Key.Be("node1");
 
         graphNode.Tags.NotNull();
-        graphNode.Tags.Count.Should().Be(2);
-        graphNode.Tags["t1"].Should().Be(null);
-        graphNode.Tags["t2"].Should().Be("v2");
+        graphNode.Tags.Count.Be(2);
+        graphNode.Tags["t1"].Be(null);
+        graphNode.Tags["t2"].Be("v2");
 
         graphNode.Indexes.NotNull();
-        graphNode.Indexes.Count.Should().Be(2);
-        graphNode.Indexes.Contains("i1").Should().BeTrue();
-        graphNode.Indexes.Contains("i2").Should().BeTrue();
+        graphNode.Indexes.Count.Be(2);
+        graphNode.Indexes.Contains("i1").BeTrue();
+        graphNode.Indexes.Contains("i2").BeTrue();
     }
 }

@@ -1,8 +1,8 @@
 ﻿using Toolbox.Tools;
 
-namespace Toolbox.Test.Validation.Should2;
+namespace Toolbox.Test.Validation.ScalarValidationTests;
 
-public class ShouldLongTests
+public class VerifyLongTests
 {
     [Fact]
     public void Be()

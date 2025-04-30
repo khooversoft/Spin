@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Azure.test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -19,6 +19,6 @@ public class SendEmailTest
 
         var toEmail = ("khoover", "kelvin.hoover@hotmail.com");
         var result = await emailSender.WriteHtml([toEmail], "Please join", "goto <a href=\"https://ticket-share.com\">Ticket Share</a>", context);
-        result.IsOk().Should().BeTrue();
+        result.IsOk().BeTrue();
     }
 }

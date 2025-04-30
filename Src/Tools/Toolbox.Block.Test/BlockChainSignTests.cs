@@ -4,7 +4,6 @@ using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Security;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Block.Test
@@ -27,9 +26,9 @@ namespace Toolbox.Block.Test
                 .Return();
 
             Option result = await blockChain.ValidateBlockChain(principleSignature, _context);
-            result.StatusCode.IsOk().Should().BeTrue();
+            result.StatusCode.IsOk().BeTrue();
 
-            blockChain.GetDigest().Should().NotBeEmpty();
+            blockChain.GetDigest().NotEmpty();
         }
 
         [Fact]
@@ -69,13 +68,13 @@ namespace Toolbox.Block.Test
             blockChain.Add(data);
 
             Option result = await blockChain.ValidateBlockChain(principleSignature, _context);
-            result.StatusCode.IsOk().Should().BeTrue();
+            result.StatusCode.IsOk().BeTrue();
 
             // Get payload of data block
-            blockChain.Count.Should().Be(2);
+            blockChain.Count.Be(2);
 
             var blocksOption = blockChain.Filter(issuer);
-            blocksOption.IsOk().Should().BeTrue();
+            blocksOption.IsOk().BeTrue();
             IReadOnlyList<DataBlock> blocks = blocksOption.Return().ToArray();
 
             DataBlock genesis = blocks[0];
@@ -85,22 +84,22 @@ namespace Toolbox.Block.Test
                 OwnerPrincipalId = issuer,
             };
 
-            genesis.BlockType.Should().Be(genesisBlock.Type);
-            genesis.ClassType.Should().Be(typeof(GenesisBlock).GetTypeName());
-            genesis.Data.Should().Be(genesisBlock.ToJson());
-            genesis.PrincipleId.Should().Be(issuer);
+            genesis.BlockType.Be(genesisBlock.Type);
+            genesis.ClassType.Be(typeof(GenesisBlock).GetTypeName());
+            genesis.Data.Be(genesisBlock.ToJson());
+            genesis.PrincipleId.Be(issuer);
 
             DataBlock receiveBlock = blocks[1];
-            receiveBlock.BlockType.Should().Be("blockType");
-            receiveBlock.ClassType.Should().Be("blockClass");
-            receiveBlock.Data.Should().NotBeEmpty();
-            receiveBlock.BlockId.Should().Be("blockId");
+            receiveBlock.BlockType.Be("blockType");
+            receiveBlock.ClassType.Be("blockClass");
+            receiveBlock.Data.NotEmpty();
+            receiveBlock.BlockId.Be("blockId");
 
             Dictionary<string, string> receivedPayload = receiveBlock.Data.ToObject<Dictionary<string, string>>().NotNull(name: "payload failed");
-            (receivedPayload["name"] == "Name").Should().BeTrue();
-            (receivedPayload["type"] == "Type").Should().BeTrue();
-            (receivedPayload["author"] == "Author").Should().BeTrue();
-            (receivedPayload["data"] == "Data").Should().BeTrue();
+            (receivedPayload["name"] == "Name").BeTrue();
+            (receivedPayload["type"] == "Type").BeTrue();
+            (receivedPayload["author"] == "Author").BeTrue();
+            (receivedPayload["data"] == "Data").BeTrue();
         }
 
         [Fact]
@@ -145,7 +144,7 @@ namespace Toolbox.Block.Test
             blockChain.Add(payloadBlock2).ThrowOnError();
 
             var validationResult = await blockChain.ValidateBlockChain(signCollection, _context);
-            validationResult.StatusCode.IsOk().Should().BeTrue();
+            validationResult.StatusCode.IsOk().BeTrue();
 
             return (payload, payload2, blockChain);
         }
@@ -155,29 +154,29 @@ namespace Toolbox.Block.Test
             const string issuer = "user@domain.com";
 
             // Get payload of data block
-            blockChain.Count.Should().Be(4);
+            blockChain.Count.Be(4);
 
             var blocks = blockChain.Filter(issuer).Return().ToList();
 
             DataBlock receiveBlock = blocks[2];
             receiveBlock.Validate().ThrowOnError();
-            receiveBlock.BlockType.Should().Be("objectClass");
-            receiveBlock.ClassType.Should().Be("Payload");
+            receiveBlock.BlockType.Be("objectClass");
+            receiveBlock.ClassType.Be("Payload");
             string payloadJson = payload.ToJson();
-            receiveBlock.Data.Should().Be(payloadJson);
+            receiveBlock.Data.Be(payloadJson);
 
             Payload p1 = receiveBlock.Data.ToObject<Payload>().NotNull(name: "payload failed");
-            (payload == p1).Should().BeTrue();
+            (payload == p1).BeTrue();
 
             DataBlock receiveBlock2 = blocks[3];
             receiveBlock2.Validate().ThrowOnError();
-            receiveBlock2.BlockType.Should().Be("Payload2");
-            receiveBlock2.ClassType.Should().Be("Payload2");
+            receiveBlock2.BlockType.Be("Payload2");
+            receiveBlock2.ClassType.Be("Payload2");
             string payloadJson2 = payload2.ToJson();
-            receiveBlock2.Data.Should().Be(payloadJson2);
+            receiveBlock2.Data.Be(payloadJson2);
 
             Payload2 p2 = receiveBlock2.Data.ToObject<Payload2>().NotNull(name: "payload2 failed");
-            (payload2 == p2).Should().BeTrue();
+            (payload2 == p2).BeTrue();
         }
 
         private record Payload

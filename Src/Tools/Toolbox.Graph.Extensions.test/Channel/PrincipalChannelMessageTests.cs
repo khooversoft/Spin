@@ -4,7 +4,6 @@ using Toolbox.Extensions;
 using Toolbox.Graph.Extensions.test.Application;
 using Toolbox.Graph.Extensions.test.Tools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -60,12 +59,12 @@ public class PrincipalChannelMessageTests
         {
             (await channelClient.GetPrincipalMessages(_user1, context)).Action(x =>
             {
-                x.IsOk().Should().BeTrue();
+                x.IsOk().BeTrue();
                 x.Return().Action(y =>
                 {
                     context.LogInformation("Count={count}", y.Count);
-                    y.Count.Should().Be(messageIndex);
-                    _channelMessages.Take(messageIndex).IsEquivalent(y).Should().BeTrue();
+                    y.Count.Be(messageIndex);
+                    _channelMessages.Take(messageIndex).IsEquivalent(y).BeTrue();
                 });
             });
         }
@@ -106,19 +105,19 @@ public class PrincipalChannelMessageTests
             shouldCount += batch.Length;
             using (var metric = context.LogDuration("Add-messages", "message count={count}", batch.Length))
             {
-                (await channelClient.GetContext(_channel1, _user1).AddMessages(batch, context)).IsOk().Should().BeTrue();
+                (await channelClient.GetContext(_channel1, _user1).AddMessages(batch, context)).IsOk().BeTrue();
             }
 
             using (var metric = context.LogDuration("Get-messages-ms"))
             {
                 (await channelClient.GetPrincipalMessages(_user1, context)).Action(x =>
                 {
-                    x.IsOk().Should().BeTrue();
+                    x.IsOk().BeTrue();
                     x.Return().Action(y =>
                     {
                         context.LogInformation("Count={count}", y.Count);
-                        y.Count.Should().Be(shouldCount);
-                        _channelMessages.Take(shouldCount).IsEquivalent(y).Should().BeTrue();
+                        y.Count.Be(shouldCount);
+                        _channelMessages.Take(shouldCount).IsEquivalent(y).BeTrue();
                     });
                 });
             }
@@ -173,13 +172,13 @@ public class PrincipalChannelMessageTests
             {
                 (await channelClient.GetPrincipalMessages(item.Key, context)).Action(x =>
                 {
-                    x.IsOk().Should().BeTrue();
+                    x.IsOk().BeTrue();
                     x.Return().Action(y =>
                     {
                         context.LogInformation("Count={count}", y.Count);
                         var messages = item.SelectMany(x => x.messages).ToArray();
-                        y.Count.Should().Be(messages.Length);
-                        messages.IsEquivalent(y).Should().BeTrue();
+                        y.Count.Be(messages.Length);
+                        messages.IsEquivalent(y).BeTrue();
                     });
                 });
             }
@@ -204,7 +203,7 @@ public class PrincipalChannelMessageTests
         };
 
         var addResult = await client.Create(groupRecord, context);
-        addResult.IsOk().Should().BeTrue();
+        addResult.IsOk().BeTrue();
     }
 
     private async Task CreateChannel(ChannelClient client, string channelId, string securityGroupId, string name, ScopeContext context)
@@ -216,7 +215,7 @@ public class PrincipalChannelMessageTests
             Name = name,
         };
         var addResult = await client.Create(channelRecord, context);
-        addResult.IsOk().Should().BeTrue();
+        addResult.IsOk().BeTrue();
     }
 
     private async Task<(int index, ChannelMessage[] messages)> AddMessage(ChannelClient client, string channelId, string userId, int index, int size, ScopeContext context)
@@ -226,7 +225,7 @@ public class PrincipalChannelMessageTests
         using var metric = context.LogDuration("add-message", "index={index}, size={size}", index, size);
 
         var messagesToSend = _channelMessages.Skip(index).Take(size).ToArray();
-        (await client.GetContext(channelId, userId).AddMessages(messagesToSend, context)).IsOk().Should().BeTrue();
+        (await client.GetContext(channelId, userId).AddMessages(messagesToSend, context)).IsOk().BeTrue();
 
         return (index + size, messagesToSend);
     }

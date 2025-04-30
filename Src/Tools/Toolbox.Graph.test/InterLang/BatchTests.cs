@@ -2,7 +2,6 @@
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class BatchTests : TestBase<BatchTests>
 
         string schema = GraphLanguageTool.ReadGraphLanguageRules();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -42,11 +41,11 @@ public class BatchTests : TestBase<BatchTests>
         }.Join(Environment.NewLine);
 
         var parse = _parser.Parse(lines, _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -137,6 +136,6 @@ public class BatchTests : TestBase<BatchTests>
             },
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 }

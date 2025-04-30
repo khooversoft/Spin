@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -28,7 +27,7 @@ public class TagsTests
     public void IsSetValid(string? key, bool expected)
     {
         var result = TagsTool.Parse(key);
-        result.IsOk().Should().Be(expected);
+        result.IsOk().Be(expected);
     }
 
     [Theory]
@@ -46,7 +45,7 @@ public class TagsTests
         var t1 = line.ToTags();
         var t2 = line.ToTags();
 
-        t1.DeepEqualsComparer(t2).Should().BeTrue();
+        t1.DeepEqualsComparer(t2).BeTrue();
     }
 
     [Fact]
@@ -54,28 +53,28 @@ public class TagsTests
     {
         var tags = "key1".ToTags().Action(x =>
         {
-            x.Count.Should().Be(1);
-            x.ContainsKey("key1").Should().BeTrue();
+            x.Count.Be(1);
+            x.ContainsKey("key1").BeTrue();
             x["key1"].BeNull();
-            x.Has("key1").Should().BeTrue();
-            x.Has("key1", "value").Should().BeFalse();
-            x.Has("fake").Should().BeFalse();
-            x.Has("key1", "fake1").Should().BeFalse();
-            x.Has((string?)null).Should().BeFalse();
+            x.Has("key1").BeTrue();
+            x.Has("key1", "value").BeFalse();
+            x.Has("fake").BeFalse();
+            x.Has("key1", "fake1").BeFalse();
+            x.Has((string?)null).BeFalse();
         });
 
         var tags2 = "key1=value1".ToTags().Action(x =>
         {
-            x.Count.Should().Be(1);
-            x.ContainsKey("key1").Should().BeTrue();
-            x["key1"].Should().Be("value1");
-            x.Has("key1").Should().BeTrue();
-            x.Has("key1", "value1").Should().BeTrue();
-            x.Has("fake").Should().BeFalse();
-            x.Has("key1", "fake1").Should().BeFalse();
+            x.Count.Be(1);
+            x.ContainsKey("key1").BeTrue();
+            x["key1"].Be("value1");
+            x.Has("key1").BeTrue();
+            x.Has("key1", "value1").BeTrue();
+            x.Has("fake").BeFalse();
+            x.Has("key1", "fake1").BeFalse();
         });
 
-        tags.DeepEqualsComparer(tags2).Should().BeFalse();
+        tags.DeepEqualsComparer(tags2).BeFalse();
     }
 
     [Fact]
@@ -87,13 +86,13 @@ public class TagsTests
             ["key2"] = "value2",
         };
 
-        tags.Count.Should().Be(2);
-        tags.ContainsKey("key1").Should().BeTrue();
-        tags.ContainsKey("key2").Should().BeTrue();
+        tags.Count.Be(2);
+        tags.ContainsKey("key1").BeTrue();
+        tags.ContainsKey("key2").BeTrue();
 
         var tags2 = "key2=value2,key1=value1".ToTags();
 
-        tags.DeepEqualsComparer(tags2).Should().BeTrue();
+        tags.DeepEqualsComparer(tags2).BeTrue();
     }
 
     [Fact]
@@ -105,12 +104,12 @@ public class TagsTests
             ["key2"] = "value2",
         };
 
-        tags.ContainsKey("key1").Should().BeTrue();
-        tags.ContainsKey("key2").Should().BeTrue();
+        tags.ContainsKey("key1").BeTrue();
+        tags.ContainsKey("key2").BeTrue();
 
         var tags2 = tags.ProcessTags([new KeyValuePair<string, string?>("-key2", null)]);
 
-        tags2.ContainsKey("key1").Should().BeTrue();
-        tags2.ContainsKey("key2").Should().BeFalse();
+        tags2.ContainsKey("key1").BeTrue();
+        tags2.ContainsKey("key2").BeFalse();
     }
 }

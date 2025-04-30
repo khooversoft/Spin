@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -14,15 +13,15 @@ public class DataETagTests
         DataETag e1 = new DataETag(d1);
         DataETag e2 = new DataETag(d1);
 
-        (e1 == e2).Should().BeTrue();
+        (e1 == e2).BeTrue();
 
         string data = e1.ToJson();
-        data.Should().NotBeEmpty();
+        data.NotEmpty();
         DataETag e3 = data.ToObject<DataETag>().NotNull();
 
-        (e1 == e3).Should().BeTrue();
-        Enumerable.SequenceEqual(e3.Data, e1.Data).Should().BeTrue();
-        e3.ETag.Should().Be(e1.ETag);
+        (e1 == e3).BeTrue();
+        Enumerable.SequenceEqual(e3.Data, e1.Data).BeTrue();
+        e3.ETag.Be(e1.ETag);
     }
 
     [Fact]
@@ -32,15 +31,15 @@ public class DataETagTests
         DataETag e1 = new DataETag(d1, "");
         DataETag e2 = new DataETag(d1, "");
 
-        (e1 == e2).Should().BeTrue();
+        (e1 == e2).BeTrue();
 
         string data = e1.ToJson();
-        data.Should().NotBeEmpty();
+        data.NotEmpty();
         DataETag e3 = data.ToObject<DataETag>().NotNull();
 
-        (e1 == e3).Should().BeTrue();
-        Enumerable.SequenceEqual(e3.Data, e1.Data).Should().BeTrue();
-        e3.ETag.Should().Be(e1.ETag);
+        (e1 == e3).BeTrue();
+        Enumerable.SequenceEqual(e3.Data, e1.Data).BeTrue();
+        e3.ETag.Be(e1.ETag);
     }
 
     [Fact]
@@ -50,15 +49,15 @@ public class DataETagTests
         DataETag e1 = new DataETag(d1);
         DataETag e2 = new DataETag(d1);
 
-        (e1 == e2).Should().BeTrue();
+        (e1 == e2).BeTrue();
 
         string data = e1.ToJson();
-        data.Should().NotBeEmpty();
+        data.NotEmpty();
         DataETag e3 = data.ToObject<DataETag>().NotNull();
 
-        (e1 == e3).Should().BeTrue();
-        Enumerable.SequenceEqual(e3.Data, e1.Data).Should().BeTrue();
-        e3.ETag.Should().Be(e1.ETag);
+        (e1 == e3).BeTrue();
+        Enumerable.SequenceEqual(e3.Data, e1.Data).BeTrue();
+        e3.ETag.Be(e1.ETag);
     }
 
     [Fact]
@@ -68,14 +67,14 @@ public class DataETagTests
         DataETag e1 = new DataETag(d1, "FF");
         DataETag e2 = new DataETag(d1, "FF");
 
-        (e1 == e2).Should().BeTrue();
+        (e1 == e2).BeTrue();
 
         string data = e1.ToJson();
-        data.Should().NotBeEmpty();
+        data.NotEmpty();
         DataETag e3 = data.ToObject<DataETag>().NotNull();
 
-        (e1 == e3).Should().BeTrue();
-        Enumerable.SequenceEqual(e3.Data, e1.Data).Should().BeTrue();
-        e3.ETag.Should().Be(e1.ETag);
+        (e1 == e3).BeTrue();
+        Enumerable.SequenceEqual(e3.Data, e1.Data).BeTrue();
+        e3.ETag.Be(e1.ETag);
     }
 }

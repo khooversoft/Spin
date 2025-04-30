@@ -1,7 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Journal;
 
@@ -14,7 +13,7 @@ public class LogSequenceNumberTests
 
         var collection = Enumerable.Range(0, 100).Select(x => sn.Next()).ToArray();
         collection.NotNull();
-        collection.Length.Should().Be(100);
+        collection.Length.Be(100);
     }
 
     [Fact]
@@ -25,9 +24,9 @@ public class LogSequenceNumberTests
         var collection = Enumerable.Range(0, 100).Select(x => sn.Next()).ToArray();
 
         var shuffle = collection.Shuffle();
-        Enumerable.SequenceEqual(collection, shuffle).Should().BeFalse();
+        Enumerable.SequenceEqual(collection, shuffle).BeFalse();
 
         var sorted = shuffle.OrderBy(x => x).ToArray();
-        Enumerable.SequenceEqual(collection, sorted).Should().BeTrue();
+        Enumerable.SequenceEqual(collection, sorted).BeTrue();
     }
 }

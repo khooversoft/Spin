@@ -59,15 +59,15 @@
 
 //        journals.Action(x =>
 //        {
-//            x.Count.Should().Be(3);
-//            x[0].Type.Should().Be(JournalType.Start);
+//            x.Count.Be(3);
+//            x[0].Type.Be(JournalType.Start);
 
 //            var journalEntryUpdate = journalEntry with { TransactionId = trxId };
 //            var read = x[1];
-//            (read == journalEntryUpdate).Should().BeTrue();
-//            journalEntry.TransactionId.Should().NotBe(trxId);
+//            (read == journalEntryUpdate).BeTrue();
+//            journalEntry.TransactionId.NotBe(trxId);
 
-//            x[2].Type.Should().Be(JournalType.Commit);
+//            x[2].Type.Be(JournalType.Commit);
 //        });
 //    }
 
@@ -112,12 +112,12 @@
 //        }
 
 //        search = await fileStore.Search("**/*", _context);
-//        search.Count.Should().Be(1);
-//        search[0].StartsWith("/journal2/data").Should().BeTrue();
-//        search[0].EndsWith(".journal2.json").Should().BeTrue();
+//        search.Count.Be(1);
+//        search[0].StartsWith("/journal2/data").BeTrue();
+//        search[0].EndsWith(".journal2.json").BeTrue();
 
 //        var journals = await journal.ReadJournals(_context);
-//        journals.Count.Should().Be(createdJournals.Count + (batchSize * 2));
+//        journals.Count.Be(createdJournals.Count + (batchSize * 2));
 
 //        int count = 0;
 //        int createdJournalIndex = 0;
@@ -128,13 +128,13 @@
 //            if (lookForStart)
 //            {
 //                lookForStart = false;
-//                journals[i].Type.Should().Be(JournalType.Start);
+//                journals[i].Type.Be(JournalType.Start);
 //                continue;
 //            }
 
 //            if (count == batchSize)
 //            {
-//                journals[i].Type.Should().Be(JournalType.Commit);
+//                journals[i].Type.Be(JournalType.Commit);
 //                count = 0;
 //                lookForStart = true;
 //                continue;
@@ -147,7 +147,7 @@
 //                LogSequenceNumber = journals[i].LogSequenceNumber,
 //            };
 
-//            (journals[i] == createdJournalUpdated).Should().BeTrue($"index={i}");
+//            (journals[i] == createdJournalUpdated).BeTrue($"index={i}");
 //        }
 //    }
 

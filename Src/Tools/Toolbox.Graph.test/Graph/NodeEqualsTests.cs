@@ -1,5 +1,5 @@
 ﻿using System.Collections.Frozen;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph;
@@ -32,7 +32,7 @@ public class NodeEqualsTests
             foreignKeys: "t1".ToTags()
             );
 
-        (node1 == node2).Should().BeTrue();
+        (node1 == node2).BeTrue();
 
     }
 
@@ -59,7 +59,7 @@ public class NodeEqualsTests
             foreignKeys: "t1".ToTags()
             );
 
-        (node1 == node2).Should().BeFalse();
+        (node1 == node2).BeFalse();
 
         var node3 = new GraphNode(
             "node1",
@@ -70,6 +70,6 @@ public class NodeEqualsTests
             foreignKeys: "t2".ToTags()
             );
 
-        (node1 == node3).Should().BeFalse();
+        (node1 == node3).BeFalse();
     }
 }

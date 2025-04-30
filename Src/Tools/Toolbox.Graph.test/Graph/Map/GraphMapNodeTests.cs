@@ -2,7 +2,6 @@
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
@@ -19,11 +18,11 @@ public class GraphMapNodeTests
     {
         var e1 = new GraphNode("n1");
         e1.NotNull();
-        e1.Key.Should().Be("n1");
+        e1.Key.Be("n1");
 
         string json = e1.ToJson();
         var r1 = json.ToObject<GraphNode>();
-        (e1 == r1).Should().BeTrue();
+        (e1 == r1).BeTrue();
     }
 
     [Fact]
@@ -34,9 +33,9 @@ public class GraphMapNodeTests
             new GraphNode("Node1"),
         };
 
-        map.Nodes.Count.Should().Be(1);
-        map.Nodes.ContainsKey("Node1").Should().BeTrue();
-        map.Edges.Count.Should().Be(0);
+        map.Nodes.Count.Be(1);
+        map.Nodes.ContainsKey("Node1").BeTrue();
+        map.Edges.Count.Be(0);
     }
 
     [Fact]
@@ -48,10 +47,10 @@ public class GraphMapNodeTests
             new GraphNode("Node2"),
         };
 
-        map.Nodes.Count.Should().Be(2);
-        map.Nodes.ContainsKey("Node1").Should().BeTrue();
-        map.Nodes.ContainsKey("Node2").Should().BeTrue();
-        map.Edges.Count.Should().Be(0);
+        map.Nodes.Count.Be(2);
+        map.Nodes.ContainsKey("Node1").BeTrue();
+        map.Nodes.ContainsKey("Node2").BeTrue();
+        map.Edges.Count.Be(0);
     }
 
     [Fact]
@@ -62,25 +61,23 @@ public class GraphMapNodeTests
         var map = new GraphMap();
 
         Enumerable.Range(0, count).ForEach(x => map.Add(new GraphNode($"Node_{x}")));
-        map.Nodes.Count.Should().Be(count);
-        map.Edges.Count.Should().Be(0);
+        map.Nodes.Count.Be(count);
+        map.Edges.Count.Be(0);
 
         GraphNode node = map.Nodes[sampleKey];
         node.NotNull();
-        node.Key.Should().Be(sampleKey);
-        map.Nodes.TryGetValue(sampleKey, out var _).Should().BeTrue();
+        node.Key.Be(sampleKey);
+        map.Nodes.TryGetValue(sampleKey, out var _).BeTrue();
 
         map.Nodes.Remove(sampleKey);
-        map.Nodes.TryGetValue(sampleKey, out var _).Should().BeFalse();
-        map.Nodes.Count.Should().Be(count - 1);
-        map.Edges.Count.Should().Be(0);
+        map.Nodes.TryGetValue(sampleKey, out var _).BeFalse();
+        map.Nodes.Count.Be(count - 1);
+        map.Edges.Count.Be(0);
 
-        var action = () =>
+        Verify.Throw<KeyNotFoundException>(() =>
         {
             GraphNode node = map.Nodes[sampleKey];
-        };
-
-        action.Should().Throw<KeyNotFoundException>();
+        });
     }
 
     [Fact]
@@ -88,20 +85,16 @@ public class GraphMapNodeTests
     {
         GraphMap map = null!;
 
-        var test1 = () => map = new GraphMap()
+        Verify.Throw<ArgumentException>(() => map = new GraphMap()
         {
             new GraphNode("Node1"),
             new GraphNode("Node1"),
-        };
+        });
 
-        test1.Should().Throw<GraphMap, ArgumentException>();
-
-        var test2 = () => map = new GraphMap()
+        Verify.Throw<ArgumentException>(() => map = new GraphMap()
         {
             new GraphNode("Node1"),
             new GraphNode("node1"),
-        };
-
-        test1.Should().Throw<GraphMap, ArgumentException>();
+        });
     }
 }

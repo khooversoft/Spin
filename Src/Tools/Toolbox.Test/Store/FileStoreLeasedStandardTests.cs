@@ -2,7 +2,6 @@
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Store;
@@ -31,33 +30,33 @@ public class FileStoreLeasedStandardTests
 
         byte[] dataBytes = Encoding.UTF8.GetBytes(data);
         var writeResult = await fileAccess.Set(dataBytes, _context);
-        writeResult.IsOk().Should().BeTrue();
+        writeResult.IsOk().BeTrue();
 
         var leaseOption1 = await fileAccess.Acquire(TimeSpan.FromSeconds(60), _context);
-        leaseOption1.IsOk().Should().BeTrue();
+        leaseOption1.IsOk().BeTrue();
         var lease1 = leaseOption1.Return();
 
         var leaseOption2 = await fileAccess.Acquire(TimeSpan.FromSeconds(60), _context);
-        leaseOption2.IsError().Should().BeTrue();
+        leaseOption2.IsError().BeTrue();
 
         Option<DataETag> receive = await fileAccess.Get(_context);
-        receive.IsOk().Should().BeTrue();
-        Enumerable.SequenceEqual(dataBytes, receive.Return().Data).Should().BeTrue();
+        receive.IsOk().BeTrue();
+        Enumerable.SequenceEqual(dataBytes, receive.Return().Data).BeTrue();
 
         dataBytes = Encoding.UTF8.GetBytes(data2);
         writeResult = await lease1.Set(dataBytes, _context);
-        writeResult.IsOk().Should().BeTrue(writeResult.ToString());
+        writeResult.IsOk().BeTrue(writeResult.ToString());
 
         var leaseResult = await lease1.Release(_context);
-        leaseResult.IsOk().Should().BeTrue(leaseResult.ToString());
+        leaseResult.IsOk().BeTrue(leaseResult.ToString());
 
         dataBytes = Encoding.UTF8.GetBytes(data3);
         writeResult = await fileAccess.Set(dataBytes, _context);
-        writeResult.IsOk().Should().BeTrue(writeResult.ToString());
+        writeResult.IsOk().BeTrue(writeResult.ToString());
 
         receive = await fileAccess.Get(_context);
-        receive.IsOk().Should().BeTrue();
-        Enumerable.SequenceEqual(dataBytes, receive.Return().Data).Should().BeTrue();
+        receive.IsOk().BeTrue();
+        Enumerable.SequenceEqual(dataBytes, receive.Return().Data).BeTrue();
     }
 
     public async Task TwoClientTryGetLease_OneShouldFail()
@@ -84,7 +83,7 @@ public class FileStoreLeasedStandardTests
         var context = _context.With(cancelTokenSource.Token);
 
         var lease2Option = await fileAccess1.Acquire(TimeSpan.FromSeconds(60), context);
-        lease2Option.IsError().Should().BeTrue();
+        lease2Option.IsError().BeTrue();
 
         (await fileAccess2.Set(dataBytes, _context)).Assert(x => x.IsConflict(), x => x.ToString());
         (await fileAccess1.Set(dataBytes3, _context)).Assert(x => x.IsError(), _ => "Should fail");
@@ -95,7 +94,7 @@ public class FileStoreLeasedStandardTests
         (await fileAccess1.Set(dataBytes, _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
 
         var receive = (await fileAccess1.Get(_context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
-        Enumerable.SequenceEqual(dataBytes, receive.Data).Should().BeTrue();
+        Enumerable.SequenceEqual(dataBytes, receive.Data).BeTrue();
     }
 
     public async Task TwoClient_UsingScope_ShouldCoordinate()
@@ -121,7 +120,7 @@ public class FileStoreLeasedStandardTests
 
             (await lease1.Get(_context))
                 .Assert(x => x.IsOk(), x => x.ToString())
-                .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).Should().BeTrue());
+                .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).BeTrue());
         }
 
         var fileAccess2 = fileStore2.File(path);
@@ -133,7 +132,7 @@ public class FileStoreLeasedStandardTests
 
             (await lease2.Get(_context))
                 .Assert(x => x.IsOk(), x => x.ToString())
-                .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).Should().BeTrue());
+                .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).BeTrue());
         }
     }
 
@@ -155,7 +154,7 @@ public class FileStoreLeasedStandardTests
         if (writeResult.IsConflict())
         {
             var breakResult = await fileAccess1.BreakLease(_context);
-            breakResult.IsOk().Should().BeTrue();
+            breakResult.IsOk().BeTrue();
         }
 
         var lease1 = (await fileAccess1.Acquire(TimeSpan.FromSeconds(-1), _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
@@ -166,7 +165,7 @@ public class FileStoreLeasedStandardTests
 
             (await lease1.Get(_context))
                 .Assert(x => x.IsOk(), x => x.ToString())
-                .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).Should().BeTrue());
+                .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).BeTrue());
 
             await Task.Delay(TimeSpan.FromSeconds(1));
 
@@ -174,13 +173,13 @@ public class FileStoreLeasedStandardTests
 
             (await fileAccess1.Get(_context))
                 .Assert(x => x.IsOk(), x => x.ToString())
-                .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).Should().BeTrue());
+                .Return().Action(x => Enumerable.SequenceEqual(dataBytes, x.Data).BeTrue());
         }
 
         (await fileAccess2.Set(dataBytes2, _context)).Assert(x => x.IsOk(), x => x.ToString());
 
         (await fileAccess1.Get(_context))
             .Assert(x => x.IsOk(), x => x.ToString())
-            .Return().Action(x => Enumerable.SequenceEqual(dataBytes2, x.Data).Should().BeTrue());
+            .Return().Action(x => Enumerable.SequenceEqual(dataBytes2, x.Data).BeTrue());
     }
 }

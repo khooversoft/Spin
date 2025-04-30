@@ -6,7 +6,6 @@ using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -57,23 +56,23 @@ public class TransactionLogStandardTests
         await trx.Commit();
 
         search = await fileStore.Search(_searchPath, _context);
-        search.Count.Should().Be(1);
-        search[0].Path.Contains("journal4/data").Should().BeTrue();
-        search[0].Path.EndsWith(".trxJournal.json").Should().BeTrue();
+        search.Count.Be(1);
+        search[0].Path.Contains("journal4/data").BeTrue();
+        search[0].Path.EndsWith(".trxJournal.json").BeTrue();
 
         var journals = await journalFile.ReadJournals(_context);
 
         journals.Action(x =>
         {
-            x.Count.Should().Be(3);
+            x.Count.Be(3);
 
-            x[0].Type.Should().Be(JournalType.Start);
+            x[0].Type.Be(JournalType.Start);
 
             var readData = x[1];
             var sourceData = journalEntry with { LogSequenceNumber = readData.LogSequenceNumber };
-            (sourceData == readData).Should().Be(true);
+            (sourceData == readData).Be(true);
 
-            x[2].Type.Should().Be(JournalType.Commit);
+            x[2].Type.Be(JournalType.Commit);
         });
     }
 
@@ -108,7 +107,7 @@ public class TransactionLogStandardTests
         }
 
         var journals = await journalFile.ReadJournals(_context);
-        journals.Count.Should().Be(createdJournals.Count + 2);
+        journals.Count.Be(createdJournals.Count + 2);
 
         int count = 0;
         int createdJournalIndex = 0;
@@ -119,13 +118,13 @@ public class TransactionLogStandardTests
             if (lookForStart)
             {
                 lookForStart = false;
-                journals[i].Type.Should().Be(JournalType.Start);
+                journals[i].Type.Be(JournalType.Start);
                 continue;
             }
 
             if (count == batchSize)
             {
-                journals[i].Type.Should().Be(JournalType.Commit);
+                journals[i].Type.Be(JournalType.Commit);
                 count = 0;
                 lookForStart = true;
                 continue;
@@ -138,7 +137,7 @@ public class TransactionLogStandardTests
                 LogSequenceNumber = journals[i].LogSequenceNumber,
             };
 
-            (journals[i] == createdJournalUpdated).Should().BeTrue($"index={i}");
+            (journals[i] == createdJournalUpdated).BeTrue($"index={i}");
         }
     }
 
@@ -186,7 +185,7 @@ public class TransactionLogStandardTests
         }
 
         var journals = await journalFile.ReadJournals(_context);
-        journals.Count.Should().Be(createdJournals.Count + (batchCount * 2));
+        journals.Count.Be(createdJournals.Count + (batchCount * 2));
 
         int count = 0;
         int createdJournalIndex = 0;
@@ -197,13 +196,13 @@ public class TransactionLogStandardTests
             if (lookForStart)
             {
                 lookForStart = false;
-                journals[i].Type.Should().Be(JournalType.Start);
+                journals[i].Type.Be(JournalType.Start);
                 continue;
             }
 
             if (count == batchSize)
             {
-                journals[i].Type.Should().Be(JournalType.Commit);
+                journals[i].Type.Be(JournalType.Commit);
                 count = 0;
                 lookForStart = true;
                 continue;
@@ -216,7 +215,7 @@ public class TransactionLogStandardTests
                 LogSequenceNumber = journals[i].LogSequenceNumber,
             };
 
-            (journals[i] == createdJournalUpdated).Should().BeTrue($"index={i}");
+            (journals[i] == createdJournalUpdated).BeTrue($"index={i}");
         }
     }
 }

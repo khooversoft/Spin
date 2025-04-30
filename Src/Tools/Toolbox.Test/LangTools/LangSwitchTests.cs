@@ -23,18 +23,18 @@
 //    {
 //        var ins = new LsSwitch() + (new LsRoot() + new LsToken("=", "equal")) + (new LsRoot() + new LsToken("+", "plus"));
 //        LangResult tree = ins.Parse("=");
-//        tree.StatusCode.IsOk().Should().BeTrue();
+//        tree.StatusCode.IsOk().BeTrue();
 
 //        LangNodes nodes = tree.LangNodes.NotNull();
-//        nodes.Children.Count.Should().Be(1);
-//        nodes.Children[0].SyntaxNode.Name.Should().Be("equal");
+//        nodes.Children.Count.Be(1);
+//        nodes.Children[0].SyntaxNode.Name.Be("equal");
 
 //        tree = ins.Parse("+");
-//        tree.StatusCode.IsOk().Should().BeTrue();
+//        tree.StatusCode.IsOk().BeTrue();
 
 //        nodes = tree.LangNodes.NotNull();
-//        nodes.Children.Count.Should().Be(1);
-//        nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
+//        nodes.Children.Count.Be(1);
+//        nodes.Children[0].SyntaxNode.Name.Be("plus");
 //    }
 
 //    [Fact]
@@ -42,18 +42,18 @@
 //    {
 //        var ins = new LsRoot("root") + (new LsSwitch("option") + new LsToken("=", "equal") + new LsToken("+", "plus"));
 //        LangResult tree = ins.Parse("=");
-//        tree.StatusCode.IsOk().Should().BeTrue();
+//        tree.StatusCode.IsOk().BeTrue();
 
 //        LangNodes nodes = tree.LangNodes.NotNull();
-//        nodes.Children.Count.Should().Be(1);
-//        nodes.Children[0].SyntaxNode.Name.Should().Be("equal");
+//        nodes.Children.Count.Be(1);
+//        nodes.Children[0].SyntaxNode.Name.Be("equal");
 
 //        tree = ins.Parse("+");
-//        tree.StatusCode.IsOk().Should().BeTrue();
+//        tree.StatusCode.IsOk().BeTrue();
 
 //        nodes = tree.LangNodes.NotNull();
-//        nodes.Children.Count.Should().Be(1);
-//        nodes.Children[0].SyntaxNode.Name.Should().Be("plus");
+//        nodes.Children.Count.Be(1);
+//        nodes.Children[0].SyntaxNode.Name.Be("plus");
 //    }
 
 //    [Fact]

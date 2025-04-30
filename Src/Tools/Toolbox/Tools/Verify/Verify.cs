@@ -41,10 +41,10 @@ public static class Verify
             [CallerArgumentExpression("subject")] string name = ""
         )
     {
-        if( subject != null && !EqualityComparer<T>.Default.Equals(subject, default!)) return subject;
+        if (subject != null && !EqualityComparer<T>.Default.Equals(subject, default!)) return subject;
 
         var location = new CodeLocation(function, path, lineNumber, name);
-        var structLine = new StructureLineBuilder()
+        var structLine = StructureLineBuilder.Start()
             .Add(message ?? "Null object")
             .Add(location)
             .Build()
@@ -82,7 +82,7 @@ public static class Verify
         if (subject == null && EqualityComparer<T>.Default.Equals(subject, default!)) return subject;
 
         var location = new CodeLocation(function, path, lineNumber, name);
-        var structLine = new StructureLineBuilder()
+        var structLine = StructureLineBuilder.Start()
             .Add(message ?? "Not null object")
             .Add(location)
             .Build()
@@ -120,7 +120,7 @@ public static class Verify
         if (subject.IsNotEmpty()) return subject;
 
         var location = new CodeLocation(function, path, lineNumber, name);
-        var structLine = new StructureLineBuilder()
+        var structLine = StructureLineBuilder.Start()
             .Add(message ?? "Empty or null string")
             .Add(location)
             .Build()

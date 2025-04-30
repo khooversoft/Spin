@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -39,12 +39,12 @@ public class SelectInstructionSearchTests
         var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
 
         var resultOption = await graphTestClient.Execute("select (key=account:*) ;", context);
-        resultOption.IsOk().Should().BeTrue();
+        resultOption.IsOk().BeTrue();
 
         QueryResult result = resultOption.Return();
-        result.Nodes.Count.Should().Be(2);
-        result.Edges.Count.Should().Be(0);
-        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["account:eve", "account:sam"]).Should().BeTrue();
+        result.Nodes.Count.Be(2);
+        result.Edges.Count.Be(0);
+        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["account:eve", "account:sam"]).BeTrue();
     }
 
     [Fact]
@@ -54,12 +54,12 @@ public class SelectInstructionSearchTests
         var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
 
         var resultOption = await graphTestClient.Execute("select [from=user:f*] ;", context);
-        resultOption.IsOk().Should().BeTrue();
+        resultOption.IsOk().BeTrue();
 
         QueryResult result = resultOption.Return();
-        result.Nodes.Count.Should().Be(0);
-        result.Edges.Count.Should().Be(2);
-        result.Edges.Select(x => x.FromKey).SequenceEqual(["user:fred", "user:fred"]).Should().BeTrue();
+        result.Nodes.Count.Be(0);
+        result.Edges.Count.Be(2);
+        result.Edges.Select(x => x.FromKey).SequenceEqual(["user:fred", "user:fred"]).BeTrue();
     }
 
     [Fact]
@@ -69,13 +69,13 @@ public class SelectInstructionSearchTests
         var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
 
         var resultOption = await graphTestClient.Execute("select [from=user:f*] -> (*) ;", context);
-        resultOption.IsOk().Should().BeTrue();
+        resultOption.IsOk().BeTrue();
 
         QueryResult result = resultOption.Return();
-        result.Nodes.Count.Should().Be(2);
-        result.Edges.Count.Should().Be(0);
+        result.Nodes.Count.Be(2);
+        result.Edges.Count.Be(0);
 
         var nodes = result.Nodes.Select(x => x.Key).OrderBy(x => x).ToArray();
-        nodes.SequenceEqual(["user:alice", "user:diana"]).Should().BeTrue(nodes.ToString());
+        nodes.SequenceEqual(["user:alice", "user:diana"]).BeTrue(nodes.ToString());
     }
 }

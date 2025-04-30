@@ -1,7 +1,6 @@
 ﻿using System.Security.Cryptography;
 using Toolbox.Security;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Security;
 
@@ -47,7 +46,7 @@ public class RsaTests
             .Build()
             .Parse(token);
 
-        tokenDetails.Digest.Should().Be(digest);
+        tokenDetails.Digest.Be(digest);
     }
 
     [Fact]
@@ -82,6 +81,6 @@ public class RsaTests
             .Build()
             .Parse(token);
 
-        tokenDetails.Digest.Should().Be(digest);
+        tokenDetails.Digest.Be(digest);
     }
 }

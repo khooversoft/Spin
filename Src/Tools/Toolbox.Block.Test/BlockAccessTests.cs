@@ -1,4 +1,4 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
 
 namespace Toolbox.Block.Test;
 
@@ -7,16 +7,16 @@ public class BlockAccessTests
     [Fact]
     public void GrantAccessMaskTests()
     {
-        ((BlockGrant.None & BlockGrant.None) == BlockGrant.None).Should().BeTrue();
-        (BlockGrant.None & BlockGrant.None).HasFlag(BlockGrant.None).Should().BeTrue();
+        ((BlockGrant.None & BlockGrant.None) == BlockGrant.None).BeTrue();
+        (BlockGrant.None & BlockGrant.None).HasFlag(BlockGrant.None).BeTrue();
 
-        ((BlockGrant.Read & BlockGrant.Read) == BlockGrant.Read).Should().BeTrue();
-        ((BlockGrant.Write & BlockGrant.Write) == BlockGrant.Write).Should().BeTrue();
+        ((BlockGrant.Read & BlockGrant.Read) == BlockGrant.Read).BeTrue();
+        ((BlockGrant.Write & BlockGrant.Write) == BlockGrant.Write).BeTrue();
 
-        (((BlockGrant.None | BlockGrant.Read) & BlockGrant.None) == BlockGrant.None).Should().BeTrue();
-        (((BlockGrant.None | BlockGrant.Read) & BlockGrant.Read) == BlockGrant.Read).Should().BeTrue();
-        (((BlockGrant.Read | BlockGrant.Write) & BlockGrant.Read) == BlockGrant.Read).Should().BeTrue();
-        (BlockGrant.Read | BlockGrant.Write).HasFlag(BlockGrant.Write).Should().BeTrue();
+        (((BlockGrant.None | BlockGrant.Read) & BlockGrant.None) == BlockGrant.None).BeTrue();
+        (((BlockGrant.None | BlockGrant.Read) & BlockGrant.Read) == BlockGrant.Read).BeTrue();
+        (((BlockGrant.Read | BlockGrant.Write) & BlockGrant.Read) == BlockGrant.Read).BeTrue();
+        (BlockGrant.Read | BlockGrant.Write).HasFlag(BlockGrant.Write).BeTrue();
     }
 
 
@@ -28,8 +28,8 @@ public class BlockAccessTests
     {
         var v1 = new AccessBlock { Grant = grant, BlockType = blockType, PrincipalId = principalId };
         var v2 = new AccessBlock { Grant = grant2, BlockType = blockType2, PrincipalId = principalId2 };
-        (v1 == v2).Should().BeTrue();
-        (v1 != v2).Should().BeFalse();
+        (v1 == v2).BeTrue();
+        (v1 != v2).BeFalse();
     }
 
     [Theory]
@@ -40,7 +40,7 @@ public class BlockAccessTests
     {
         var v1 = new AccessBlock { Grant = grant, BlockType = blockType, PrincipalId = principalId };
         var v2 = new AccessBlock { Grant = grant2, BlockType = blockType2, PrincipalId = principalId2 };
-        (v1 == v2).Should().BeFalse();
-        (v1 != v2).Should().BeTrue();
+        (v1 == v2).BeFalse();
+        (v1 != v2).BeTrue();
     }
 }

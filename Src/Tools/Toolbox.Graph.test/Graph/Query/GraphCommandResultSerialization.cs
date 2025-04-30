@@ -1,7 +1,6 @@
 ﻿using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph.Query;
@@ -25,25 +24,25 @@ public class GraphCommandResultSerialization
         QueryBatchResult result = json.ToObject<QueryBatchResult>().NotNull();
 
         result.Option.Assert(x => x == source.Option);
-        result.Items.Count.Should().Be(2);
+        result.Items.Count.Be(2);
 
         var cursor = result.Items.ToCursor();
-        cursor.MoveNext().Should().BeTrue();
+        cursor.MoveNext().BeTrue();
         cursor.Current.Action(x =>
         {
-            x.Option.StatusCode.Should().Be(StatusCode.OK);
+            x.Option.StatusCode.Be(StatusCode.OK);
             x.Option.Error.BeNull();
-            x.QueryNumber.Should().Be(1);
-            x.Alias.Should().Be("a1");
+            x.QueryNumber.Be(1);
+            x.Alias.Be("a1");
         });
 
-        cursor.MoveNext().Should().BeTrue();
+        cursor.MoveNext().BeTrue();
         cursor.Current.Action(x =>
         {
-            x.Option.StatusCode.Should().Be(StatusCode.InternalServerError);
-            x.Option.Error.Should().Be("oops");
-            x.QueryNumber.Should().Be(2);
-            x.Alias.Should().Be("b1");
+            x.Option.StatusCode.Be(StatusCode.InternalServerError);
+            x.Option.Error.Be("oops");
+            x.QueryNumber.Be(2);
+            x.Alias.Be("b1");
         });
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -24,7 +23,7 @@ public class AutoFlushQueueTests
         await queue.FlushBuffer();
         await queue.Complete();
 
-        data.Count.Should().Be(count);
+        data.Count.Be(count);
     }
 
     [Fact]
@@ -50,7 +49,7 @@ public class AutoFlushQueueTests
         await queue.FlushBuffer();
         await queue.Complete();
 
-        data.Count.Should().Be(count);
+        data.Count.Be(count);
         data.GroupBy(x => x.FlushIndex).Count().Assert(x => x > 1, "Flush grouping should be greater than 1");
         flushCount.Assert(x => x > 1, "Flush index should be greater than 1");
     }

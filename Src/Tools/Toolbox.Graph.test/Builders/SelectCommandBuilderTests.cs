@@ -1,4 +1,4 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Builders;
@@ -160,8 +160,8 @@ public class SelectCommandBuilderTests
 
     private void Verify(string graphQuery, string expected)
     {
-        graphQuery.Should().Be(expected);
+        graphQuery.Be(expected);
         var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
     }
 }

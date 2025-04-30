@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -25,7 +25,7 @@ public class AndRuleTests : TestBase
         }.Join(Environment.NewLine);
 
         _schema = MetaParser.ParseRules(schemaText);
-        _schema.StatusCode.IsOk().Should().BeTrue();
+        _schema.StatusCode.IsOk().BeTrue();
     }
 
     [Theory]
@@ -39,7 +39,7 @@ public class AndRuleTests : TestBase
         var parser = new SyntaxParser(_schema);
         var logger = GetScopeContext<OrRuleTests>();
 
-        parser.Parse(rawData, logger).Status.IsError().Should().BeTrue();
+        parser.Parse(rawData, logger).Status.IsError().BeTrue();
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class AndRuleTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("alias { hello };", logger);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -72,7 +72,7 @@ public class AndRuleTests : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -86,7 +86,7 @@ public class AndRuleTests : TestBase
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class AndRuleTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("data { 'this is a test' };", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -119,7 +119,7 @@ public class AndRuleTests : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -133,6 +133,6 @@ public class AndRuleTests : TestBase
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 }

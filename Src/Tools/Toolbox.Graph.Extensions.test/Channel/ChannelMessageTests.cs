@@ -3,7 +3,6 @@ using Toolbox.Extensions;
 using Toolbox.Graph.Extensions.test.Application;
 using Toolbox.Graph.Extensions.test.Tools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -40,7 +39,7 @@ public class ChannelMessageTests
         await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
 
         // Create security group with user for access
-        (await groupClient.Create(_groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context)).IsOk().Should().BeTrue();
+        (await groupClient.Create(_groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context)).IsOk().BeTrue();
 
         // Because security group has already created, this should just attach the channel to it.
         var channel = new ChannelRecord
@@ -51,18 +50,18 @@ public class ChannelMessageTests
         };
 
         var addResult = await channelClient.Create(channel, context);
-        addResult.IsOk().Should().BeTrue(addResult.ToString());
+        addResult.IsOk().BeTrue(addResult.ToString());
 
         var m1 = new ChannelMessage { ChannelId = _channel1, FromPrincipalId = _user1, Message = "message 1" };
-        (await channelClient.GetContext(_channel1, _user1).AddMessage(m1, context)).IsOk().Should().BeTrue();
+        (await channelClient.GetContext(_channel1, _user1).AddMessage(m1, context)).IsOk().BeTrue();
 
         (await channelClient.GetContext(_channel1, _user1).GetMessages(context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                (y[0] == m1).Should().BeTrue();
+                y.Count.Be(1);
+                (y[0] == m1).BeTrue();
             });
         });
 
@@ -71,18 +70,18 @@ public class ChannelMessageTests
             .Select(x => new ChannelMessage { ChannelId = _channel1, FromPrincipalId = _user1, Message = $"message {x}" })
             .ToArray();
 
-        (await channelClient.GetContext(_channel1, _user1).AddMessages(newMessages, context)).IsOk().Should().BeTrue();
+        (await channelClient.GetContext(_channel1, _user1).AddMessages(newMessages, context)).IsOk().BeTrue();
 
         (await channelClient.GetContext(_channel1, _user1).GetMessages(context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(count + 1);
-                (y[0] == m1).Should().BeTrue();
-                (y[1] == newMessages[0]).Should().BeTrue();
-                (y[2] == newMessages[1]).Should().BeTrue();
-                (y[3] == newMessages[2]).Should().BeTrue();
+                y.Count.Be(count + 1);
+                (y[0] == m1).BeTrue();
+                (y[1] == newMessages[0]).BeTrue();
+                (y[2] == newMessages[1]).BeTrue();
+                (y[3] == newMessages[2]).BeTrue();
             });
         });
     }
@@ -110,7 +109,7 @@ public class ChannelMessageTests
         };
 
         var addResult = await channelClient.Create(channel, context);
-        addResult.IsOk().Should().BeTrue(addResult.ToString());
+        addResult.IsOk().BeTrue(addResult.ToString());
 
         var channelContext = channelClient.GetContext(_channel1, _user1);
         const int count = 100;
@@ -126,15 +125,15 @@ public class ChannelMessageTests
 
             list += newMessages;
 
-            (await channelContext.AddMessages(newMessages, context)).IsOk().Should().BeTrue();
+            (await channelContext.AddMessages(newMessages, context)).IsOk().BeTrue();
 
             (await channelContext.GetMessages(context)).Action(x =>
             {
-                x.IsOk().Should().BeTrue();
+                x.IsOk().BeTrue();
                 x.Return().Action(y =>
                 {
-                    y.Count.Should().Be(list.Count);
-                    y.SequenceEqual(list).Should().BeTrue();
+                    y.Count.Be(list.Count);
+                    y.SequenceEqual(list).BeTrue();
                 });
             });
 
@@ -146,14 +145,14 @@ public class ChannelMessageTests
 
         (await channelClient.GetContext(_channel1, _user1).GetMessages(context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue(x.ToString());
+            x.IsOk().BeTrue(x.ToString());
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(list.Count);
+                y.Count.Be(list.Count);
                 x.Return().Action(y =>
                 {
-                    y.Count.Should().Be(list.Count);
-                    y.SequenceEqual(list).Should().BeTrue();
+                    y.Count.Be(list.Count);
+                    y.SequenceEqual(list).BeTrue();
                 });
             });
         });
@@ -177,6 +176,6 @@ public class ChannelMessageTests
         };
 
         var addResult = await client.Create(groupRecord, context);
-        addResult.IsOk().Should().BeTrue();
+        addResult.IsOk().BeTrue();
     }
 }

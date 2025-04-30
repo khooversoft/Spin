@@ -1,4 +1,4 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -18,7 +18,7 @@ public class DomainTests
     [InlineData("2domain.com")]
     public void Invalid(string? nameId)
     {
-        IdPatterns.IsDomain(nameId).Should().BeFalse();
+        IdPatterns.IsDomain(nameId).BeFalse();
     }
 
     [Theory]
@@ -27,6 +27,6 @@ public class DomainTests
     [InlineData("dom.ain.com")]
     public void Valid(string nameId)
     {
-        IdPatterns.IsDomain(nameId).Should().BeTrue();
+        IdPatterns.IsDomain(nameId).BeTrue();
     }
 }

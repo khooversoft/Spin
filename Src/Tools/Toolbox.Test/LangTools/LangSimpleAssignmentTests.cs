@@ -17,8 +17,8 @@
 //        foreach (var test in lines)
 //        {
 //            LangResult tree = root.Parse(test);
-//            tree.Should().NotBeNull();
-//            tree.IsError().Should().BeTrue();
+//            tree.NotBeNull();
+//            tree.IsError().BeTrue();
 //        }
 //    }
 

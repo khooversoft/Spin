@@ -6,7 +6,6 @@ using Toolbox.Azure;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -98,7 +97,7 @@ public static class TestApplication
         var secondClient = await create(memoryStore, x => output.WriteLine($"2nd: {x}"));
 
         var context = firstClient.CreateScopeContext<T>();
-        (await firstClient.Execute("delete (*) ;", context)).IsOk().Should().BeTrue();
+        (await firstClient.Execute("delete (*) ;", context)).IsOk().BeTrue();
         return (firstClient, secondClient, context);
 
         async Task<GraphHostService> create(MemoryStore? memoryStore, Action<string> outputFunc)
@@ -122,7 +121,7 @@ public static class TestApplication
         var secondClient = await TestApplication.CreateTestGraphServiceWithDatalake(basePath, logOutput: x => output.WriteLine($"2nd: {x}"), shareMode: true);
 
         var context = firstClient.CreateScopeContext<T>();
-        (await firstClient.Execute("delete (*) ;", context)).IsOk().Should().BeTrue();
+        (await firstClient.Execute("delete (*) ;", context)).IsOk().BeTrue();
 
         return (firstClient, secondClient, context);
     }

@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Tools;
 
@@ -13,11 +12,11 @@ public class JsonSerializationTests
     {
         var t1 = new TestRecord("name1", 10);
         string data = t1.ToJson();
-        data.Should().NotBeEmpty();
-        data.Should().Be("{\"name\":\"name1\",\"age\":10}");
+        data.NotEmpty();
+        data.Be("{\"name\":\"name1\",\"age\":10}");
 
         var t2 = data.ToObject<TestRecord>().NotNull();
-        (t1 == t2).Should().BeTrue();
+        (t1 == t2).BeTrue();
     }
 
     [Fact]
@@ -25,11 +24,11 @@ public class JsonSerializationTests
     {
         var t1 = new TestRecord("name1", 10);
         string data = t1.ToJsonPascal();
-        data.Should().NotBeEmpty();
-        data.Should().Be("{\"Name\":\"name1\",\"Age\":10}");
+        data.NotEmpty();
+        data.Be("{\"Name\":\"name1\",\"Age\":10}");
 
         var t2 = data.ToObject<TestRecord>().NotNull();
-        (t1 == t2).Should().BeTrue();
+        (t1 == t2).BeTrue();
     }
 
     [Fact]
@@ -37,8 +36,8 @@ public class JsonSerializationTests
     {
         var t1 = new TestRecord("name1", 10);
         string data = t1.ToJsonFormat();
-        data.Should().NotBeEmpty();
-        data.Should().Be("""
+        data.NotEmpty();
+        data.Be("""
             {
               "name": "name1",
               "age": 10
@@ -46,7 +45,7 @@ public class JsonSerializationTests
             """);
 
         var t2 = data.ToObject<TestRecord>().NotNull();
-        (t1 == t2).Should().BeTrue();
+        (t1 == t2).BeTrue();
     }
 
 }

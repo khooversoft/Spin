@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.LangTools.Meta;
@@ -14,15 +14,15 @@ public class SampleMetaSyntaxTest
         string metaSyntax = MetaTestTool.ReadGraphLanguage();
 
         MetaSyntaxRoot root = MetaParser.ParseRules(metaSyntax);
-        root.StatusCode.IsOk().Should().BeTrue(root.Error);
+        root.StatusCode.IsOk().BeTrue(root.Error);
 
         var lines = MetaTestTool.GenerateTestCodeFromProductionRule(root.Rule).Join(Environment.NewLine);
 
         ExpectedTree().FlattenMatch(root.Rule.Children);
 
         var expected = ExpectedTree();
-        root.Rule.Children.Count.Should().Be(expected.Count);
-        Enumerable.SequenceEqual(root.Rule.Children, expected).Should().BeTrue();
+        root.Rule.Children.Count.Be(expected.Count);
+        Enumerable.SequenceEqual(root.Rule.Children, expected).BeTrue();
     }
 
     private IReadOnlyList<IMetaSyntax> ExpectedTree()

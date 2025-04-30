@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -30,10 +30,10 @@ public class AddEdgeCommandTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Default);
-        newMapOption.IsError().Should().BeTrue();
+        newMapOption.IsError().BeTrue();
 
-        testClient.Map.Nodes.Count.Should().Be(7);
-        testClient.Map.Edges.Count.Should().Be(5);
+        testClient.Map.Nodes.Count.Be(7);
+        testClient.Map.Edges.Count.Be(5);
     }
 
     [Fact]
@@ -42,29 +42,29 @@ public class AddEdgeCommandTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
         {
-            x.FromKey.Should().Be("node7");
-            x.ToKey.Should().Be("node1");
-            x.EdgeType.Should().Be("newEdgeType");
-            x.Tags.ToTagsString().Should().Be("newTags");
+            x.FromKey.Be("node7");
+            x.ToKey.Be("node1");
+            x.EdgeType.Be("newEdgeType");
+            x.Tags.ToTagsString().Be("newTags");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
         var resultIndex = commandResults.Items.ToCursor();
 
         resultIndex.NextValue().Return().Action(x =>
         {
-            x.Option.IsOk().Should().BeTrue();
-            x.Nodes.Count.Should().Be(0);
-            x.Edges.Count.Should().Be(0);
-            x.DataLinks.Count.Should().Be(0);
+            x.Option.IsOk().BeTrue();
+            x.Nodes.Count.Be(0);
+            x.Edges.Count.Be(0);
+            x.DataLinks.Count.Be(0);
         });
     }
 
@@ -74,21 +74,21 @@ public class AddEdgeCommandTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set -newTags;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
         {
-            x.FromKey.Should().Be("node7");
-            x.ToKey.Should().Be("node1");
-            x.EdgeType.Should().Be("newEdgeType");
-            x.Tags.Count.Should().Be(0);
+            x.FromKey.Be("node7");
+            x.ToKey.Be("node1");
+            x.EdgeType.Be("newEdgeType");
+            x.Tags.Count.Be(0);
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
     }
 
     [Fact]
@@ -97,20 +97,20 @@ public class AddEdgeCommandTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
         {
-            x.FromKey.Should().Be("node7");
-            x.ToKey.Should().Be("node1");
-            x.EdgeType.Should().Be("newEdgeType");
-            x.Tags.ToTagsString().Should().Be("newTags");
+            x.FromKey.Be("node7");
+            x.ToKey.Be("node1");
+            x.EdgeType.Be("newEdgeType");
+            x.Tags.ToTagsString().Be("newTags");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -36,7 +36,7 @@ public class SelectEdgeQueryTests : TestBase
         }.Join(Environment.NewLine);
 
         _schema = MetaParser.ParseRules(schemaText);
-        _schema.StatusCode.IsOk().Should().BeTrue(_schema.Error);
+        _schema.StatusCode.IsOk().BeTrue(_schema.Error);
     }
 
     [Theory]
@@ -50,7 +50,7 @@ public class SelectEdgeQueryTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
-        parse.Status.IsError().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
 
@@ -61,7 +61,7 @@ public class SelectEdgeQueryTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("[*]", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -103,7 +103,7 @@ public class SelectEdgeQueryTests : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -115,7 +115,7 @@ public class SelectEdgeQueryTests : TestBase
             new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class SelectEdgeQueryTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("[*] -> (*)", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -227,7 +227,7 @@ public class SelectEdgeQueryTests : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -243,7 +243,7 @@ public class SelectEdgeQueryTests : TestBase
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class SelectEdgeQueryTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("[label] -> (*)", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -355,7 +355,7 @@ public class SelectEdgeQueryTests : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -371,7 +371,7 @@ public class SelectEdgeQueryTests : TestBase
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -381,7 +381,7 @@ public class SelectEdgeQueryTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("[label] -> (key=k1)", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -492,7 +492,7 @@ public class SelectEdgeQueryTests : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = syntaxPairs.GenerateSyntaxPairs().Join(Environment.NewLine);
@@ -510,6 +510,6 @@ public class SelectEdgeQueryTests : TestBase
             new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
         };
 
-        syntaxPairs.SequenceEqual(expectedPairs).Should().BeTrue();
+        syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
 }

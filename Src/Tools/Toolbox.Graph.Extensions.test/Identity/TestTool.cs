@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions.test.Identity;
@@ -10,26 +9,26 @@ internal static class TestTool
 {
     public static async Task CreateAndVerify(PrincipalIdentity user, GraphHostService graphHostService, ScopeContext context)
     {
-        user.Validate().IsOk().Should().BeTrue();
+        user.Validate().IsOk().BeTrue();
         graphHostService.NotNull();
 
         var identityClient = graphHostService.Services.GetRequiredService<IdentityClient>();
         var result = await identityClient.Set(user, context);
-        result.IsOk().Should().BeTrue();
+        result.IsOk().BeTrue();
 
         var readPrincipalIdentityOption = await identityClient.GetByPrincipalId(user.PrincipalId, context);
-        readPrincipalIdentityOption.IsOk().Should().BeTrue();
-        (user == readPrincipalIdentityOption.Return()).Should().BeTrue();
+        readPrincipalIdentityOption.IsOk().BeTrue();
+        (user == readPrincipalIdentityOption.Return()).BeTrue();
 
         var userNameOption = await identityClient.GetByName(user.UserName, context);
-        userNameOption.IsOk().Should().BeTrue();
-        (user == userNameOption.Return()).Should().BeTrue();
+        userNameOption.IsOk().BeTrue();
+        (user == userNameOption.Return()).BeTrue();
 
         if (user.LoginProvider.IsNotEmpty() && user.ProviderKey.IsNotEmpty())
         {
             var readLoginOption = await identityClient.GetByLogin(user.LoginProvider, user.ProviderKey, context);
-            readLoginOption.IsOk().Should().BeTrue();
-            (user == readLoginOption.Return()).Should().BeTrue();
+            readLoginOption.IsOk().BeTrue();
+            (user == readLoginOption.Return()).BeTrue();
         }
     }
 
@@ -53,7 +52,7 @@ internal static class TestTool
             ProviderDisplayName = "testProvider",
         };
 
-        user.Validate().IsOk().Should().BeTrue();
+        user.Validate().IsOk().BeTrue();
         return user;
     }
 }

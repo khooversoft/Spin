@@ -1,4 +1,4 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.Extensions.test.SecurityGroup;
@@ -29,6 +29,6 @@ public class SecurityAccessTests
     public void TestNoAccess(SecurityAccess access, SecurityAccess requireAccess, bool shouldPass)
     {
         var result = access.HasAccess(requireAccess).IsOk();
-        result.Should().Be(shouldPass);
+        result.Be(shouldPass);
     }
 }

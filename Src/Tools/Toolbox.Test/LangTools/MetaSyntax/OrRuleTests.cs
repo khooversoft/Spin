@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -22,7 +22,7 @@ public class OrRuleTests : TestBase
         }.Join(Environment.NewLine);
 
         _schema = MetaParser.ParseRules(schemaText);
-        _schema.StatusCode.IsOk().Should().BeTrue();
+        _schema.StatusCode.IsOk().BeTrue();
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class OrRuleTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("node", logger);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -58,7 +58,7 @@ public class OrRuleTests : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -68,7 +68,7 @@ public class OrRuleTests : TestBase
             new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class OrRuleTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("edge", logger);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -104,7 +104,7 @@ public class OrRuleTests : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -114,7 +114,7 @@ public class OrRuleTests : TestBase
             new SyntaxPair { Token = new TokenValue("edge"), MetaSyntaxName = "edge-sym" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -124,6 +124,6 @@ public class OrRuleTests : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("edxxxge", logger);
-        parse.Status.IsError().Should().BeTrue();
+        parse.Status.IsError().BeTrue();
     }
 }

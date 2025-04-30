@@ -1,5 +1,4 @@
 ﻿using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Tools;
 
@@ -31,6 +30,6 @@ public class GlobFilePatternTests
     public void MatchExact(string file, string pattern, bool expected)
     {
         var matcher = new GlobFileMatching(pattern);
-        matcher.IsMatch(file).Should().Be(expected);
+        matcher.IsMatch(file).Be(expected);
     }
 }

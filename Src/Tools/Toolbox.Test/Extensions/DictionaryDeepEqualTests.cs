@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Extensions;
 
@@ -11,7 +11,7 @@ public class DictionaryDeepEqualTests
         Dictionary<string, string> list1 = new();
         Dictionary<string, string> list2 = new();
 
-        list1.DeepEquals(list2).Should().BeTrue();
+        list1.DeepEquals(list2).BeTrue();
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class DictionaryDeepEqualTests
             [10] = 101,
         };
 
-        list1.DeepEquals(list2).Should().BeTrue();
+        list1.DeepEquals(list2).BeTrue();
     }
 
 
@@ -42,7 +42,7 @@ public class DictionaryDeepEqualTests
             [10] = 102,
         };
 
-        list1.DeepEquals(list2).Should().BeFalse();
+        list1.DeepEquals(list2).BeFalse();
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class DictionaryDeepEqualTests
             ["key1"] = "value1",
         };
 
-        list1.DeepEquals(list2).Should().BeTrue();
+        list1.DeepEquals(list2).BeTrue();
     }
 
 
@@ -76,7 +76,7 @@ public class DictionaryDeepEqualTests
             ["key3"] = "value2-x",
         };
 
-        list1.DeepEquals(list2).Should().BeFalse();
+        list1.DeepEquals(list2).BeFalse();
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class DictionaryDeepEqualTests
             ["key2"] = "value2-x",
         };
 
-        list1.DeepEquals(list2).Should().BeFalse();
+        list1.DeepEquals(list2).BeFalse();
     }
 
     [Fact]
@@ -110,6 +110,6 @@ public class DictionaryDeepEqualTests
             ["key2"] = "value2",
         };
 
-        list1.DeepEquals(list2).Should().BeTrue();
+        list1.DeepEquals(list2).BeTrue();
     }
 }

@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph.Map;
@@ -16,37 +15,37 @@ public class NodeUniqueIndexTests
         };
 
         var subject = map.Nodes.LookupIndex("name", "marko");
-        subject.IsOk().Should().BeTrue();
-        subject.Return().NodeKey.Should().Be("node1");
+        subject.IsOk().BeTrue();
+        subject.Return().NodeKey.Be("node1");
 
         map.Nodes.LookupIndex("name", "marko").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             var subject = x.Return();
-            subject.NodeKey.Should().Be("node1");
-            subject.IndexName.Should().Be("name");
-            subject.Value.Should().Be("marko");
+            subject.NodeKey.Be("node1");
+            subject.IndexName.Be("name");
+            subject.Value.Be("marko");
         });
 
-        map.Nodes.LookupByNodeKey("node8").Count.Should().Be(0);
+        map.Nodes.LookupByNodeKey("node8").Count.Be(0);
 
         map.Nodes.LookupByNodeKey("node1").Action(nodes =>
         {
-            nodes.Count.Should().Be(1);
-            nodes[0].NodeKey.Should().Be("node1");
-            nodes[0].IndexName.Should().Be("name");
-            nodes[0].Value.Should().Be("marko");
+            nodes.Count.Be(1);
+            nodes[0].NodeKey.Be("node1");
+            nodes[0].IndexName.Be("name");
+            nodes[0].Value.Be("marko");
         });
 
         var duplicateNode = new GraphNode("node1");
-        map.Nodes.Add(duplicateNode).IsError().Should().BeTrue();
+        map.Nodes.Add(duplicateNode).IsError().BeTrue();
 
-        map.Nodes.Set(duplicateNode).IsOk().Should().BeTrue();
+        map.Nodes.Set(duplicateNode).IsOk().BeTrue();
 
-        map.Nodes.TryGetValue("node1", out var readNode).Should().BeTrue();
+        map.Nodes.TryGetValue("node1", out var readNode).BeTrue();
         readNode.NotNull();
-        readNode!.Key.Should().Be("node1");
-        readNode.TagsString.Should().Be("age=29,name=marko");
+        readNode!.Key.Be("node1");
+        readNode.TagsString.Be("age=29,name=marko");
 
     }
 
@@ -59,23 +58,23 @@ public class NodeUniqueIndexTests
         };
 
         var subject = map.Nodes.LookupIndex("name", "marko");
-        subject.IsOk().Should().BeTrue();
-        subject.Return().NodeKey.Should().Be("node1");
+        subject.IsOk().BeTrue();
+        subject.Return().NodeKey.Be("node1");
 
-        map.Nodes.LookupByNodeKey("node1").Count.Should().Be(1);
-        map.Nodes.LookupIndex("name", "marko").IsOk().Should().BeTrue();
+        map.Nodes.LookupByNodeKey("node1").Count.Be(1);
+        map.Nodes.LookupIndex("name", "marko").IsOk().BeTrue();
 
         var updatedNode = new GraphNode("node1", indexes: "-name");
         var setResult = map.Nodes.Set(updatedNode);
-        setResult.IsOk().Should().BeTrue();
+        setResult.IsOk().BeTrue();
 
-        map.Nodes.LookupByNodeKey("node1").Count.Should().Be(0);
-        map.Nodes.LookupIndex("name", "marko").IsNotFound().Should().BeTrue();
+        map.Nodes.LookupByNodeKey("node1").Count.Be(0);
+        map.Nodes.LookupIndex("name", "marko").IsNotFound().BeTrue();
 
-        map.Nodes.TryGetValue("node1", out var readNode).Should().BeTrue();
-        readNode!.Key.Should().Be("node1");
-        readNode.TagsString.Should().Be("age=29,name=marko");
-        readNode.IndexesString.Should().BeEmpty();
+        map.Nodes.TryGetValue("node1", out var readNode).BeTrue();
+        readNode!.Key.Be("node1");
+        readNode.TagsString.Be("age=29,name=marko");
+        readNode.IndexesString.BeEmpty();
     }
 
     [Fact]
@@ -88,27 +87,27 @@ public class NodeUniqueIndexTests
 
         map.Nodes.LookupIndex("name", "ripple").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node5");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node5");
         });
 
         map.Nodes.LookupIndex("lang", "java").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node5");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node5");
         });
 
-        map.Nodes.LookupIndex("lang", "java2").IsError().Should().BeTrue();
-        map.Nodes.LookupIndex("lang2", "java").IsError().Should().BeTrue();
+        map.Nodes.LookupIndex("lang", "java2").IsError().BeTrue();
+        map.Nodes.LookupIndex("lang2", "java").IsError().BeTrue();
 
-        map.Nodes.LookupByNodeKey("node8").Count.Should().Be(0);
+        map.Nodes.LookupByNodeKey("node8").Count.Be(0);
 
         map.Nodes.LookupByNodeKey("node5").Action(nodes =>
         {
-            nodes.Count.Should().Be(2);
-            nodes.Count.Should().Be(2);
-            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Should().Be(1);
-            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Should().Be(1);
+            nodes.Count.Be(2);
+            nodes.Count.Be(2);
+            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Be(1);
+            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Be(1);
         });
     }
 
@@ -124,38 +123,38 @@ public class NodeUniqueIndexTests
 
         map.Nodes.LookupIndex("name", "marko").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node1");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node1");
         });
 
         map.Nodes.LookupIndex("name", "ripple").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node5");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node5");
         });
 
         map.Nodes.LookupIndex("lang", "java").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node5");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node5");
         });
 
-        map.Nodes.LookupIndex("lang", "java2").IsError().Should().BeTrue();
-        map.Nodes.LookupIndex("lang2", "java").IsError().Should().BeTrue();
+        map.Nodes.LookupIndex("lang", "java2").IsError().BeTrue();
+        map.Nodes.LookupIndex("lang2", "java").IsError().BeTrue();
 
         map.Nodes.LookupByNodeKey("node1").Action(nodes =>
         {
-            nodes.Count.Should().Be(1);
-            nodes[0].NodeKey.Should().Be("node1");
-            nodes[0].IndexName.Should().Be("name");
-            nodes[0].Value.Should().Be("marko");
+            nodes.Count.Be(1);
+            nodes[0].NodeKey.Be("node1");
+            nodes[0].IndexName.Be("name");
+            nodes[0].Value.Be("marko");
         });
 
         map.Nodes.LookupByNodeKey("node5").Action(nodes =>
         {
-            nodes.Count.Should().Be(2);
-            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Should().Be(1);
-            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Should().Be(1);
+            nodes.Count.Be(2);
+            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Be(1);
+            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Be(1);
         });
     }
 
@@ -170,28 +169,28 @@ public class NodeUniqueIndexTests
 
         map.Nodes.LookupIndex("name", "marko").Action(subject =>
         {
-            subject.IsOk().Should().BeTrue();
-            subject.Return().NodeKey.Should().Be("node1");
+            subject.IsOk().BeTrue();
+            subject.Return().NodeKey.Be("node1");
         });
 
         var updatedNode = new GraphNode("node1", tags: "name=marko2,age=29", indexes: "name");
         var setResult = map.Nodes.Set(updatedNode);
-        setResult.IsOk().Should().BeTrue();
+        setResult.IsOk().BeTrue();
 
-        map.Nodes.LookupIndex("name", "marko").IsError().Should().BeTrue();
+        map.Nodes.LookupIndex("name", "marko").IsError().BeTrue();
 
         map.Nodes.LookupIndex("name", "marko2").Action(subject =>
         {
-            subject.IsOk().Should().BeTrue();
-            subject.Return().NodeKey.Should().Be("node1");
+            subject.IsOk().BeTrue();
+            subject.Return().NodeKey.Be("node1");
         });
 
         map.Nodes.LookupByNodeKey("node1").Action(nodes =>
         {
-            nodes.Count.Should().Be(1);
-            nodes[0].NodeKey.Should().Be("node1");
-            nodes[0].IndexName.Should().Be("name");
-            nodes[0].Value.Should().Be("marko2");
+            nodes.Count.Be(1);
+            nodes[0].NodeKey.Be("node1");
+            nodes[0].IndexName.Be("name");
+            nodes[0].Value.Be("marko2");
         });
     }
 
@@ -206,36 +205,36 @@ public class NodeUniqueIndexTests
 
         map.Nodes.LookupIndex("name", "marko").Action(subject =>
         {
-            subject.IsOk().Should().BeTrue();
-            subject.Return().NodeKey.Should().Be("node1");
+            subject.IsOk().BeTrue();
+            subject.Return().NodeKey.Be("node1");
         });
 
         var updatedNode = new GraphNode("node1", tags: "name=marko2,age=29");
         var setResult = map.Nodes.Set(updatedNode);
-        setResult.IsOk().Should().BeTrue();
+        setResult.IsOk().BeTrue();
 
         map.Nodes.TryGetValue("node1", out var readNode).Action(x =>
         {
-            x.Should().BeTrue();
-            readNode!.Key.Should().Be("node1");
-            readNode.TagsString.Should().Be("age=29,name=marko2");
-            readNode.IndexesString.Should().Be("name");
+            x.BeTrue();
+            readNode!.Key.Be("node1");
+            readNode.TagsString.Be("age=29,name=marko2");
+            readNode.IndexesString.Be("name");
         });
 
-        map.Nodes.LookupIndex("name", "marko").IsError().Should().BeTrue();
+        map.Nodes.LookupIndex("name", "marko").IsError().BeTrue();
 
         map.Nodes.LookupIndex("name", "marko2").Action(subject =>
         {
-            subject.IsOk().Should().BeTrue();
-            subject.Return().NodeKey.Should().Be("node1");
+            subject.IsOk().BeTrue();
+            subject.Return().NodeKey.Be("node1");
         });
 
         map.Nodes.LookupByNodeKey("node1").Action(nodes =>
         {
-            nodes.Count.Should().Be(1);
-            nodes[0].NodeKey.Should().Be("node1");
-            nodes[0].IndexName.Should().Be("name");
-            nodes[0].Value.Should().Be("marko2");
+            nodes.Count.Be(1);
+            nodes[0].NodeKey.Be("node1");
+            nodes[0].IndexName.Be("name");
+            nodes[0].Value.Be("marko2");
         });
     }
 
@@ -252,66 +251,66 @@ public class NodeUniqueIndexTests
 
         map.Nodes.LookupIndex("name", "marko").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node1");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node1");
         });
 
         map.Nodes.LookupIndex("name", "ripple").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node5");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node5");
         });
 
         map.Nodes.LookupIndex("lang", "java").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node5");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node5");
         });
 
         map.Nodes.LookupByNodeKey("node1").Action(nodes =>
         {
-            nodes.Count.Should().Be(1);
-            nodes[0].NodeKey.Should().Be("node1");
-            nodes[0].IndexName.Should().Be("name");
-            nodes[0].Value.Should().Be("marko");
+            nodes.Count.Be(1);
+            nodes[0].NodeKey.Be("node1");
+            nodes[0].IndexName.Be("name");
+            nodes[0].Value.Be("marko");
         });
 
         map.Nodes.LookupByNodeKey("node5").Action(nodes =>
         {
-            nodes.Count.Should().Be(2);
-            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Should().Be(1);
-            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Should().Be(1);
+            nodes.Count.Be(2);
+            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Be(1);
+            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Be(1);
         });
 
         var updatedNode = new GraphNode("node5", tags: "-lang");
         var setResult = map.Nodes.Set(updatedNode);
-        setResult.IsOk().Should().BeTrue();
+        setResult.IsOk().BeTrue();
 
-        map.Nodes.LookupIndex("lang", "java").IsNotFound().Should().BeTrue();
+        map.Nodes.LookupIndex("lang", "java").IsNotFound().BeTrue();
 
         map.Nodes.LookupIndex("name", "marko").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node1");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node1");
         });
 
         map.Nodes.LookupIndex("name", "ripple").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node5");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node5");
         });
 
         map.Nodes.LookupByNodeKey("node5").Action(nodes =>
         {
-            nodes.Count.Should().Be(1);
-            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Should().Be(1);
-            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Should().Be(0);
+            nodes.Count.Be(1);
+            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Be(1);
+            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Be(0);
         });
 
-        map.Nodes.TryGetValue("node5", out var readNode).Should().BeTrue();
+        map.Nodes.TryGetValue("node5", out var readNode).BeTrue();
         readNode.NotNull();
-        readNode!.Key.Should().Be("node5");
-        readNode.TagsString.Should().Be("name=ripple");
+        readNode!.Key.Be("node5");
+        readNode.TagsString.Be("name=ripple");
     }
 
     [Fact]
@@ -326,55 +325,55 @@ public class NodeUniqueIndexTests
 
         map.Nodes.LookupIndex("name", "marko").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node1");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node1");
         });
 
         map.Nodes.LookupIndex("name", "ripple").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node5");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node5");
         });
 
         map.Nodes.LookupIndex("lang", "java").Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().NodeKey.Should().Be("node5");
+            x.IsOk().BeTrue();
+            x.Return().NodeKey.Be("node5");
         });
 
         map.Nodes.LookupByNodeKey("node1").Action(nodes =>
         {
-            nodes.Count.Should().Be(1);
-            nodes[0].NodeKey.Should().Be("node1");
-            nodes[0].IndexName.Should().Be("name");
-            nodes[0].Value.Should().Be("marko");
+            nodes.Count.Be(1);
+            nodes[0].NodeKey.Be("node1");
+            nodes[0].IndexName.Be("name");
+            nodes[0].Value.Be("marko");
         });
 
         map.Nodes.LookupByNodeKey("node5").Action(nodes =>
         {
-            nodes.Count.Should().Be(2);
-            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Should().Be(1);
-            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Should().Be(1);
+            nodes.Count.Be(2);
+            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Be(1);
+            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Be(1);
         });
 
         var updatedNode = new GraphNode("node5", tags: "-name, -lang");
         var setResult = map.Nodes.Set(updatedNode);
-        setResult.IsOk().Should().BeTrue();
+        setResult.IsOk().BeTrue();
 
-        map.Nodes.LookupIndex("lang", "java").IsNotFound().Should().BeTrue();
-        map.Nodes.LookupIndex("name", "ripple").IsNotFound().Should().BeTrue();
+        map.Nodes.LookupIndex("lang", "java").IsNotFound().BeTrue();
+        map.Nodes.LookupIndex("name", "ripple").IsNotFound().BeTrue();
 
         map.Nodes.LookupByNodeKey("node5").Action(nodes =>
         {
-            nodes.Count.Should().Be(0);
-            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Should().Be(0);
-            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Should().Be(0);
+            nodes.Count.Be(0);
+            nodes.Count(x => x.IndexName == "name" && x.Value == "ripple").Be(0);
+            nodes.Count(x => x.IndexName == "lang" && x.Value == "java").Be(0);
         });
 
-        map.Nodes.TryGetValue("node5", out var readNode).Should().BeTrue();
+        map.Nodes.TryGetValue("node5", out var readNode).BeTrue();
         readNode.NotNull();
-        readNode!.Key.Should().Be("node5");
-        readNode.Tags.Count.Should().Be(0);
+        readNode!.Key.Be("node5");
+        readNode.Tags.Count.Be(0);
     }
 
 }

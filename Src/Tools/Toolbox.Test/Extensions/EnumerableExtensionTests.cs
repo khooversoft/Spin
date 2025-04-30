@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Extensions;
 
@@ -10,8 +10,8 @@ public class EnumerableExtensionTests
     {
         var subject = Enumerable.Range(1, 10);
         var result = subject.Partition(10);
-        result.Count.Should().Be(1);
-        result.First().Count.Should().Be(10);
+        result.Count.Be(1);
+        result.First().Count.Be(10);
     }
 
     [Fact]
@@ -19,9 +19,9 @@ public class EnumerableExtensionTests
     {
         var subject = Enumerable.Range(1, 20);
         var result = subject.Partition(10);
-        result.Count.Should().Be(2);
-        result.First().Count.Should().Be(10);
-        result.Skip(1).First().Count.Should().Be(10);
+        result.Count.Be(2);
+        result.First().Count.Be(10);
+        result.Skip(1).First().Count.Be(10);
     }
 
     [Fact]
@@ -29,8 +29,8 @@ public class EnumerableExtensionTests
     {
         var subject = Enumerable.Range(0, 22);
         var result = subject.Partition(10);
-        result.Count.Should().Be(3);
-        result.Select(x => x.Count).Should().BeEquivalent([10, 10, 2]);
+        result.Count.Be(3);
+        result.Select(x => x.Count).BeEquivalent([10, 10, 2]);
 
         var a1 = Enumerable.Range(0, 10).ToArray();
         var a2 = Enumerable.Range(10, 10).ToArray();
@@ -39,6 +39,6 @@ public class EnumerableExtensionTests
         result.Zip([a1, a2, a3], (o, i) => (o, i))
             .Select(x => (x.o, x.i, x.o.SequenceEqual(x.i)))
             .All(x => x.o.SequenceEqual(x.i))
-            .Should().BeTrue();
+            .BeTrue();
     }
 }

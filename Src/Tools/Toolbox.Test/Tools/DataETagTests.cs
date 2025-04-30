@@ -1,6 +1,6 @@
 ﻿using Azure;
 using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Tools;
@@ -14,7 +14,7 @@ public class DataETagTests
         DataETag e1 = new DataETag(d1);
         DataETag e2 = new DataETag(d1);
 
-        (e1 == e2).Should().BeTrue();
+        (e1 == e2).BeTrue();
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class DataETagTests
         byte[] d2 = "simple".ToBytes();
         DataETag e2 = new DataETag(d2);
 
-        (e1 == e2).Should().BeFalse();
+        (e1 == e2).BeFalse();
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class DataETagTests
         DataETag e1 = new DataETag(d1);
         DataETag e2 = new DataETag(d1);
 
-        (e1 == e2).Should().BeTrue();
+        (e1 == e2).BeTrue();
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class DataETagTests
         byte[] d2 = "simple".ToBytes();
         DataETag e2 = new DataETag(d2);
 
-        (e1 == e2).Should().BeTrue();
+        (e1 == e2).BeTrue();
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class DataETagTests
         byte[] d2 = "simple2".ToBytes();
         DataETag e2 = new DataETag(d2);
 
-        (e1 == e2).Should().BeFalse();
+        (e1 == e2).BeFalse();
     }
 
     [Fact]
@@ -72,6 +72,6 @@ public class DataETagTests
         ETag t2 = new ETag("hello");
         DataETag e2 = new DataETag(d2, t2.ToString());
 
-        (e1 == e2).Should().BeTrue();
+        (e1 == e2).BeTrue();
     }
 }

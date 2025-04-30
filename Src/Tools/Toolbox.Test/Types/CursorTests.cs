@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -15,12 +15,12 @@ public class CursorTests
 
         for (int i = 0; i < list.Length; i++)
         {
-            cursor.NextValue().IsOk().Should().BeTrue();
-            cursor.Index.Should().Be(i);
-            cursor.Current.Should().Be(list[i]);
+            cursor.NextValue().IsOk().BeTrue();
+            cursor.Index.Be(i);
+            cursor.Current.Be(list[i]);
         }
 
-        cursor.NextValue().IsNoContent().Should().BeTrue();
+        cursor.NextValue().IsNoContent().BeTrue();
     }
 
     [Fact]
@@ -33,13 +33,13 @@ public class CursorTests
         int i = 0;
         while (cursor.TryGetValue(out var value))
         {
-            cursor.Index.Should().Be(i);
-            cursor.Current.Should().Be(list[i]);
+            cursor.Index.Be(i);
+            cursor.Current.Be(list[i]);
 
             i++;
         }
 
-        cursor.NextValue().IsNoContent().Should().BeTrue();
+        cursor.NextValue().IsNoContent().BeTrue();
     }
 
     [Fact]
@@ -48,16 +48,16 @@ public class CursorTests
         int[] list = [1, 2, 3, 4, 5, 7, 8];
 
         var cursor = list.ToCursor();
-        Enumerable.Range(0, 3).ForEach(_ => cursor.NextValue().IsOk().Should().BeTrue());
-        cursor.Index.Should().Be(2);
+        Enumerable.Range(0, 3).ForEach(_ => cursor.NextValue().IsOk().BeTrue());
+        cursor.Index.Be(2);
 
         using (var scope = cursor.IndexScope.PushWithScope())
         {
-            cursor.Index.Should().Be(2);
-            Enumerable.Range(0, 3).ForEach(_ => cursor.NextValue().IsOk().Should().BeTrue());
-            cursor.Index.Should().Be(5);
+            cursor.Index.Be(2);
+            Enumerable.Range(0, 3).ForEach(_ => cursor.NextValue().IsOk().BeTrue());
+            cursor.Index.Be(5);
         }
 
-        cursor.Index.Should().Be(2);
+        cursor.Index.Be(2);
     }
 }

@@ -10,9 +10,9 @@
 //    {
 //        var cache = new CacheObject<string>(TimeSpan.FromSeconds(10));
 
-//        cache.IsValid().Should().BeFalse();
-//        cache.TryGetValue(out string value).Should().BeFalse();
-//        value.Should().BeEmpty();
+//        cache.IsValid().BeFalse();
+//        cache.TryGetValue(out string value).BeFalse();
+//        value.BeEmpty();
 //    }
 
 //    [Fact]
@@ -21,13 +21,13 @@
 //        string item = null!;
 //        var cache = item.ToCacheObject(TimeSpan.FromSeconds(10));
 
-//        cache.IsValid().Should().BeFalse();
+//        cache.IsValid().BeFalse();
 
 //        string item2 = "this is the item";
 //        cache.Set(item2);
-//        cache.TryGetValue(out string value2).Should().BeTrue();
-//        value2.Should().Be(item2);
-//        cache.IsValid().Should().BeTrue();
+//        cache.TryGetValue(out string value2).BeTrue();
+//        value2.Be(item2);
+//        cache.IsValid().BeTrue();
 //    }
 
 //    [Fact]
@@ -37,12 +37,12 @@
 //        string item = valueToCache;
 //        var cache = item.ToCacheObject(TimeSpan.FromSeconds(10));
 
-//        cache.IsValid().Should().BeTrue();
-//        cache.TryGetValue(out string value).Should().BeTrue();
-//        value.Should().Be(valueToCache);
+//        cache.IsValid().BeTrue();
+//        cache.TryGetValue(out string value).BeTrue();
+//        value.Be(valueToCache);
 
 //        cache.Clear();
-//        cache.TryGetValue(out string value2).Should().BeFalse();
+//        cache.TryGetValue(out string value2).BeFalse();
 //        value2.BeNull();
 //    }
 
@@ -52,13 +52,13 @@
 //        string item = "Item to be cached";
 //        var cache = new CacheObject<string>(TimeSpan.FromMilliseconds(100)).Set(item);
 
-//        cache.TryGetValue(out string value).Should().BeTrue();
-//        value.Should().NotBeEmpty();
-//        value.Should().Be(item);
-//        cache.IsValid().Should().BeTrue();
+//        cache.TryGetValue(out string value).BeTrue();
+//        value.NotBeEmpty();
+//        value.Be(item);
+//        cache.IsValid().BeTrue();
 
 //        cache.Clear();
-//        cache.IsValid().Should().BeFalse();
+//        cache.IsValid().BeFalse();
 //    }
 
 //    [Fact]
@@ -67,10 +67,10 @@
 //        string item = "Item to be cached";
 //        var cache = new CacheObject<string>(TimeSpan.FromSeconds(100)).Set(item);
 
-//        cache.IsValid().Should().BeTrue();
-//        cache.TryGetValue(out string value).Should().BeTrue();
-//        value.Should().NotBeEmpty();
-//        value.Should().Be(item);
+//        cache.IsValid().BeTrue();
+//        cache.TryGetValue(out string value).BeTrue();
+//        value.NotBeEmpty();
+//        value.Be(item);
 //    }
 
 //    [Fact]
@@ -79,10 +79,10 @@
 //        string item = "Item to be cached";
 //        CacheObject<string> cache = item.ToCacheObject(TimeSpan.FromSeconds(100));
 
-//        cache.IsValid().Should().BeTrue();
-//        cache.TryGetValue(out string value).Should().BeTrue();
-//        value.Should().NotBeEmpty();
-//        value.Should().Be(item);
+//        cache.IsValid().BeTrue();
+//        cache.TryGetValue(out string value).BeTrue();
+//        value.NotBeEmpty();
+//        value.Be(item);
 //    }
 
 //    [Fact]
@@ -91,13 +91,13 @@
 //        string item = "Item to be cached";
 //        var cache = new CacheObject<string>(TimeSpan.FromMilliseconds(100)).Set(item);
 
-//        cache.TryGetValue(out string value).Should().BeTrue();
-//        value.Should().NotBeEmpty();
-//        value.Should().Be(item);
+//        cache.TryGetValue(out string value).BeTrue();
+//        value.NotBeEmpty();
+//        value.Be(item);
 
 //        Thread.Sleep(TimeSpan.FromMilliseconds(200));
-//        cache.TryGetValue(out value).Should().BeFalse();
-//        value.Should().BeEmpty();
+//        cache.TryGetValue(out value).BeFalse();
+//        value.BeEmpty();
 //    }
 
 //    [Fact]
@@ -106,13 +106,13 @@
 //        string item = "Item to be cached";
 //        var cache = new CacheObject<string>(TimeSpan.FromMilliseconds(100)).Set(item);
 
-//        cache.TryGetValue(out string value).Should().Be(true);
-//        value.Should().NotBeEmpty();
-//        value.Should().Be(item);
+//        cache.TryGetValue(out string value).Be(true);
+//        value.NotBeEmpty();
+//        value.Be(item);
 
 //        Thread.Sleep(TimeSpan.FromMilliseconds(200));
-//        cache.TryGetValue(out value).Should().BeFalse();
-//        value.Should().BeEmpty();
+//        cache.TryGetValue(out value).BeFalse();
+//        value.BeEmpty();
 //    }
 
 //    [Fact]
@@ -121,8 +121,8 @@
 //        int item = default;
 //        var cache = new CacheObject<int>(TimeSpan.FromMilliseconds(100)).Set(item);
 
-//        cache.TryGetValue(out int value).Should().Be(true);
-//        value.Should().Be(default);
+//        cache.TryGetValue(out int value).Be(true);
+//        value.Be(default);
 //    }
 
 //    [Fact]
@@ -131,11 +131,11 @@
 //        int item = 10;
 //        var cache = new CacheObject<int>(TimeSpan.FromMilliseconds(100)).Set(item);
 
-//        cache.TryGetValue(out int value).Should().Be(true);
-//        value.Should().Be(item);
+//        cache.TryGetValue(out int value).Be(true);
+//        value.Be(item);
 
 //        Thread.Sleep(TimeSpan.FromMilliseconds(200));
-//        cache.TryGetValue(out value).Should().BeFalse();
-//        value.Should().Be(default);
+//        cache.TryGetValue(out value).BeFalse();
+//        value.Be(default);
 //    }
 //}

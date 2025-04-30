@@ -11,7 +11,7 @@
 //    {
 //        LangResult tree = root.Parse(test.RawData);
 
-//        tree.Should().NotBeNull();
+//        tree.NotBeNull();
 //        var pass = tree switch
 //        {
 //            var v when v.IsOk() && test.Results.Count > 0 => true,
@@ -19,11 +19,11 @@
 //            _ => false,
 //        };
 
-//        pass.Should().Be(true, test.RawData);
+//        pass.Be(true, test.RawData);
 //        if (test.Results.Count == 0) return;
 
 //        LangNodes nodes = tree.LangNodes.NotNull();
-//        test.Results.Count.Should().Be(nodes.Children.Count);
+//        test.Results.Count.Be(nodes.Children.Count);
 
 //        var zip = nodes.Children.Zip(test.Results);
 //        zip.ForEach(x => x.Second.Test(x.First));
@@ -54,8 +54,8 @@
 
 //    public void Test(LangNode node)
 //    {
-//        (node.SyntaxNode is T).Should().BeTrue($"SyntaxNode={node.SyntaxNode.GetType().Name}, T={typeof(T).Name}");
-//        if (Name.IsNotEmpty()) node.SyntaxNode.Name.Should().Be(Name);
-//        node.Value.Should().Be(Value);
+//        (node.SyntaxNode is T).BeTrue($"SyntaxNode={node.SyntaxNode.GetType().Name}, T={typeof(T).Name}");
+//        if (Name.IsNotEmpty()) node.SyntaxNode.Name.Be(Name);
+//        node.Value.Be(Value);
 //    }
 //}

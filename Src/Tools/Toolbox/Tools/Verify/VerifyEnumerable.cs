@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -25,7 +20,7 @@ public static class VerifyEnumerable
         var location = new CodeLocation(function, path, lineNumber, name);
 
         var result = subject.IsEquivalent(value, comparer);
-        if (!result ) throw new ArgumentException(Verify.FormatException($"Subject is not equivalent to value", because));
+        if (!result) throw new ArgumentException(Verify.FormatException($"Subject is not equivalent to value", because));
 
         return subject;
     }

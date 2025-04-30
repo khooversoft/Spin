@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Types;
 
@@ -49,7 +48,7 @@ public class JsonTests
         };
 
         string expectedJson = expectedObject.ToJson();
-        result.Should().Be(expectedJson);
+        result.Be(expectedJson);
     }
 
     [Fact]
@@ -106,7 +105,7 @@ public class JsonTests
         };
 
         string expectedObject = expected.ToJson();
-        result.Should().Be(expectedObject);
+        result.Be(expectedObject);
     }
     private record Payload
     {

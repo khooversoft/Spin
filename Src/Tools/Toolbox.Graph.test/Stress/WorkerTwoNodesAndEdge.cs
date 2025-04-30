@@ -1,4 +1,4 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -78,7 +78,7 @@ internal class WorkerTwoNodesAndEdge : IWorker
 
         GraphNode? readNode = null;
         CheckState(token, () => _map.Nodes.TryGetValue(nodeKey, out readNode) == true, nodeKey + " node check");
-        (node == readNode).Should().BeTrue();
+        (node == readNode).BeTrue();
 
         return nodeKey;
     }

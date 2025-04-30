@@ -1,10 +1,9 @@
 ﻿using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
-namespace Toolbox.Test.Validation.Should2;
+namespace Toolbox.Test.Validation.ScalarValidationTests;
 
-public class ShouldOptionTests
+public class VerifyOptionTests
 {
     [Fact]
     public void Be()
@@ -27,7 +26,7 @@ public class ShouldOptionTests
             v3.Be(StatusCode.OK);
         });
     }
-    
+
     [Fact]
     public void NotBe()
     {

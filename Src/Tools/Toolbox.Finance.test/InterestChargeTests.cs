@@ -1,5 +1,5 @@
 ﻿using Toolbox.Finance.Finance;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace Toolbox.Finance.test;
 
@@ -16,7 +16,7 @@ public class InterestChargeTests
         };
 
         decimal interestCharge = AmortizedLoanTool.CalculateInterestCharge(detail);
-        interestCharge.Should().Be(410.96m);
+        interestCharge.Be(410.96m);
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class InterestChargeTests
         };
 
         decimal payment = AmortizedLoanTool.CalculatePayment(terms);
-        payment.Should().Be(856.07m);
+        payment.Be(856.07m);
 
         var list = new List<(decimal principal, decimal toPrincipal, decimal interestCharge)>();
         decimal principal = 10_000.00m;
@@ -68,9 +68,9 @@ public class InterestChargeTests
             (-1.05m, 852.45m, 3.62m),
         };
 
-        (list.Count == match.Count).Should().BeTrue();
-        Enumerable.SequenceEqual(list, match).Should().BeTrue();
+        (list.Count == match.Count).BeTrue();
+        Enumerable.SequenceEqual(list, match).BeTrue();
 
-        principal.Should().Be(-1.05m);
+        principal.Be(-1.05m);
     }
 }

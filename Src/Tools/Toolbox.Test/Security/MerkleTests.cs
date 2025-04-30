@@ -1,7 +1,6 @@
 using System.Text;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Security
@@ -13,7 +12,7 @@ namespace Toolbox.Test.Security
         {
             MerkleHash h1 = new MerkleHash("abc");
             MerkleHash h2 = new MerkleHash("abc");
-            (h1 == h2).Should().BeTrue();
+            (h1 == h2).BeTrue();
         }
 
         [Fact]
@@ -35,7 +34,7 @@ namespace Toolbox.Test.Security
             MerkleNode leftNode = new MerkleNode();
             leftNode.ComputeHash(Encoding.UTF8.GetBytes("abc"));
             parentNode.SetLeftNode(leftNode);
-            parentNode.VerifyHash().Should().BeTrue();
+            parentNode.VerifyHash().BeTrue();
         }
 
         /// <summary>
@@ -45,7 +44,7 @@ namespace Toolbox.Test.Security
         public void LeftRightHashVerificationTest()
         {
             MerkleNode parentNode = CreateParentNode("abc", "def");
-            parentNode.VerifyHash().Should().BeTrue();
+            parentNode.VerifyHash().BeTrue();
         }
 
         [Fact]
@@ -53,7 +52,7 @@ namespace Toolbox.Test.Security
         {
             MerkleNode parentNode1 = CreateParentNode("abc", "def");
             MerkleNode parentNode2 = CreateParentNode("abc", "def");
-            parentNode1.Equals(parentNode2).Should().BeTrue();
+            parentNode1.Equals(parentNode2).BeTrue();
         }
 
         [Fact]
@@ -61,7 +60,7 @@ namespace Toolbox.Test.Security
         {
             MerkleNode parentNode1 = CreateParentNode("abc", "def");
             MerkleNode parentNode2 = CreateParentNode("def", "abc");
-            parentNode1.Equals(parentNode2).Should().BeFalse();
+            parentNode1.Equals(parentNode2).BeFalse();
         }
 
         [Fact]
@@ -72,7 +71,7 @@ namespace Toolbox.Test.Security
             MerkleNode rootNode = new MerkleNode();
             rootNode.SetLeftNode(parentNode1);
             rootNode.SetRightNode(parentNode2);
-            rootNode.VerifyHash().Should().BeTrue();
+            rootNode.VerifyHash().BeTrue();
         }
 
         [Fact]
@@ -114,16 +113,16 @@ namespace Toolbox.Test.Security
             MerkleHash rootHash = tree.BuildTree();
 
             List<MerkleProofHash> auditTrail = tree.AuditProof(l1);
-            MerkleTree.VerifyAudit(rootHash, l1, auditTrail).Should().BeTrue();
+            MerkleTree.VerifyAudit(rootHash, l1, auditTrail).BeTrue();
 
             auditTrail = tree.AuditProof(l2);
-            MerkleTree.VerifyAudit(rootHash, l2, auditTrail).Should().BeTrue();
+            MerkleTree.VerifyAudit(rootHash, l2, auditTrail).BeTrue();
 
             auditTrail = tree.AuditProof(l3);
-            MerkleTree.VerifyAudit(rootHash, l3, auditTrail).Should().BeTrue();
+            MerkleTree.VerifyAudit(rootHash, l3, auditTrail).BeTrue();
 
             auditTrail = tree.AuditProof(l4);
-            MerkleTree.VerifyAudit(rootHash, l4, auditTrail).Should().BeTrue();
+            MerkleTree.VerifyAudit(rootHash, l4, auditTrail).BeTrue();
         }
 
         [Fact]
@@ -137,7 +136,7 @@ namespace Toolbox.Test.Security
             MerkleHash rootHash = tree.BuildTree();
             tree.AddTree(new MerkleTree());
             MerkleHash rootHashAfterFix = tree.BuildTree();
-            (rootHash == rootHashAfterFix).Should().BeTrue();
+            (rootHash == rootHashAfterFix).BeTrue();
         }
 
         [Fact]
@@ -151,7 +150,7 @@ namespace Toolbox.Test.Security
             MerkleHash rootHash = tree.BuildTree();
             tree.FixOddNumberLeaves();
             MerkleHash rootHashAfterFix = tree.BuildTree();
-            (rootHash != rootHashAfterFix).Should().BeTrue();
+            (rootHash != rootHashAfterFix).BeTrue();
         }
 
         [Fact]
@@ -173,7 +172,7 @@ namespace Toolbox.Test.Security
             MerkleHash tree2RootHash = tree2.BuildTree();
             MerkleHash rootHashAfterAddTree = tree.AddTree(tree2);
 
-            (rootHash != rootHashAfterAddTree).Should().BeTrue();
+            (rootHash != rootHashAfterAddTree).BeTrue();
         }
 
         // Merkle consistency proofs prove the append-only property of the tree.
@@ -227,7 +226,7 @@ namespace Toolbox.Test.Security
                         hash = proof[0].Hash;
                     }
 
-                    (hash == oldRootHash).Should().BeTrue("Old root hash not found for index " + i + " m = " + (n + 2).ToString());
+                    (hash == oldRootHash).BeTrue("Old root hash not found for index " + i + " m = " + (n + 2).ToString());
                 });
 
                 // Then we add this root hash as the next old root hash to check.

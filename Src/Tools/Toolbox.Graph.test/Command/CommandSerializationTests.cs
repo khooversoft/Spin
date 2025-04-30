@@ -2,7 +2,6 @@
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Command;
@@ -47,10 +46,10 @@ public class CommandSerializationTests
 
         QueryBatchResult r = json.ToObject<QueryBatchResult>().NotNull();
         r.NotNull();
-        r.Items.Count.Should().Be(1);
-        r.Items[0].Option.StatusCode.Should().Be(StatusCode.OK);
-        r.Items[0].QueryNumber.Should().Be(1);
-        r.Items[0].Alias.Should().Be("alias1");
+        r.Items.Count.Be(1);
+        r.Items[0].Option.StatusCode.Be(StatusCode.OK);
+        r.Items[0].QueryNumber.Be(1);
+        r.Items[0].Alias.Be("alias1");
     }
 
 
@@ -60,7 +59,7 @@ public class CommandSerializationTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult r1 = newMapOption.Return();
 
@@ -69,29 +68,29 @@ public class CommandSerializationTests
         QueryBatchResult result = json.ToObject<QueryBatchResult>().NotNull();
         result.NotNull();
 
-        result.Option.IsOk().Should().BeTrue();
-        result.Items.Count.Should().Be(3);
-        result.Items.Select(x => x.Alias).SequenceEqual(["a1", "a2", "a3"]).Should().BeTrue();
+        result.Option.IsOk().BeTrue();
+        result.Items.Count.Be(3);
+        result.Items.Select(x => x.Alias).SequenceEqual(["a1", "a2", "a3"]).BeTrue();
 
         result.Items[0].Action(x =>
         {
-            x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6", "node7"]).Should().BeTrue();
-            x.Edges.Count.Should().Be(0);
-            x.DataLinks.Count.Should().Be(0);
+            x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6", "node7"]).BeTrue();
+            x.Edges.Count.Be(0);
+            x.DataLinks.Count.Be(0);
         });
 
         result.Items[1].Action(x =>
         {
-            x.Nodes.Count.Should().Be(0);
-            x.Edges.Count.Should().Be(6);
-            x.DataLinks.Count.Should().Be(0);
+            x.Nodes.Count.Be(0);
+            x.Edges.Count.Be(6);
+            x.DataLinks.Count.Be(0);
         });
 
         result.Items[2].Action(x =>
         {
-            x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node2", "node3", "node4", "node5"]).Should().BeTrue();
-            x.Edges.Count.Should().Be(0);
-            x.DataLinks.Count.Should().Be(0);
+            x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node2", "node3", "node4", "node5"]).BeTrue();
+            x.Edges.Count.Be(0);
+            x.DataLinks.Count.Be(0);
         });
     }
 }

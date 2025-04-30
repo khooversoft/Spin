@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Xunit.Abstractions;
 
 namespace Toolbox.CommandRouter.test;
@@ -25,18 +24,18 @@ public class ChainedCommandTests
             .Build();
 
         int state = await host.Run();
-        state.Should().Be(0);
+        state.Be(0);
 
         ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
-        q.Count.Should().Be(3);
-        q.TryDequeue(out string? result).Should().BeTrue();
-        result.Should().Be("Run executed");
+        q.Count.Be(3);
+        q.TryDequeue(out string? result).BeTrue();
+        result.Be("Run executed");
 
-        q.TryDequeue(out result).Should().BeTrue();
-        result.Should().Be("Created, workId=work#123");
+        q.TryDequeue(out result).BeTrue();
+        result.Be("Created, workId=work#123");
 
-        q.TryDequeue(out result).Should().BeTrue();
-        result.Should().Be("Finished");
+        q.TryDequeue(out result).BeTrue();
+        result.Be("Finished");
     }
 
 

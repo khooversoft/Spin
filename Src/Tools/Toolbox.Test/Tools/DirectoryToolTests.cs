@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Tools;
 
@@ -18,7 +17,7 @@ public class DirectoryToolTests
             if (list.Count == 0) continue;
 
             string matchTo = Path.Combine(rootPath, "NBlogArticles", "Src");
-            list[0].Should().Be(matchTo);
+            list[0].Be(matchTo);
             return;
         }
 

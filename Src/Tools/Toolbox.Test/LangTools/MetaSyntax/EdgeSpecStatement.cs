@@ -1,7 +1,7 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -28,7 +28,7 @@ public class EdgeSpecStatement : TestBase
         }.Join(Environment.NewLine);
 
         _schema = MetaParser.ParseRules(schemaText);
-        _schema.StatusCode.IsOk().Should().BeTrue(_schema.Error);
+        _schema.StatusCode.IsOk().BeTrue(_schema.Error);
     }
 
     [Theory]
@@ -42,7 +42,7 @@ public class EdgeSpecStatement : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
-        parse.Status.IsError().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class EdgeSpecStatement : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("[*]", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -87,7 +87,7 @@ public class EdgeSpecStatement : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -99,7 +99,7 @@ public class EdgeSpecStatement : TestBase
             new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public class EdgeSpecStatement : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("[*] a1", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -152,7 +152,7 @@ public class EdgeSpecStatement : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -165,7 +165,7 @@ public class EdgeSpecStatement : TestBase
             new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class EdgeSpecStatement : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("[t1]", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -210,7 +210,7 @@ public class EdgeSpecStatement : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -222,7 +222,7 @@ public class EdgeSpecStatement : TestBase
             new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -232,7 +232,7 @@ public class EdgeSpecStatement : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("[ key = k1]", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -276,7 +276,7 @@ public class EdgeSpecStatement : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -290,7 +290,7 @@ public class EdgeSpecStatement : TestBase
             new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -300,7 +300,7 @@ public class EdgeSpecStatement : TestBase
         var logger = GetScopeContext<OrRuleTests>();
 
         var parse = parser.Parse("[ key = k1, t2] a2", logger);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.Error);
+        parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -368,7 +368,7 @@ public class EdgeSpecStatement : TestBase
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -385,6 +385,6 @@ public class EdgeSpecStatement : TestBase
             new SyntaxPair { Token = new TokenValue("a2"), MetaSyntaxName = "alias" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 }

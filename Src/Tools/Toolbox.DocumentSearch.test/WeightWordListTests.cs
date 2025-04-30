@@ -1,5 +1,5 @@
 using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace Toolbox.DocumentSearch.test;
 
@@ -20,7 +20,7 @@ public class WeightWordListTests
         };
 
         var list = new WordTokenList(words);
-        list.Dictionary.Count.Should().Be(words.Length);
+        list.Dictionary.Count.Be(words.Length);
         Enumerable.SequenceEqual(words.OrderBy(x => x.Word), list.Dictionary.Values.OrderBy(x => x.Word));
     }
 
@@ -30,7 +30,7 @@ public class WeightWordListTests
         var list = GetList1();
 
         var result = list.Lookup(["canotFind"]);
-        result.Count.Should().Be(0);
+        result.Count.Be(0);
     }
 
     [Fact]
@@ -39,9 +39,9 @@ public class WeightWordListTests
         var list = GetList1();
 
         var result = list.Lookup(["fifth"]);
-        result.Count.Should().Be(1);
-        result[0].Word.Should().Be("fifth");
-        result[0].Weight.Should().Be(3);
+        result.Count.Be(1);
+        result[0].Word.Be("fifth");
+        result[0].Weight.Be(3);
     }
 
     [Fact]
@@ -50,9 +50,9 @@ public class WeightWordListTests
         var list = GetList1();
 
         var result = list.Lookup(["oops", "sixth"]);
-        result.Count.Should().Be(1);
-        result[0].Word.Should().Be("sixth");
-        result[0].Weight.Should().Be(4);
+        result.Count.Be(1);
+        result[0].Word.Be("sixth");
+        result[0].Weight.Be(4);
     }
 
     [Fact]
@@ -61,18 +61,18 @@ public class WeightWordListTests
         var list = GetList1();
 
         var result = list.Lookup(["second", "sixth"]);
-        result.Count.Should().Be(2);
+        result.Count.Be(2);
 
         result[0].Action(x =>
         {
-            x.Word.Should().Be("second");
-            x.Weight.Should().Be(2);
+            x.Word.Be("second");
+            x.Weight.Be(2);
         });
 
         result[1].Action(x =>
         {
-            x.Word.Should().Be("sixth");
-            x.Weight.Should().Be(4);
+            x.Word.Be("sixth");
+            x.Weight.Be(4);
         });
     }
 
@@ -82,16 +82,16 @@ public class WeightWordListTests
         var list = GetList1();
 
         string json = list.ToJson();
-        json.Should().NotBeEmpty();
+        json.NotEmpty();
 
         WordTokenList newList = new WordTokenListBuilder().SetJson(json).Build();
 
-        newList.Dictionary.Count.Should().Be(list.Dictionary.Count);
+        newList.Dictionary.Count.Be(list.Dictionary.Count);
 
         Enumerable.SequenceEqual(
             list.Dictionary.Select(x => x.Value).OrderBy(x => x.Word),
             newList.Dictionary.Values.OrderBy(x => x.Word)
-            ).Should().BeTrue();
+            ).BeTrue();
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class WeightWordListTests
         var list = GetList1();
 
         string json = list.ToJson();
-        json.Should().NotBeEmpty();
+        json.NotEmpty();
 
         WordTokenList newList = new WordTokenListBuilder()
             .SetJson(json)
@@ -108,7 +108,7 @@ public class WeightWordListTests
             .Add("9", 5)
             .Build();
 
-        newList.Dictionary.Count.Should().Be(list.Dictionary.Count + 2);
+        newList.Dictionary.Count.Be(list.Dictionary.Count + 2);
 
         var compareTo = list
             .Append(new WordToken("8", 5))
@@ -118,7 +118,7 @@ public class WeightWordListTests
         Enumerable.SequenceEqual(
             compareTo.OrderBy(x => x.Word),
             newList.Dictionary.Values.OrderBy(x => x.Word)
-            ).Should().BeTrue();
+            ).BeTrue();
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public class WeightWordListTests
         var list = GetList1();
 
         string json = list.ToJson();
-        json.Should().NotBeEmpty();
+        json.NotEmpty();
 
         WordTokenList newList = new WordTokenListBuilder()
             .SetJson(json)
@@ -135,7 +135,7 @@ public class WeightWordListTests
             .Add("8", 5)
             .Build();
 
-        newList.Dictionary.Count.Should().Be(list.Dictionary.Count + 1);
+        newList.Dictionary.Count.Be(list.Dictionary.Count + 1);
 
         var compareTo = list
             .Append(new WordToken("8", 5))
@@ -144,7 +144,7 @@ public class WeightWordListTests
         Enumerable.SequenceEqual(
             compareTo.OrderBy(x => x.Word),
             newList.Dictionary.Values.OrderBy(x => x.Word)
-            ).Should().BeTrue();
+            ).BeTrue();
     }
 
     private WordTokenList GetList1()

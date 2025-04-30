@@ -7,70 +7,113 @@ public static class LoggerContextExtensions
 {
     public static void Log(this ILoggingContext context, LogLevel logLevel, string? message, params object?[] args)
     {
-        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.Log(logLevel, newMessage, newObjects);
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add(context)
+            .Build();
+
+        context.Context.Logger.Log(logLevel, record.Message, record.Args);
     }
 
     public static void LogInformation(this ILoggingContext context, string? message, params object?[] args)
     {
-        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.LogInformation(newMessage, newObjects);
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add(context)
+            .Build();
+
+        context.Context.Logger.LogInformation(record.Message, record.Args);
+    }
+    public static void LogDebug(this ILoggingContext context, string? message, params object?[] args)
+    {
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add(context)
+            .Build();
+
+        context.Context.Logger.LogDebug(record.Message, record.Args);
     }
 
     public static void LogWarning(this ILoggingContext context, string? message, params object?[] args)
     {
-        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.LogWarning(newMessage, newObjects);
-    }
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add(context)
+            .Build();
 
-    public static void LogDebug(this ILoggingContext context, string? message, params object?[] args)
-    {
-        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.LogDebug(newMessage, newObjects);
+        context.Context.Logger.LogWarning(record.Message, record.Args);
     }
 
     public static void LogWarning(this ILoggingContext context, Exception ex, string? message, params object?[] args)
     {
-        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.LogWarning(ex, newMessage, newObjects);
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add(context)
+            .Build();
+
+        context.Context.Logger.LogWarning(ex, record.Message, record.Args);
     }
 
     public static void LogError(this ILoggingContext context, string? message, params object?[] args)
     {
-        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.LogError(newMessage, newObjects);
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add(context)
+            .Build();
+
+        context.Context.Logger.LogError(record.Message, record.Args);
     }
 
     public static void LogError(this ILoggingContext context, Exception ex, string? message, params object?[] args)
     {
-        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.LogError(ex, newMessage, newObjects);
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add(context)
+            .Build();
+
+        context.Context.Logger.LogError(ex, record.Message, record.Args);
     }
 
     public static void LogCritical(this ILoggingContext context, string? message, params object?[] args)
     {
-        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.LogCritical(newMessage, newObjects);
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add(context)
+            .Build();
+
+        context.Context.Logger.LogCritical(record.Message, record.Args);
     }
 
     public static void LogCritical(this ILoggingContext context, Exception ex, string? message, params object?[] args)
     {
-        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.LogCritical(ex, newMessage, newObjects);
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add(context)
+            .Build();
+
+        context.Context.Logger.LogCritical(ex, record.Message, record.Args);
     }
 
     public static void LogTrace(this ILoggingContext context, string? message, params object?[] args)
     {
-        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
-        context.Context.Logger.LogTrace(newMessage, newObjects);
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add(context)
+            .Build();
+
+        context.Context.Logger.LogTrace(record.Message, record.Args);
     }
 
     public static void LogMetric(this ILoggingContext context, string metricName, string unit, double value, string? message = null, params object?[] args)
     {
-        var metricMessage = "metric:{metricName}, value={value}, unit={unit}" + (message == null ? string.Empty : " " + message);
-        var metricArgs = new object?[] { metricName, value, unit }.Concat(args).ToArray();
+        var record = StructureLineBuilder.Start()
+            .Add(message, args)
+            .Add("metric:{metricName}", metricName)
+            .Add("value={value}", value)
+            .Add("unit={unit}", unit)
+            .Add(context)
+            .Build();
 
-        (string? newMessage, object?[] newObjects) = context.AppendContext(metricMessage, metricArgs);
-        context.Context.Logger.LogTrace(newMessage, newObjects);
+        context.Context.Logger.LogTrace(record.Message, record.Args);
     }
 }

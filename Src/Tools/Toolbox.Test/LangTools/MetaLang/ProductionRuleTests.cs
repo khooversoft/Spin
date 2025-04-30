@@ -1,7 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.LangTools.Meta;
@@ -29,23 +28,23 @@ public class ProductionRuleTests
         {
             string rule = rules.Join(Environment.NewLine);
             var root = MetaParser.ParseRules(rule);
-            root.StatusCode.IsOk().Should().BeTrue();
+            root.StatusCode.IsOk().BeTrue();
 
-            root.Rule.Children.Count.Should().Be(2);
+            root.Rule.Children.Count.Be(2);
 
             (root.Rule.Children[0] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("symbol");
-                x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-                x.Type.Should().Be(TerminalType.Regex);
+                x.Name.Be("symbol");
+                x.Text.Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
+                x.Type.Be(TerminalType.Regex);
             });
 
             (root.Rule.Children[1] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("alias");
-                x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
+                x.Name.Be("alias");
+                x.Text.Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
             });
         }
     }
@@ -71,47 +70,47 @@ public class ProductionRuleTests
         {
             string rule = rules.Join(Environment.NewLine);
             var root = MetaParser.ParseRules(rule);
-            root.StatusCode.IsOk().Should().BeTrue(root.Error);
+            root.StatusCode.IsOk().BeTrue(root.Error);
 
-            root.Rule.Children.Count.Should().Be(2);
+            root.Rule.Children.Count.Be(2);
 
             (root.Rule.Children[0] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("symbol");
-                x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-                x.Type.Should().Be(TerminalType.Regex);
+                x.Name.Be("symbol");
+                x.Text.Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
+                x.Type.Be(TerminalType.Regex);
             });
 
             (root.Rule.Children[1] as ProductionRule).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("tag");
-                x.Children.Count.Should().Be(2);
+                x.Name.Be("tag");
+                x.Children.Count.Be(2);
                 (x.Children[0] as ProductionRuleReference).Action(y =>
                 {
                     y.NotNull();
-                    y.Name.Should().Be("_tag-1-symbol");
+                    y.Name.Be("_tag-1-symbol");
                     y.ReferenceSyntax.NotNull();
-                    y.ReferenceSyntax.Should().Be("symbol");
+                    y.ReferenceSyntax.Be("symbol");
                 });
                 (x.Children[1] as ProductionRule).Action(y =>
                 {
                     y.NotNull();
-                    y.Name.Should().Be("_tag-3-OptionGroup");
-                    y.Children.Count.Should().Be(2);
+                    y.Name.Be("_tag-3-OptionGroup");
+                    y.Children.Count.Be(2);
                     (y.Children[0] as VirtualTerminalSymbol).Action(z =>
                     {
                         z.NotNull();
-                        z.Name.Should().Be("_tag-3-OptionGroup-1");
-                        z.Text.Should().Be("=");
+                        z.Name.Be("_tag-3-OptionGroup-1");
+                        z.Text.Be("=");
                     });
                     (y.Children[1] as ProductionRuleReference).Action(z =>
                     {
                         z.NotNull();
-                        z.Name.Should().Be("_tag-3-OptionGroup-3-symbol");
+                        z.Name.Be("_tag-3-OptionGroup-3-symbol");
                         z.ReferenceSyntax.NotNull();
-                        z.ReferenceSyntax.Should().Be("symbol");
+                        z.ReferenceSyntax.Be("symbol");
                     });
                 });
             });
@@ -134,57 +133,57 @@ public class ProductionRuleTests
         {
             string rule = rules.Join(Environment.NewLine);
             var root = MetaParser.ParseRules(rule);
-            root.StatusCode.IsOk().Should().BeTrue();
+            root.StatusCode.IsOk().BeTrue();
 
-            root.Rule.Children.Count.Should().Be(4);
+            root.Rule.Children.Count.Be(4);
 
             (root.Rule.Children[0] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("symbol");
-                x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-                x.Type.Should().Be(TerminalType.Regex);
+                x.Name.Be("symbol");
+                x.Text.Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
+                x.Type.Be(TerminalType.Regex);
             });
 
             (root.Rule.Children[1] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("comma");
-                x.Text.Should().Be(",");
-                x.Type.Should().Be(TerminalType.Token);
+                x.Name.Be("comma");
+                x.Text.Be(",");
+                x.Type.Be(TerminalType.Token);
             });
 
             (root.Rule.Children[2] as ProductionRule).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("tag");
-                x.Type.Should().Be(ProductionRuleType.Sequence);
-                x.Children.Count.Should().Be(2);
+                x.Name.Be("tag");
+                x.Type.Be(ProductionRuleType.Sequence);
+                x.Children.Count.Be(2);
                 (x.Children[0] as ProductionRuleReference).Action(y =>
                 {
                     y.NotNull();
-                    y.Name.Should().Be("_tag-1-symbol");
+                    y.Name.Be("_tag-1-symbol");
                     y.ReferenceSyntax.NotNull();
-                    y.ReferenceSyntax.Should().Be("symbol");
+                    y.ReferenceSyntax.Be("symbol");
                 });
                 (x.Children[1] as ProductionRule).Action(y =>
                 {
                     y.NotNull();
-                    y.Name.Should().Be("_tag-3-OptionGroup");
-                    y.Type.Should().Be(ProductionRuleType.Optional);
-                    y.Children.Count.Should().Be(2);
+                    y.Name.Be("_tag-3-OptionGroup");
+                    y.Type.Be(ProductionRuleType.Optional);
+                    y.Children.Count.Be(2);
                     (y.Children[0] as VirtualTerminalSymbol).Action(z =>
                     {
                         z.NotNull();
-                        z.Name.Should().Be("_tag-3-OptionGroup-1");
-                        z.Text.Should().Be("=");
+                        z.Name.Be("_tag-3-OptionGroup-1");
+                        z.Text.Be("=");
                     });
                     (y.Children[1] as ProductionRuleReference).Action(z =>
                     {
                         z.NotNull();
-                        z.Name.Should().Be("_tag-3-OptionGroup-3-symbol");
+                        z.Name.Be("_tag-3-OptionGroup-3-symbol");
                         z.ReferenceSyntax.NotNull();
-                        z.ReferenceSyntax.Should().Be("symbol");
+                        z.ReferenceSyntax.Be("symbol");
                     });
                 });
             });
@@ -192,30 +191,30 @@ public class ProductionRuleTests
             (root.Rule.Children[3] as ProductionRule).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("tags");
-                x.Children.Count.Should().Be(1);
+                x.Name.Be("tags");
+                x.Children.Count.Be(1);
 
                 (x.Children[0] as ProductionRule).Action(y =>
                 {
                     y.NotNull();
-                    y.Name.Should().Be("_tags-1-RepeatGroup");
-                    y.Type.Should().Be(ProductionRuleType.Repeat);
-                    y.Children.Count.Should().Be(2);
+                    y.Name.Be("_tags-1-RepeatGroup");
+                    y.Type.Be(ProductionRuleType.Repeat);
+                    y.Children.Count.Be(2);
 
                     (y.Children[0] as ProductionRuleReference).Action(z =>
                     {
                         z.NotNull();
-                        z.Name.Should().Be("_tags-1-RepeatGroup-1-comma");
+                        z.Name.Be("_tags-1-RepeatGroup-1-comma");
                         z.ReferenceSyntax.NotNull();
-                        z.ReferenceSyntax.Should().Be("comma");
+                        z.ReferenceSyntax.Be("comma");
                     });
 
                     (y.Children[1] as ProductionRuleReference).Action(z =>
                     {
                         z.NotNull();
-                        z.Name.Should().Be("_tags-1-RepeatGroup-3-tag");
+                        z.Name.Be("_tags-1-RepeatGroup-3-tag");
                         z.ReferenceSyntax.NotNull();
-                        z.ReferenceSyntax.Should().Be("tag");
+                        z.ReferenceSyntax.Be("tag");
                     });
                 });
             });
@@ -238,70 +237,70 @@ public class ProductionRuleTests
         {
             string rule = rules.Join(Environment.NewLine);
             var root = MetaParser.ParseRules(rule);
-            root.StatusCode.IsOk().Should().BeTrue();
+            root.StatusCode.IsOk().BeTrue();
 
-            root.Rule.Children.Count.Should().Be(4);
+            root.Rule.Children.Count.Be(4);
 
             (root.Rule.Children[0] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("symbol");
-                x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-                x.Type.Should().Be(TerminalType.Regex);
+                x.Name.Be("symbol");
+                x.Text.Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
+                x.Type.Be(TerminalType.Regex);
             });
 
             (root.Rule.Children[1] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("join-left");
-                x.Text.Should().Be("->");
-                x.Type.Should().Be(TerminalType.Token);
+                x.Name.Be("join-left");
+                x.Text.Be("->");
+                x.Type.Be(TerminalType.Token);
             });
 
             (root.Rule.Children[2] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("join-inner");
-                x.Text.Should().Be("<->");
-                x.Type.Should().Be(TerminalType.Token);
+                x.Name.Be("join-inner");
+                x.Text.Be("<->");
+                x.Type.Be(TerminalType.Token);
             });
 
             (root.Rule.Children[3] as ProductionRule).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("join");
-                x.Type.Should().Be(ProductionRuleType.Sequence);
-                x.Children.Count.Should().Be(1);
+                x.Name.Be("join");
+                x.Type.Be(ProductionRuleType.Sequence);
+                x.Children.Count.Be(1);
 
                 (x.Children[0] as ProductionRule).Action(x =>
                 {
                     x.NotNull();
-                    x.Name.Should().Be("_join-1-OptionGroup");
-                    x.Type.Should().Be(ProductionRuleType.Optional);
-                    x.Children.Count.Should().Be(3);
+                    x.Name.Be("_join-1-OptionGroup");
+                    x.Type.Be(ProductionRuleType.Optional);
+                    x.Children.Count.Be(3);
 
                     (x.Children[0] as ProductionRuleReference).Action(y =>
                     {
                         y.NotNull();
-                        y.Name.Should().Be("_join-1-OptionGroup-1-join-left");
+                        y.Name.Be("_join-1-OptionGroup-1-join-left");
                         y.ReferenceSyntax.NotNull();
-                        y.ReferenceSyntax.Should().Be("join-left");
+                        y.ReferenceSyntax.Be("join-left");
                     });
 
                     (x.Children[1] as ProductionRuleReference).Action(y =>
                     {
                         y.NotNull();
-                        y.Name.Should().Be("_join-1-OptionGroup-3-join-inner");
+                        y.Name.Be("_join-1-OptionGroup-3-join-inner");
                         y.ReferenceSyntax.NotNull();
-                        y.ReferenceSyntax.Should().Be("join-inner");
+                        y.ReferenceSyntax.Be("join-inner");
                     });
 
                     (x.Children[2] as ProductionRuleReference).Action(y =>
                     {
                         y.NotNull();
-                        y.Name.Should().Be("_join-1-OptionGroup-5-symbol");
+                        y.Name.Be("_join-1-OptionGroup-5-symbol");
                         y.ReferenceSyntax.NotNull();
-                        y.ReferenceSyntax.Should().Be("symbol");
+                        y.ReferenceSyntax.Be("symbol");
                     });
                 });
             });
@@ -324,70 +323,70 @@ public class ProductionRuleTests
         {
             string rule = rules.Join(Environment.NewLine);
             var root = MetaParser.ParseRules(rule);
-            root.StatusCode.IsOk().Should().BeTrue();
+            root.StatusCode.IsOk().BeTrue();
 
-            root.Rule.Children.Count.Should().Be(4);
+            root.Rule.Children.Count.Be(4);
 
             (root.Rule.Children[0] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("symbol");
-                x.Text.Should().Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
-                x.Type.Should().Be(TerminalType.Regex);
+                x.Name.Be("symbol");
+                x.Text.Be("[a-zA-Z][a-zA-Z0-9\\-/]*");
+                x.Type.Be(TerminalType.Regex);
             });
 
             (root.Rule.Children[1] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("join-left");
-                x.Text.Should().Be("->");
-                x.Type.Should().Be(TerminalType.Token);
+                x.Name.Be("join-left");
+                x.Text.Be("->");
+                x.Type.Be(TerminalType.Token);
             });
 
             (root.Rule.Children[2] as TerminalSymbol).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("join-inner");
-                x.Text.Should().Be("<->");
-                x.Type.Should().Be(TerminalType.Token);
+                x.Name.Be("join-inner");
+                x.Text.Be("<->");
+                x.Type.Be(TerminalType.Token);
             });
 
             (root.Rule.Children[3] as ProductionRule).Action(x =>
             {
                 x.NotNull();
-                x.Name.Should().Be("group");
-                x.Type.Should().Be(ProductionRuleType.Sequence);
-                x.Children.Count.Should().Be(1);
+                x.Name.Be("group");
+                x.Type.Be(ProductionRuleType.Sequence);
+                x.Children.Count.Be(1);
 
                 (x.Children[0] as ProductionRule).Action(x =>
                 {
                     x.NotNull();
-                    x.Name.Should().Be("_group-1-OrGroup");
-                    x.Type.Should().Be(ProductionRuleType.Or);
-                    x.Children.Count.Should().Be(3);
+                    x.Name.Be("_group-1-OrGroup");
+                    x.Type.Be(ProductionRuleType.Or);
+                    x.Children.Count.Be(3);
 
                     (x.Children[0] as ProductionRuleReference).Action(y =>
                     {
                         y.NotNull();
-                        y.Name.Should().Be("_group-1-OrGroup-1-join-left");
+                        y.Name.Be("_group-1-OrGroup-1-join-left");
                         y.ReferenceSyntax.NotNull();
-                        y.ReferenceSyntax.Should().Be("join-left");
+                        y.ReferenceSyntax.Be("join-left");
                     });
 
                     (x.Children[1] as ProductionRuleReference).Action(y =>
                     {
                         y.NotNull();
-                        y.Name.Should().Be("_group-1-OrGroup-3-join-inner");
+                        y.Name.Be("_group-1-OrGroup-3-join-inner");
                         y.ReferenceSyntax.NotNull();
-                        y.ReferenceSyntax.Should().Be("join-inner");
+                        y.ReferenceSyntax.Be("join-inner");
                     });
 
                     (x.Children[2] as ProductionRuleReference).Action(y =>
                     {
                         y.NotNull();
-                        y.Name.Should().Be("_group-1-OrGroup-5-symbol");
+                        y.Name.Be("_group-1-OrGroup-5-symbol");
                         y.ReferenceSyntax.NotNull();
-                        y.ReferenceSyntax.Should().Be("symbol");
+                        y.ReferenceSyntax.Be("symbol");
                     });
                 });
             });

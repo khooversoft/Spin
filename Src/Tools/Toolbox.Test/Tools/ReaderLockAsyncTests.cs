@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks.Dataflow;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Tools;
 
@@ -86,28 +85,28 @@ public class ReaderLockAsyncTests
         var writerBlock = new ActionBlock<int>(async x =>
         {
             int current = Interlocked.Increment(ref writerCount);
-            current.Should().Be(0);
+            current.Be(0);
             using (var releaser = await rwLock.WriterLockAsync())
             {
                 count++;
                 currentCount = count;
             }
             var last = Interlocked.Decrement(ref writerCount);
-            last.Should().Be(1);
+            last.Be(1);
         }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 5 });
 
         var readerBlock = new ActionBlock<int>(async x =>
         {
-            writerCount.Should().Be(0);
+            writerCount.Be(0);
             using (var releaser = await rwLock.ReaderLockAsync())
             {
-                writerCount.Should().Be(0);
+                writerCount.Be(0);
 
                 int read = count;
                 int cCount = currentCount;
-                read.Should().Be(cCount);
+                read.Be(cCount);
             }
-            writerCount.Should().Be(0);
+            writerCount.Be(0);
 
         }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 5 });
 

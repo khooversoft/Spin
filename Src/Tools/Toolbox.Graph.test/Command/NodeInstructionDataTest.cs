@@ -1,4 +1,4 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -46,13 +46,13 @@ public class NodeInstructionDataTest
             .Build();
 
         var readOption = await graphTestClient.Execute(getNode, context);
-        readOption.IsOk().Should().BeTrue();
+        readOption.IsOk().BeTrue();
         var read = readOption.Return();
-        read.Nodes.Count.Should().Be(1);
-        read.DataLinks.Count.Should().Be(1);
+        read.Nodes.Count.Be(1);
+        read.DataLinks.Count.Be(1);
 
         var readNodeData = read.DataLinkToObject<NodeData>("entity");
-        (nodeData == readNodeData).Should().BeTrue();
+        (nodeData == readNodeData).BeTrue();
     }
 
     [Fact]
@@ -73,21 +73,21 @@ public class NodeInstructionDataTest
             .Build();
 
         var readOption = await graphTestClient.Execute(getNode, NullScopeContext.Default);
-        readOption.IsOk().Should().BeTrue();
+        readOption.IsOk().BeTrue();
         var read = readOption.Return();
-        read.Nodes.Count.Should().Be(9);
-        read.DataLinks.Count.Should().Be(2);
+        read.Nodes.Count.Be(9);
+        read.DataLinks.Count.Be(2);
 
         var readNodeData1 = read.DataLinkToObject<NodeData>("entity", "node10");
-        readNodeData1.IsOk().Should().BeTrue();
-        (nodeData1 == readNodeData1.Return()).Should().BeTrue();
+        readNodeData1.IsOk().BeTrue();
+        (nodeData1 == readNodeData1.Return()).BeTrue();
 
         var readNodeData2 = read.DataLinkToObject<NodeData>("entity", "node11");
-        readNodeData2.IsOk().Should().BeTrue();
-        (nodeData2 == readNodeData2.Return()).Should().BeTrue();
+        readNodeData2.IsOk().BeTrue();
+        (nodeData2 == readNodeData2.Return()).BeTrue();
 
         var faileRead = read.DataLinkToObject<NodeData>("entity", "nodexx");
-        faileRead.IsError().Should().BeTrue();
+        faileRead.IsError().BeTrue();
     }
 
     private static async Task CreateNode(string nodeKey, NodeData nodeData, GraphHostService testClient)
@@ -98,7 +98,7 @@ public class NodeInstructionDataTest
             .Build();
 
         var newMapOption = await testClient.Execute(cmd, NullScopeContext.Default);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
     }
 
     private record NodeData

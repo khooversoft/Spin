@@ -1,6 +1,5 @@
 ﻿using Toolbox.LangTools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
@@ -11,7 +10,7 @@ public class ModelEqualTests
     {
         var v1 = new SyntaxTree();
         var v2 = new SyntaxTree();
-        (v1 == v2).Should().BeTrue();
+        (v1 == v2).BeTrue();
     }
 
     [Fact]
@@ -19,7 +18,7 @@ public class ModelEqualTests
     {
         var v1 = new SyntaxTree { MetaSyntaxName = "hello" };
         var v2 = new SyntaxTree { MetaSyntaxName = "hello" };
-        (v1 == v2).Should().BeTrue();
+        (v1 == v2).BeTrue();
     }
 
     [Fact]
@@ -27,7 +26,7 @@ public class ModelEqualTests
     {
         var v1 = new SyntaxTree { MetaSyntaxName = "hello" };
         var v2 = new SyntaxTree { MetaSyntaxName = "hello2" };
-        (v1 == v2).Should().BeFalse();
+        (v1 == v2).BeFalse();
     }
 
     [Fact]
@@ -35,11 +34,11 @@ public class ModelEqualTests
     {
         var t1 = new TokenValue("a", 10);
         var t2 = new TokenValue("a", 10);
-        (t1 == t2).Should().BeTrue();
+        (t1 == t2).BeTrue();
 
         var v1 = new SyntaxPair { Token = t1, MetaSyntaxName = "hello" };
         var v2 = new SyntaxPair { Token = t2, MetaSyntaxName = "hello" };
-        (v1 == v2).Should().BeTrue();
+        (v1 == v2).BeTrue();
     }
 
     [Fact]
@@ -47,12 +46,12 @@ public class ModelEqualTests
     {
         var t1 = new TokenValue("a", 10);
         var t2 = new TokenValue("a", 10);
-        (t1 == t2).Should().BeTrue();
+        (t1 == t2).BeTrue();
         t1.Assert(x => x == t2);
 
         var v1 = new SyntaxPair { Token = t1, MetaSyntaxName = "hello" };
         var v2 = new SyntaxPair { Token = t2, MetaSyntaxName = "hello" };
-        (v1 == v2).Should().BeTrue();
+        (v1 == v2).BeTrue();
 
         var st1 = new SyntaxTree
         {
@@ -64,7 +63,7 @@ public class ModelEqualTests
             Children = [v2],
         };
 
-        (st1 == st2).Should().BeTrue();
+        (st1 == st2).BeTrue();
     }
 
     [Fact]
@@ -72,14 +71,14 @@ public class ModelEqualTests
     {
         var t1 = new TokenValue("a", 10);
         var t2 = new TokenValue("a", 10);
-        (t1 == t2).Should().BeTrue();
+        (t1 == t2).BeTrue();
         t1.Assert(x => x == t2);
 
         var v1 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
         var v12 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
         var v2 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
         var v22 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
-        (v1 == v2).Should().BeTrue();
+        (v1 == v2).BeTrue();
 
         var st1 = new SyntaxTree
         {
@@ -91,7 +90,7 @@ public class ModelEqualTests
             Children = [v2, v22],
         };
 
-        (st1 == st2).Should().BeTrue();
+        (st1 == st2).BeTrue();
         st1.Assert(x => x == st2);
 
         var ust1 = new SyntaxTree
@@ -104,7 +103,7 @@ public class ModelEqualTests
             Children = [st2],
         };
 
-        (ust1 == ust2).Should().BeTrue();
+        (ust1 == ust2).BeTrue();
     }
 
 
@@ -113,14 +112,14 @@ public class ModelEqualTests
     {
         var t1 = new TokenValue("a", 10);
         var t2 = new TokenValue("a", 10);
-        (t1 == t2).Should().BeTrue();
+        (t1 == t2).BeTrue();
         t1.Assert(x => x == t2);
 
         var v1 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
         var v12 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
         var v2 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
         var v22 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello2" };
-        (v1 == v2).Should().BeTrue();
+        (v1 == v2).BeTrue();
 
         var st1 = new SyntaxTree
         {
@@ -132,7 +131,7 @@ public class ModelEqualTests
             Children = [v2, v22],
         };
 
-        (st1 == st2).Should().BeFalse();
+        (st1 == st2).BeFalse();
 
         var ust1 = new SyntaxTree
         {
@@ -144,7 +143,7 @@ public class ModelEqualTests
             Children = [st2],
         };
 
-        (ust1 == ust2).Should().BeFalse();
+        (ust1 == ust2).BeFalse();
     }
 
 }

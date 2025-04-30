@@ -1,5 +1,5 @@
 ﻿using Toolbox.LangTools;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Tokenizer;
 
@@ -24,14 +24,14 @@ public class UnicodeTokenizerTests
                 new TokenValue(" "),
         };
 
-        tokens.Count.Should().Be(expectedTokens.Length);
+        tokens.Count.Be(expectedTokens.Length);
 
         tokens
             .Zip(expectedTokens, (o, i) => (o, i))
             .All(x => x.o.Value == x.i.Value)
-            .Should().BeTrue();
+            .BeTrue();
 
-        tokens[2].TokenType.Should().Be(TokenType.Unicode);
+        tokens[2].TokenType.Be(TokenType.Unicode);
     }
 
     [Fact]
@@ -51,12 +51,12 @@ public class UnicodeTokenizerTests
                 new TokenValue(" "),
         };
 
-        tokens.Count.Should().Be(expectedTokens.Length);
+        tokens.Count.Be(expectedTokens.Length);
 
         tokens
             .Zip(expectedTokens, (o, i) => (o, i))
             .All(x => x.o.Value == x.i.Value)
-            .Should().BeTrue();
+            .BeTrue();
     }
 
     [Fact]
@@ -78,13 +78,13 @@ public class UnicodeTokenizerTests
                 new TokenValue(" "),
         };
 
-        tokens.Count.Should().Be(expectedTokens.Length);
+        tokens.Count.Be(expectedTokens.Length);
 
         tokens
             .Zip(expectedTokens, (o, i) => (o, i))
             .All(x => x.o.Value == x.i.Value)
-            .Should().BeTrue();
+            .BeTrue();
 
-        tokens[2].TokenType.Should().Be(TokenType.Unicode);
+        tokens[2].TokenType.Be(TokenType.Unicode);
     }
 }

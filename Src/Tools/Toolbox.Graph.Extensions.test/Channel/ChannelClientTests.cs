@@ -2,7 +2,7 @@
 using Toolbox.Extensions;
 using Toolbox.Graph.Extensions.test.Application;
 using Toolbox.Graph.Extensions.test.Tools;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -38,7 +38,7 @@ public class ChannelClientTests
         await IdentityTestTool.AddIdentityUser(_user1, "user 1", graphHostService, context);
 
         // Create security group with user for access
-        (await groupClient.Create(_groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context)).IsOk().Should().BeTrue();
+        (await groupClient.Create(_groupid1, "group 1", [(_user1, SecurityAccess.Owner)], context)).IsOk().BeTrue();
 
         // Because security group has already created, this should just attach the channel to it.
         var channel = new ChannelRecord
@@ -48,11 +48,11 @@ public class ChannelClientTests
             Name = "Channel one",
         };
 
-        (await channelClient.Create(channel.ChannelId, channel.SecurityGroupId, channel.Name, context)).IsOk().Should().BeTrue();
+        (await channelClient.Create(channel.ChannelId, channel.SecurityGroupId, channel.Name, context)).IsOk().BeTrue();
 
         var readOption = await channelClient.GetContext(_channel1, _user1).Get(context);
-        readOption.IsOk().Should().BeTrue(readOption.ToString());
-        (channel == readOption.Return()).Should().BeTrue();
+        readOption.IsOk().BeTrue(readOption.ToString());
+        (channel == readOption.Return()).BeTrue();
 
         var newchannelRecord = channel with
         {
@@ -63,26 +63,26 @@ public class ChannelClientTests
         };
 
         var setResult = await channelClient.GetContext(_channel1, _user1).Set(newchannelRecord, context);
-        setResult.IsOk().Should().BeTrue();
+        setResult.IsOk().BeTrue();
 
         readOption = await channelClient.GetContext(_channel1, _user1).Get(context);
-        readOption.IsOk().Should().BeTrue();
-        (newchannelRecord == readOption.Return()).Should().BeTrue();
+        readOption.IsOk().BeTrue();
+        (newchannelRecord == readOption.Return()).BeTrue();
 
         // Because user has access to the secuity group, the user access access
         var listOption = await channelClient.GetPrincipalChannels(_user1, context);
-        listOption.IsOk().Should().BeTrue();
+        listOption.IsOk().BeTrue();
         listOption.Return().Action(x =>
         {
-            x.Count.Should().Be(1);
-            x[0].ChannelId.Should().Be(_channel1);
+            x.Count.Be(1);
+            x[0].ChannelId.Be(_channel1);
         });
 
         var deleteOption = await channelClient.GetContext(_channel1, _user1).Delete(context);
-        deleteOption.IsOk().Should().BeTrue();
+        deleteOption.IsOk().BeTrue();
 
         readOption = await channelClient.GetContext(_channel1, _user1).Get(context);
-        readOption.IsNotFound().Should().BeTrue();
+        readOption.IsNotFound().BeTrue();
     }
 
     [Fact]
@@ -98,45 +98,45 @@ public class ChannelClientTests
         await IdentityTestTool.AddIdentityUser(_user3, "user 3", graphHostService, context);
         await IdentityTestTool.AddIdentityUser(_user4, "user 4", graphHostService, context);
 
-        (await securityClient.Create(_principalGroup1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)], context)).IsOk().Should().BeTrue();
-        (await securityClient.Create(_principalGroup2, "group 2", [(_user1, SecurityAccess.Reader), (_user3, SecurityAccess.Owner)], context)).IsOk().Should().BeTrue();
-        (await channelClient.Create(_channel1, _principalGroup1, "channel 1", context)).IsOk().Should().BeTrue();
-        (await channelClient.Create(_channel2, _principalGroup2, "channel 2", context)).IsOk().Should().BeTrue();
+        (await securityClient.Create(_principalGroup1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)], context)).IsOk().BeTrue();
+        (await securityClient.Create(_principalGroup2, "group 2", [(_user1, SecurityAccess.Reader), (_user3, SecurityAccess.Owner)], context)).IsOk().BeTrue();
+        (await channelClient.Create(_channel1, _principalGroup1, "channel 1", context)).IsOk().BeTrue();
+        (await channelClient.Create(_channel2, _principalGroup2, "channel 2", context)).IsOk().BeTrue();
 
         (await channelClient.GetPrincipalChannels(_user1, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(2);
-                y.Select(x => x.ChannelId).OrderBy(x => x).SequenceEqual([_channel1, _channel2]).Should().BeTrue();
+                y.Count.Be(2);
+                y.Select(x => x.ChannelId).OrderBy(x => x).SequenceEqual([_channel1, _channel2]).BeTrue();
             });
         });
 
         (await channelClient.GetPrincipalChannels(_user2, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                y.Select(x => x.ChannelId).OrderBy(x => x).SequenceEqual([_channel1]).Should().BeTrue();
+                y.Count.Be(1);
+                y.Select(x => x.ChannelId).OrderBy(x => x).SequenceEqual([_channel1]).BeTrue();
             });
         });
 
         (await channelClient.GetPrincipalChannels(_user3, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                y.Select(x => x.ChannelId).OrderBy(x => x).SequenceEqual([_channel2]).Should().BeTrue();
+                y.Count.Be(1);
+                y.Select(x => x.ChannelId).OrderBy(x => x).SequenceEqual([_channel2]).BeTrue();
             });
         });
 
         (await channelClient.GetPrincipalChannels(_user4, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
-            x.Return().Count.Should().Be(0);
+            x.IsOk().BeTrue();
+            x.Return().Count.Be(0);
         });
     }
 }

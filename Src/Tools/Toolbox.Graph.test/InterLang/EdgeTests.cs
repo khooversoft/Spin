@@ -2,7 +2,6 @@
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class EdgeTests : TestBase<EdgeTests>
 
         string schema = GraphLanguageTool.ReadGraphLanguageRules();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -35,18 +34,18 @@ public class EdgeTests : TestBase<EdgeTests>
     public void FailTest(string command)
     {
         var parse = _parser.Parse(command, _context);
-        parse.Status.IsError().Should().BeTrue();
+        parse.Status.IsError().BeTrue();
     }
 
     [Fact]
     public void MinAddEdge()
     {
         var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -60,18 +59,18 @@ public class EdgeTests : TestBase<EdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void MinSetEdge()
     {
         var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -85,18 +84,18 @@ public class EdgeTests : TestBase<EdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void MinDeleteEdge()
     {
         var parse = _parser.Parse("delete edge from=fkey1, to=tkey1, type=label;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -110,18 +109,18 @@ public class EdgeTests : TestBase<EdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void AddEdgeWithTag()
     {
         var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label set t1=v1;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -139,18 +138,18 @@ public class EdgeTests : TestBase<EdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SetEdge()
     {
         var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -164,18 +163,18 @@ public class EdgeTests : TestBase<EdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SetEdge2()
     {
         var parse = _parser.Parse("set edge from=index:name1, to=data:key1, type=uniqueIndex;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -189,18 +188,18 @@ public class EdgeTests : TestBase<EdgeTests>
             },
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SetEdgeTagCommand()
     {
         var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label set t1;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -218,18 +217,18 @@ public class EdgeTests : TestBase<EdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SetEdgeRemoveTagCommand()
     {
         var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label set -t1, t2=v2;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -248,6 +247,6 @@ public class EdgeTests : TestBase<EdgeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 }

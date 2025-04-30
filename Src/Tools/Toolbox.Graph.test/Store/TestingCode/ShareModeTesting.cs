@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Store.TestingCode;
@@ -21,43 +20,43 @@ internal static class ShareModeTesting
         (await secondEngineClient.Execute("select (key=node1);", context)).Assert(x => x.IsOk() && x.Return().Nodes.Count == 0, "not 0");
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context);
-        e1.IsOk().Should().BeTrue(e1.ToString());
+        e1.IsOk().BeTrue(e1.ToString());
         leaseCounter.Acquire.Value.Assert(x => x >= 1, "not >= 1");
         leaseCounter.Release.Value.Assert(x => x >= 1, "not >= 1");
-        leaseCounter.ActiveAcquire.Value.Should().Be(0);
-        leaseCounter.ActiveExclusive.Value.Should().Be(0);
+        leaseCounter.ActiveAcquire.Value.Be(0);
+        leaseCounter.ActiveExclusive.Value.Be(0);
 
         var q1 = await testClient.Execute("select (key=node1);", context);
         q1.Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Nodes.Count.Should().Be(1);
-                var node = y.Nodes[0].Key.Should().Be("node1");
+                y.Nodes.Count.Be(1);
+                var node = y.Nodes[0].Key.Be("node1");
             });
         });
 
         leaseCounter.Acquire.Value.Assert(x => x >= 2, "not >= 2");
         leaseCounter.Release.Value.Assert(x => x >= 2, "not >= 2");
-        leaseCounter.ActiveAcquire.Value.Should().Be(0);
-        leaseCounter.ActiveExclusive.Value.Should().Be(0);
+        leaseCounter.ActiveAcquire.Value.Be(0);
+        leaseCounter.ActiveExclusive.Value.Be(0);
 
         var s1 = await secondEngineClient.Execute("select (key=node1);", context);
         s1.Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Nodes.Count.Should().Be(1);
-                var node = y.Nodes[0].Key.Should().Be("node1");
+                y.Nodes.Count.Be(1);
+                var node = y.Nodes[0].Key.Be("node1");
             });
         });
 
         leaseCounter.Acquire.Value.Assert(x => x >= 3, "not >= 3");
         leaseCounter.Release.Value.Assert(x => x >= 3, "not >= 3");
-        leaseCounter.ActiveAcquire.Value.Should().Be(0);
-        leaseCounter.ActiveExclusive.Value.Should().Be(0);
+        leaseCounter.ActiveAcquire.Value.Be(0);
+        leaseCounter.ActiveExclusive.Value.Be(0);
     }
 
     public static async Task ParallelReads(GraphHostService testClient, GraphHostService secondEngineClient, ScopeContext context)
@@ -71,20 +70,20 @@ internal static class ShareModeTesting
         (await secondEngineClient.Execute("select (key=node1);", context)).Assert(x => x.IsOk() && x.Return().Nodes.Count == 0, "not 0");
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context);
-        e1.IsOk().Should().BeTrue();
+        e1.IsOk().BeTrue();
         leaseCounter.Acquire.Value.Assert(x => x >= 1, "not >= 1");
         leaseCounter.Release.Value.Assert(x => x >= 1, "not >= 1");
-        leaseCounter.ActiveExclusive.Value.Should().Be(0);
-        leaseCounter.ActiveAcquire.Value.Should().Be(0);
+        leaseCounter.ActiveExclusive.Value.Be(0);
+        leaseCounter.ActiveAcquire.Value.Be(0);
 
         var q1 = await testClient.Execute("select (key=node1);", context);
         q1.Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Nodes.Count.Should().Be(1);
-                var node = y.Nodes[0].Key.Should().Be("node1");
+                y.Nodes.Count.Be(1);
+                var node = y.Nodes[0].Key.Be("node1");
             });
         });
 
@@ -142,11 +141,11 @@ internal static class ShareModeTesting
             var s1 = await host.Execute("select (key=node1);", context);
             s1.Action(x =>
             {
-                x.IsOk().Should().BeTrue(x.ToString());
+                x.IsOk().BeTrue(x.ToString());
                 x.Return().Action(y =>
                 {
-                    y.Nodes.Count.Should().Be(1);
-                    var node = y.Nodes[0].Key.Should().Be("node1");
+                    y.Nodes.Count.Be(1);
+                    var node = y.Nodes[0].Key.Be("node1");
                 });
             });
 

@@ -4,7 +4,6 @@ using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -37,43 +36,43 @@ public class DatabaseShareModeTests
             );
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1);
-        e1.IsOk().Should().BeTrue();
-        leaseCounter.Acquire.Value.Should().Be(1);
-        leaseCounter.Release.Value.Should().Be(1);
-        leaseCounter.ActiveAcquire.Value.Should().Be(0);
-        leaseCounter.ActiveExclusive.Value.Should().Be(0);
+        e1.IsOk().BeTrue();
+        leaseCounter.Acquire.Value.Be(1);
+        leaseCounter.Release.Value.Be(1);
+        leaseCounter.ActiveAcquire.Value.Be(0);
+        leaseCounter.ActiveExclusive.Value.Be(0);
 
         var q1 = await testClient.Execute("select (key=node1);", context1);
         q1.Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Nodes.Count.Should().Be(1);
-                var node = y.Nodes[0].Key.Should().Be("node1");
+                y.Nodes.Count.Be(1);
+                var node = y.Nodes[0].Key.Be("node1");
             });
         });
 
-        leaseCounter.Acquire.Value.Should().Be(2);
-        leaseCounter.Release.Value.Should().Be(2);
-        leaseCounter.ActiveAcquire.Value.Should().Be(0);
-        leaseCounter.ActiveExclusive.Value.Should().Be(0);
+        leaseCounter.Acquire.Value.Be(2);
+        leaseCounter.Release.Value.Be(2);
+        leaseCounter.ActiveAcquire.Value.Be(0);
+        leaseCounter.ActiveExclusive.Value.Be(0);
 
         var s1 = await SecondEngineClient.Execute("select (key=node1);", context2);
         s1.Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Nodes.Count.Should().Be(1);
-                var node = y.Nodes[0].Key.Should().Be("node1");
+                y.Nodes.Count.Be(1);
+                var node = y.Nodes[0].Key.Be("node1");
             });
         });
 
-        leaseCounter.Acquire.Value.Should().Be(3);
-        leaseCounter.Release.Value.Should().Be(3);
-        leaseCounter.ActiveAcquire.Value.Should().Be(0);
-        leaseCounter.ActiveExclusive.Value.Should().Be(0);
+        leaseCounter.Acquire.Value.Be(3);
+        leaseCounter.Release.Value.Be(3);
+        leaseCounter.ActiveAcquire.Value.Be(0);
+        leaseCounter.ActiveExclusive.Value.Be(0);
     }
 
     [Fact]
@@ -97,20 +96,20 @@ public class DatabaseShareModeTests
             );
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1);
-        e1.IsOk().Should().BeTrue();
-        leaseCounter.Acquire.Value.Should().Be(1);
-        leaseCounter.Release.Value.Should().Be(1);
-        leaseCounter.ActiveExclusive.Value.Should().Be(0);
-        leaseCounter.ActiveAcquire.Value.Should().Be(0);
+        e1.IsOk().BeTrue();
+        leaseCounter.Acquire.Value.Be(1);
+        leaseCounter.Release.Value.Be(1);
+        leaseCounter.ActiveExclusive.Value.Be(0);
+        leaseCounter.ActiveAcquire.Value.Be(0);
 
         var q1 = await testClient.Execute("select (key=node1);", context1);
         q1.Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Nodes.Count.Should().Be(1);
-                var node = y.Nodes[0].Key.Should().Be("node1");
+                y.Nodes.Count.Be(1);
+                var node = y.Nodes[0].Key.Be("node1");
             });
         });
 
@@ -168,11 +167,11 @@ public class DatabaseShareModeTests
             var s1 = await host.Execute("select (key=node1);", context);
             s1.Action(x =>
             {
-                x.IsOk().Should().BeTrue(x.ToString());
+                x.IsOk().BeTrue(x.ToString());
                 x.Return().Action(y =>
                 {
-                    y.Nodes.Count.Should().Be(1);
-                    var node = y.Nodes[0].Key.Should().Be("node1");
+                    y.Nodes.Count.Be(1);
+                    var node = y.Nodes[0].Key.Be("node1");
                 });
             });
 

@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Extensions;
 
@@ -12,12 +12,12 @@ public class FunctionLogicExtensionsTests
         string? state = null;
 
         test.IfTrue(x => x, x => state = x.ToString());
-        state.IsEmpty().Should().BeTrue();
+        state.IsEmpty().BeTrue();
 
         test = true;
         state = null;
         test.IfTrue(x => x, x => state = x.ToString());
-        state.Should().Be("True");
+        state.Be("True");
     }
 
     [Fact]
@@ -27,12 +27,12 @@ public class FunctionLogicExtensionsTests
         string? state = null;
 
         test.IfTrue(() => state = test.ToString());
-        state.IsEmpty().Should().BeTrue();
+        state.IsEmpty().BeTrue();
 
         test = true;
         state = null;
         test.IfTrue(() => state = test.ToString());
-        state.Should().Be("True");
+        state.Be("True");
     }
 
     [Fact]
@@ -42,12 +42,12 @@ public class FunctionLogicExtensionsTests
         bool test = false;
 
         test.IfElse(x => x, x => state = x.ToString(), x => state = "*");
-        state.Should().Be("*");
+        state.Be("*");
 
         test = true;
         state = null;
         test.IfElse(x => x, x => state = x.ToString(), x => state = "*");
-        state.Should().Be("True");
+        state.Be("True");
     }
 
     [Fact]
@@ -57,11 +57,11 @@ public class FunctionLogicExtensionsTests
 
         bool test = false;
         test.IfElse(() => state = "true", () => state = "*");
-        state.Should().Be("*");
+        state.Be("*");
 
         test = true;
         state = null;
         test.IfElse(() => state = "true", () => state = "*");
-        state.Should().Be("true");
+        state.Be("true");
     }
 }

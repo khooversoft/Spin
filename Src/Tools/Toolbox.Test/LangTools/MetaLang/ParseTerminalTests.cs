@@ -1,6 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.LangTools.Meta;
@@ -15,7 +15,7 @@ public class ParseTerminalTests
     public void ShouldFail(string rule)
     {
         var root = MetaParser.ParseRules(rule);
-        root.StatusCode.IsError().Should().BeTrue();
+        root.StatusCode.IsError().BeTrue();
     }
 
     [Fact]
@@ -30,14 +30,14 @@ public class ParseTerminalTests
         static void test(string rule)
         {
             var root = MetaParser.ParseRules(rule);
-            root.StatusCode.IsOk().Should().BeTrue();
+            root.StatusCode.IsOk().BeTrue();
 
-            root.Rule.Children.Count.Should().Be(1);
+            root.Rule.Children.Count.Be(1);
             root.Rule.Children.OfType<TerminalSymbol>().First().Action(x =>
             {
-                x.Name.Should().Be("number");
-                x.Text.Should().Be("[+-]?[0-9]+");
-                x.Type.Should().Be(TerminalType.Regex);
+                x.Name.Be("number");
+                x.Text.Be("[+-]?[0-9]+");
+                x.Type.Be(TerminalType.Regex);
             });
         }
     }
@@ -54,14 +54,14 @@ public class ParseTerminalTests
         static void test(string rule)
         {
             var root = MetaParser.ParseRules(rule);
-            root.StatusCode.IsOk().Should().BeTrue();
+            root.StatusCode.IsOk().BeTrue();
 
-            root.Rule.Children.Count.Should().Be(1);
+            root.Rule.Children.Count.Be(1);
             root.Rule.Children.OfType<TerminalSymbol>().First().Action(x =>
             {
-                x.Name.Should().Be("equal");
-                x.Text.Should().Be("=");
-                x.Type.Should().Be(TerminalType.Token);
+                x.Name.Be("equal");
+                x.Text.Be("=");
+                x.Type.Be(TerminalType.Token);
             });
         }
     }
@@ -78,14 +78,14 @@ public class ParseTerminalTests
         static void test(string rule)
         {
             var root = MetaParser.ParseRules(rule);
-            root.StatusCode.IsOk().Should().BeTrue();
+            root.StatusCode.IsOk().BeTrue();
 
-            root.Rule.Children.Count.Should().Be(1);
+            root.Rule.Children.Count.Be(1);
             root.Rule.Children.OfType<TerminalSymbol>().First().Action(x =>
             {
-                x.Name.Should().Be("add-sym");
-                x.Text.Should().Be("add");
-                x.Type.Should().Be(TerminalType.Token);
+                x.Name.Be("add-sym");
+                x.Text.Be("add");
+                x.Type.Be(TerminalType.Token);
             });
         }
     }
@@ -102,16 +102,16 @@ public class ParseTerminalTests
         static void test(string rule)
         {
             var root = MetaParser.ParseRules(rule);
-            root.StatusCode.IsOk().Should().BeTrue();
+            root.StatusCode.IsOk().BeTrue();
 
-            root.Rule.Children.Count.Should().Be(1);
+            root.Rule.Children.Count.Be(1);
             root.Rule.Children.OfType<TerminalSymbol>().First().Action(x =>
             {
-                x.Name.Should().Be("add-sym");
-                x.Text.Should().Be("add");
-                x.Type.Should().Be(TerminalType.Token);
-                Enumerable.SequenceEqual(x.Tags, ["tag"]).Should().BeTrue();
-                Enumerable.SequenceEqual(x.Tags, ["taxg"]).Should().BeFalse();
+                x.Name.Be("add-sym");
+                x.Text.Be("add");
+                x.Type.Be(TerminalType.Token);
+                Enumerable.SequenceEqual(x.Tags, ["tag"]).BeTrue();
+                Enumerable.SequenceEqual(x.Tags, ["taxg"]).BeFalse();
             });
         }
     }
@@ -129,15 +129,15 @@ public class ParseTerminalTests
         static void test(string rule)
         {
             var root = MetaParser.ParseRules(rule);
-            root.StatusCode.IsOk().Should().BeTrue();
+            root.StatusCode.IsOk().BeTrue();
 
-            root.Rule.Children.Count.Should().Be(1);
+            root.Rule.Children.Count.Be(1);
             root.Rule.Children.OfType<TerminalSymbol>().First().Action(x =>
             {
-                x.Name.Should().Be("add-sym");
-                x.Text.Should().Be("add");
-                x.Type.Should().Be(TerminalType.Token);
-                Enumerable.SequenceEqual(x.Tags, ["start-group", "group"]).Should().BeTrue();
+                x.Name.Be("add-sym");
+                x.Text.Be("add");
+                x.Type.Be(TerminalType.Token);
+                Enumerable.SequenceEqual(x.Tags, ["start-group", "group"]).BeTrue();
             });
         }
     }

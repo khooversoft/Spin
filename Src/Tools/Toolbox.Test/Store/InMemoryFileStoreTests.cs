@@ -4,7 +4,6 @@ using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -27,13 +26,13 @@ public class InMemoryFileStoreTests
         await AddFile(store, pathText, dataText);
         (await store.Search("*", NullScopeContext.Default)).Action(x =>
         {
-            x.Count.Should().Be(1);
-            x[0].Path.Should().Be(pathText);
+            x.Count.Be(1);
+            x[0].Path.Be(pathText);
         });
         (await store.Search("**/*", NullScopeContext.Default)).Action(x =>
         {
-            x.Count.Should().Be(1);
-            x[0].Path.Should().Be(pathText);
+            x.Count.Be(1);
+            x[0].Path.Be(pathText);
         });
         await DeleteFile(store, pathText, 0);
     }
@@ -51,8 +50,8 @@ public class InMemoryFileStoreTests
 
         DataETag data = new DataETag(dataText.ToBytes());
         Option<string> result = await store.File(pathText).Add(data, NullScopeContext.Default);
-        result.IsOk().Should().BeFalse(result.ToString());
-        result.IsConflict().Should().BeTrue();
+        result.IsOk().BeFalse(result.ToString());
+        result.IsConflict().BeTrue();
 
         await DeleteFile(store, pathText, 0);
     }
@@ -72,28 +71,28 @@ public class InMemoryFileStoreTests
 
         (await store.Search("*", NullScopeContext.Default)).Action(x =>
         {
-            x.Count.Should().Be(1);
-            x[0].Path.Should().Be(pathText);
+            x.Count.Be(1);
+            x[0].Path.Be(pathText);
         });
 
         (await store.Search("**/*", NullScopeContext.Default)).Action(x =>
         {
-            x.Count.Should().Be(1);
-            x[0].Path.Should().Be(pathText);
+            x.Count.Be(1);
+            x[0].Path.Be(pathText);
         });
 
         await SetFile(store, pathText, dataText2);
 
         (await store.Search("*", NullScopeContext.Default)).Action(x =>
         {
-            x.Count.Should().Be(1);
-            x[0].Path.Should().Be(pathText);
+            x.Count.Be(1);
+            x[0].Path.Be(pathText);
         });
 
         (await store.Search("**/*", NullScopeContext.Default)).Action(x =>
         {
-            x.Count.Should().Be(1);
-            x[0].Path.Should().Be(pathText);
+            x.Count.Be(1);
+            x[0].Path.Be(pathText);
         });
 
         await DeleteFile(store, pathText, 0);
@@ -113,15 +112,15 @@ public class InMemoryFileStoreTests
         await AddFile(store, pathText1, dataText1);
         (await store.Search("*", NullScopeContext.Default)).Action(x =>
         {
-            x.Count.Should().Be(1);
-            x[0].Path.Should().Be(pathText1);
+            x.Count.Be(1);
+            x[0].Path.Be(pathText1);
         });
 
         await AddFile(store, pathText2, dataText2);
         (await store.Search("*", NullScopeContext.Default)).Action(x =>
         {
-            x.Count.Should().Be(2);
-            x.Select(x => x.Path).SequenceEqual([pathText1, pathText2]).Should().BeTrue();
+            x.Count.Be(2);
+            x.Select(x => x.Path).SequenceEqual([pathText1, pathText2]).BeTrue();
         });
 
         await DeleteFile(store, pathText1, 1);
@@ -139,23 +138,23 @@ public class InMemoryFileStoreTests
 
         DataETag data = new DataETag(dataText1.ToBytes());
         Option<string> result = await store.File(pathText1).Add(data, NullScopeContext.Default);
-        result.IsOk().Should().BeTrue();
-        (await store.Search("*", NullScopeContext.Default)).Count.Should().Be(1);
+        result.IsOk().BeTrue();
+        (await store.Search("*", NullScopeContext.Default)).Count.Be(1);
 
         DataETag data2 = new DataETag(dataText2.ToBytes());
         Option<string> result2 = await store.File(pathText1).Append(data2, NullScopeContext.Default);
-        result2.IsOk().Should().BeTrue();
-        (await store.Search("*", NullScopeContext.Default)).Count.Should().Be(1);
+        result2.IsOk().BeTrue();
+        (await store.Search("*", NullScopeContext.Default)).Count.Be(1);
 
         var readOption = await store.File(pathText1).Get(NullScopeContext.Default);
-        readOption.IsOk().Should().BeTrue();
+        readOption.IsOk().BeTrue();
 
         var read = readOption.Return().Data;
         var expected = data.Data.Concat(data2.Data).ToArray();
-        read.Length.Should().Be(expected.Length);
+        read.Length.Be(expected.Length);
 
-        Enumerable.SequenceEqual(expected, read).Should().BeTrue();
-        memoryStore.Search("*").Count.Should().Be(1);
+        Enumerable.SequenceEqual(expected, read).BeTrue();
+        memoryStore.Search("*").Count.Be(1);
 
         await DeleteFile(store, pathText1, 0);
     }
@@ -178,7 +177,7 @@ public class InMemoryFileStoreTests
             queue.Enqueue((fileId, dataEtag));
 
             var option = await store.File(fileId).Add(dataEtag, NullScopeContext.Default);
-            option.IsOk().Should().BeTrue();
+            option.IsOk().BeTrue();
 
         }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 5 });
 
@@ -186,18 +185,18 @@ public class InMemoryFileStoreTests
         block.Complete();
         await block.Completion;
 
-        memoryStore.Search("*").Count.Should().Be(size);
-        queue.Count.Should().Be(size);
+        memoryStore.Search("*").Count.Be(size);
+        queue.Count.Be(size);
 
         (await store.Search("*", NullScopeContext.Default)).Action(x =>
         {
-            x.Count.Should().Be(size);
-            x.Select(x => x.Path).OrderBy(x => x).SequenceEqual(queue.Select(x => x.fileId).OrderBy(x => x)).Should().BeTrue();
+            x.Count.Be(size);
+            x.Select(x => x.Path).OrderBy(x => x).SequenceEqual(queue.Select(x => x.fileId).OrderBy(x => x)).BeTrue();
         });
 
         var storeList = memoryStore.SearchData("*");
         (string fileId, DataETag data)[] queueList = queue.OrderBy(x => x.fileId).ToArray();
-        storeList.Count.Should().Be(queueList.Length);
+        storeList.Count.Be(queueList.Length);
 
         var zip = storeList
             .Zip(queueList, (o, i) => (store: o, queue: i))
@@ -208,12 +207,12 @@ public class InMemoryFileStoreTests
         var p = await ActionParallel.RunAsync(queueList, async x =>
         {
             var option = await store.File(x.fileId).Delete(NullScopeContext.Default);
-            option.IsOk().Should().BeTrue();
+            option.IsOk().BeTrue();
             return option;
         });
 
-        memoryStore.Search("*").Count.Should().Be(0);
-        (await store.Search("*", NullScopeContext.Default)).Count.Should().Be(0);
+        memoryStore.Search("*").Count.Be(0);
+        (await store.Search("*", NullScopeContext.Default)).Count.Be(0);
     }
 
     private Task AddFile(IFileStore store, string path, string dataText)
@@ -233,29 +232,29 @@ public class InMemoryFileStoreTests
         int beginCount = (await store.Search("*", NullScopeContext.Default)).Count;
 
         Option<string> result = await func(path, data);
-        result.IsOk().Should().BeTrue();
-        (await store.Search("*", NullScopeContext.Default)).Count.Should().Be(beginCount + increment);
-        (await store.File(path).Exist(NullScopeContext.Default)).Action(x => x.IsOk().Should().BeTrue());
+        result.IsOk().BeTrue();
+        (await store.Search("*", NullScopeContext.Default)).Count.Be(beginCount + increment);
+        (await store.File(path).Exist(NullScopeContext.Default)).Action(x => x.IsOk().BeTrue());
 
         Option<DataETag> getResult = await store.File(path).Get(NullScopeContext.Default);
-        result.IsOk().Should().BeTrue();
-        (await store.Search("*", NullScopeContext.Default)).Count.Should().Be(beginCount + increment);
+        result.IsOk().BeTrue();
+        (await store.Search("*", NullScopeContext.Default)).Count.Be(beginCount + increment);
 
         byte[] returnData = getResult.Return().Data.ToArray();
-        Enumerable.SequenceEqual(data.Data, returnData).Should().BeTrue();
+        Enumerable.SequenceEqual(data.Data, returnData).BeTrue();
     }
 
     private async Task DeleteFile(IFileStore store, string path, int expectedCount)
     {
-        (await store.File(path).Exist(NullScopeContext.Default)).Action(x => x.IsOk().Should().BeTrue());
+        (await store.File(path).Exist(NullScopeContext.Default)).Action(x => x.IsOk().BeTrue());
 
         var deleteOption = await store.File(path).Delete(NullScopeContext.Default);
-        deleteOption.IsOk().Should().BeTrue();
+        deleteOption.IsOk().BeTrue();
 
-        (await store.Search("*", NullScopeContext.Default)).Count.Should().Be(expectedCount);
-        (await store.File(path).Exist(NullScopeContext.Default)).Action(x => x.IsOk().Should().BeFalse());
+        (await store.Search("*", NullScopeContext.Default)).Count.Be(expectedCount);
+        (await store.File(path).Exist(NullScopeContext.Default)).Action(x => x.IsOk().BeFalse());
 
         var deleteOption2 = await store.File(path).Delete(NullScopeContext.Default);
-        deleteOption2.IsError().Should().BeTrue();
+        deleteOption2.IsError().BeTrue();
     }
 }

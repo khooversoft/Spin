@@ -1,12 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
-using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
 public readonly record struct ScopeContextLocation : ILoggingContext
 {
-    private const string _addMessage = "traceId={traceId}, callerFunction={callerFunction}, callerFilePath={callerFilePath}, callerLineNumber={callerLineNumber}";
-
     public ScopeContextLocation(ScopeContext context, CodeLocation location)
     {
         Context = context;
@@ -15,14 +12,6 @@ public readonly record struct ScopeContextLocation : ILoggingContext
 
     public ScopeContext Context { get; init; }
     public CodeLocation Location { get; }
-
-    public (string? message, object?[] args) AppendContext(string? message, object?[] args)
-    {
-        return (
-            ScopeContextTools.AppendMessage(message, _addMessage),
-            ScopeContextTools.AppendArgs(args, Context.TraceId, Location.CallerFunction, Location.CallerFilePath, Location.CallerLineNumber)
-            );
-    }
 }
 
 

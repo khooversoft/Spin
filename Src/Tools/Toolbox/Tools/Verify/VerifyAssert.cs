@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Types;
 
 namespace Toolbox.Tools;
@@ -33,7 +28,7 @@ public static class VerifyAssert
         if (test(subject)) return subject;
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        var structLine = new StructureLineBuilder()
+        var structLine = StructureLineBuilder.Start()
             .Add(message)
             .Add(location)
             .Build()
@@ -65,7 +60,7 @@ public static class VerifyAssert
         getMessage.NotNull();
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        var structLine = new StructureLineBuilder()
+        var structLine = StructureLineBuilder.Start()
             .Add(getMessage(subject))
             .Add(location)
             .Build()

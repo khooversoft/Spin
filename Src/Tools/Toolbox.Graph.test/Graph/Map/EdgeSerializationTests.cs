@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
@@ -13,10 +12,10 @@ public class EdgeSerializationTests
         var v = new GraphEdge("Node1", "Node2", "edgeType", "t1=v");
 
         string json = v.ToJson();
-        json.Should().NotBeEmpty();
+        json.NotEmpty();
 
         var v2 = json.ToObject<GraphEdge>();
-        (v == v2).Should().BeTrue();
+        (v == v2).BeTrue();
     }
 
     [Fact]
@@ -28,8 +27,8 @@ public class EdgeSerializationTests
 
         var graphEdge = json.ToObject<GraphEdge>();
         graphEdge.NotNull();
-        graphEdge!.FromKey.Should().Be("node1");
-        graphEdge!.ToKey.Should().Be("node2");
+        graphEdge!.FromKey.Be("node1");
+        graphEdge!.ToKey.Be("node2");
         graphEdge.Tags.NotNull();
     }
 
@@ -42,11 +41,11 @@ public class EdgeSerializationTests
 
         var graphEdge = json.ToObject<GraphEdge>();
         graphEdge.NotNull();
-        graphEdge!.FromKey.Should().Be("node1");
-        graphEdge!.ToKey.Should().Be("node2");
+        graphEdge!.FromKey.Be("node1");
+        graphEdge!.ToKey.Be("node2");
         graphEdge.Tags.NotNull();
-        graphEdge.Tags.Count.Should().Be(2);
+        graphEdge.Tags.Count.Be(2);
         graphEdge.Tags["t1"].BeNull();
-        graphEdge.Tags["t2"].Should().Be("v2");
+        graphEdge.Tags["t2"].Be("v2");
     }
 }

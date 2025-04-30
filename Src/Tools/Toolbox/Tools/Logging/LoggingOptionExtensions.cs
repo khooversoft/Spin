@@ -23,7 +23,7 @@ public static class LoggingOptionExtensions
         InternalLogStatus(location, option, context, message, args, name);
         return option;
     }
-    
+
     public static Option LogStatus(
         this (StatusCode statusCode, string? error) subject,
         ScopeContext context,
@@ -72,7 +72,7 @@ public static class LoggingOptionExtensions
         bool forceDebug = false
         )
     {
-        var result = new StructureLineBuilder()
+        var result = StructureLineBuilder.Start()
             .Add(message.NotEmpty(), args)
             .Add(option)
             .Add(context)

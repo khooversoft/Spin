@@ -7,18 +7,9 @@ namespace Toolbox.Test.Tools;
 public class StructureLineBuilderTests
 {
     [Fact]
-    public void Empty()
-    {
-        Verify.Throw<ArgumentException>(() =>
-        {
-            new StructureLineBuilder().Build();
-        });
-    }
-
-    [Fact]
     public void MessageOnly()
     {
-        var result = new StructureLineBuilder()
+        var result = StructureLineBuilder.Start()
             .Add("test")
             .Build();
 
@@ -34,7 +25,7 @@ public class StructureLineBuilderTests
     {
         Option option = StatusCode.OK;
 
-        var result = new StructureLineBuilder()
+        var result = StructureLineBuilder.Start()
             .Add(option)
             .Build();
 
@@ -63,7 +54,7 @@ public class StructureLineBuilderTests
     [Fact]
     public void SingleBuilder()
     {
-        var result = new StructureLineBuilder()
+        var result = StructureLineBuilder.Start()
             .Add("value={value}", 1)
             .Build();
 
@@ -82,7 +73,7 @@ public class StructureLineBuilderTests
     [Fact]
     public void MultiArrayCompact()
     {
-        var result = new StructureLineBuilder()
+        var result = StructureLineBuilder.Start()
             .Add("value={value}, count={count}", 1, 2)
             .Build();
 
@@ -98,7 +89,7 @@ public class StructureLineBuilderTests
     [Fact]
     public void MultiArray()
     {
-        var result = new StructureLineBuilder()
+        var result = StructureLineBuilder.Start()
             .Add("value={value}", 1)
             .Add("count={count}", 2)
             .Build();
@@ -115,7 +106,7 @@ public class StructureLineBuilderTests
     [Fact]
     public void CompactAndMultiArray()
     {
-        var result = new StructureLineBuilder()
+        var result = StructureLineBuilder.Start()
             .Add("value={value}", 1)
             .Add("count={count}", 2)
             .Add("first={firstValue}, secondCount={secondCount}", 3, 4)
@@ -138,7 +129,7 @@ public class StructureLineBuilderTests
         string fmt = "this is a test";
         object?[] objects = new object[0];
 
-        var result = new StructureLineBuilder()
+        var result = StructureLineBuilder.Start()
             .Add(fmt, objects)
             .Add("traceId={traceId}", "this.trace.id")
             .Add("statusCode={statusCode}, Error={error}", StatusCode.Conflict, "error")
@@ -160,8 +151,29 @@ public class StructureLineBuilderTests
     {
         string fmt = "this is a test";
 
-        var result = new StructureLineBuilder()
-            .Add(fmt, null)
+        var result = StructureLineBuilder.Start()
+            .Add(fmt, null!)
+            .Add("traceId={traceId}", "this.trace.id")
+            .Add("statusCode={statusCode}, Error={error}", StatusCode.Conflict, "error")
+            .Build();
+
+        result.Message.Be(fmt + ", traceId={traceId}, statusCode={statusCode}, Error={error}");
+        result.Args.Action(x =>
+        {
+            x.Length.Be(3);
+            x[0].NotNull().Cast<string>().Be("this.trace.id");
+            x[1].NotNull().Cast<StatusCode>().Be(StatusCode.Conflict);
+            x[2].NotNull().Cast<string>().Be("error");
+        });
+    }
+
+    [Fact]
+    public void AppendWithEmptyArgs()
+    {
+        string fmt = "this is a test";
+
+        var result = StructureLineBuilder.Start()
+            .Add(fmt, [])
             .Add("traceId={traceId}", "this.trace.id")
             .Add("statusCode={statusCode}, Error={error}", StatusCode.Conflict, "error")
             .Build();
@@ -182,7 +194,7 @@ public class StructureLineBuilderTests
         string fmt = "this is a test, value={value}, count={count}";
         object?[] objects = new object[] { 1, 2 };
 
-        var result = new StructureLineBuilder()
+        var result = StructureLineBuilder.Start()
             .Add(fmt, objects)
             .Add("traceId={traceId}", "this.trace.id")
             .Add("statusCode={statusCode}, Error={error}", StatusCode.Conflict, "error")
@@ -205,7 +217,7 @@ public class StructureLineBuilderTests
     {
         Verify.Throw<ArgumentException>(() =>
         {
-            var result = new StructureLineBuilder()
+            var result = StructureLineBuilder.Start()
                 .Add("no variable", "oops")
                 .Add("traceId={traceId}", "this.trace.id")
                 .Add("statusCode={statusCode}, Error={error}", StatusCode.Conflict, "error")
@@ -214,7 +226,7 @@ public class StructureLineBuilderTests
 
         Verify.Throw<ArgumentException>(() =>
         {
-            var result = new StructureLineBuilder()
+            var result = StructureLineBuilder.Start()
                 .Add("traceId={traceId}", "this.trace.id", 1)
                 .Add("statusCode={statusCode}, Error={error}", StatusCode.Conflict, "error")
                 .Build();

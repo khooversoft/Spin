@@ -2,7 +2,6 @@
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class NodeTests : TestBase<NodeTests>
 
         string schema = GraphLanguageTool.ReadGraphLanguageRules();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -35,52 +34,52 @@ public class NodeTests : TestBase<NodeTests>
     public void FailTest(string command)
     {
         var parse = _parser.Parse(command, _context);
-        parse.Status.IsError().Should().BeTrue();
+        parse.Status.IsError().BeTrue();
     }
 
     [Fact]
     public void MinAddNode()
     {
         var parse = _parser.Parse("add node key=k1;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         IGraphInstruction[] expected = [
             new GiNode { ChangeType = GiChangeType.Add, Key="k1" },
             ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void MinDeleteNode()
     {
         var parse = _parser.Parse("delete node key=k1;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         IGraphInstruction[] expected = [
             new GiNode { ChangeType = GiChangeType.Delete, Key="k1" },
             ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SetNodeWithTags()
     {
         var parse = _parser.Parse("set node key=k1 set t1, t2=v2;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -97,18 +96,18 @@ public class NodeTests : TestBase<NodeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SetNodeRemoveTagCommand()
     {
         var parse = _parser.Parse("set node key=k1 set -t1, t2=v2;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -125,18 +124,18 @@ public class NodeTests : TestBase<NodeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void AddNodeCommand()
     {
         var parse = _parser.Parse("add node key=k1 set t1, entity { 'aGVsbG8=' }, t2=v3, t3, data { 'aGVsbG8y' };", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -159,18 +158,18 @@ public class NodeTests : TestBase<NodeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SetNodeCommand()
     {
         var parse = _parser.Parse("set node key=k1 set t1, entity { entityBase64 }, t2=v3, -t3, t5=v5, -data;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -194,18 +193,18 @@ public class NodeTests : TestBase<NodeTests>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void SetCommand2()
     {
         var parse = _parser.Parse("set node key=data:key1 set entity { 'eyJrZXkiOiJrZXkxIiwibmFtZSI6bnVsbCwiYWdlIjpudWxsLCJwcm92aWRlciI6bnVsbCwicHJvdmlkZXJLZXkiOm51bGx9' };", _context);
-        parse.Status.IsOk().Should().BeTrue(parse.ToString());
+        parse.Status.IsOk().BeTrue(parse.ToString());
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue();
+        instructions.IsOk().BeTrue();
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -221,7 +220,7 @@ public class NodeTests : TestBase<NodeTests>
             },
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
@@ -229,11 +228,11 @@ public class NodeTests : TestBase<NodeTests>
     {
         var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider ;";
         var parse = _parser.Parse(cmd, _context);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.ToString());
+        parse.Status.IsOk().BeTrue(parse.Status.ToString());
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.ToString());
+        instructions.IsOk().BeTrue(instructions.ToString());
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -254,7 +253,7 @@ public class NodeTests : TestBase<NodeTests>
             },
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
@@ -262,11 +261,11 @@ public class NodeTests : TestBase<NodeTests>
     {
         var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index -loginProvider ;";
         var parse = _parser.Parse(cmd, _context);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.ToString());
+        parse.Status.IsOk().BeTrue(parse.Status.ToString());
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.ToString());
+        instructions.IsOk().BeTrue(instructions.ToString());
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -287,7 +286,7 @@ public class NodeTests : TestBase<NodeTests>
             },
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
@@ -295,11 +294,11 @@ public class NodeTests : TestBase<NodeTests>
     {
         var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider, email ;";
         var parse = _parser.Parse(cmd, _context);
-        parse.Status.IsOk().Should().BeTrue(parse.Status.ToString());
+        parse.Status.IsOk().BeTrue(parse.Status.ToString());
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.ToString());
+        instructions.IsOk().BeTrue(instructions.ToString());
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -321,18 +320,18 @@ public class NodeTests : TestBase<NodeTests>
             },
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void AddNodeFK()
     {
         var parse = _parser.Parse("add node key=k1 set t1=v1 foreignkey t1 ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructionsOption = InterLangTool.Build(syntaxPairs);
-        instructionsOption.IsOk().Should().BeTrue();
+        instructionsOption.IsOk().BeTrue();
 
         IGraphInstruction[] expected = [
             new GiNode
@@ -347,18 +346,18 @@ public class NodeTests : TestBase<NodeTests>
             }];
 
         var instructions = instructionsOption.Return();
-        Enumerable.SequenceEqual(instructions, expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions, expected).BeTrue();
     }
 
     [Fact]
     public void AddNodeFKTwo()
     {
         var parse = _parser.Parse("add node key=k1 set t1=v1, t2=v2 foreignkey t1, t2=p1* ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructionsOption = InterLangTool.Build(syntaxPairs);
-        instructionsOption.IsOk().Should().BeTrue();
+        instructionsOption.IsOk().BeTrue();
 
         IGraphInstruction[] expected = [
             new GiNode
@@ -374,6 +373,6 @@ public class NodeTests : TestBase<NodeTests>
             }];
 
         var instructions = instructionsOption.Return();
-        Enumerable.SequenceEqual(instructions, expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions, expected).BeTrue();
     }
 }

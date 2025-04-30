@@ -1,5 +1,5 @@
 ﻿using Toolbox.Data;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Data;
 
@@ -13,8 +13,8 @@ public class DataToolTests
 
         byte[] matchTo = [];
 
-        Enumerable.SequenceEqual(result, matchTo).Should().BeTrue();
-        Enumerable.SequenceEqual(result, matchTo.ToArray()).Should().BeTrue();
+        Enumerable.SequenceEqual(result, matchTo).BeTrue();
+        Enumerable.SequenceEqual(result, matchTo.ToArray()).BeTrue();
     }
 
     [Fact]
@@ -23,8 +23,8 @@ public class DataToolTests
         byte[] buffer = [1, 2, 3, 4, 5, 6];
         byte[] result = DataTool.Filter(buffer, x => true);
 
-        Enumerable.SequenceEqual(buffer, result).Should().BeTrue();
-        Enumerable.SequenceEqual(buffer, result.ToArray()).Should().BeTrue();
+        Enumerable.SequenceEqual(buffer, result).BeTrue();
+        Enumerable.SequenceEqual(buffer, result.ToArray()).BeTrue();
     }
 
     [Fact]
@@ -35,8 +35,8 @@ public class DataToolTests
 
         byte[] matchTo = [1, 2, 4, 5, 6];
 
-        Enumerable.SequenceEqual(result, matchTo).Should().BeTrue();
-        Enumerable.SequenceEqual(result, matchTo.ToArray()).Should().BeTrue();
+        Enumerable.SequenceEqual(result, matchTo).BeTrue();
+        Enumerable.SequenceEqual(result, matchTo.ToArray()).BeTrue();
     }
 
     [Fact]
@@ -47,8 +47,8 @@ public class DataToolTests
 
         byte[] matchTo = [1, 2, 4, 10, 6];
 
-        Enumerable.SequenceEqual(result, matchTo).Should().BeTrue();
-        Enumerable.SequenceEqual(result, matchTo.ToArray()).Should().BeTrue();
+        Enumerable.SequenceEqual(result, matchTo).BeTrue();
+        Enumerable.SequenceEqual(result, matchTo.ToArray()).BeTrue();
     }
 
     [Fact]
@@ -59,8 +59,8 @@ public class DataToolTests
 
         string matchTo = "";
 
-        Enumerable.SequenceEqual(result, matchTo).Should().BeTrue();
-        Enumerable.SequenceEqual(result, matchTo.ToArray()).Should().BeTrue();
+        Enumerable.SequenceEqual(result, matchTo).BeTrue();
+        Enumerable.SequenceEqual(result, matchTo.ToArray()).BeTrue();
     }
     [Fact]
     public void NoneFilterString()
@@ -68,8 +68,8 @@ public class DataToolTests
         string str = "this is a test";
         string result = DataTool.Filter(str, x => true);
 
-        Enumerable.SequenceEqual(str, result).Should().BeTrue();
-        Enumerable.SequenceEqual(str, result.ToArray()).Should().BeTrue();
+        Enumerable.SequenceEqual(str, result).BeTrue();
+        Enumerable.SequenceEqual(str, result.ToArray()).BeTrue();
     }
 
     [Fact]
@@ -80,8 +80,8 @@ public class DataToolTests
 
         string matchTo = "ths s a test";
 
-        Enumerable.SequenceEqual(result, matchTo).Should().BeTrue();
-        Enumerable.SequenceEqual(result, matchTo.ToArray()).Should().BeTrue();
+        Enumerable.SequenceEqual(result, matchTo).BeTrue();
+        Enumerable.SequenceEqual(result, matchTo.ToArray()).BeTrue();
     }
 
     [Fact]
@@ -92,8 +92,8 @@ public class DataToolTests
 
         string matchTo = "ths s Z test";
 
-        result.Should().Be(matchTo);
-        Enumerable.SequenceEqual(result, matchTo.ToArray()).Should().BeTrue();
+        result.Be(matchTo);
+        Enumerable.SequenceEqual(result, matchTo.ToArray()).BeTrue();
     }
 
     [Fact]
@@ -104,8 +104,8 @@ public class DataToolTests
 
         string matchTo = "this is a` test";
 
-        Enumerable.SequenceEqual(result, matchTo).Should().BeTrue();
-        Enumerable.SequenceEqual(result, matchTo.ToArray()).Should().BeTrue();
+        Enumerable.SequenceEqual(result, matchTo).BeTrue();
+        Enumerable.SequenceEqual(result, matchTo.ToArray()).BeTrue();
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class DataToolTests
             """;
 
         string clean = Clean(line);
-        clean.Should().Be(matchTo);
+        clean.Be(matchTo);
     }
 
     private static string Clean(string line)

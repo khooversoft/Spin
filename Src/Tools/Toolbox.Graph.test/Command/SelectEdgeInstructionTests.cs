@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Graph.test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -40,14 +40,14 @@ public class SelectEdgeInstructionTests
         var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
         var newMapOption = await testClient.Execute("select [*] ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeEmpty();
-        result.Nodes.Count.Should().Be(0);
-        result.Edges.Count.Should().Be(6);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.NotEmpty();
+        result.Nodes.Count.Be(0);
+        result.Edges.Count.Be(6);
+        result.DataLinks.Count.Be(0);
 
         var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
@@ -59,11 +59,11 @@ public class SelectEdgeInstructionTests
             ("node5", "node4", "et2"),
         }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).BeTrue();
 
-        collector.Edges.IndexHit.Value.Should().Be(0);
-        collector.Edges.IndexMissed.Value.Should().Be(0);
-        collector.Edges.IndexScan.Value.Should().Be(1);
+        collector.Edges.IndexHit.Value.Be(0);
+        collector.Edges.IndexMissed.Value.Be(0);
+        collector.Edges.IndexScan.Value.Be(1);
     }
 
     [Fact]
@@ -74,14 +74,14 @@ public class SelectEdgeInstructionTests
         var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
         var newMapOption = await testClient.Execute("select [*, level=1] ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeEmpty();
-        result.Nodes.Count.Should().Be(0);
-        result.Edges.Count.Should().Be(2);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.NotEmpty();
+        result.Nodes.Count.Be(0);
+        result.Edges.Count.Be(2);
+        result.DataLinks.Count.Be(0);
 
         var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
@@ -89,11 +89,11 @@ public class SelectEdgeInstructionTests
             ("node1", "node3", "et1"),
         }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).BeTrue();
 
-        collector.Edges.IndexHit.Value.Should().Be(0);
-        collector.Edges.IndexMissed.Value.Should().Be(0);
-        collector.Edges.IndexScan.Value.Should().Be(1);
+        collector.Edges.IndexHit.Value.Be(0);
+        collector.Edges.IndexMissed.Value.Be(0);
+        collector.Edges.IndexScan.Value.Be(1);
     }
 
     [Fact]
@@ -104,14 +104,14 @@ public class SelectEdgeInstructionTests
         var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
         var newMapOption = await testClient.Execute("select [level=1] ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeEmpty();
-        result.Nodes.Count.Should().Be(0);
-        result.Edges.Count.Should().Be(2);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.NotEmpty();
+        result.Nodes.Count.Be(0);
+        result.Edges.Count.Be(2);
+        result.DataLinks.Count.Be(0);
 
         var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
@@ -119,11 +119,11 @@ public class SelectEdgeInstructionTests
             ("node1", "node3", "et1"),
         }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).BeTrue();
 
-        collector.Edges.IndexHit.Value.Should().Be(3);
-        collector.Edges.IndexMissed.Value.Should().Be(0);
-        collector.Edges.IndexScan.Value.Should().Be(0);
+        collector.Edges.IndexHit.Value.Be(3);
+        collector.Edges.IndexMissed.Value.Be(0);
+        collector.Edges.IndexScan.Value.Be(0);
     }
 
     [Fact]
@@ -134,14 +134,14 @@ public class SelectEdgeInstructionTests
         var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
         var newMapOption = await testClient.Execute("select [from=node1] ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeEmpty();
-        result.Nodes.Count.Should().Be(0);
-        result.Edges.Count.Should().Be(2);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.NotEmpty();
+        result.Nodes.Count.Be(0);
+        result.Edges.Count.Be(2);
+        result.DataLinks.Count.Be(0);
 
         var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
@@ -149,11 +149,11 @@ public class SelectEdgeInstructionTests
             ("node1", "node3", "et1"),
         }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).BeTrue();
 
-        collector.Edges.IndexHit.Value.Should().Be(3);
-        collector.Edges.IndexMissed.Value.Should().Be(0);
-        collector.Edges.IndexScan.Value.Should().Be(0);
+        collector.Edges.IndexHit.Value.Be(3);
+        collector.Edges.IndexMissed.Value.Be(0);
+        collector.Edges.IndexScan.Value.Be(0);
     }
 
     [Fact]
@@ -164,14 +164,14 @@ public class SelectEdgeInstructionTests
         var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
         var newMapOption = await testClient.Execute("select [to=node3] ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeEmpty();
-        result.Nodes.Count.Should().Be(0);
-        result.Edges.Count.Should().Be(3);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.NotEmpty();
+        result.Nodes.Count.Be(0);
+        result.Edges.Count.Be(3);
+        result.DataLinks.Count.Be(0);
 
         var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
@@ -180,11 +180,11 @@ public class SelectEdgeInstructionTests
             ("node4", "node3", "et3"),
         }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).BeTrue();
 
-        collector.Edges.IndexHit.Value.Should().Be(4);
-        collector.Edges.IndexMissed.Value.Should().Be(0);
-        collector.Edges.IndexScan.Value.Should().Be(0);
+        collector.Edges.IndexHit.Value.Be(4);
+        collector.Edges.IndexMissed.Value.Be(0);
+        collector.Edges.IndexScan.Value.Be(0);
     }
 
     [Fact]
@@ -195,14 +195,14 @@ public class SelectEdgeInstructionTests
         var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
 
         var newMapOption = await testClient.Execute("select [type=et3] ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeEmpty();
-        result.Nodes.Count.Should().Be(0);
-        result.Edges.Count.Should().Be(3);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.NotEmpty();
+        result.Nodes.Count.Be(0);
+        result.Edges.Count.Be(3);
+        result.DataLinks.Count.Be(0);
 
         var expected = new (string FromKey, string ToKey, string EdgeType)[]
         {
@@ -211,10 +211,10 @@ public class SelectEdgeInstructionTests
             ("node4", "node3", "et3"),
         }.OrderBy(x => x).ToArray();
 
-        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).Should().BeTrue();
+        result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).BeTrue();
 
-        collector.Edges.IndexHit.Value.Should().Be(4);
-        collector.Edges.IndexMissed.Value.Should().Be(0);
-        collector.Edges.IndexScan.Value.Should().Be(0);
+        collector.Edges.IndexHit.Value.Be(4);
+        collector.Edges.IndexMissed.Value.Be(0);
+        collector.Edges.IndexScan.Value.Be(0);
     }
 }

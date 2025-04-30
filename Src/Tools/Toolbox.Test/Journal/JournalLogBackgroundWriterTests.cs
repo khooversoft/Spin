@@ -61,10 +61,10 @@
 
 //        journals.Action(x =>
 //        {
-//            x.Count.Should().Be(1);
+//            x.Count.Be(1);
 
 //            var read = x[0];
-//            (read == journalEntry).Should().BeTrue();
+//            (read == journalEntry).BeTrue();
 //        });
 //    }
 
@@ -120,17 +120,17 @@
 //        IJournalFile journal2 = _services.GetRequiredKeyedService<IJournalFile>("test");
 
 //        var search2 = await fileStore.Search("**/*", _context);
-//        search2.Count.Should().Be(1);
-//        search2[0].StartsWith("/journal2/data").Should().BeTrue();
-//        search2[0].EndsWith(".journal2.json").Should().BeTrue();
+//        search2.Count.Be(1);
+//        search2[0].StartsWith("/journal2/data").BeTrue();
+//        search2[0].EndsWith(".journal2.json").BeTrue();
 
 //        var journals = await journal2.ReadJournals(_context);
-//        journals.Count.Should().Be(createdJournals.Count);
+//        journals.Count.Be(createdJournals.Count);
 
 //        for (int i = 0; i < createdJournals.Count; i++)
 //        {
 //            var createdJournalUpdated = createdJournals[i] with { LogSequenceNumber = journals[i].LogSequenceNumber };
-//            (journals[i] == createdJournalUpdated).Should().BeTrue($"index={i}");
+//            (journals[i] == createdJournalUpdated).BeTrue($"index={i}");
 //        }
 //    }
 //}

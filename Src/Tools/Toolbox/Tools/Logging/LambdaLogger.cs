@@ -23,12 +23,12 @@ public static class LambdaLoggerProviderExtension
 }
 
 
-public class LambdaLogger<T> : LambdaLogger, ILogger<T>
-{
-    public LambdaLogger(Action<string> redirect, string categoryName) : base(redirect, categoryName)
-    {
-    }
-}
+//public class LambdaLogger<T> : LambdaLogger, ILogger<T>
+//{
+//    public LambdaLogger(Action<string> redirect, string categoryName) : base(redirect, categoryName)
+//    {
+//    }
+//}
 
 
 public class LambdaLogger : ILogger
@@ -42,18 +42,18 @@ public class LambdaLogger : ILogger
         _categoryName = categoryName.NotEmpty();
     }
 
-    public IDisposable BeginScope<TState>(TState state) where TState : notnull => NoopDisposable.Instance;
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull => NullDisposable.Instance;
     public bool IsEnabled(LogLevel logLevel) => true;
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        _redirect($"{_categoryName} [{eventId}] {formatter(state, exception)}");
+        _redirect($"[{logLevel}] {_categoryName} [{eventId}] {formatter(state, exception)}");
         if (exception != null) _redirect(exception.ToString());
     }
 
-    private class NoopDisposable : IDisposable
+    private class NullDisposable : IDisposable
     {
-        public static readonly NoopDisposable Instance = new NoopDisposable();
+        public static readonly NullDisposable Instance = new NullDisposable();
         public void Dispose() { }
     }
 }

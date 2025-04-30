@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -70,25 +69,25 @@ public class GraphDirectoryTests
         var search = (await graphTestClient.ExecuteBatch("select [from=system:schedule-work, type=scheduleWorkType:*];", context)).ThrowOnError().Return();
         Assert.NotNull(search);
         search.NotNull();
-        search.Items.Count.Should().Be(1);
-        search.Items[0].Edges.Count.Should().Be(2);
+        search.Items.Count.Be(1);
+        search.Items[0].Edges.Count.Be(2);
 
         var index = search.Items[0].Edges.OrderBy(x => x.ToKey).ToArray().ToCursor();
 
         index.NextValue().Return().Cast<GraphEdge>().Action(x =>
         {
-            x.FromKey.Should().Be("system:schedule-work");
-            x.ToKey.Should().Be("schedulework:WKID-77f4e612-17b4-4ca9-b4eb-93d28bc722be");
-            x.EdgeType.Should().Be("scheduleWorkType:Active");
-            x.Tags.Count.Should().Be(0);
+            x.FromKey.Be("system:schedule-work");
+            x.ToKey.Be("schedulework:WKID-77f4e612-17b4-4ca9-b4eb-93d28bc722be");
+            x.EdgeType.Be("scheduleWorkType:Active");
+            x.Tags.Count.Be(0);
         });
 
         index.NextValue().Return().Cast<GraphEdge>().Action(x =>
         {
-            x.FromKey.Should().Be("system:schedule-work");
-            x.ToKey.Should().Be("schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129");
-            x.EdgeType.Should().Be("scheduleWorkType:Completed");
-            x.Tags.Count.Should().Be(0);
+            x.FromKey.Be("system:schedule-work");
+            x.ToKey.Be("schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129");
+            x.EdgeType.Be("scheduleWorkType:Completed");
+            x.Tags.Count.Be(0);
         });
     }
 
@@ -107,37 +106,37 @@ public class GraphDirectoryTests
     //        .Join(" ") + ";";
 
     //    var result = await testClient.ExecuteBatch(command, NullScopeContext.Instance);
-    //    result.Should().NotBeNull();
-    //    result.IsOk().Should().BeTrue(result.ToString());
+    //    result.NotBeNull();
+    //    result.IsOk().BeTrue(result.ToString());
 
     //    QueryBatchResult searchResult = result.Return();
-    //    searchResult.Items.Count.Should().Be(1);
+    //    searchResult.Items.Count.Be(1);
     //    searchResult.Items[0].Action(r =>
     //    {
-    //        r.Should().NotBeNull();
-    //        r.Nodes.Count.Should().Be(1);
+    //        r.NotBeNull();
+    //        r.Nodes.Count.Be(1);
     //        r.Edges.Action(x =>
     //        {
-    //            x.FromKey.Should().Be("system:schedule-work");
-    //            x.ToKey.Should().Be("schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129");
-    //            x.EdgeType.Should().Be("scheduleWorkType:Active");
+    //            x.FromKey.Be("system:schedule-work");
+    //            x.ToKey.Be("schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129");
+    //            x.EdgeType.Be("scheduleWorkType:Active");
     //        });
     //    });
 
 
     //    Option<GraphQueryResults> rOption = await testClient.ExecuteBatch($"select {search};", NullScopeContext.Instance);
-    //    rOption.IsOk().Should().BeTrue();
+    //    rOption.IsOk().BeTrue();
 
     //    GraphQueryResults r = rOption.Return();
-    //    r.Items.Length.Should().Be(1);
-    //    r.Items[0].Should().NotBeNull();
-    //    r.Items[0].NotNull().Items.Count.Should().Be(1);
-    //    r.Items[0].NotNull().Edges().Length.Should().Be(1);
+    //    r.Items.Length.Be(1);
+    //    r.Items[0].NotBeNull();
+    //    r.Items[0].NotNull().Items.Count.Be(1);
+    //    r.Items[0].NotNull().Edges().Length.Be(1);
     //    r.Items[0].NotNull().Edges()[0].Action(x =>
     //    {
-    //        x.FromKey.Should().Be("system:schedule-work");
-    //        x.ToKey.Should().Be("schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129");
-    //        x.EdgeType.Should().Be("scheduleWorkType:Completed");
+    //        x.FromKey.Be("system:schedule-work");
+    //        x.ToKey.Be("schedulework:WKID-ee40b722-9041-4527-a38a-542165f43129");
+    //        x.EdgeType.Be("scheduleWorkType:Completed");
     //    });
     //}
 }

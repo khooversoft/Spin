@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Transactions;
@@ -18,10 +18,10 @@ public class GraphTrxNodeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().BeTrue();
 
-        testClient.Map.Nodes.Count.Should().Be(2);
-        testClient.Map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Be(2);
+        testClient.Map.Edges.Count.Be(1);
 
         string q2 = """
             add node key=node3;
@@ -30,8 +30,8 @@ public class GraphTrxNodeTests
 
         (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
         {
-            x.IsError().Should().BeTrue();
-            x.Value.Items.Count.Should().Be(2);
+            x.IsError().BeTrue();
+            x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
@@ -49,10 +49,10 @@ public class GraphTrxNodeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().BeTrue();
 
-        testClient.Map.Nodes.Count.Should().Be(2);
-        testClient.Map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Be(2);
+        testClient.Map.Edges.Count.Be(1);
 
         string q2 = """
             set node key=node2 set t2;
@@ -61,7 +61,7 @@ public class GraphTrxNodeTests
 
         (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
         {
-            x.Value.Items.Count.Should().Be(2);
+            x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
@@ -80,10 +80,10 @@ public class GraphTrxNodeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().Should().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().BeTrue();
 
-        testClient.Map.Nodes.Count.Should().Be(3);
-        testClient.Map.Edges.Count.Should().Be(1);
+        testClient.Map.Nodes.Count.Be(3);
+        testClient.Map.Edges.Count.Be(1);
 
         string q2 = """
             delete node key=node3;
@@ -92,7 +92,7 @@ public class GraphTrxNodeTests
 
         (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
         {
-            x.Value.Items.Count.Should().Be(2);
+            x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
@@ -100,6 +100,6 @@ public class GraphTrxNodeTests
 
     private void TestReturn(QueryResult graphResult, StatusCode statusCode)
     {
-        graphResult.Option.StatusCode.Should().Be(statusCode, graphResult.Option.ToString());
+        graphResult.Option.StatusCode.Be(statusCode, graphResult.Option.ToString());
     }
 }

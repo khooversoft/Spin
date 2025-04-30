@@ -2,7 +2,6 @@
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Store;
@@ -24,27 +23,27 @@ public class FileStoreFileAccessStandardTests
 
         await fileClient.Set(dataBytes, _context);
 
-        (await _fileStore.Search(path, _context)).Count.Should().Be(1);
+        (await _fileStore.Search(path, _context)).Count.Be(1);
 
         Option<DataETag> receive = await fileClient.Get(_context);
-        receive.IsOk().Should().BeTrue();
+        receive.IsOk().BeTrue();
 
-        Enumerable.SequenceEqual(dataBytes, receive.Return().Data).Should().BeTrue();
+        Enumerable.SequenceEqual(dataBytes, receive.Return().Data).BeTrue();
 
-        (await fileClient.Exist(_context)).IsOk().Should().BeTrue();
+        (await fileClient.Exist(_context)).IsOk().BeTrue();
 
         (await fileClient.GetDetail(_context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().ETag.NotNull();
         });
 
-        (await fileClient.GetDetail(_context)).IsOk().Should().BeTrue();
+        (await fileClient.GetDetail(_context)).IsOk().BeTrue();
 
-        (await fileClient.Delete(_context)).IsOk().Should().BeTrue();
-        (await fileClient.Exist(_context)).IsNotFound().Should().BeTrue();
+        (await fileClient.Delete(_context)).IsOk().BeTrue();
+        (await fileClient.Exist(_context)).IsNotFound().BeTrue();
 
-        (await _fileStore.Search(path, _context)).Count.Should().Be(0);
+        (await _fileStore.Search(path, _context)).Count.Be(0);
     }
 
     public async Task GivenNewFile_WhenAppended_ShouldCreateThenAppend()
@@ -58,21 +57,21 @@ public class FileStoreFileAccessStandardTests
         await fileClient.Delete(_context);
 
         byte[] dataBytes = Encoding.UTF8.GetBytes(data1);
-        (await fileClient.Append(dataBytes, _context)).IsOk().Should().BeTrue();
+        (await fileClient.Append(dataBytes, _context)).IsOk().BeTrue();
 
         byte[] appendDataBytes = Encoding.UTF8.GetBytes(data2);
-        (await fileClient.Append(appendDataBytes, _context)).IsOk().Should().BeTrue();
+        (await fileClient.Append(appendDataBytes, _context)).IsOk().BeTrue();
 
         Option<DataETag> receive = await fileClient.Get(_context);
-        receive.IsOk().Should().BeTrue();
+        receive.IsOk().BeTrue();
 
         byte[] source = dataBytes.Concat(appendDataBytes).ToArray();
         var read = receive.Return().Data;
-        source.Length.Should().Be(read.Length);
+        source.Length.Be(read.Length);
 
-        Enumerable.SequenceEqual(source, read).Should().BeTrue();
+        Enumerable.SequenceEqual(source, read).BeTrue();
 
-        (await fileClient.Delete(_context)).IsOk().Should().BeTrue();
+        (await fileClient.Delete(_context)).IsOk().BeTrue();
     }
 
     public async Task GivenNewFileCreated_WhenAppended_ShouldWork()
@@ -86,20 +85,20 @@ public class FileStoreFileAccessStandardTests
         await fileClient.Delete(_context);
 
         byte[] dataBytes = Encoding.UTF8.GetBytes(data1);
-        (await fileClient.Set(dataBytes, _context)).IsOk().Should().BeTrue();
+        (await fileClient.Set(dataBytes, _context)).IsOk().BeTrue();
 
         Option<DataETag> readBytes = await fileClient.Get(_context);
-        Enumerable.SequenceEqual(dataBytes, readBytes.Return().Data).Should().BeTrue();
+        Enumerable.SequenceEqual(dataBytes, readBytes.Return().Data).BeTrue();
 
         byte[] appendDataBytes = Encoding.UTF8.GetBytes(data2);
-        (await fileClient.Append(appendDataBytes, _context)).IsOk().Should().BeTrue();
+        (await fileClient.Append(appendDataBytes, _context)).IsOk().BeTrue();
 
         Option<DataETag> receive = await fileClient.Get(_context);
-        receive.IsOk().Should().BeTrue();
+        receive.IsOk().BeTrue();
 
-        Enumerable.SequenceEqual(dataBytes.Concat(appendDataBytes), receive.Return().Data).Should().BeTrue();
+        Enumerable.SequenceEqual(dataBytes.Concat(appendDataBytes), receive.Return().Data).BeTrue();
 
-        (await fileClient.Get(_context)).IsOk().Should().BeTrue();
+        (await fileClient.Get(_context)).IsOk().BeTrue();
     }
 
     public async Task GivenExistingFile_WhenAppended_ShouldWork()
@@ -112,21 +111,21 @@ public class FileStoreFileAccessStandardTests
         var fileClient = _fileStore.File(path);
 
         byte[] initialData = Encoding.UTF8.GetBytes(data);
-        (await fileClient.Set(initialData, _context)).IsOk().Should().BeTrue();
+        (await fileClient.Set(initialData, _context)).IsOk().BeTrue();
 
         byte[] appendDataBytes = Encoding.UTF8.GetBytes(data1);
-        (await fileClient.Append(appendDataBytes, _context)).IsOk().Should().BeTrue();
+        (await fileClient.Append(appendDataBytes, _context)).IsOk().BeTrue();
 
         byte[] append2DataBytes = Encoding.UTF8.GetBytes(data2);
-        (await fileClient.Append(append2DataBytes, _context)).IsOk().Should().BeTrue();
+        (await fileClient.Append(append2DataBytes, _context)).IsOk().BeTrue();
 
         Option<DataETag> receive = await fileClient.Get(_context);
-        receive.IsOk().Should().BeTrue();
+        receive.IsOk().BeTrue();
 
         var full = initialData.Concat(appendDataBytes).Concat(append2DataBytes).ToArray();
 
         var receiveBytes = receive.Return().Data;
-        Enumerable.SequenceEqual(full, receiveBytes).Should().BeTrue();
+        Enumerable.SequenceEqual(full, receiveBytes).BeTrue();
     }
 
     public async Task GivenFiles_WhenSearched_ReturnsCorrectly()
@@ -135,7 +134,7 @@ public class FileStoreFileAccessStandardTests
         await ClearContainer(fileSearchPattern);
 
         IReadOnlyList<IStorePathDetail> verifyList = await _fileStore.Search(fileSearchPattern, _context);
-        verifyList.Count.Should().Be(0);
+        verifyList.Count.Be(0);
 
         var dataSet = new (string path, string data)[]
         {
@@ -149,15 +148,15 @@ public class FileStoreFileAccessStandardTests
         await dataSet.ForEachAsync(async x => await _fileStore.File(x.path).Set(x.data.ToBytes(), _context));
 
         IReadOnlyList<IStorePathDetail> subSearchList = await _fileStore.Search("fileSearch/data/**/*", _context);
-        subSearchList.Count.Should().Be(dataSet.Where(x => x.path.StartsWith("fileSearch/data/")).Count());
+        subSearchList.Count.Be(dataSet.Where(x => x.path.StartsWith("fileSearch/data/")).Count());
 
         IReadOnlyList<IStorePathDetail> searchList = await _fileStore.Search(fileSearchPattern, _context);
-        searchList.Where(x => x.IsFolder == false).Count().Should().Be(5);
-        searchList.Where(x => x.IsFolder == true).Count().Should().Be(0);
+        searchList.Where(x => x.IsFolder == false).Count().Be(5);
+        searchList.Where(x => x.IsFolder == true).Count().Be(0);
 
         await ClearContainer(fileSearchPattern);
 
-        (await _fileStore.Search(fileSearchPattern, _context)).Count.Should().Be(0);
+        (await _fileStore.Search(fileSearchPattern, _context)).Count.Be(0);
     }
 
     private async Task ClearContainer(string fileSearchPattern)
@@ -171,7 +170,7 @@ public class FileStoreFileAccessStandardTests
         foreach (var fileItem in list)
         {
             _context.LogInformation("Deleting file={file}", fileItem.Path);
-            (await _fileStore.File(fileItem.Path).Delete(_context)).IsOk().Should().BeTrue(fileItem.Path);
+            (await _fileStore.File(fileItem.Path).Delete(_context)).IsOk().BeTrue(fileItem.Path);
         }
     }
 }

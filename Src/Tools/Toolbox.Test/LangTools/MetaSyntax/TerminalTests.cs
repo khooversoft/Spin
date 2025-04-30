@@ -1,6 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
@@ -19,12 +19,12 @@ public class TerminalTests
         }.Join(Environment.NewLine);
 
         var schema = MetaParser.ParseRules(schemaText);
-        schema.StatusCode.IsOk().Should().BeTrue(schema.Error);
+        schema.StatusCode.IsOk().BeTrue(schema.Error);
 
         var parser = new SyntaxParser(schema);
 
         var parse = parser.Parse("3;", NullScopeContext.Default);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
 
@@ -44,7 +44,7 @@ public class TerminalTests
             },
         };
 
-        (parse.SyntaxTree == expectedTree).Should().BeTrue();
+        (parse.SyntaxTree == expectedTree).BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
@@ -55,7 +55,7 @@ public class TerminalTests
             new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
         };
 
-        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).Should().BeTrue();
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
     }
 
     [Fact]
@@ -70,12 +70,12 @@ public class TerminalTests
         }.Join(Environment.NewLine);
 
         var schema = MetaParser.ParseRules(schemaText);
-        schema.StatusCode.IsOk().Should().BeTrue();
+        schema.StatusCode.IsOk().BeTrue();
 
         var parser = new SyntaxParser(schema);
 
         var parse = parser.Parse("A ;", NullScopeContext.Default);
-        parse.Status.IsError().Should().BeTrue(parse.Status.Error);
-        parse.Status.Error.Should().Be("No rules matched");
+        parse.Status.IsError().BeTrue(parse.Status.Error);
+        parse.Status.Error.Be("No rules matched");
     }
 }

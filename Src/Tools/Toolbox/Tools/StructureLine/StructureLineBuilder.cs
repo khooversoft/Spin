@@ -1,39 +1,38 @@
-﻿using System.Collections.Immutable;
-using Toolbox.Extensions;
-using Toolbox.LangTools;
-using Toolbox.Types;
+﻿using Toolbox.Extensions;
 
 namespace Toolbox.Tools;
 
-public class StructureLineBuilder
+public static class StructureLineBuilder
 {
-    private Sequence<StructureLineRecord> _args = new();
+    public static IEnumerable<StructureLineRecord> Start() => Array.Empty<StructureLineRecord>();
 
-    public StructureLineBuilder Add(string? message)
+    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, string? message, object? value)
     {
-        if (message.IsNotEmpty()) _args += new StructureLineRecord(message);
-        return this;
+        if (message.IsEmpty()) return subject;
+
+        var record = new StructureLineRecord(message, value);
+        return subject.Append(record);
     }
 
-    public StructureLineBuilder Add(string? message, params IEnumerable<object?>? args)
+    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, string? message, params IEnumerable<object?> args)
     {
-        if (message.IsNotEmpty()) _args += new StructureLineRecord(message, args);
-        return this;
+        if (message.IsEmpty()) return subject;
+
+        var record = new StructureLineRecord(message, args);
+        return subject.Append(record);
     }
 
-    public StructureLineBuilder Add(StructureLineRecord record) => this.Action(_ => _args += record.NotNull());
-
-    public StructureLineRecord Build()
+    public static StructureLineRecord Build(this IEnumerable<StructureLineRecord> subject)
     {
-        _args.Count.Assert(x => x > 0, _ => "No records to build");
+        subject.NotNull();
 
-        string message = _args.Select(x => x.Message).OfType<string>().Join(", ");
-        var args = _args.SelectMany(x => x.Args).ToArray();
+        string message = subject.Select(x => x.Message).OfType<string>().Join(", ");
+        var args = subject.SelectMany(x => x.Args);
 
         var record = new StructureLineRecord(message, args);
 
         var variableCount = record.GetVariables().Count;
-        variableCount.Be(args.Length, "Unbalanced parameter.Count != args.Count");
+        variableCount.Be(record.Args.Length, "Unbalanced parameter.Count != args.Count");
 
         return record;
     }

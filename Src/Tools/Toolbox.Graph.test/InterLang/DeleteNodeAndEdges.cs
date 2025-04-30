@@ -2,7 +2,6 @@
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -21,7 +20,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
 
         string schema = GraphLanguageTool.ReadGraphLanguageRules();
         _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().Should().BeTrue(_root.Error);
+        _root.StatusCode.IsOk().BeTrue(_root.Error);
 
         _context = GetScopeContext();
         _parser = new SyntaxParser(_root);
@@ -32,11 +31,11 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     public void DeleteAllNodes()
     {
         var parse = _parser.Parse("delete (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -55,18 +54,18 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void DeleteAllEdges()
     {
         var parse = _parser.Parse("delete [*] ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -85,18 +84,18 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void DeleteEdgesWithTag()
     {
         var parse = _parser.Parse("delete [user] ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -115,18 +114,18 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void DeleteUserEdges()
     {
         var parse = _parser.Parse("delete (user) -> [*] ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -153,18 +152,18 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void DeleteAllNodesToEdgesToNodes()
     {
         var parse = _parser.Parse("delete (*) -> [*] -> (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -199,18 +198,18 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void deleteFullNodesToEdgesToNodes()
     {
         var parse = _parser.Parse("delete (*) <-> [*] <-> (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -245,29 +244,29 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 
     [Fact]
     public void DeleteAllIncorrectJoinsShouldFailAnalysis()
     {
         var parse = _parser.Parse("delete (*) -> (*) -> (*) ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsError().Should().BeTrue(instructions.Error);
+        instructions.IsError().BeTrue(instructions.Error);
     }
 
     [Fact]
     public void SelectRelationship()
     {
         var parse = _parser.Parse("select (key=userEmail:user.com, indexer) <-> [userProfile] -> (*) return data, entity, player ;", _context);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
-        instructions.IsOk().Should().BeTrue(instructions.Error);
+        instructions.IsOk().BeTrue(instructions.Error);
 
         string expectedList = GraphTestTool.GenerateTestCodeSyntaxTree(instructions.Return()).Join(Environment.NewLine);
 
@@ -307,6 +306,6 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
             }
         ];
 
-        Enumerable.SequenceEqual(instructions.Return(), expected).Should().BeTrue();
+        Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
     }
 }

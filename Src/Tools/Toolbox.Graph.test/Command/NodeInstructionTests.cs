@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -39,10 +39,10 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.Execute(query, context);
-        newMapOption.IsError().Should().BeTrue();
+        newMapOption.IsError().BeTrue();
 
-        graphTestClient.Map.Nodes.Count.Should().Be(7);
-        graphTestClient.Map.Edges.Count.Should().Be(5);
+        graphTestClient.Map.Nodes.Count.Be(7);
+        graphTestClient.Map.Edges.Count.Be(5);
     }
 
     [Theory]
@@ -55,7 +55,7 @@ public class NodeInstructionTests
     public void SyntaxShouldPass(string query)
     {
         var parse = GraphLanguageTool.GetSyntaxRoot().Parse(query, NullScopeContext.Default);
-        parse.Status.IsOk().Should().BeTrue();
+        parse.Status.IsOk().BeTrue();
     }
 
     [Fact]
@@ -65,15 +65,15 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.Execute("add node key=node8;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
-            x.Key.Should().Be("node8");
-            x.Tags.Count.Should().Be(0);
+            x.Key.Be("node8");
+            x.Tags.Count.Be(0);
         });
     }
 
@@ -84,18 +84,18 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("add node key=node9 set newTags;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
 
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
-            x.Key.Should().Be("node9");
-            x.Tags.ToTagsString().Should().Be("newTags");
+            x.Key.Be("node9");
+            x.Tags.ToTagsString().Be("newTags");
         });
     }
 
@@ -106,18 +106,18 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("add node key=node10 set -newTags;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
 
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
-            x.Key.Should().Be("node10");
-            x.Tags.Count.Should().Be(0);
+            x.Key.Be("node10");
+            x.Tags.Count.Be(0);
         });
     }
 
@@ -128,19 +128,19 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set newTags, t2=v2;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
-            x.Key.Should().Be("node8");
-            x.Tags.ToTagsString().Should().Be("newTags,t2=v2");
+            x.Key.Be("node8");
+            x.Tags.ToTagsString().Be("newTags,t2=v2");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
     }
 
     [Fact]
@@ -150,35 +150,35 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("delete node key=node1 ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
 
-        compareMap.Count.Should().Be(3);
+        compareMap.Count.Be(3);
         compareMap.OfType<GraphNode>().First().Action(x =>
         {
-            x.Key.Should().Be("node1");
-            x.Tags.ToTagsString().Should().Be("age=29,name=marko");
+            x.Key.Be("node1");
+            x.Tags.ToTagsString().Be("age=29,name=marko");
         });
         compareMap.OfType<GraphEdge>().OrderBy(x => x.ToKey).ToArray().Action(x =>
         {
-            x.Length.Should().Be(2);
+            x.Length.Be(2);
             x[0].Action(y =>
             {
-                y.FromKey.Should().Be("node1");
-                y.ToKey.Should().Be("node2");
-                y.Tags.ToTagsString().Should().Be("knows,level=1");
+                y.FromKey.Be("node1");
+                y.ToKey.Be("node2");
+                y.Tags.ToTagsString().Be("knows,level=1");
             });
             x[1].Action(y =>
             {
-                y.FromKey.Should().Be("node1");
-                y.ToKey.Should().Be("node3");
-                y.Tags.ToTagsString().Should().Be("knows,level=1");
+                y.FromKey.Be("node1");
+                y.ToKey.Be("node3");
+                y.Tags.ToTagsString().Be("knows,level=1");
             });
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
     }
 
     [Fact]
@@ -189,17 +189,17 @@ public class NodeInstructionTests
 
         // Verify delete will fail
         var newMapOption = await graphTestClient.ExecuteBatch("delete node key=node11 ;", context);
-        newMapOption.IsError().Should().BeTrue();
+        newMapOption.IsError().BeTrue();
 
         // Delet should not fail because of 'ifexist'
         newMapOption = await graphTestClient.ExecuteBatch("delete node ifexist key=node111 ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
 
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
-        compareMap.Count.Should().Be(0);
+        compareMap.Count.Be(0);
     }
 
     [Fact]
@@ -209,19 +209,19 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("set node key=node8 ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
-            x.Key.Should().Be("node8");
-            x.Tags.Count.Should().Be(0);
+            x.Key.Be("node8");
+            x.Tags.Count.Be(0);
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
     }
 
     [Fact]
@@ -231,19 +231,19 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("set node key=role:owner@domain.com;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
-            x.Key.Should().Be("role:owner@domain.com");
-            x.Tags.Count.Should().Be(0);
+            x.Key.Be("role:owner@domain.com");
+            x.Tags.Count.Be(0);
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
     }
 
     [Fact]
@@ -253,19 +253,19 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("set node key=node11 set t1, t2=v2 ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
-            x.Key.Should().Be("node11");
-            x.Tags.ToTagsString().Should().Be("t1,t2=v2");
+            x.Key.Be("node11");
+            x.Tags.ToTagsString().Be("t1,t2=v2");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
     }
 
     [Fact]
@@ -275,19 +275,19 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("set node key=node4 set t1, t2=v2 ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
-            x.Key.Should().Be("node4");
-            x.Tags.ToTagsString().Should().Be("age=32,name=josh,t1,t2=v2");
+            x.Key.Be("node4");
+            x.Tags.ToTagsString().Be("age=32,name=josh,t1,t2=v2");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
     }
 
     [Fact]
@@ -297,18 +297,18 @@ public class NodeInstructionTests
         var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
 
         var newMapOption = await graphTestClient.ExecuteBatch("set node key=node4 set -age ;", context);
-        newMapOption.IsOk().Should().BeTrue();
+        newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
 
-        compareMap.Count.Should().Be(1);
+        compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
         {
-            x.Key.Should().Be("node4");
-            x.Tags.ToTagsString().Should().Be("name=josh");
+            x.Key.Be("node4");
+            x.Tags.ToTagsString().Be("name=josh");
         });
 
-        commandResults.Items.Count.Should().Be(1);
+        commandResults.Items.Count.Be(1);
     }
 }

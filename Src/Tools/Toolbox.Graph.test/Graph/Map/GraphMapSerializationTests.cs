@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
@@ -15,9 +14,9 @@ public class GraphMapSerializationTests
 
         var mapResult = GraphMapTool.FromJson(json).NotNull();
         mapResult.NotNull();
-        mapResult.Count().Should().Be(0);
-        mapResult.Nodes.Count.Should().Be(0);
-        mapResult.Edges.Count.Should().Be(0);
+        mapResult.Count().Be(0);
+        mapResult.Nodes.Count.Be(0);
+        mapResult.Edges.Count.Be(0);
     }
 
     [Fact]
@@ -32,15 +31,15 @@ public class GraphMapSerializationTests
 
             var mapResult = GraphMapTool.FromJson(json).NotNull();
             mapResult.NotNull();
-            mapResult.Count().Should().Be(1);
-            mapResult.Edges.Count.Should().Be(0);
+            mapResult.Count().Be(1);
+            mapResult.Edges.Count.Be(0);
 
-            mapResult.Nodes.Count.Should().Be(1);
+            mapResult.Nodes.Count.Be(1);
             mapResult.Nodes.First().Action(y =>
             {
-                y.Key.Should().Be("Node1");
+                y.Key.Be("Node1");
                 y.Tags.NotNull();
-                y.Tags.Count.Should().Be(0);
+                y.Tags.Count.Be(0);
             });
         });
 
@@ -53,15 +52,15 @@ public class GraphMapSerializationTests
 
             var mapResult = GraphMapTool.FromJson(json).NotNull();
             mapResult.NotNull();
-            mapResult.Count().Should().Be(1);
-            mapResult.Edges.Count.Should().Be(0);
+            mapResult.Count().Be(1);
+            mapResult.Edges.Count.Be(0);
 
-            mapResult.Nodes.Count.Should().Be(1);
+            mapResult.Nodes.Count.Be(1);
             mapResult.Nodes.First().Action(y =>
             {
-                y.Key.Should().Be("Node1");
+                y.Key.Be("Node1");
                 y.Tags.NotNull();
-                y.Tags.Count.Should().Be(0);
+                y.Tags.Count.Be(0);
             });
         });
 
@@ -74,17 +73,17 @@ public class GraphMapSerializationTests
 
             var mapResult = GraphMapTool.FromJson(json).NotNull();
             mapResult.NotNull();
-            mapResult.Count().Should().Be(1);
-            mapResult.Edges.Count.Should().Be(0);
+            mapResult.Count().Be(1);
+            mapResult.Edges.Count.Be(0);
 
-            mapResult.Nodes.Count.Should().Be(1);
+            mapResult.Nodes.Count.Be(1);
             mapResult.Nodes.First().Action(y =>
             {
-                y.Key.Should().Be("Node1");
+                y.Key.Be("Node1");
                 y.Tags.NotNull();
-                y.Tags.Count.Should().Be(2);
+                y.Tags.Count.Be(2);
                 y.Tags["t1"].BeNull();
-                y.Tags["t2"].Should().Be("v2");
+                y.Tags["t2"].Be("v2");
             });
         });
 
@@ -97,17 +96,17 @@ public class GraphMapSerializationTests
 
             var mapResult = GraphMapTool.FromJson(json).NotNull();
             mapResult.NotNull();
-            mapResult.Count().Should().Be(1);
-            mapResult.Edges.Count.Should().Be(0);
+            mapResult.Count().Be(1);
+            mapResult.Edges.Count.Be(0);
 
-            mapResult.Nodes.Count.Should().Be(1);
+            mapResult.Nodes.Count.Be(1);
             mapResult.Nodes.First().Action(y =>
             {
-                y.Key.Should().Be("Node1");
+                y.Key.Be("Node1");
                 y.Tags.NotNull();
-                y.Tags.Count.Should().Be(2);
+                y.Tags.Count.Be(2);
                 y.Tags["t1"].BeNull();
-                y.Tags["t2"].Should().Be("v2");
+                y.Tags["t2"].Be("v2");
             });
         });
     }
@@ -130,15 +129,15 @@ public class GraphMapSerializationTests
         string json = map.ToJson();
 
         var mapRead = GraphMapTool.FromJson(json).NotNull();
-        mapRead.Nodes.Count.Should().Be(4);
-        mapRead.Edges.Count.Should().Be(3);
+        mapRead.Nodes.Count.Be(4);
+        mapRead.Edges.Count.Be(3);
 
         var s1 = map.Nodes.Select(x => x.Key).OrderBy(x => x).ToArray();
         var s2 = mapRead.Nodes.Select(x => x.Key).OrderBy(x => x).ToArray();
-        s1.SequenceEqual(s2).Should().BeTrue();
+        s1.SequenceEqual(s2).BeTrue();
 
         var e1 = map.Edges.Select(x => x.ToString()).OrderBy(x => x).ToArray();
         var e2 = mapRead.Edges.Select(x => x.ToString()).OrderBy(x => x).ToArray();
-        e1.SequenceEqual(e2).Should().BeTrue();
+        e1.SequenceEqual(e2).BeTrue();
     }
 }

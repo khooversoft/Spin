@@ -1,4 +1,4 @@
-﻿using Toolbox.Tools.Should;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph.Map;
@@ -26,71 +26,71 @@ public class NodeIndexTests
     public void VerifyTagIndex1()
     {
         var subject = _map.Nodes.LookupTag("name");
-        subject.Count.Should().Be(6);
-        subject.SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6"]).Should().BeTrue();
+        subject.Count.Be(6);
+        subject.SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6"]).BeTrue();
 
         var subjects = _map.Nodes.LookupTaggedNodes("name");
-        subjects.Count.Should().Be(6);
-        subjects.Select(x => x.Key).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6"]).Should().BeTrue();
+        subjects.Count.Be(6);
+        subjects.Select(x => x.Key).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6"]).BeTrue();
     }
 
     [Fact]
     public void VerifyTagIndex2()
     {
         var subject = _map.Nodes.LookupTag("lang");
-        subject.Count.Should().Be(3);
-        subject.SequenceEqual(["node3", "node5", "node7"]).Should().BeTrue();
+        subject.Count.Be(3);
+        subject.SequenceEqual(["node3", "node5", "node7"]).BeTrue();
 
         var subjects = _map.Nodes.LookupTaggedNodes("lang");
-        subjects.Count.Should().Be(3);
-        subjects.Select(x => x.Key).SequenceEqual(["node3", "node5", "node7"]).Should().BeTrue();
+        subjects.Count.Be(3);
+        subjects.Select(x => x.Key).SequenceEqual(["node3", "node5", "node7"]).BeTrue();
     }
 
     [Fact]
     public void VerifyEdgeIndex1()
     {
         var subject = _map.Edges.LookupTag("knows");
-        subject.Count.Should().Be(2);
+        subject.Count.Be(2);
         subject.SequenceEqual([
             new GraphEdgePrimaryKey { FromKey = "node1", ToKey = "node2", EdgeType = "et1" },
             new GraphEdgePrimaryKey { FromKey = "node1", ToKey = "node3", EdgeType = "et1" },
             ]
-        ).Should().BeTrue();
+        ).BeTrue();
     }
 
     [Fact]
     public void VerifyEdgeIndex2()
     {
         var subject = _map.Edges.LookupTag("created");
-        subject.Count.Should().Be(3);
+        subject.Count.Be(3);
         subject.SequenceEqual([
             new GraphEdgePrimaryKey { FromKey = "node6", ToKey = "node3", EdgeType = "et1" },
             new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node5", EdgeType = "et1" },
             new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node3", EdgeType = "et1" },
             ]
-        ).Should().BeTrue();
+        ).BeTrue();
     }
 
     [Fact]
     public void LookupNodeIndexValue()
     {
         var subject = _map.Nodes.LookupIndex("name", "marko");
-        subject.IsOk().Should().BeTrue();
-        subject.Return().NodeKey.Should().Be("node1");
+        subject.IsOk().BeTrue();
+        subject.Return().NodeKey.Be("node1");
     }
 
     [Fact]
     public void LookupNodeIndexValue2()
     {
         var subject = _map.Nodes.LookupIndex("lang", "java");
-        subject.IsOk().Should().BeTrue();
-        subject.Return().NodeKey.Should().Be("node5");
+        subject.IsOk().BeTrue();
+        subject.Return().NodeKey.Be("node5");
     }
 
     [Fact]
     public void FailToLookupIndexValue()
     {
         var subject = _map.Nodes.LookupIndex("name", "marko2");
-        subject.IsError().Should().BeTrue();
+        subject.IsError().BeTrue();
     }
 }

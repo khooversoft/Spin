@@ -1,7 +1,6 @@
 ﻿using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 
 namespace Toolbox.Test.Data;
 
@@ -13,8 +12,8 @@ public class DictionaryListTests
     public void TestEmpty()
     {
         var dictList = new DictionaryList<string, TestRecord>(x => x.Name);
-        dictList.Count.Should().Be(0);
-        dictList.TryGetValue("*", out var x).Should().BeFalse();
+        dictList.Count.Be(0);
+        dictList.TryGetValue("*", out var x).BeFalse();
     }
 
     [Fact]
@@ -22,14 +21,14 @@ public class DictionaryListTests
     {
         var dictList = new DictionaryList<string, TestRecord>(x => x.Name);
         dictList.Add(new TestRecord("A", 1));
-        dictList.Count.Should().Be(1);
+        dictList.Count.Be(1);
 
-        dictList.TryGetValue("A", out var readRecord).Should().BeTrue();
+        dictList.TryGetValue("A", out var readRecord).BeTrue();
         readRecord.Assert(x => x == new TestRecord("A", 1));
 
         dictList.Clear();
-        dictList.Count.Should().Be(0);
-        dictList.TryGetValue("A", out readRecord).Should().BeFalse();
+        dictList.Count.Be(0);
+        dictList.TryGetValue("A", out readRecord).BeFalse();
     }
 
     [Fact]
@@ -37,14 +36,14 @@ public class DictionaryListTests
     {
         var dictList = new DictionaryList<string, TestRecord>(x => x.Name);
         dictList.Add(new TestRecord("A", 1));
-        dictList.Count.Should().Be(1);
+        dictList.Count.Be(1);
 
-        dictList.TryGetValue("A", out var readRecord).Should().BeTrue();
+        dictList.TryGetValue("A", out var readRecord).BeTrue();
         readRecord.Assert(x => x == new TestRecord("A", 1));
 
         dictList.Remove("A");
-        dictList.Count.Should().Be(0);
-        dictList.TryGetValue("A", out readRecord).Should().BeFalse();
+        dictList.Count.Be(0);
+        dictList.TryGetValue("A", out readRecord).BeFalse();
     }
 
     [Fact]
@@ -52,14 +51,14 @@ public class DictionaryListTests
     {
         var dictList = new DictionaryList<string, TestRecord>(x => x.Name);
         dictList.Add(new TestRecord("A", 1));
-        dictList.Count.Should().Be(1);
+        dictList.Count.Be(1);
 
-        dictList.TryGetValue("A", out var readRecord).Should().BeTrue();
+        dictList.TryGetValue("A", out var readRecord).BeTrue();
         readRecord.Assert(x => x == new TestRecord("A", 1));
 
-        dictList.Remove(0).Should().BeTrue();
-        dictList.Count.Should().Be(0);
-        dictList.TryGetValue("A", out readRecord).Should().BeFalse();
+        dictList.Remove(0).BeTrue();
+        dictList.Count.Be(0);
+        dictList.TryGetValue("A", out readRecord).BeFalse();
     }
 
     [Fact]
@@ -77,23 +76,23 @@ public class DictionaryListTests
 
         string[] nameList = ["name1", "name2", "name3", "name4", "name5", "name6"];
 
-        dictList.Count.Should().Be(nameList.Length);
+        dictList.Count.Be(nameList.Length);
 
         for (int i = 0; i < nameList.Length; i++)
         {
             TestRecord expectedRecord = new TestRecord(nameList[i], (i + 1) * 10);
 
-            dictList.TryGetValue(nameList[i], out var readRecord).Should().BeTrue();
+            dictList.TryGetValue(nameList[i], out var readRecord).BeTrue();
             readRecord.Assert(x => x == expectedRecord);
 
-            dictList.TryGetValue(i, out var readRecordIndex).Should().BeTrue();
+            dictList.TryGetValue(i, out var readRecordIndex).BeTrue();
             readRecordIndex.Assert(x => x == expectedRecord);
 
             dictList[i].Action(x => x.Assert(x => x == expectedRecord));
         }
 
-        nameList.ForEach(x => dictList.Remove(x).Should().BeTrue());
-        dictList.Count.Should().Be(0);
+        nameList.ForEach(x => dictList.Remove(x).BeTrue());
+        dictList.Count.Be(0);
     }
 
     [Fact]
@@ -113,17 +112,17 @@ public class DictionaryListTests
         string[] nameList = ["name1", "name2", "name3", "name4", "name5", "name6"];
         nameList = [.. nameList.Shuffle()];
 
-        dictList.Count.Should().Be(nameList.Length);
+        dictList.Count.Be(nameList.Length);
 
         for (int i = 0; i < nameList.Length; i++)
         {
-            dictList.TryGetValue(nameList[i], out var readRecord).Should().BeTrue();
-            readRecord!.Name.Should().Be(nameList[i]);
+            dictList.TryGetValue(nameList[i], out var readRecord).BeTrue();
+            readRecord!.Name.Be(nameList[i]);
 
-            dictList[nameList[i]].Action(x => x.Name.Should().Be(nameList[i]));
+            dictList[nameList[i]].Action(x => x.Name.Be(nameList[i]));
         }
 
-        nameList.ForEach(x => dictList.Remove(x).Should().BeTrue());
-        dictList.Count.Should().Be(0);
+        nameList.ForEach(x => dictList.Remove(x).BeTrue());
+        dictList.Count.Be(0);
     }
 }

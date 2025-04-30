@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Graph.test.Application;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -37,21 +37,21 @@ public class SelectNodeInstructionTests
         var context = testClient.CreateScopeContext<SelectNodeInstructionTests>();
 
         var newMapOption = await testClient.Execute("select (key=node2) a1 ;", context);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().Be("a1");
-        result.Nodes.Count.Should().Be(1);
-        result.Edges.Count.Should().Be(0);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.Be("a1");
+        result.Nodes.Count.Be(1);
+        result.Edges.Count.Be(0);
+        result.DataLinks.Count.Be(0);
 
-        result.Nodes[0].Key.Should().Be("node2");
-        result.Nodes[0].Tags.ToTagsString().Should().Be("age=27,name=vadas");
+        result.Nodes[0].Key.Be("node2");
+        result.Nodes[0].Tags.ToTagsString().Be("age=27,name=vadas");
 
-        collector.Nodes.IndexHit.Value.Should().Be(1);
-        collector.Nodes.IndexMissed.Value.Should().Be(0);
-        collector.Nodes.IndexScan.Value.Should().Be(0);
+        collector.Nodes.IndexHit.Value.Be(1);
+        collector.Nodes.IndexMissed.Value.Be(0);
+        collector.Nodes.IndexScan.Value.Be(0);
     }
 
     [Fact]
@@ -62,21 +62,21 @@ public class SelectNodeInstructionTests
         var context = testClient.CreateScopeContext<SelectNodeInstructionTests>();
 
         var newMapOption = await testClient.Execute("select (user) ;", context);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeEmpty();
-        result.Nodes.Count.Should().Be(1);
-        result.Edges.Count.Should().Be(0);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.NotEmpty();
+        result.Nodes.Count.Be(1);
+        result.Edges.Count.Be(0);
+        result.DataLinks.Count.Be(0);
 
-        result.Nodes[0].Key.Should().Be("node4");
-        result.Nodes[0].Tags.ToTagsString().Should().Be("age=32,name=josh,user");
+        result.Nodes[0].Key.Be("node4");
+        result.Nodes[0].Tags.ToTagsString().Be("age=32,name=josh,user");
 
-        collector.Nodes.IndexHit.Value.Should().Be(1);
-        collector.Nodes.IndexMissed.Value.Should().Be(0);
-        collector.Nodes.IndexScan.Value.Should().Be(0);
+        collector.Nodes.IndexHit.Value.Be(1);
+        collector.Nodes.IndexMissed.Value.Be(0);
+        collector.Nodes.IndexScan.Value.Be(0);
     }
 
     [Fact]
@@ -87,20 +87,20 @@ public class SelectNodeInstructionTests
         var context = testClient.CreateScopeContext<SelectNodeInstructionTests>();
 
         var newMapOption = await testClient.Execute("select (*) ;", context);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeEmpty();
-        result.Nodes.Count.Should().Be(7);
-        result.Edges.Count.Should().Be(0);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.NotEmpty();
+        result.Nodes.Count.Be(7);
+        result.Edges.Count.Be(0);
+        result.DataLinks.Count.Be(0);
 
-        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6", "node7"]).Should().BeTrue();
+        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6", "node7"]).BeTrue();
 
-        collector.Nodes.IndexHit.Value.Should().Be(0);
-        collector.Nodes.IndexMissed.Value.Should().Be(0);
-        collector.Nodes.IndexScan.Value.Should().Be(1);
+        collector.Nodes.IndexHit.Value.Be(0);
+        collector.Nodes.IndexMissed.Value.Be(0);
+        collector.Nodes.IndexScan.Value.Be(1);
     }
 
     [Fact]
@@ -111,19 +111,19 @@ public class SelectNodeInstructionTests
         var context = testClient.CreateScopeContext<SelectNodeInstructionTests>();
 
         var newMapOption = await testClient.Execute("select (age) ;", context);
-        newMapOption.IsOk().Should().BeTrue(newMapOption.ToString());
+        newMapOption.IsOk().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
-        result.Option.IsOk().Should().BeTrue();
-        result.Alias.Should().NotBeEmpty();
-        result.Nodes.Count.Should().Be(4);
-        result.Edges.Count.Should().Be(0);
-        result.DataLinks.Count.Should().Be(0);
+        result.Option.IsOk().BeTrue();
+        result.Alias.NotEmpty();
+        result.Nodes.Count.Be(4);
+        result.Edges.Count.Be(0);
+        result.DataLinks.Count.Be(0);
 
-        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node4", "node6"]).Should().BeTrue();
+        result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node4", "node6"]).BeTrue();
 
-        collector.Nodes.IndexHit.Value.Should().Be(1);
-        collector.Nodes.IndexMissed.Value.Should().Be(0);
-        collector.Nodes.IndexScan.Value.Should().Be(0);
+        collector.Nodes.IndexHit.Value.Be(1);
+        collector.Nodes.IndexMissed.Value.Be(0);
+        collector.Nodes.IndexScan.Value.Be(0);
     }
 }

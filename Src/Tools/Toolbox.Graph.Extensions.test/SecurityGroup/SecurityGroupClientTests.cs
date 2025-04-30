@@ -3,7 +3,6 @@ using Toolbox.Extensions;
 using Toolbox.Graph.Extensions.test.Application;
 using Toolbox.Graph.Extensions.test.Tools;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -39,11 +38,11 @@ public class SecurityGroupClientTests
         var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)]);
 
         var addResult = await groupClient.Create(groupRecord, context);
-        addResult.IsOk().Should().BeTrue();
+        addResult.IsOk().BeTrue();
 
         var readOption = await groupClient.GetContext(_groupid1, _user1).Get(context);
-        readOption.IsOk().Should().BeTrue();
-        (groupRecord == readOption.Return()).Should().BeTrue();
+        readOption.IsOk().BeTrue();
+        (groupRecord == readOption.Return()).BeTrue();
 
         var newGroupRecord = groupRecord with
         {
@@ -51,25 +50,25 @@ public class SecurityGroupClientTests
         };
 
         var updateOption = await groupClient.GetContext(_groupid1, _user2).Set(newGroupRecord, context);
-        updateOption.IsOk().Should().BeTrue();
+        updateOption.IsOk().BeTrue();
 
         readOption = await groupClient.GetContext(_groupid1, _user2).Get(context);
-        readOption.IsOk().Should().BeTrue();
-        (newGroupRecord == readOption.Return()).Should().BeTrue();
+        readOption.IsOk().BeTrue();
+        (newGroupRecord == readOption.Return()).BeTrue();
 
         var listOption = await groupClient.GroupsForPrincipalId(_user1, context);
-        listOption.IsOk().Should().BeTrue();
+        listOption.IsOk().BeTrue();
         listOption.Return().Action(x =>
         {
-            x.Count.Should().Be(1);
-            x[0].Should().Be(_groupid1);
+            x.Count.Be(1);
+            x[0].Be(_groupid1);
         });
 
         var deleteOption = await groupClient.GetContext(_groupid1, _user2).Delete(context);
-        deleteOption.IsOk().Should().BeTrue();
+        deleteOption.IsOk().BeTrue();
 
         readOption = await groupClient.GetContext(_groupid1, _user2).Get(context);
-        readOption.IsNotFound().Should().BeTrue();
+        readOption.IsNotFound().BeTrue();
     }
 
     [Fact]
@@ -87,11 +86,11 @@ public class SecurityGroupClientTests
         var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)]);
 
         var addResult = await groupClient.Create(groupRecord, context);
-        addResult.IsOk().Should().BeTrue();
+        addResult.IsOk().BeTrue();
 
         var readOption = await groupClient.GetContext(_groupid1, _user1).Get(context);
-        readOption.IsOk().Should().BeTrue();
-        (groupRecord == readOption.Return()).Should().BeTrue();
+        readOption.IsOk().BeTrue();
+        (groupRecord == readOption.Return()).BeTrue();
 
         var newGroupRecord = groupRecord with
         {
@@ -102,25 +101,25 @@ public class SecurityGroupClientTests
         var contributorContext = groupClient.GetContext(_groupid1, _user2);
 
         var updateOption = await contributorContext.Set(newGroupRecord, context);
-        updateOption.IsOk().Should().BeTrue();
+        updateOption.IsOk().BeTrue();
 
         readOption = await contributorContext.Get(context);
-        readOption.IsOk().Should().BeTrue();
-        (newGroupRecord == readOption.Return()).Should().BeTrue();
+        readOption.IsOk().BeTrue();
+        (newGroupRecord == readOption.Return()).BeTrue();
 
         var listOption = await groupClient.GroupsForPrincipalId(_user1, context);
-        listOption.IsOk().Should().BeTrue();
+        listOption.IsOk().BeTrue();
         listOption.Return().Action(x =>
         {
-            x.Count.Should().Be(1);
-            x[0].Should().Be(_groupid1);
+            x.Count.Be(1);
+            x[0].Be(_groupid1);
         });
 
         var deleteOption = await contributorContext.Delete(context);
-        deleteOption.IsOk().Should().BeTrue();
+        deleteOption.IsOk().BeTrue();
 
         readOption = await contributorContext.Get(context);
-        readOption.IsNotFound().Should().BeTrue();
+        readOption.IsNotFound().BeTrue();
     }
 
     [Fact]
@@ -140,32 +139,32 @@ public class SecurityGroupClientTests
         var groupRecord = CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user3, SecurityAccess.Owner), (_user4, SecurityAccess.Contributor)]);
 
         var addResult = await groupClient.Create(groupRecord, context);
-        addResult.IsOk().Should().BeTrue();
+        addResult.IsOk().BeTrue();
 
-        (await groupClient.GetContext(_groupid1, _user2).Get(context)).IsUnauthorized().Should().BeTrue();
-        (await groupClient.GetContext(_groupid1, _user4).Get(context)).IsOk().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user2).Get(context)).IsUnauthorized().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user4).Get(context)).IsOk().BeTrue();
 
         var readOption = await groupClient.GetContext(_groupid1, _user1).Get(context);
-        readOption.IsOk().Should().BeTrue();
-        (groupRecord == readOption.Return()).Should().BeTrue();
+        readOption.IsOk().BeTrue();
+        (groupRecord == readOption.Return()).BeTrue();
 
         var newGroupRecord = groupRecord with
         {
             Name = "new name"
         };
 
-        (await groupClient.GetContext(_groupid1, _user1).Set(newGroupRecord, context)).IsForbidden().Should().BeTrue();
-        (await groupClient.GetContext(_groupid1, _user2).Set(newGroupRecord, context)).IsUnauthorized().Should().BeTrue();
-        (await groupClient.GetContext(_groupid1, _user3).Set(newGroupRecord, context)).IsOk().Should().BeTrue();
-        (await groupClient.GetContext(_groupid1, _user4).Set(newGroupRecord, context)).IsOk().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user1).Set(newGroupRecord, context)).IsForbidden().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user2).Set(newGroupRecord, context)).IsUnauthorized().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user3).Set(newGroupRecord, context)).IsOk().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user4).Set(newGroupRecord, context)).IsOk().BeTrue();
 
         var x = await groupClient.GetContext(_groupid1, _user4).SetAccess(_user1, SecurityAccess.Owner, context);
-        (await groupClient.GetContext(_groupid1, _user4).SetAccess(_user1, SecurityAccess.Owner, context)).IsForbidden().Should().BeTrue();
-        (await groupClient.GetContext(_groupid1, _user3).SetAccess(_user1, SecurityAccess.Owner, context)).IsOk().Should().BeTrue();
-        (await groupClient.GetContext(_groupid1, _user1).Set(newGroupRecord, context)).IsOk().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user4).SetAccess(_user1, SecurityAccess.Owner, context)).IsForbidden().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user3).SetAccess(_user1, SecurityAccess.Owner, context)).IsOk().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user1).Set(newGroupRecord, context)).IsOk().BeTrue();
 
-        (await groupClient.GetContext(_groupid1, _user4).DeleteAccess(_user1, context)).IsForbidden().Should().BeTrue();
-        (await groupClient.GetContext(_groupid1, _user3).DeleteAccess(_user1, context)).IsOk().Should().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user4).DeleteAccess(_user1, context)).IsForbidden().BeTrue();
+        (await groupClient.GetContext(_groupid1, _user3).DeleteAccess(_user1, context)).IsOk().BeTrue();
     }
 
     [Fact]
@@ -185,48 +184,48 @@ public class SecurityGroupClientTests
         await CreateGroup(_groupid1, "group 1", [(_user1, SecurityAccess.Reader), (_user2, SecurityAccess.Owner)]).Func(async x =>
         {
             var result = await groupClient.Create(x, context);
-            result.IsOk().Should().BeTrue();
+            result.IsOk().BeTrue();
         });
 
         await CreateGroup(_groupid2, "group 2", [(_user1, SecurityAccess.Reader), (_user3, SecurityAccess.Owner)]).Func(async x =>
         {
             var addResult1 = await groupClient.Create(x, context);
-            addResult1.IsOk().Should().BeTrue();
+            addResult1.IsOk().BeTrue();
         });
 
         (await groupClient.GroupsForPrincipalId(_user1, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(2);
-                y.OrderBy(x => x).SequenceEqual([_groupid1, _groupid2]).Should().BeTrue();
+                y.Count.Be(2);
+                y.OrderBy(x => x).SequenceEqual([_groupid1, _groupid2]).BeTrue();
             });
         });
 
         (await groupClient.GroupsForPrincipalId(_user2, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                y.OrderBy(x => x).SequenceEqual([_groupid1]).Should().BeTrue();
+                y.Count.Be(1);
+                y.OrderBy(x => x).SequenceEqual([_groupid1]).BeTrue();
             });
         });
 
         (await groupClient.GroupsForPrincipalId(_user3, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                y.OrderBy(x => x).SequenceEqual([_groupid2]).Should().BeTrue();
+                y.Count.Be(1);
+                y.OrderBy(x => x).SequenceEqual([_groupid2]).BeTrue();
             });
         });
 
         (await groupClient.GroupsForPrincipalId(_user4, context)).Action(x =>
         {
-            x.IsNotFound().Should().BeTrue();
+            x.IsNotFound().BeTrue();
         });
     }
 

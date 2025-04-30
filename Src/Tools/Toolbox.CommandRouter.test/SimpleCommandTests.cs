@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Xunit.Abstractions;
 
 namespace Toolbox.CommandRouter.test;
@@ -23,12 +22,12 @@ public class SimpleCommandTests
             .Build();
 
         int state = await host.Run();
-        state.Should().Be(0);
+        state.Be(0);
 
         ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
-        q.Count.Should().Be(1);
-        q.TryDequeue(out string? result).Should().BeTrue();
-        result.Should().Be("Run executed");
+        q.Count.Be(1);
+        q.TryDequeue(out string? result).BeTrue();
+        result.Be("Run executed");
     }
 
     [Fact]
@@ -42,10 +41,10 @@ public class SimpleCommandTests
             .Build();
 
         int state = await host.Run();
-        state.Should().Be(1);
+        state.Be(1);
 
         ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
-        q.Count.Should().Be(0);
+        q.Count.Be(0);
     }
 
     [Fact]
@@ -60,12 +59,12 @@ public class SimpleCommandTests
             .Build();
 
         int state = await host.Run();
-        state.Should().Be(0);
+        state.Be(0);
 
         ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
-        q.Count.Should().Be(1);
-        q.TryDequeue(out string? result).Should().BeTrue();
-        result.Should().Be("Run executed");
+        q.Count.Be(1);
+        q.TryDequeue(out string? result).BeTrue();
+        result.Be("Run executed");
     }
 
     [Fact]
@@ -80,12 +79,12 @@ public class SimpleCommandTests
             .Build();
 
         int state = await host.Run();
-        state.Should().Be(0);
+        state.Be(0);
 
         ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
-        q.Count.Should().Be(1);
-        q.TryDequeue(out string? result).Should().BeTrue();
-        result.Should().Be("Created");
+        q.Count.Be(1);
+        q.TryDequeue(out string? result).BeTrue();
+        result.Be("Created");
     }
 
     [Fact]
@@ -100,12 +99,12 @@ public class SimpleCommandTests
             .Build();
 
         int state = await host.Run();
-        state.Should().Be(0);
+        state.Be(0);
 
         ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
-        q.Count.Should().Be(1);
-        q.TryDequeue(out string? result).Should().BeTrue();
-        result.Should().Be("Created, workId=work#123");
+        q.Count.Be(1);
+        q.TryDequeue(out string? result).BeTrue();
+        result.Be("Created, workId=work#123");
     }
 
     [Fact]
@@ -120,12 +119,12 @@ public class SimpleCommandTests
             .Build();
 
         int state = await host.Run();
-        state.Should().Be(0);
+        state.Be(0);
 
         ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
-        q.Count.Should().Be(1);
-        q.TryDequeue(out string? result).Should().BeTrue();
-        result.Should().Be("Created, workId=work#123");
+        q.Count.Be(1);
+        q.TryDequeue(out string? result).BeTrue();
+        result.Be("Created, workId=work#123");
     }
 
     [Fact]
@@ -140,10 +139,10 @@ public class SimpleCommandTests
             .Build();
 
         int state = await host.Run();
-        state.Should().Be(1);
+        state.Be(1);
 
         ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
-        q.Count.Should().Be(0);
+        q.Count.Be(0);
     }
 
     private class CmdA : ICommandRoute

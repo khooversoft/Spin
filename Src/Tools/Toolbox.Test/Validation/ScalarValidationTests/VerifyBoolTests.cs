@@ -1,8 +1,8 @@
 ﻿using Toolbox.Tools;
 
-namespace Toolbox.Test.Validation.Should2;
+namespace Toolbox.Test.Validation.ScalarValidationTests;
 
-public class ShouldBoolTests
+public class VerifyBoolTests
 {
     [Fact]
     public void BeTrue()
@@ -76,7 +76,7 @@ public class ShouldBoolTests
             bool? v2 = true;
             v2.Be(false);
         });
-        
+
         Verify.Throw<ArgumentException>(() =>
         {
             bool? v2 = true;

@@ -1,148 +1,147 @@
-﻿using Toolbox.Tools;
-using Toolbox.Tools.Should;
-using Toolbox.Types;
+﻿//using Toolbox.Tools;
+//using Toolbox.Types;
 
-namespace Toolbox.Test.Validation.Should;
+//namespace Toolbox.Test.Validation.Should;
 
-public class ShouldOptionTests
-{
-    [Fact]
-    public void BeOk()
-    {
-        Option v1 = StatusCode.OK;
-        v1.Should().BeOk();
+//public class ShouldOptionTests
+//{
+//    [Fact]
+//    public void BeOk()
+//    {
+//        Option v1 = StatusCode.OK;
+//        v1.BeOk();
 
-        Verify.Throw<ArgumentException>(() =>
-        {
-            Option v2 = StatusCode.BadRequest;
-            v2.Should().BeOk();
-        });
-    }
+//        Verify.Throw<ArgumentException>(() =>
+//        {
+//            Option v2 = StatusCode.BadRequest;
+//            v2.BeOk();
+//        });
+//    }
 
-    [Fact]
-    public void BeOkOfType()
-    {
-        var r = new object();
+//    [Fact]
+//    public void BeOkOfType()
+//    {
+//        var r = new object();
 
-        Option<object> v1 = StatusCode.OK;
-        v1.Should().BeOk();
+//        Option<object> v1 = StatusCode.OK;
+//        v1.BeOk();
 
-        Verify.Throw<ArgumentException>(() =>
-        {
-            Option<object> v2 = StatusCode.BadRequest;
-            v2.Should().BeOk();
-        });
-    }
+//        Verify.Throw<ArgumentException>(() =>
+//        {
+//            Option<object> v2 = StatusCode.BadRequest;
+//            v2.BeOk();
+//        });
+//    }
 
-    [Fact]
-    public void BeError()
-    {
-        Option v1 = StatusCode.Conflict;
-        v1.Should().BeError();
+//    [Fact]
+//    public void BeError()
+//    {
+//        Option v1 = StatusCode.Conflict;
+//        v1.BeError();
 
-        Verify.Throw<ArgumentException>(() =>
-        {
-            Option v2 = StatusCode.OK;
-            v2.Should().BeError();
-        });
-    }
+//        Verify.Throw<ArgumentException>(() =>
+//        {
+//            Option v2 = StatusCode.OK;
+//            v2.BeError();
+//        });
+//    }
 
-    [Fact]
-    public void BeErrorOfType()
-    {
-        var r = new object();
+//    [Fact]
+//    public void BeErrorOfType()
+//    {
+//        var r = new object();
 
-        Option<object> v1 = StatusCode.Conflict;
-        v1.Should().BeError();
+//        Option<object> v1 = StatusCode.Conflict;
+//        v1.BeError();
 
-        Verify.Throw<ArgumentException>(() =>
-        {
-            Option<object> v2 = StatusCode.OK;
-            v2.Should().BeError();
-        });
-    }
+//        Verify.Throw<ArgumentException>(() =>
+//        {
+//            Option<object> v2 = StatusCode.OK;
+//            v2.BeError();
+//        });
+//    }
 
-    [Fact]
-    public void BeNotFound()
-    {
-        Option v1 = StatusCode.NotFound;
-        v1.Should().BeNotFound();
+//    [Fact]
+//    public void BeNotFound()
+//    {
+//        Option v1 = StatusCode.NotFound;
+//        v1.BeNotFound();
 
-        Verify.Throw<ArgumentException>(() =>
-        {
-            Option v2 = StatusCode.OK;
-            v2.Should().BeNotFound();
-        });
-    }
+//        Verify.Throw<ArgumentException>(() =>
+//        {
+//            Option v2 = StatusCode.OK;
+//            v2.BeNotFound();
+//        });
+//    }
 
-    [Fact]
-    public void BeNotFoundOfType()
-    {
-        var r = new object();
+//    [Fact]
+//    public void BeNotFoundOfType()
+//    {
+//        var r = new object();
 
-        Option<object> v1 = StatusCode.NotFound;
-        v1.Should().BeNotFound();
+//        Option<object> v1 = StatusCode.NotFound;
+//        v1.BeNotFound();
 
-        Verify.Throw<ArgumentException>(() =>
-        {
-            Option<object> v2 = StatusCode.OK;
-            v2.Should().BeNotFound();
-        });
-    }
+//        Verify.Throw<ArgumentException>(() =>
+//        {
+//            Option<object> v2 = StatusCode.OK;
+//            v2.BeNotFound();
+//        });
+//    }
 
-    [Fact]
-    public void BeConflict()
-    {
-        Option v1 = StatusCode.Conflict;
-        v1.Should().BeConflict();
+//    [Fact]
+//    public void BeConflict()
+//    {
+//        Option v1 = StatusCode.Conflict;
+//        v1.BeConflict();
 
-        Verify.Throw<ArgumentException>(() =>
-        {
-            Option v2 = StatusCode.OK;
-            v2.Should().BeConflict();
-        });
-    }
+//        Verify.Throw<ArgumentException>(() =>
+//        {
+//            Option v2 = StatusCode.OK;
+//            v2.BeConflict();
+//        });
+//    }
 
-    [Fact]
-    public void BeConflictOfType()
-    {
-        var r = new object();
+//    [Fact]
+//    public void BeConflictOfType()
+//    {
+//        var r = new object();
 
-        Option<object> v1 = StatusCode.Conflict;
-        v1.Should().BeConflict();
+//        Option<object> v1 = StatusCode.Conflict;
+//        v1.BeConflict();
 
-        Verify.Throw<ArgumentException>(() =>
-        {
-            Option<object> v2 = StatusCode.OK;
-            v2.Should().BeConflict();
-        });
-    }
+//        Verify.Throw<ArgumentException>(() =>
+//        {
+//            Option<object> v2 = StatusCode.OK;
+//            v2.BeConflict();
+//        });
+//    }
 
-    [Fact]
-    public void BeBadRequest()
-    {
-        Option v1 = StatusCode.BadRequest;
-        v1.Should().BeBadRequest();
+//    [Fact]
+//    public void BeBadRequest()
+//    {
+//        Option v1 = StatusCode.BadRequest;
+//        v1.BeBadRequest();
 
-        Verify.Throw<ArgumentException>(() =>
-        {
-            Option v2 = StatusCode.OK;
-            v2.Should().BeBadRequest();
-        });
-    }
+//        Verify.Throw<ArgumentException>(() =>
+//        {
+//            Option v2 = StatusCode.OK;
+//            v2.BeBadRequest();
+//        });
+//    }
 
-    [Fact]
-    public void BeBadRequestOfType()
-    {
-        var r = new object();
+//    [Fact]
+//    public void BeBadRequestOfType()
+//    {
+//        var r = new object();
 
-        Option<object> v1 = StatusCode.BadRequest;
-        v1.Should().BeBadRequest();
+//        Option<object> v1 = StatusCode.BadRequest;
+//        v1.BeBadRequest();
 
-        Verify.Throw<ArgumentException>(() =>
-        {
-            Option<object> v2 = StatusCode.OK;
-            v2.Should().BeBadRequest();
-        });
-    }
-}
+//        Verify.Throw<ArgumentException>(() =>
+//        {
+//            Option<object> v2 = StatusCode.OK;
+//            v2.BeBadRequest();
+//        });
+//    }
+//}

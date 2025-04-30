@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -28,7 +23,7 @@ public static class VerifyString
         if (subject != value) throw new ArgumentException(Verify.FormatException($"Value is '{subject}', should be '{value}'", because));
         return subject;
     }
-    
+
     [return: NotNullIfNotNull(nameof(subject))]
     public static string? NotBe(
         this string? subject,
