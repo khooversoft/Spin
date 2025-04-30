@@ -54,7 +54,7 @@ public class CommandRouterHost : ICommandRouterHost
                 abortSignal?.StartTracking();
 
                 int rcResult = 0;
-                IConsole? capture = _captureOutput ? new ConsoleCapature(context.Location()) : null;
+                IConsole? capture = _captureOutput ? new ConsoleCapture(context.Location()) : null;
 
                 while (_argsQueue.TryDequeue(out var args))
                 {
@@ -69,7 +69,7 @@ public class CommandRouterHost : ICommandRouterHost
                     }
                 }
 
-                if (capture != null) ((ConsoleCapature)capture).Dump();
+                if (capture != null) ((ConsoleCapture)capture).Dump();
                 abortSignal?.StopTracking();
                 int state = abortSignal?.GetToken().IsCancellationRequested == true ? 1 : 0;
 

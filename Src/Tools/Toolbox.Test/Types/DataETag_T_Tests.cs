@@ -10,11 +10,15 @@ public class DataETag_T_Tests
     [Fact]
     public void EmptyDataETag()
     {
-        Action a = () => new DataETag<TestData>(null!);
-        a.Should().Throw<ArgumentNullException>();
+        Verify.Throw<ArgumentNullException>(() =>
+        {
+            new DataETag<TestData>(null!);
+        });
 
-        Action b = () => new DataETag<TestData>(null!);
-        a.Should().Throw<ArgumentNullException>();
+        Verify.Throw<ArgumentNullException>(() =>
+        {
+            new DataETag<TestData>(null!, null);
+        });
     }
 
     [Fact]

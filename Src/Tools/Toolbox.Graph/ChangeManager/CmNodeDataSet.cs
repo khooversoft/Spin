@@ -1,6 +1,5 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Journal;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 

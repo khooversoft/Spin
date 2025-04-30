@@ -1,4 +1,6 @@
-﻿namespace Toolbox.Types;
+﻿using Toolbox.Tools;
+
+namespace Toolbox.Types;
 
 public interface ILoggingContext
 {

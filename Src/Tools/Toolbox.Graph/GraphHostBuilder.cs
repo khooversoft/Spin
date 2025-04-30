@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -32,7 +31,7 @@ public class GraphHostBuilder
     public GraphHostBuilder SetShareMode(bool shareMode = true) => this.Action(x => x.ShareMode = shareMode);
     public GraphHostBuilder SetDisableCache(bool disableCache = true) => this.Action(x => x.DisableCache = disableCache);
     public GraphHostBuilder UseInMemoryStore(bool use = true) => this.Action(x => x.InMemoryStore = use);
-    public GraphHostBuilder UseLogging(bool useLogging = false) => this.Action(x => x.Logging = useLogging);
+    public GraphHostBuilder UseLogging(bool useLogging = true) => this.Action(x => x.Logging = useLogging);
     public GraphHostBuilder SetLogLevel(LogLevel useLogging = LogLevel.None) => this.Action(x => x.LogLevel = useLogging);
     public GraphHostBuilder AddLogFilter(string name, LogLevel level) => this.Action(x => x._logLevels.AddOrUpdate(name, level, (key, oldValue) => level));
     public GraphHostBuilder SetConfigurationFile(string? configurationFile) => this.Action(x => x.ConfigurationFile = configurationFile);
@@ -86,6 +85,7 @@ public class GraphHostBuilder
             GraphMap v => await graphHost.Run(v, context).ConfigureAwait(false),
         };
 
+        runOption.LogStatus(context, "Run engine").ThrowOnError();
         return graphEngine;
     }
 

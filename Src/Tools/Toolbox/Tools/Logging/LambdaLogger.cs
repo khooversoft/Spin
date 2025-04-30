@@ -1,8 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
-using Toolbox.Tools;
 
-namespace Toolbox.Logging;
+namespace Toolbox.Tools;
 
 public class LambdaLoggerProvider : ILoggerProvider
 {

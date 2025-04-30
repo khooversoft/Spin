@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -55,7 +54,7 @@ public class GraphLeaseControl
 
         if (_graphHostOption.ShareMode)
         {
-            context.LogWarning("Graph is in share mode, cannot acquire exclusive lock");
+            context.LogDebug("Graph is in share mode, exclusive lock is not used");
             return StatusCode.OK;
         }
 
@@ -63,7 +62,7 @@ public class GraphLeaseControl
 
         try
         {
-            if (_exclusiveLock != null) return (StatusCode.Conflict, "Exclusive lock already acquired");
+            if (_exclusiveLock != null) return (StatusCode.Conflict, "Exclusive lock already acquired").LogStatus(context, "return");
 
             var leaseOption = await _graphStore
                 .File(GraphConstants.MapDatabasePath)

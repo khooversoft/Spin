@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using Toolbox.Types;
 
-namespace Toolbox.Types;
+namespace Toolbox.Tools;
 
 public static class LoggerContextExtensions
 {
@@ -20,6 +21,12 @@ public static class LoggerContextExtensions
     {
         (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
         context.Context.Logger.LogWarning(newMessage, newObjects);
+    }
+
+    public static void LogDebug(this ILoggingContext context, string? message, params object?[] args)
+    {
+        (string? newMessage, object?[] newObjects) = context.AppendContext(message, args);
+        context.Context.Logger.LogDebug(newMessage, newObjects);
     }
 
     public static void LogWarning(this ILoggingContext context, Exception ex, string? message, params object?[] args)

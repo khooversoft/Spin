@@ -2,6 +2,7 @@
 using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Types;
+using Toolbox.Tools;
 
 namespace KGraphCmd.Commands;
 
@@ -37,7 +38,7 @@ internal static class JournalTool
     private static async Task ReadJournal(IJournalFile journalFile, HashSet<string> hashLsn, int lastNumber, bool fullDump, string? lsn, ScopeContext context)
     {
         IReadOnlyList<JournalEntry> entries = await journalFile.ReadJournals(context);
-        context.LogTrace("Readed journals, count={count}", entries.Count);
+        context.LogTrace("Read journals, count={count}", entries.Count);
 
         IReadOnlyList<string> newEntries = entries
             .Where(x => lsn == null || x.LogSequenceNumber.Like(lsn))

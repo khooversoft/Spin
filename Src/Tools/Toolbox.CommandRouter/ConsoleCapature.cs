@@ -2,13 +2,14 @@
 using System.CommandLine.IO;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.CommandRouter;
 
-internal class ConsoleCapature : IConsole
+internal class ConsoleCapture : IConsole
 {
-    public ConsoleCapature(ScopeContextLocation context)
+    public ConsoleCapture(ScopeContextLocation context)
     {
         var writer = new Writer(context);
         Out = writer;

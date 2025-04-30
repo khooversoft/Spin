@@ -2,7 +2,6 @@
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -56,7 +55,7 @@ public static class DatalakeSetTool
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing")
         {
-            context.Location().LogError(ex, "Failed to upload because of LeaseIdMissing exception {path}, message={message}", fileClient.Path, ex.Message);
+            context.Location().LogError(ex, "Failed to upload because of exception 'RequestFailedException.ErrorCode == LeaseIdMissing', path={path}, message={message}", fileClient.Path, ex.Message);
             return (StatusCode.Conflict, ex.Message);
         }
         catch (Exception ex)

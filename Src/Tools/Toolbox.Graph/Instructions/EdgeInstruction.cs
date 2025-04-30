@@ -1,5 +1,4 @@
-﻿using Toolbox.Logging;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;

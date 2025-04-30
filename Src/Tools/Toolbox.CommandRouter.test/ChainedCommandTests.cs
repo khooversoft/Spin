@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Logging;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Xunit.Abstractions;
 

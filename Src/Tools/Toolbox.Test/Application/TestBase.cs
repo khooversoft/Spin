@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;

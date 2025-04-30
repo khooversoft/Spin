@@ -18,7 +18,7 @@ public class DatalakeShareModeTests
     [Fact]
     public async Task OneWriteOtherRead()
     {
-        using var testClient = await TestApplication.CreateTestGraphServiceWithDatalake(logOutput: x => _outputHelper.WriteLine($"1st: {x}"), shareMode: true);
+        using var testClient = await TestApplication.CreateTestGraphServiceWithDatalake("graphTesting", logOutput: x => _outputHelper.WriteLine($"1st: {x}"), shareMode: true);
         var context1 = testClient.CreateScopeContext<DatalakeShareModeTests>();
         await testClient.Execute("delete (*) ;", context1);
 
@@ -28,7 +28,7 @@ public class DatalakeShareModeTests
         var mapCounter = testClient.Services.GetRequiredService<GraphMapCounter>();
         var leaseCounter = mapCounter.Leases;
 
-        using var SecondEngineClient = await TestApplication.CreateTestGraphServiceWithDatalake(logOutput: x => _outputHelper.WriteLine($"2nd: {x}"), shareMode: true);
+        using var SecondEngineClient = await TestApplication.CreateTestGraphServiceWithDatalake("graphTesting", logOutput: x => _outputHelper.WriteLine($"2nd: {x}"), shareMode: true);
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1);
         e1.IsOk().Should().BeTrue(e1.ToString());
@@ -73,7 +73,7 @@ public class DatalakeShareModeTests
     [Fact]
     public async Task ParallelReads()
     {
-        using var testClient = await TestApplication.CreateTestGraphServiceWithDatalake(logOutput: x => _outputHelper.WriteLine($"1st: {x}"), shareMode: true);
+        using var testClient = await TestApplication.CreateTestGraphServiceWithDatalake("graphTesting", logOutput: x => _outputHelper.WriteLine($"1st: {x}"), shareMode: true);
 
         var context1 = testClient.CreateScopeContext<DatalakeShareModeTests>();
         var context2 = testClient.CreateScopeContext<DatalakeShareModeTests>();

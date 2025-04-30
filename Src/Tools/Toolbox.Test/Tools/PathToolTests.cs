@@ -9,8 +9,7 @@ public class PathToolTests
     public void ToExtensionTest()
     {
         string extension = null!;
-        Action action = () => PathTool.ToExtension(extension);
-        action.Should().Throw<ArgumentNullException>();
+        Verify.Throw<ArgumentNullException>(() => PathTool.ToExtension(extension));
 
         extension = "ext";
         string path = PathTool.ToExtension(extension);
@@ -26,11 +25,8 @@ public class PathToolTests
     {
         string extension = ".json";
 
-        Action action = () => PathTool.SetExtension(null!, extension);
-        action.Should().Throw<ArgumentNullException>();
-
-        action = () => PathTool.SetExtension("", extension);
-        action.Should().Throw<ArgumentNullException>();
+        Verify.Throw<ArgumentNullException>(() => PathTool.SetExtension(null!, extension));
+        Verify.Throw<ArgumentNullException>(() => PathTool.SetExtension("", extension));
     }
 
     [Fact]

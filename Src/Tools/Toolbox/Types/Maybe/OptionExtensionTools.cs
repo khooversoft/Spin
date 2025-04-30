@@ -5,7 +5,8 @@ namespace Toolbox.Types;
 
 public static class OptionExtensionTools
 {
-    public static Option ThrowOnError(this Option option,
+    public static Option ThrowOnError(
+        this Option option,
         string? message = "< no message >",
         [CallerMemberName] string function = "",
         [CallerFilePath] string path = "",
@@ -14,7 +15,8 @@ public static class OptionExtensionTools
         ) => option
         .Assert(
             x => x.StatusCode.IsOk(),
-            x => $"Message={message}, StatusCode={x.StatusCode}, Error={x.Error}", function: function, path: path, lineNumber: lineNumber, name: name
+            x => $"message={message}, statusCode={x.StatusCode}, error={x.Error}",
+            function: function, path: path, lineNumber: lineNumber, name: name
             );
 
     public static async Task<Option> ThrowOnError(this Task<Option> option,
@@ -26,7 +28,8 @@ public static class OptionExtensionTools
         ) => (await option)
         .Assert(
             x => x.StatusCode.IsOk(),
-            x => $"Message={message}, StatusCode={x.StatusCode}, Error={x.Error}", function: function, path: path, lineNumber: lineNumber, name: name
+            x => $"message={message}, statusCode={x.StatusCode}, error={x.Error}",
+            function: function, path: path, lineNumber: lineNumber, name: name
             );
 
     public static Option<T> ThrowOnError<T>(this Option<T> option,
@@ -38,7 +41,8 @@ public static class OptionExtensionTools
         ) => option
         .Assert(
             x => x.StatusCode.IsOk(),
-            x => $"Message={message}, StatusCode={x.StatusCode}, Error={x.Error}", function: function, path: path, lineNumber: lineNumber, name: name
+            x => $"message={message}, statusCode={x.StatusCode}, error={x.Error}",
+            function: function, path: path, lineNumber: lineNumber, name: name
             );
 
     public static async Task<Option<T>> ThrowOnError<T>(this Task<Option<T>> option,
@@ -50,6 +54,7 @@ public static class OptionExtensionTools
         ) => (await option)
         .Assert(
             x => x.StatusCode.IsOk(),
-            x => $"Message={message}, StatusCode= {x.StatusCode}, Error={x.Error}", function: function, path: path, lineNumber: lineNumber, name: name
+            x => $"message={message}, statusCode={x.StatusCode}, error={x.Error}",
+            function: function, path: path, lineNumber: lineNumber, name: name
             );
 }

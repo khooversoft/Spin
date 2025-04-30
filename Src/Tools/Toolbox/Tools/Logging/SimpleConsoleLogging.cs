@@ -2,9 +2,8 @@
 using System.Runtime.Versioning;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Tools;
 
-namespace Toolbox.Logging;
+namespace Toolbox.Tools;
 
 public class SimpleConsoleLogging : ILogger
 {

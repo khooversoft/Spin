@@ -1,11 +1,11 @@
 ﻿using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
-using Toolbox.Tools;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
-namespace Toolbox.Logging;
+namespace Toolbox.Tools;
 
-public static class LoggingTool
+public static class LoggingOptionExtensions
 {
     public static Option LogStatus(
         this Option option,
@@ -21,6 +21,25 @@ public static class LoggingTool
         var location = context.Location(function: function, path: path, lineNumber: lineNumber);
 
         InternalLogStatus(location, option, context, message, args, name);
+        return option;
+    }
+    
+    public static Option LogStatus(
+        this (StatusCode statusCode, string? error) subject,
+        ScopeContext context,
+        string message,
+        IEnumerable<object>? args = null,
+        [CallerMemberName] string function = "",
+        [CallerFilePath] string path = "",
+        [CallerLineNumber] int lineNumber = 0,
+        [CallerArgumentExpression("subject")] string name = ""
+        )
+    {
+        var location = context.Location(function: function, path: path, lineNumber: lineNumber);
+
+        var option = subject.ToOptionStatus();
+        InternalLogStatus(location, option, context, message, args, name);
+
         return option;
     }
 
@@ -43,23 +62,24 @@ public static class LoggingTool
 
     public static string ToSafeLoggingFormat(this string subject) => (subject ?? string.Empty).Replace("{", "{{").Replace("}", "}}");
 
-    private static void InternalLogStatus(ScopeContextLocation location, Option option, ScopeContext context, string message, IEnumerable<object>? args, string name)
+    private static void InternalLogStatus(
+        ScopeContextLocation location,
+        Option option,
+        ScopeContext context,
+        string message,
+        IEnumerable<object>? args,
+        string name,
+        bool forceDebug = false
+        )
     {
-        message.NotEmpty();
+        var result = new StructureLineBuilder()
+            .Add(message.NotEmpty(), args)
+            .Add(option)
+            .Add(context)
+            .Add("argumentName={argumentName}", name)
+            .Build();
 
-        object?[] argList = args?.ToArray() ?? Array.Empty<object>();
-
-        string msg = ScopeContextTools.AppendMessage(message, "Argument={argumentName}, StatusCode={statusCode}");
-        argList = ScopeContextTools.AppendArgs(argList, name, option.StatusCode);
-
-        if (option.Error != null)
-        {
-            msg = ScopeContextTools.AppendMessage(msg, "Error={error}");
-            argList = ScopeContextTools.AppendArgs(argList, option.Error);
-        }
-
-        (msg, argList) = context.AppendContext(msg, argList);
-
-        location.Log(option.StatusCode.IsOk() ? LogLevel.Trace : LogLevel.Error, msg, argList);
+        LogLevel logLevel = forceDebug || option.StatusCode.IsOk() ? LogLevel.Debug : LogLevel.Error;
+        context.Context.Logger.Log(logLevel, result.Message, result.Args);
     }
 }

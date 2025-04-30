@@ -185,7 +185,8 @@ public class OptionTests
 
         Option<string> s3 = v4.Where(x => x == "abc").FirstOrDefault().ToOption();
         (s3 == default).Should().BeTrue();
-        s3.Return(false).Should().Be(default);
+
+        Verify.Throw<ArgumentException>(() => s3.Return().Be(default));
         (s3 == Option<string>.None).Should().BeTrue();
     }
 

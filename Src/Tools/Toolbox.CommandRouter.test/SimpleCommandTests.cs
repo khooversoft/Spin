@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
-using Toolbox.Logging;
+using Toolbox.Tools;
 using Toolbox.Tools.Should;
 using Xunit.Abstractions;
 

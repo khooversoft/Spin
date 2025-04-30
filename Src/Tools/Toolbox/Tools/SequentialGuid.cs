@@ -1,6 +1,5 @@
 ﻿namespace Toolbox.Tools;
 
-
 public class SequentialGuid
 {
     private long _counter = DateTime.UtcNow.Ticks;

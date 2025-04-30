@@ -1,7 +1,6 @@
 ﻿using Azure;
 using Azure.Storage.Files.DataLake;
 using Microsoft.Extensions.Logging;
-using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;

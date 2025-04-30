@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
+using Toolbox.Types;
 
-namespace Toolbox.Types;
+namespace Toolbox.Tools;
 
 public static class ScopeContextTools
 {
@@ -33,8 +34,4 @@ public static class ScopeContextTools
         }
     }
 
-    public static ScopeContextLocation Location(this ScopeContext context, [CallerMemberName] string function = "", [CallerFilePath] string path = "", [CallerLineNumber] int lineNumber = 0)
-    {
-        return new ScopeContextLocation(context, new CodeLocation(function, path, lineNumber));
-    }
 }

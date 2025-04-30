@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
-using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Logging;
+namespace Toolbox.Tools;
 
 public static class Metric
 {
