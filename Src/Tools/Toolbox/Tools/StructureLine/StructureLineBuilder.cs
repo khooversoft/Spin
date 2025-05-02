@@ -14,7 +14,7 @@ public static class StructureLineBuilder
         return subject.Append(record);
     }
 
-    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, string? message, params IEnumerable<object?> args)
+    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, string? message, params IEnumerable<object?>? args)
     {
         if (message.IsEmpty()) return subject;
 

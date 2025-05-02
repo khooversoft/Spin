@@ -1,6 +1,7 @@
 ﻿//using Toolbox.Test.Application;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure;
 using Toolbox.Extensions;
@@ -71,8 +72,33 @@ public static class TestApplication
         return (testClient, context);
     }
 
+    public static (IServiceProvider Service, ScopeContext Context) CreateDatalakeDirect<T>(string basePath, ITestOutputHelper output)
+    {
+        DatalakeOption datalakeOption = ReadOption(basePath);
+
+        IHost host = Host.CreateDefaultBuilder()
+            .ConfigureServices((context, services) =>
+            {
+                services
+                    .AddDatalakeFileStore(datalakeOption)
+                    .AddLogging(config =>
+                    {
+                        config.AddDebug();
+                        config.AddConsole();
+                        config.AddFilter(x => true);
+                        config.AddLambda(x => output.WriteLine(x));
+                    });
+            })
+            .Build();
+
+        ScopeContext context = new ScopeContext(host.Services.GetRequiredService<ILogger<T>>());
+        return (host.Services, context);
+    }
+
     public static async Task<(GraphHostService testClient, ScopeContext context)> CreateDatalake<T>(string basePath, ITestOutputHelper output)
     {
+        DatalakeOption datalakeOption = ReadOption(basePath);
+
         var testClient = await new GraphHostBuilder()
             .UseLogging()
             .SetShareMode(false)
@@ -80,7 +106,7 @@ public static class TestApplication
             .AddLogFilter("Toolbox.Graph.GraphLeaseControl", LogLevel.Trace)
             .SetLogOutput(x => output.WriteLine(x))
             .SetDisableCache(true)
-            .AddDatalakeFileStore(ReadOption(basePath))
+            .AddDatalakeFileStore(datalakeOption)
             .Build();
 
         var context = testClient.CreateScopeContext<T>();

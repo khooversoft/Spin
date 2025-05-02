@@ -53,10 +53,10 @@ public static class DatalakeSetTool
             result = await fileClient.UploadAsync(fromStream, overwrite, context).ConfigureAwait(false);
             return result.Value.ETag.ToString();
         }
-        catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing")
+        catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing" || ex.ErrorCode == "LeaseIdMismatch" || ex.ErrorCode == "LeaseNotPresent")
         {
-            context.Location().LogError(ex, "Failed to upload because of exception 'RequestFailedException.ErrorCode == LeaseIdMissing', path={path}, message={message}", fileClient.Path, ex.Message);
-            return (StatusCode.Conflict, ex.Message);
+            context.Location().LogError(ex, "Failed to upload, 'RequestFailedException.ErrorCode == {errorCode}', path={path}, message={message}", ex.ErrorCode, fileClient.Path, ex.Message);
+            return (StatusCode.Locked, ex.Message);
         }
         catch (Exception ex)
         {

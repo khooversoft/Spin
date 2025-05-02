@@ -51,15 +51,6 @@ public static class Verify
             .Format();
 
         throw new ArgumentNullException(structLine);
-
-        //if (subject == null || EqualityComparer<T>.Default.Equals(subject, default!))
-        //{
-        //    string msg = message ?? "Null object";
-        //    msg += $", argumentName={name}, {FormatCaller(function, path, lineNumber)}";
-        //    throw new ArgumentNullException(msg);
-        //}
-
-        //return subject;
     }
 
     /// <summary>
@@ -89,15 +80,6 @@ public static class Verify
             .Format();
 
         throw new ArgumentNullException(structLine);
-
-        //if (subject != null || !EqualityComparer<T>.Default.Equals(subject, default!))
-        //{
-        //    string msg = message ?? "Not null object";
-        //    msg += $", argumentName={name}, {FormatCaller(function, path, lineNumber)}";
-        //    throw new ArgumentNullException(msg);
-        //}
-
-        //return subject;
     }
 
     /// <summary>
@@ -127,25 +109,13 @@ public static class Verify
             .Format();
 
         throw new ArgumentNullException(structLine);
-
-        //if (subject.IsEmpty())
-        //{
-        //    string msg = message ?? "Empty or null string";
-        //    msg += $", argumentName={name}, {FormatCaller(function, path, lineNumber)}";
-        //    throw new ArgumentNullException(msg);
-        //}
-
-        //return subject;
     }
-
-    //[DebuggerStepThrough]
-    //public static string FormatCaller(string function, string path, int lineNumber) => $"function={function}, file={path}, lineNumber={lineNumber}";
 
     internal static string FormatException(string message, string? because = null)
     {
         var sb = new StringBuilder(message.NotEmpty());
 
-        if (because != null)
+        if (because.IsNotEmpty())
         {
             sb.Append(", because=");
             sb.Append(because);

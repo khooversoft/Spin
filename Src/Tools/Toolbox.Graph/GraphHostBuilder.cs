@@ -19,6 +19,7 @@ public class GraphHostBuilder
     public GraphMap? GraphMap { get; set; }
     public bool ReadOnly { get; set; }
     public bool ShareMode { get; set; }
+    public bool BreakExclusiveLease { get; set; }
     public bool DisableCache { get; set; }
     public bool InMemoryStore { get; set; }
     public bool Logging { get; set; }
@@ -29,6 +30,7 @@ public class GraphHostBuilder
     public GraphHostBuilder SetMap(GraphMap? map) => this.Action(x => x.GraphMap = map);
     public GraphHostBuilder SetReadOnly(bool readOnly = true) => this.Action((Action<GraphHostBuilder>)(x => x.ReadOnly = readOnly));
     public GraphHostBuilder SetShareMode(bool shareMode = true) => this.Action(x => x.ShareMode = shareMode);
+    public GraphHostBuilder SetBreakExclusiveLease(bool breakExclusiveLease = true) => this.Action(x => x.BreakExclusiveLease = BreakExclusiveLease);
     public GraphHostBuilder SetDisableCache(bool disableCache = true) => this.Action(x => x.DisableCache = disableCache);
     public GraphHostBuilder UseInMemoryStore(bool use = true) => this.Action(x => x.InMemoryStore = use);
     public GraphHostBuilder UseLogging(bool useLogging = true) => this.Action(x => x.Logging = useLogging);
@@ -50,6 +52,7 @@ public class GraphHostBuilder
             ReadOnly = ReadOnly,
             ShareMode = ShareMode,
             DisableCache = DisableCache,
+            BreakExclusiveLease = BreakExclusiveLease,
         };
 
         LogLevel logLevel = LogLevel;

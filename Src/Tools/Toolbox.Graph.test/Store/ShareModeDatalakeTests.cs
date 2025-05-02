@@ -6,15 +6,15 @@ namespace Toolbox.Graph.test.Store;
 
 public class ShareModeDatalakeTests
 {
+    private const string _basePath = $"graphTesting-{nameof(ShareModeDatalakeTests)}";
     private readonly ITestOutputHelper _outputHelper;
     public ShareModeDatalakeTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     [Fact]
     public async Task OneWriteOtherRead()
     {
-        const string basePath = $"graphTesting-{nameof(ShareModeDatalakeTests)}";
 
-        var (firstClient, secondClient, context) = await TestApplication.CreateTwoLinkClientsForDatalake<ShareModeDatalakeTests>(basePath, _outputHelper);
+        var (firstClient, secondClient, context) = await TestApplication.CreateTwoLinkClientsForDatalake<ShareModeDatalakeTests>(_basePath, _outputHelper);
         using (firstClient)
         using (secondClient)
         {
@@ -26,9 +26,7 @@ public class ShareModeDatalakeTests
     [Fact]
     public async Task ParallelReads()
     {
-        const string basePath = $"graphTesting-{nameof(ShareModeDatalakeTests)}";
-
-        var (firstClient, secondClient, context) = await TestApplication.CreateTwoLinkClientsForDatalake<ShareModeDatalakeTests>(basePath, _outputHelper);
+        var (firstClient, secondClient, context) = await TestApplication.CreateTwoLinkClientsForDatalake<ShareModeDatalakeTests>(_basePath, _outputHelper);
         using (firstClient)
         using (secondClient)
         {

@@ -14,6 +14,7 @@ public static class Option_T_Extensions
     public static bool IsBadRequest<T>(this Option<T> subject) => subject.StatusCode.IsBadRequest();
     public static bool IsUnauthorized<T>(this Option<T> subject) => subject.StatusCode.IsUnauthorized();
     public static bool IsForbidden<T>(this Option<T> subject) => subject.StatusCode.IsForbidden();
+    public static bool IsLocked<T>(this Option<T> subject) => subject.StatusCode.IsLocked();
 
     public static bool IsError<T>(this Option<T> subject, out Option result)
     {

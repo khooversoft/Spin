@@ -46,12 +46,21 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
 
     public async Task<Option> Release(ScopeContext context)
     {
-        Response<ReleasedObjectInfo> result = await _leaseClient.ReleaseAsync();
-        if (!result.HasValue)
+        try
         {
-            context.LogError("Failed to release lease on path={path}", Path);
-            return StatusCode.Conflict;
+            Response<ReleasedObjectInfo> result = await _leaseClient.ReleaseAsync();
+            if (!result.HasValue)
+            {
+                context.LogError("Failed to release lease on path={path}", Path);
+                return StatusCode.Conflict;
+            }
         }
+        catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing")
+        {
+            context.LogTrace("Invalid lease Id path={path}", Path);
+            return StatusCode.OK;
+        }
+        catch { }
 
         Interlocked.Exchange(ref _disposed, true);
 

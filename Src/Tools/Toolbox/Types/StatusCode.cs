@@ -14,6 +14,7 @@ public enum StatusCode
     Forbidden = 403,
     NotFound = 404,
     Conflict = 409,
+    Locked = 423,
 
     InternalServerError = 500,
     ServiceUnavailable = 503,
@@ -29,6 +30,7 @@ public static class OptionStatusCodeExtensions
     public static bool IsBadRequest(this StatusCode subject) => subject == StatusCode.BadRequest;
     public static bool IsUnauthorized(this StatusCode subject) => subject == StatusCode.Unauthorized;
     public static bool IsForbidden(this StatusCode subject) => subject == StatusCode.Forbidden;
+    public static bool IsLocked(this StatusCode subject) => subject == StatusCode.Locked;
 
     public static bool IsSuccess(this StatusCode subject) => subject switch
     {
@@ -54,6 +56,7 @@ public static class OptionStatusCodeExtensions
         HttpStatusCode.Conflict => StatusCode.Conflict,
         HttpStatusCode.InternalServerError => StatusCode.InternalServerError,
         HttpStatusCode.ServiceUnavailable => StatusCode.ServiceUnavailable,
+        HttpStatusCode.Locked => StatusCode.Locked,
 
         _ => StatusCode.BadRequest,
     };
@@ -70,6 +73,7 @@ public static class OptionStatusCodeExtensions
         StatusCode.Conflict => HttpStatusCode.Conflict,
         StatusCode.InternalServerError => HttpStatusCode.InternalServerError,
         StatusCode.ServiceUnavailable => HttpStatusCode.ServiceUnavailable,
+        StatusCode.Locked => HttpStatusCode.Locked,
 
         _ => HttpStatusCode.BadRequest,
     };

@@ -20,6 +20,8 @@ namespace Toolbox.Graph;
 /// </summary>
 public class GraphLeaseControl
 {
+    private const string _leaseAlreadyPresentText = "LeaseAlreadyPresent";
+
     private readonly SemaphoreSlim _resetEvent = new SemaphoreSlim(1, 1);
     private readonly IGraphStore _graphStore;
     private readonly ILogger<GraphLeaseControl> _logger;
@@ -64,12 +66,30 @@ public class GraphLeaseControl
         {
             if (_exclusiveLock != null) return (StatusCode.Conflict, "Exclusive lock already acquired").LogStatus(context, "return");
 
-            var leaseOption = await _graphStore
-                .File(GraphConstants.MapDatabasePath)
-                .AcquireExclusive(context)
-                .ConfigureAwait(false);
+            int loopCount = 2;
+            Option<IFileLeasedAccess> leaseOption = null!;
 
-            if (leaseOption.IsError()) return leaseOption.ToOptionStatus();
+            while (loopCount-- > 0)
+            {
+                leaseOption = await _graphStore
+                    .File(GraphConstants.MapDatabasePath)
+                    .AcquireExclusive(true, context)
+                    .ConfigureAwait(false);
+
+                if (leaseOption.IsLocked())
+                {
+                    var releaseOption = await ReleaseExclusive(context).ConfigureAwait(false);
+                    if (releaseOption.IsError())
+                    {
+                        context.LogError(releaseOption.Error, "Failed to release exclusive lock");
+                        return releaseOption;
+                    }
+
+                    continue;
+                }
+
+                if (leaseOption.IsError()) return leaseOption.ToOptionStatus();
+            }
 
             _exclusiveLock = leaseOption.Return();
             _leaseCounter.ActiveExclusive.Record(1);

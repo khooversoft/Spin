@@ -28,7 +28,7 @@ public class GraphStoreFileAccess : IFileAccess
         return new GraphStoreLeasedAccess(result.Value, Path, result.Value.LeaseId, _cacheAccess.MemoryCache, _logger);
     }
 
-    public Task<Option<IFileLeasedAccess>> AcquireExclusive(ScopeContext context) => _fileAccess.AcquireExclusive(context);
+    public Task<Option<IFileLeasedAccess>> AcquireExclusive(bool breakLeaseIfExist, ScopeContext context) => _fileAccess.AcquireExclusive(breakLeaseIfExist, context);
 
     public async Task<Option<string>> Add(DataETag data, ScopeContext context)
     {
