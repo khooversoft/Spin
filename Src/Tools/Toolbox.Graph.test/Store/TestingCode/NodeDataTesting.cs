@@ -26,7 +26,7 @@ internal static class NodeDataTesting
         testClient.Map.Edges.Count.Be(0);
         await CheckFileStoreCount(fileStore, 1, context);
 
-        // Verify data was writen correctly
+        // Verify data was written correctly
         var readDataOption = await fileStore.File("nodes/node1/node1___contract.json").Get(context);
         readDataOption.IsOk().BeTrue();
         TestContractRecord readRec = readDataOption.Return().ToObject<TestContractRecord>();
@@ -90,7 +90,7 @@ internal static class NodeDataTesting
         testClient.Map.Edges.Count.Be(0);
         await CheckFileStoreCount(fileStore, 1, context);
 
-        // Verify data was writen correctly
+        // Verify data was written correctly
         var readDataOption = await fileStore.File("nodes/node1/node1___contract.json").Get(context);
         readDataOption.IsOk().BeTrue();
         TestContractRecord readRec = readDataOption.Return().ToObject<TestContractRecord>();
