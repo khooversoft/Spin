@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -74,12 +73,8 @@ public class GraphUniqueIndex
     {
         lock (_syncLock)
         {
-            var status = _tagIndex.RemoveNodeKey(nodeKey);
-
-            trxContext?.Context.Log(
-                status ? LogLevel.Information : LogLevel.Warning,
-                status ? "Removed" : "Failed to remove" + " nodeKey={nodeKey}", nodeKey
-                );
+            Option status = _tagIndex.RemoveNodeKey(nodeKey);
+            trxContext?.Action(x => status.LogStatus(x.Context, "nodeKey={nodeKey}", [nodeKey]));
         }
     }
 
@@ -88,16 +83,12 @@ public class GraphUniqueIndex
         var indexedTags = GetIndexedTags(newNode, currentNode);
 
         // Remove node indexes
-        var status = _tagIndex.RemoveNodeKey(newNode.Key);
+        _tagIndex.RemoveNodeKey(newNode.Key).Action(x => trxContext?.Action(y => x.LogStatus(y.Context, "Remove nodeKey={nodeKey}", [newNode.Key])));
 
         indexedTags.ForEach(x =>
         {
             var option = _tagIndex.Add(x.Key, x.Value, newNode.Key);
-
-            if (option.IsOk())
-                trxContext?.Context.LogTrace("Added, key={key}={value} for nodeKey={nodeKey}", x.Key, x.Value, newNode.Key);
-            else
-                trxContext?.Context.LogWarning("Failed to added, key={key}={value} for nodeKey={nodeKey}", x.Key, x.Value, newNode.Key);
+            trxContext?.Action(y => option.LogStatus(y.Context, "Add index={index}={value} for nodeKey={nodeKey}", [x.Key, x.Value, newNode.Key]));
         });
     }
 

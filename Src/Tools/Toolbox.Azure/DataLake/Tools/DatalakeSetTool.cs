@@ -56,12 +56,12 @@ public static class DatalakeSetTool
         catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing" || ex.ErrorCode == "LeaseIdMismatch" || ex.ErrorCode == "LeaseNotPresent")
         {
             context.Location().LogError(ex, "Failed to upload, 'RequestFailedException.ErrorCode == {errorCode}', path={path}, message={message}", ex.ErrorCode, fileClient.Path, ex.Message);
-            return (StatusCode.Locked, ex.Message);
+            return (StatusCode.Locked, "LeaseIdMissing");
         }
         catch (Exception ex)
         {
             context.Location().LogError(ex, "Failed to upload {path}, exType={exType}, message={message}", fileClient.Path, ex.GetType(), ex.Message);
-            return (StatusCode.InternalServerError, ex.Message);
+            return (StatusCode.InternalServerError, ex.Message.ToSafeLoggingFormat());
         }
     }
 }

@@ -37,7 +37,7 @@ public sealed class MemoryStore
                 false => StatusCode.Conflict,
             };
 
-            context.LogTrace("Add Path={path}, length={length}", path, data.Data.Length);
+            context.LogDebug("Add Path={path}, length={length}", path, data.Data.Length);
             return result;
         }
     }
@@ -56,7 +56,7 @@ public sealed class MemoryStore
             {
                 var newPayload = readPayload with { Data = readPayload.Data.Data.Concat(data.Data).ToDataETag().WithHash() };
                 _store[path] = newPayload;
-                context.LogTrace("Append Path={path}, length={length}", path, data.Data.Length);
+                context.LogDebug("Append Path={path}, length={length}", path, data.Data.Length);
                 return newPayload.Data.ETag.NotEmpty();
             }
 
@@ -124,7 +124,7 @@ public sealed class MemoryStore
 
         lock (_lock)
         {
-            if (IsLeased(path, leaseId)) return (StatusCode.Conflict, "Path is leased");
+            if (IsLeased(path, leaseId)) return (StatusCode.Locked, "Path is leased");
 
             var result = _store.AddOrUpdate(path, x => new DirectoryDetail(data.ConvertTo(x), data, null), (x, current) =>
             {
@@ -141,7 +141,7 @@ public sealed class MemoryStore
                 return payload;
             });
 
-            context.LogTrace("Set Path={path}, length={length}", path, data.Data.Length);
+            context.LogDebug("Set Path={path}, length={length}", path, data.Data.Length);
             return result.PathDetail.ETag;
         }
     }
@@ -201,7 +201,7 @@ public sealed class MemoryStore
             _store[path] = newPayload;
             _leaseStore[newPayload.LeaseRecord.LeaseId] = leaseRecord;
 
-            context.LogTrace("Acquire lease Path={path}, leaseId={leaseId}", path, newPayload.LeaseRecord.LeaseId);
+            context.LogDebug("Acquire lease Path={path}, leaseId={leaseId}", path, newPayload.LeaseRecord.LeaseId);
             return newPayload.LeaseRecord;
         }
     }
@@ -221,7 +221,7 @@ public sealed class MemoryStore
                 _store[path] = payload with { LeaseRecord = null };
             }
 
-            context.LogTrace("Break lease Path={path}");
+            context.LogDebug("Break lease Path={path}", path);
             return StatusCode.OK;
         }
     }
@@ -236,7 +236,7 @@ public sealed class MemoryStore
             _queueLock.ReleaseLock();
 
             _store[leaseRecord.Path] = _store[leaseRecord.Path] with { LeaseRecord = null };
-            context.LogTrace("Release lease Path={path}, leaseId={leaseId}", leaseRecord.Path, leaseId);
+            context.LogDebug("Release lease Path={path}, leaseId={leaseId}", leaseRecord.Path, leaseId);
             return StatusCode.OK;
         }
     }

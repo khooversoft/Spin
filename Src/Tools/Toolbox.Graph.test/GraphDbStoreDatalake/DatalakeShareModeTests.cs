@@ -75,6 +75,8 @@ public class DatalakeShareModeTests
         using var testClient = await TestApplication.CreateTestGraphServiceWithDatalake("graphTesting", logOutput: x => _outputHelper.WriteLine($"1st: {x}"), shareMode: true);
 
         var context1 = testClient.CreateScopeContext<DatalakeShareModeTests>();
+        await testClient.Execute("delete (*) ;", context1);
+
         var context2 = testClient.CreateScopeContext<DatalakeShareModeTests>();
         var fileStore = testClient.Services.GetRequiredService<IFileStore>();
         var graphFileStore = testClient.Services.GetRequiredService<IGraphStore>();
@@ -90,10 +92,9 @@ public class DatalakeShareModeTests
             useInMemoryStore: false
             );
 
-        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1);
-        e1.IsOk().BeTrue();
-        leaseCounter.Acquire.Value.Be(1);
-        leaseCounter.Release.Value.Be(1);
+        var e1 = (await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1)).BeOk();
+        leaseCounter.Acquire.Value.Be(2);
+        leaseCounter.Release.Value.Be(2);
         leaseCounter.ActiveExclusive.Value.Be(0);
         leaseCounter.ActiveAcquire.Value.Be(0);
 

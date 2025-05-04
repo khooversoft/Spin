@@ -30,16 +30,6 @@ public class DbInMemoryTests
     }
 
     [Fact]
-    public async Task LoadInitialDatabase()
-    {
-        var (testClient, context) = await TestApplication.CreateInMemory<DbInMemoryTests>(_outputHelper);
-        using (testClient)
-        {
-            await LoadAndCheckpointTesting.LoadInitialDatabase(testClient, context);
-        }
-    }
-
-    [Fact]
     public async Task AddNodeWithData()
     {
         var (testClient, context) = await TestApplication.CreateInMemory<DbInMemoryTests>(_outputHelper);

@@ -95,7 +95,7 @@ public static class TestApplication
         return (host.Services, context);
     }
 
-    public static async Task<(GraphHostService testClient, ScopeContext context)> CreateDatalake<T>(string basePath, ITestOutputHelper output)
+    public static async Task<(GraphHostService testClient, ScopeContext context)> CreateDatalake<T>(string basePath, ITestOutputHelper output, bool noClear = false)
     {
         DatalakeOption datalakeOption = ReadOption(basePath);
 
@@ -110,7 +110,8 @@ public static class TestApplication
             .Build();
 
         var context = testClient.CreateScopeContext<T>();
-        (await testClient.Execute("delete (*) ;", context)).BeOk();
+
+        if (!noClear) (await testClient.Execute("delete (*) ;", context)).BeOk();
 
         return (testClient, context);
     }

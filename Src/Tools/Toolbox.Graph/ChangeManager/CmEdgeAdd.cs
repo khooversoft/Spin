@@ -33,11 +33,11 @@ public class CmEdgeAdd : IChangeLog
         var removeEdge = graphContext.Map.Edges.Remove(pk);
         if (graphContext.Map.Edges.Remove(pk).IsError())
         {
-            graphContext.Context.LogError("Rollback Edge: logKey={logKey}, Failed to remove node key={key}", pk);
+            graphContext.Context.LogError("Rollback Edge: logKey={logKey}, Failed to remove node key={key}", LogKey, pk);
             return ((Option)(StatusCode.Conflict, $"Failed to remove edge edgeKey={pk}")).ToTaskResult();
         }
 
-        graphContext.Context.LogTrace("Rollback Edge: removed edge logKey={logKey}, Edge edgeKey={key} ", LogKey, pk);
+        graphContext.Context.LogDebug("Rollback Edge: removed edge logKey={logKey}, Edge edgeKey={key} ", LogKey, pk);
         return ((Option)StatusCode.OK).ToTaskResult();
     }
 }

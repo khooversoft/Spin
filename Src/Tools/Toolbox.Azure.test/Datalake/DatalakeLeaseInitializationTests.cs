@@ -1,5 +1,4 @@
 ﻿using Toolbox.Azure.test.Application;
-using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -7,25 +6,30 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Azure.test.Datalake;
 
-public class DatalakeLeaseInitializationTests
+public abstract class ParallelBaseTests
 {
-    private readonly ScopeContext _context;
-    private readonly IFileStore _dataLake;
-    private readonly ITestOutputHelper _output;
+    protected readonly ScopeContext _context;
+    protected readonly IFileStore _dataLake;
+    protected readonly ITestOutputHelper _output;
 
-    public DatalakeLeaseInitializationTests(ITestOutputHelper output)
+    public ParallelBaseTests(ITestOutputHelper output)
     {
         _output = output;
-        _context = TestApplication.CreateScopeContext<DatalakeLeaseTests>(_output);
+        _context = TestApplication.CreateScopeContext<ParallelBaseTests>(_output);
         _dataLake = TestApplication.GetDatalake("datalakeLeaseInitializationTests");
     }
+}
+
+public class AcquireLeaseOnNotExistFileTest : ParallelBaseTests
+{
+    public AcquireLeaseOnNotExistFileTest(ITestOutputHelper output) : base(output) { }
 
     [Fact]
     public async Task AcquireLeaseOnNotExistFile()
     {
-        const string path = "acquireLeaseOnNotExistFile.txt";
+        const string path = nameof(AcquireLeaseOnNotExistFile) + ".txt";
 
-        await ForceDelete(path);
+        (await _dataLake.File(path).ForceDelete(_context)).BeOk();
 
         Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).Acquire(TimeSpan.FromSeconds(60), _context)).BeOk();
 
@@ -49,14 +53,18 @@ public class DatalakeLeaseInitializationTests
         var readOption2 = (await _dataLake.File(path).Get(_context)).BeOk();
         readOption2.Return().Data.SequenceEqual(testData.Data).BeTrue();
     }
+}
 
+public class AcquireExclusiveLeaseOnNotExistFileTest : ParallelBaseTests
+{
+    public AcquireExclusiveLeaseOnNotExistFileTest(ITestOutputHelper output) : base(output) { }
 
     [Fact]
     public async Task AcquireExclusiveLeaseOnNotExistFile()
     {
-        const string path = "acquireLeaseOnNotExistFile.txt";
+        const string path = nameof(AcquireExclusiveLeaseOnNotExistFile) + ".txt";
 
-        await ForceDelete(path);
+        (await _dataLake.File(path).ForceDelete(_context)).BeOk();
 
         Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).AcquireExclusive(false, _context)).BeOk();
 
@@ -80,16 +88,21 @@ public class DatalakeLeaseInitializationTests
         var readOption2 = (await _dataLake.File(path).Get(_context)).BeOk();
         readOption2.Return().Data.SequenceEqual(testData.Data).BeTrue();
     }
+}
+
+public class AcquireLeaseOnExistFileTest : ParallelBaseTests
+{
+    public AcquireLeaseOnExistFileTest(ITestOutputHelper output) : base(output) { }
 
     [Fact]
     public async Task AcquireLeaseOnExistFile()
     {
-        const string path = "acquireLeaseOnNotExistFile.txt";
+        const string path = nameof(AcquireLeaseOnExistFile) + ".txt";
 
         var testData = "wrong data".ToDataETag();
         var testData2 = "right data".ToDataETag();
 
-        await ForceSet(path, testData);
+        (await _dataLake.File(path).ForceSet(testData, _context)).BeOk();
 
         Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).Acquire(TimeSpan.FromSeconds(60), _context)).BeOk();
 
@@ -107,16 +120,22 @@ public class DatalakeLeaseInitializationTests
         var readOption2 = (await _dataLake.File(path).Get(_context)).BeOk();
         readOption2.Return().Data.SequenceEqual(testData.Data).BeTrue();
     }
+}
+
+
+public class AcquireExclusiveLeaseOnExistFileTest : ParallelBaseTests
+{
+    public AcquireExclusiveLeaseOnExistFileTest(ITestOutputHelper output) : base(output) { }
 
     [Fact]
     public async Task AcquireExclusiveLeaseOnExistFile()
     {
-        const string path = "acquireLeaseOnNotExistFile.txt";
+        const string path = nameof(AcquireExclusiveLeaseOnExistFile) + ".txt";
 
         var testData = "wrong data".ToDataETag();
         var testData2 = "right data".ToDataETag();
 
-        await ForceSet(path, testData);
+        (await _dataLake.File(path).ForceSet(testData, _context)).BeOk();
 
         Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).AcquireExclusive(false, _context)).BeOk();
 
@@ -135,17 +154,24 @@ public class DatalakeLeaseInitializationTests
 
         (await _dataLake.File(path).Get(_context)).BeOk().Return().Data.SequenceEqual(testData.Data).BeTrue();
     }
+}
+
+
+public class AcquireExclusiveAndLeaseOnExistFileTest : ParallelBaseTests
+{
+    public AcquireExclusiveAndLeaseOnExistFileTest(ITestOutputHelper output) : base(output) { }
+
 
     [Fact]
     public async Task AcquireExclusiveAndLeaseOnExistFile()
     {
-        const string path = "acquireLeaseOnNotExistFile.txt";
+        const string path = nameof(AcquireExclusiveAndLeaseOnExistFile) + ".txt";
 
         var testData = "wrong data".ToDataETag();
         var testData2 = "right data".ToDataETag();
         var testData3 = "right data #3".ToDataETag();
 
-        await ForceSet(path, testData);
+        (await _dataLake.File(path).ForceSet(testData, _context)).BeOk();
 
         _context.LogInformation("Set file {path}", path);
 
@@ -180,27 +206,5 @@ public class DatalakeLeaseInitializationTests
         (await leaseOption.Return().Set(testData, _context)).IsLocked().BeTrue();
 
         (await _dataLake.File(path).Get(_context)).BeOk().Return().Data.SequenceEqual(testData2.Data).BeTrue();
-    }
-
-    private async Task ForceDelete(string path)
-    {
-        var deleteOption = (await _dataLake.File(path).Delete(_context)).LogStatus(_context, "Delete file {path}", [path]);
-        if (deleteOption.IsOk() || !deleteOption.IsLocked()) return;
-
-        var breakOption = (await _dataLake.File(path).BreakLease(_context)).LogStatus(_context, "Break lease {path}", [path]);
-        breakOption.BeOk();
-
-        (await _dataLake.File(path).Delete(_context)).LogStatus(_context, "Delete file {path}", [path]).BeOk();
-    }
-
-    private async Task ForceSet(string path, DataETag data)
-    {
-        var writeOption = (await _dataLake.File(path).Set(data, _context)).LogStatus(_context, "Delete file {path}", [path]);
-        if (writeOption.IsOk() || !writeOption.IsLocked()) return;
-
-        var breakOption = (await _dataLake.File(path).BreakLease(_context)).LogStatus(_context, "Break lease {path}", [path]);
-        breakOption.BeOk();
-
-        (await _dataLake.File(path).Set(data, _context)).LogStatus(_context, "Delete file {path}", [path]).BeOk();
     }
 }

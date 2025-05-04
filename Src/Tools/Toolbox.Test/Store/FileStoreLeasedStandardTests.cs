@@ -6,6 +6,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Test.Store;
 
+
 public class FileStoreLeasedStandardTests
 {
     private readonly ScopeContext _context;
@@ -75,9 +76,9 @@ public class FileStoreLeasedStandardTests
         byte[] dataBytes2 = Encoding.UTF8.GetBytes(data2);
         byte[] dataBytes3 = Encoding.UTF8.GetBytes(data3);
 
-        var writeResult = (await fileAccess1.Set(dataBytes, _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
+        var writeResult = (await fileAccess1.Set(dataBytes, _context)).BeOk().Return();
 
-        await using var lease1 = (await fileAccess1.Acquire(TimeSpan.FromSeconds(30), _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
+        await using var lease1 = (await fileAccess1.Acquire(TimeSpan.FromSeconds(30), _context)).BeOk().Return();
 
         var cancelTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(125));
         var context = _context.With(cancelTokenSource.Token);
@@ -85,15 +86,16 @@ public class FileStoreLeasedStandardTests
         var lease2Option = await fileAccess1.Acquire(TimeSpan.FromSeconds(60), context);
         lease2Option.IsError().BeTrue();
 
-        (await fileAccess2.Set(dataBytes, _context)).Assert(x => x.IsConflict(), x => x.ToString());
-        (await fileAccess1.Set(dataBytes3, _context)).Assert(x => x.IsError(), _ => "Should fail");
+        (await fileAccess2.Set(dataBytes, _context)).IsLocked().BeTrue();
 
-        (await lease1.Release(_context)).Assert(x => x.IsOk(), x => x.ToString());
+        (await fileAccess1.Set(dataBytes3, _context)).BeError();
+
+        (await lease1.Release(_context)).BeOk();
 
         dataBytes = Encoding.UTF8.GetBytes(data3);
-        (await fileAccess1.Set(dataBytes, _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
+        (await fileAccess1.Set(dataBytes, _context)).BeOk().Return();
 
-        var receive = (await fileAccess1.Get(_context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
+        var receive = (await fileAccess1.Get(_context)).BeOk().Return();
         Enumerable.SequenceEqual(dataBytes, receive.Data).BeTrue();
     }
 

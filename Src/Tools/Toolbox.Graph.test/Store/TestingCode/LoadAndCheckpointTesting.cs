@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
-using Toolbox.Graph;
 using Toolbox.Graph.test.Command;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -59,24 +58,5 @@ internal static class LoadAndCheckpointTesting
 
             compareMap.Count.Be(0);
         });
-    }
-
-    public static async Task LoadInitialDatabase(GraphHostService testClient, ScopeContext context)
-    {
-        IFileStore fileStore = testClient.Services.GetRequiredService<IFileStore>();
-        IGraphEngine host = testClient.Services.GetRequiredService<IGraphEngine>();
-        const int count = 5;
-
-        var expectedMap = new GraphMap();
-        Enumerable.Range(0, count).ForEach(x => expectedMap.Add(new GraphNode($"node-{x}")));
-        Enumerable.Range(0, count - 1).ForEach(x => expectedMap.Add(new GraphEdge($"node-{x}", $"node-{x + 1}", "et")));
-
-        string dbJson = expectedMap.ToSerialization().ToJson();
-        (await fileStore.File(GraphConstants.MapDatabasePath).Set(dbJson.ToDataETag(), context)).IsOk().BeTrue();
-
-        (await host.InitializeDatabase(context)).IsOk().BeTrue();
-
-        var compareMap = GraphCommandTools.CompareMap(expectedMap, testClient.Map, true);
-        compareMap.Count.Be(0);
     }
 }

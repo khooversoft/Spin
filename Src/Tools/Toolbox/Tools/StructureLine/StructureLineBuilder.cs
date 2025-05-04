@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
 
 namespace Toolbox.Tools;
 
@@ -32,6 +33,8 @@ public static class StructureLineBuilder
         var record = new StructureLineRecord(message, args);
 
         var variableCount = record.GetVariables().Count;
+        if (variableCount != record.Args.Length) Debugger.Break();
+
         variableCount.Be(record.Args.Length, "Unbalanced parameter.Count != args.Count");
 
         return record;

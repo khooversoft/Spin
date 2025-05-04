@@ -44,7 +44,7 @@ public class GraphHost : IGraphHost
 
             using var metric = context.LogDuration("graphHost-loadMap");
 
-            if (map != null) _graphHostEngine.SetMap(map.NotNull());
+            if (map != null) _graphHostEngine.SetMap(map);
             var loadOption = await _graphHostEngine.InitializeDatabase(context);
             if (loadOption.IsError()) return loadOption;
 

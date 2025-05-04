@@ -40,23 +40,32 @@ internal class TagValueIndex
 
     public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _nodeKeyLookup.Lookup(nodeKey);
 
-    public bool Remove(string indexName, string value)
+    public Option Remove(string indexName, string value)
     {
         string pk = UniqueIndexComparer.CreatePrimaryKey(indexName, value);
 
-        if (!_index.TryGetValue(pk, out var uniqueIndex)) return false;
-        bool status = _index.Remove(pk);
+        if (!_index.TryGetValue(pk, out var uniqueIndex)) return StatusCode.NotFound;
+        var status = _index.Remove(pk) switch
+        {
+            true => StatusCode.OK,
+            _ => StatusCode.NotFound,
+        };
 
         _nodeKeyLookup.Remove(uniqueIndex);
         return status;
     }
 
-    public bool RemoveNodeKey(string nodeKey)
+    public Option RemoveNodeKey(string nodeKey)
     {
         var uniqueIndices = _nodeKeyLookup.Lookup(nodeKey);
-        if (uniqueIndices == null) return false;
+        if (uniqueIndices == null) return StatusCode.NotFound;
 
         uniqueIndices.ForEach(x => _index.Remove(x.PrimaryKey));
-        return _nodeKeyLookup.Remove(nodeKey);
+
+        return _nodeKeyLookup.Remove(nodeKey) switch
+        {
+            true => StatusCode.OK,
+            _ => StatusCode.NotFound,
+        };
     }
 }

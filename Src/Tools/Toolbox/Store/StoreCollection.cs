@@ -44,7 +44,7 @@ public class StoreCollection : IStoreCollection
     public IFileStore Get(string alias)
     {
         alias.NotEmpty();
-        _context.LogInformation("Gettig alias={alias}", alias);
+        _context.LogInformation("Getting alias={alias}", alias);
 
         var fileStore = _cache.GetOrAdd(alias, _ =>
         {
