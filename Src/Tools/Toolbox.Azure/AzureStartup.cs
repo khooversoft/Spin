@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Store;
@@ -36,6 +37,27 @@ public static class AzureStartup
         datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption");
 
         graphHostService.AddServiceConfiguration(x => x.AddDatalakeFileStore(datalakeOption));
+        return graphHostService;
+    }
+
+    public static GraphHostBuilder AddDatalakeFileStore(this GraphHostBuilder graphHostService)
+    {
+        graphHostService.NotNull();
+
+        graphHostService.AddServiceConfiguration(x =>
+        {
+            x.AddSingleton<DatalakeOption>(service =>
+            {
+                IConfiguration config = service.GetRequiredService<IConfiguration>();
+                DatalakeOption datalakeOption = config.GetSection("Storage").Get<DatalakeOption>().NotNull();
+                datalakeOption.Validate().BeOk();
+
+                return datalakeOption;
+            });
+
+            x.AddSingleton<IFileStore, DatalakeStore>();
+        });
+
         return graphHostService;
     }
 }

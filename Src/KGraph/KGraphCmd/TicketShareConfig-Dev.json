@@ -10,5 +10,12 @@
       "TenantId": "33470f72-2b3b-4a0b-837d-4ba9ba499d69",
       "ClientSecret": ""
     }
+  },
+
+  "GraphHost": {
+    "ReadOnly": false,
+    "ShareMode": true,
+    "DisableCache": true,
+    "BreakExclusiveLease": false
   }
 }

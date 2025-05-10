@@ -1,57 +1,62 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Toolbox.Azure;
 using Toolbox.Graph;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace KGraphCmd.Application;
 
-public class GraphHostManager : IAsyncDisposable
+public class GraphHostManager : IDisposable
 {
     private readonly ILogger<GraphHostManager> _logger;
-    private readonly object _lock = new object();
-    private ServiceProvider? _serviceProvider;
+    private GraphHostService? _graphHost;
+    private string? _loadedJson;
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
     public GraphHostManager(ILogger<GraphHostManager> logger) => _logger = logger.NotNull();
 
-    public ServiceProvider ServiceProvider => _serviceProvider.NotNull();
+    public IServiceProvider ServiceProvider => _graphHost.NotNull("Host not started").Services;
+    public string? LoadedJson => _loadedJson;
 
-    public async ValueTask DisposeAsync() => await Close();
-
-    public async ValueTask Close()
+    public async Task<GraphHostService> Start(string jsonFile)
     {
-        if (_serviceProvider == null) return;
-        await _serviceProvider.DisposeAsync();
-        _serviceProvider = null;
-    }
+        jsonFile.NotEmpty("Json file is required").Assert(x => File.Exists(x), x => $"File {x} does not exist");
 
-    public IServiceProvider Start(string jsonFile)
-    {
-        lock (_lock)
+        await _semaphore.WaitAsync();
+
+        try
         {
-            _serviceProvider?.Dispose();
-            _serviceProvider = HostTool.StartHost(jsonFile);
+            if (_graphHost != null && _loadedJson == jsonFile) return _graphHost;
 
-            try
-            {
-                IFileStore store = _serviceProvider.GetRequiredService<IFileStore>();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Failed to connect to datalake");
-                throw;
-            }
+            Close();
+            _loadedJson = jsonFile;
 
-            return _serviceProvider;
+            if (_graphHost != null) return _graphHost;
+
+            _graphHost = await new GraphHostBuilder()
+                .UseLogging()
+                .SetConfigurationFile(_loadedJson)
+                .AddDatalakeFileStore()
+                .Build();
+
+            // See if we can connect to the datalake
+            _graphHost.Services.GetRequiredService<IFileStore>();
+
+            return _graphHost;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to start graph host");
+            throw;
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 
-    public async Task LoadMap(ScopeContext context)
-    {
-        var host = _serviceProvider.NotNull().GetRequiredService<IGraphEngine>();
-        context.LogInformation("Loading map...");
-        var result = await host.InitializeDatabase(context);
-        result.LogStatus(context, "Load map result");
-    }
+    public void Close() => Interlocked.Exchange(ref _graphHost, null)?.Dispose();
+
+    public void Dispose() => Close();
 }

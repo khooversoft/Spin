@@ -12,14 +12,12 @@ namespace KGraphCmd.Commands;
 
 internal class TransactionLog : ICommandRoute
 {
-    private readonly AbortSignal _abortSignal;
     private readonly ILogger<TransactionLog> _logger;
     private readonly GraphHostManager _graphHostManager;
 
-    public TransactionLog(GraphHostManager graphHostManager, AbortSignal abortSignal, ILogger<TransactionLog> logger)
+    public TransactionLog(GraphHostManager graphHostManager, ILogger<TransactionLog> logger)
     {
         _graphHostManager = graphHostManager.NotNull();
-        _abortSignal = abortSignal.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -39,9 +37,9 @@ internal class TransactionLog : ICommandRoute
 
     private async Task List(string? jsonFile, bool monitor, int lastNumber, bool fullDump, string? lsn)
     {
-        if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
+        if (jsonFile.IsNotEmpty()) await _graphHostManager.Start(jsonFile);
 
-        var context = new ScopeContext(_logger, _abortSignal.GetToken());
+        var context = _logger.ToScopeContext();
         context.LogInformation("Starting to list transactions...");
 
         var traceLog = _graphHostManager.ServiceProvider.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed).NotNull();

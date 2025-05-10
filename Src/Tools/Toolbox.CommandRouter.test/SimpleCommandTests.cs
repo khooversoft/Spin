@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.CommandRouter.test;
@@ -14,17 +16,17 @@ public class SimpleCommandTests
     [Fact]
     public async Task SimpleCommand()
     {
-        var host = new CommandRouterBuilder()
-            .SetArgs("run")
+        var host = new CommandRouterTestHost()
             .ConfigureAppConfiguration((config, service) => service.AddLogging(builder => builder.AddLambda(x => _output.WriteLine(x))))
             .ConfigureService(service => service.AddSingleton<ConcurrentQueue<string>>())
             .AddCommand<CmdA>()
             .Build();
 
-        int state = await host.Run();
-        state.Be(0);
+        var context = host.ServiceProvider.GetRequiredService<ILogger<SimpleCommandTests>>().ToScopeContext();
+        var state = await host.Command.Run(context, "run");
+        state.BeOk();
 
-        ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
+        ConcurrentQueue<string> q = host.ServiceProvider.GetRequiredService<ConcurrentQueue<string>>();
         q.Count.Be(1);
         q.TryDequeue(out string? result).BeTrue();
         result.Be("Run executed");
@@ -33,35 +35,35 @@ public class SimpleCommandTests
     [Fact]
     public async Task NotValidCommandShouldFail()
     {
-        var host = new CommandRouterBuilder()
-            .SetArgs("runxxx")
+        var host = new CommandRouterTestHost()
             .ConfigureAppConfiguration((config, service) => service.AddLogging(builder => builder.AddLambda(x => _output.WriteLine(x))))
             .ConfigureService(service => service.AddSingleton<ConcurrentQueue<string>>())
             .AddCommand<CmdA>()
             .Build();
 
-        int state = await host.Run();
-        state.Be(1);
+        var context = host.ServiceProvider.GetRequiredService<ILogger<SimpleCommandTests>>().ToScopeContext();
+        var state = await host.Command.Run(context, "runxxx");
+        state.BeError();
 
-        ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
+        ConcurrentQueue<string> q = host.ServiceProvider.GetRequiredService<ConcurrentQueue<string>>();
         q.Count.Be(0);
     }
 
     [Fact]
     public async Task SimpleMultipleCommand()
     {
-        var host = new CommandRouterBuilder()
-            .SetArgs("run")
+        var host = new CommandRouterTestHost()
             .ConfigureAppConfiguration((config, service) => service.AddLogging(builder => builder.AddLambda(x => _output.WriteLine(x))))
             .ConfigureService(service => service.AddSingleton<ConcurrentQueue<string>>())
             .AddCommand<CmdA>()
             .AddCommand<CmdBOption>()
             .Build();
 
-        int state = await host.Run();
-        state.Be(0);
+        var context = host.ServiceProvider.GetRequiredService<ILogger<SimpleCommandTests>>().ToScopeContext();
+        var state = await host.Command.Run(context, "run");
+        state.BeOk();
 
-        ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
+        ConcurrentQueue<string> q = host.ServiceProvider.GetRequiredService<ConcurrentQueue<string>>();
         q.Count.Be(1);
         q.TryDequeue(out string? result).BeTrue();
         result.Be("Run executed");
@@ -70,18 +72,18 @@ public class SimpleCommandTests
     [Fact]
     public async Task SimpleWithNoOptionCommand()
     {
-        var host = new CommandRouterBuilder()
-            .SetArgs("create")
+        var host = new CommandRouterTestHost()
             .ConfigureAppConfiguration((config, service) => service.AddLogging(builder => builder.AddLambda(x => _output.WriteLine(x))))
             .ConfigureService(service => service.AddSingleton<ConcurrentQueue<string>>())
             .AddCommand<CmdA>()
             .AddCommand<CmdBOption>()
             .Build();
 
-        int state = await host.Run();
-        state.Be(0);
+        var context = host.ServiceProvider.GetRequiredService<ILogger<SimpleCommandTests>>().ToScopeContext();
+        var state = await host.Command.Run(context, "create");
+        state.BeOk();
 
-        ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
+        ConcurrentQueue<string> q = host.ServiceProvider.GetRequiredService<ConcurrentQueue<string>>();
         q.Count.Be(1);
         q.TryDequeue(out string? result).BeTrue();
         result.Be("Created");
@@ -90,18 +92,18 @@ public class SimpleCommandTests
     [Fact]
     public async Task SimpleWithOptionCommand()
     {
-        var host = new CommandRouterBuilder()
-            .SetArgs("create", "--workId", "work#123")
+        var host = new CommandRouterTestHost()
             .ConfigureAppConfiguration((config, service) => service.AddLogging(builder => builder.AddLambda(x => _output.WriteLine(x))))
             .ConfigureService(service => service.AddSingleton<ConcurrentQueue<string>>())
             .AddCommand<CmdA>()
             .AddCommand<CmdBOption>()
             .Build();
 
-        int state = await host.Run();
-        state.Be(0);
+        var context = host.ServiceProvider.GetRequiredService<ILogger<SimpleCommandTests>>().ToScopeContext();
+        var state = await host.Command.Run(context, "create", "--workId", "work#123");
+        state.BeOk();
 
-        ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
+        ConcurrentQueue<string> q = host.ServiceProvider.GetRequiredService<ConcurrentQueue<string>>();
         q.Count.Be(1);
         q.TryDequeue(out string? result).BeTrue();
         result.Be("Created, workId=work#123");
@@ -110,18 +112,18 @@ public class SimpleCommandTests
     [Fact]
     public async Task SimpleWithRequiredOptionCommand()
     {
-        var host = new CommandRouterBuilder()
-            .SetArgs("create", "--workId", "work#123")
+        var host = new CommandRouterTestHost()
             .ConfigureAppConfiguration((config, service) => service.AddLogging(builder => builder.AddLambda(x => _output.WriteLine(x))))
             .ConfigureService(service => service.AddSingleton<ConcurrentQueue<string>>())
             .AddCommand<CmdA>()
             .AddCommand<CmdBOptionRequired>()
             .Build();
 
-        int state = await host.Run();
-        state.Be(0);
+        var context = host.ServiceProvider.GetRequiredService<ILogger<SimpleCommandTests>>().ToScopeContext();
+        var state = await host.Command.Run(context, "create", "--workId", "work#123");
+        state.BeOk();
 
-        ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
+        ConcurrentQueue<string> q = host.ServiceProvider.GetRequiredService<ConcurrentQueue<string>>();
         q.Count.Be(1);
         q.TryDequeue(out string? result).BeTrue();
         result.Be("Created, workId=work#123");
@@ -130,18 +132,18 @@ public class SimpleCommandTests
     [Fact]
     public async Task SimpleWithRequiredOptionCommandShouldFail()
     {
-        var host = new CommandRouterBuilder()
-            .SetArgs("create")
+        var host = new CommandRouterTestHost()
             .ConfigureAppConfiguration((config, service) => service.AddLogging(builder => builder.AddLambda(x => _output.WriteLine(x))))
             .ConfigureService(service => service.AddSingleton<ConcurrentQueue<string>>())
             .AddCommand<CmdA>()
             .AddCommand<CmdBOptionRequired>()
             .Build();
 
-        int state = await host.Run();
-        state.Be(1);
+        var context = host.ServiceProvider.GetRequiredService<ILogger<SimpleCommandTests>>().ToScopeContext();
+        var state = await host.Command.Run(context, "create");
+        state.BeError();
 
-        ConcurrentQueue<string> q = host.Service.GetRequiredService<ConcurrentQueue<string>>();
+        ConcurrentQueue<string> q = host.ServiceProvider.GetRequiredService<ConcurrentQueue<string>>();
         q.Count.Be(0);
     }
 

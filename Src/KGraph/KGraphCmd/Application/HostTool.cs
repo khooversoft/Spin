@@ -23,6 +23,8 @@ internal static class HostTool
             .AddUserSecrets(secretName)
             .Build();
 
+
+
         var services = new ServiceCollection()
             .AddLogging(x => x.AddConsole().AddDebug())
             .AddDatalakeFileStore(configuration.GetSection("Storage").Get<DatalakeOption>().NotNull())
@@ -31,4 +33,15 @@ internal static class HostTool
 
         return services;
     }
+
+    //public static async Task<GraphHostService> Start(string jsonFile)
+    //{
+    //    var graphServiceHost = await new GraphHostBuilder()
+    //        .UseLogging()
+    //        .SetConfigurationFile(jsonFile)
+    //        .AddDatalakeFileStore()
+    //        .Build();
+
+    //    return graphServiceHost;
+    //}
 }

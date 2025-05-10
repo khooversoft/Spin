@@ -1,12 +1,9 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
 using Toolbox.Journal;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
@@ -41,23 +38,6 @@ public static class GraphStartup
         }
 
         return services;
-    }
-
-    public static async Task<Option> StartGraphEngine(this IServiceProvider services)
-    {
-        var logger = services.GetRequiredService<IGraphHost>();
-        var context = new ScopeContext(services.GetRequiredService<ILogger<GraphHost>>());
-
-        var graphHost = services.GetRequiredService<IGraphHost>();
-        var result = await graphHost.Run(context);
-        if (result.IsError())
-        {
-            context.LogError("Failed to start graph host, result={result}", result);
-            return result;
-        }
-
-        context.LogInformation("Graph host started");
-        return StatusCode.OK;
     }
 }
 

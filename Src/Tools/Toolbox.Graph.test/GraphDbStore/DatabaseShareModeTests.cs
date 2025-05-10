@@ -36,7 +36,7 @@ public class DatabaseShareModeTests
             );
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1);
-        e1.IsOk().BeTrue();
+        e1.BeOk();
         leaseCounter.Acquire.Value.Be(1);
         leaseCounter.Release.Value.Be(1);
         leaseCounter.ActiveAcquire.Value.Be(0);
@@ -45,7 +45,7 @@ public class DatabaseShareModeTests
         var q1 = await testClient.Execute("select (key=node1);", context1);
         q1.Action(x =>
         {
-            x.IsOk().BeTrue();
+            x.BeOk();
             x.Return().Action(y =>
             {
                 y.Nodes.Count.Be(1);
@@ -61,7 +61,7 @@ public class DatabaseShareModeTests
         var s1 = await SecondEngineClient.Execute("select (key=node1);", context2);
         s1.Action(x =>
         {
-            x.IsOk().BeTrue();
+            x.BeOk();
             x.Return().Action(y =>
             {
                 y.Nodes.Count.Be(1);

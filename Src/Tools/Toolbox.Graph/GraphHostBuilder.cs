@@ -47,7 +47,9 @@ public class GraphHostBuilder
 
     public async Task<GraphHostService> Build()
     {
-        var option = new GraphHostOption
+        IConfiguration? config = ConfigurationFile != null ? ReadConfiguration() : null;
+
+        GraphHostOption graphHostOption = config?.GetSection("GraphHost").Get<GraphHostOption>() ?? new GraphHostOption
         {
             ReadOnly = ReadOnly,
             ShareMode = ShareMode,
@@ -62,9 +64,9 @@ public class GraphHostBuilder
             .ConfigureServices((context, services) =>
             {
                 services
-                    .AddGraphEngine(option)
+                    .AddGraphEngine(graphHostOption)
                     .AddSingleton<GraphHostService>()
-                    .Action(x => ConfigurationFile?.Action(y => x.AddSingleton(ReadConfiguration())))
+                    .Action(x => config?.Action(y => x.AddSingleton(y)))
                     .IfTrue(x => InMemoryStore, x => x.AddInMemoryFileStore())
                     .IfTrue(x => Logging, x => x.AddLogging(config =>
                     {
@@ -99,10 +101,11 @@ public class GraphHostBuilder
             .Build();
 
         string? secretName = configuration["SecretName"];
+        if (secretName == null) return configuration;
 
         configuration = new ConfigurationBuilder()
             .AddJsonFile(ConfigurationFile)
-            .Action(x => secretName?.Action(y => x.AddUserSecrets(y)))
+            .AddUserSecrets(secretName)
             .Build();
 
         return configuration;

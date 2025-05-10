@@ -29,7 +29,7 @@ public class SimpleConsoleLogging : ILogger
                 LogLevel.Information => (ConsoleColor.Green, "Info"),
                 LogLevel.Warning => (ConsoleColor.Yellow, "Warn"),
                 LogLevel.Error => (ConsoleColor.Red, "Error"),
-                LogLevel.Critical => (ConsoleColor.Red, "Critial"),
+                LogLevel.Critical => (ConsoleColor.Red, "Critical"),
 
                 _ => ((ConsoleColor?)null, logLevel.ToString()),
             };
@@ -52,7 +52,7 @@ public class SimpleConsoleLogging : ILogger
                 }
             }
 
-            var lines = formatString.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+            var lines = formatString.Split(Environment.NewLine)
                 .Select((x, i) => i == 0 ? x : $"{"",16} > {x}")
                 .Join(Environment.NewLine);
 
@@ -80,30 +80,4 @@ public static class ColorConsoleLoggerProviderExtension
         builder.AddProvider(new ColorConsoleLoggerProvider());
         return builder;
     }
-}
-
-public record Circle { public double Radius { get; } }
-public record Rectangle { public int Width { get; } public int Height { get; } }
-
-public static class AA
-{
-    public static int CalculateArea(object shape)
-    {
-        switch (shape)
-        {
-            case Circle circle:
-                return (int)(Math.PI * circle.Radius * circle.Radius);
-            case Rectangle rectangle:
-                return rectangle.Width * rectangle.Height;
-            default:
-                throw new ArgumentException("Unknown shape");
-        }
-    }
-
-    public static int CalculateArea1(object shape) => shape switch
-    {
-        Circle circle => (int)(Math.PI * circle.Radius * circle.Radius),
-        Rectangle rectangle => rectangle.Width * rectangle.Height,
-        _ => throw new ArgumentException("Unknown shape"),
-    };
 }

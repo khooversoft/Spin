@@ -11,18 +11,16 @@ namespace KGraphCmd.Commands;
 
 internal class GraphDb : ICommandRoute
 {
-    private readonly AbortSignal _abortSignal;
     private readonly ILogger<GraphDb> _logger;
     private readonly GraphHostManager _graphHostManager;
 
-    public GraphDb(GraphHostManager graphHostManager, AbortSignal abortSignal, ILogger<GraphDb> logger)
+    public GraphDb(GraphHostManager graphHostManager, ILogger<GraphDb> logger)
     {
-        _abortSignal = abortSignal.NotNull();
         _logger = logger.NotNull();
         _graphHostManager = graphHostManager;
     }
 
-    public CommandSymbol CommandSymbol() => new CommandSymbol("db", "Query or reset KGraph's database files")
+    public CommandSymbol CommandSymbol() => new CommandSymbol("db", "KGraph database utilities")
     {
         new CommandSymbol("nodes", "Dump all the nodes").Action(x =>
         {
@@ -42,56 +40,56 @@ internal class GraphDb : ICommandRoute
 
             x.SetHandler(DumpEdges, jsonFile, fullDump, fromKey, toKey, edgeType);
         }),
-        new CommandSymbol("query", "Execute kgraph command").Action(x =>
-        {
-            var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
-            var fullDump = x.AddOption<bool>("--full", "Json file with data lake connection details");
-            var command = x.AddArgument<string>("graph command", "kgraph command to execute");
+        //new CommandSymbol("query", "Execute kgraph command").Action(x =>
+        //{
+        //    var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
+        //    var fullDump = x.AddOption<bool>("--full", "Json file with data lake connection details");
+        //    var command = x.AddArgument<string>("graph command", "kgraph command to execute");
 
-            x.SetHandler(Query, jsonFile, command, fullDump);
-        }),
+        //    x.SetHandler(Query, jsonFile, command, fullDump);
+        //}),
     };
 
-    private async Task Query(string? jsonFile, string command, bool fullDump)
-    {
-        if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
-        var context = new ScopeContext(_logger, _abortSignal.GetToken());
-        await _graphHostManager.LoadMap(context);
+    //private async Task Query(string? jsonFile, string command, bool fullDump)
+    //{
+    //    if (jsonFile.IsNotEmpty()) await _graphHostManager.Start(jsonFile);
+    //    var context = _logger.ToScopeContext();
+    //    //await _graphHostManager.LoadMap(context);
 
-        var client = _graphHostManager.ServiceProvider.GetRequiredService<IGraphClient>();
-        var result = await client.ExecuteBatch(command, context);
-        if (result.IsError())
-        {
-            result.LogStatus(context, "Failed to execute command '{cmd}'", [command]);
-            return;
-        }
+    //    var client = _graphHostManager.ServiceProvider.GetRequiredService<IGraphClient>();
+    //    var result = await client.ExecuteBatch(command, context);
+    //    if (result.IsError())
+    //    {
+    //        result.LogStatus(context, "Failed to execute command '{cmd}'", [command]);
+    //        return;
+    //    }
 
-        QueryBatchResult queryResult = result.Return();
-        GraphLinkData[] saveLinkData = queryResult.Items.SelectMany(x => x.DataLinks).ToArray();
-        QueryBatchResult trimmed = queryResult with
-        {
-            Items = queryResult.Items.Select(x => x with
-            {
-                DataLinks = x.DataLinks.Select(y => y with { Data = new DataETag([]) }).ToArray(),
-            }).ToArray(),
-        };
+    //    QueryBatchResult queryResult = result.Return();
+    //    GraphLinkData[] saveLinkData = queryResult.Items.SelectMany(x => x.DataLinks).ToArray();
+    //    QueryBatchResult trimmed = queryResult with
+    //    {
+    //        Items = queryResult.Items.Select(x => x with
+    //        {
+    //            DataLinks = x.DataLinks.Select(y => y with { Data = new DataETag([]) }).ToArray(),
+    //        }).ToArray(),
+    //    };
 
-        DataFormatType dataFormatType = fullDump ? DataFormatType.Full : DataFormatType.Single;
-        var line = DataFormatTool.Formats.Format(trimmed, dataFormatType).ToLoggingFormat();
-        context.LogInformation(line);
+    //    DataFormatType dataFormatType = fullDump ? DataFormatType.Full : DataFormatType.Single;
+    //    var line = DataFormatTool.Formats.Format(trimmed, dataFormatType).ToLoggingFormat();
+    //    context.LogInformation(line);
 
-        foreach (var item in saveLinkData)
-        {
-            string l2 = DataFormatTool.Formats.Format(item, DataFormatType.Single).ToLoggingFormat();
-            context.LogInformation(l2);
-        }
-    }
+    //    foreach (var item in saveLinkData)
+    //    {
+    //        string l2 = DataFormatTool.Formats.Format(item, DataFormatType.Single).ToLoggingFormat();
+    //        context.LogInformation(l2);
+    //    }
+    //}
 
     private async Task DumpNodes(string? jsonFile, bool fullDump, string? nodeKey)
     {
-        if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
-        var context = new ScopeContext(_logger, _abortSignal.GetToken());
-        await _graphHostManager.LoadMap(context);
+        if (jsonFile.IsNotEmpty()) await _graphHostManager.Start(jsonFile);
+        var context = _logger.ToScopeContext();
+        //await _graphHostManager.LoadMap(context);
 
         IGraphEngine graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphEngine>();
         context.LogInformation("Dumping nodes, count={count}", graphHost.Map.Nodes.Count);
@@ -111,9 +109,9 @@ internal class GraphDb : ICommandRoute
 
     private async Task DumpEdges(string? jsonFile, bool fullDump, string? fromKey, string? toKey, string? edgeType)
     {
-        if (jsonFile.IsNotEmpty()) _graphHostManager.Start(jsonFile);
-        var context = new ScopeContext(_logger, _abortSignal.GetToken());
-        await _graphHostManager.LoadMap(context);
+        if (jsonFile.IsNotEmpty()) await _graphHostManager.Start(jsonFile);
+        var context = _logger.ToScopeContext();
+        //await _graphHostManager.LoadMap(context);
 
         IGraphEngine graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphEngine>();
         context.LogInformation("Dumping edges, count={count}", graphHost.Map.Edges.Count);

@@ -32,10 +32,12 @@ public static class StructureLineBuilder
 
         var record = new StructureLineRecord(message, args);
 
+#if DEBUG
         var variableCount = record.GetVariables().Count;
         if (variableCount != record.Args.Length) Debugger.Break();
 
         variableCount.Be(record.Args.Length, "Unbalanced parameter.Count != args.Count");
+#endif
 
         return record;
     }

@@ -169,7 +169,7 @@ public class GraphMapStore : IAsyncDisposable
         Interlocked.Exchange(ref _map, newMap);
         _map.UpdateCounters();
 
-        context.LogTrace("Loaded graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
+        context.LogInformation("Loaded graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
         return StatusCode.OK;
     }
 

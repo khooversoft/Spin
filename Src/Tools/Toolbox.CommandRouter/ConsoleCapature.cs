@@ -2,6 +2,7 @@
 using System.CommandLine.IO;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -9,9 +10,9 @@ namespace Toolbox.CommandRouter;
 
 internal class ConsoleCapture : IConsole
 {
-    public ConsoleCapture(ScopeContextLocation context)
+    public ConsoleCapture()
     {
-        var writer = new Writer(context);
+        var writer = new Writer();
         Out = writer;
         Error = writer;
     }
@@ -23,40 +24,32 @@ internal class ConsoleCapture : IConsole
     public bool IsErrorRedirected => true;
     public bool IsInputRedirected => true;
 
-    public void Dump() => ((Writer)Out).Dump();
+    public void Dump(ScopeContext context) => ((Writer)Out).Dump(context);
 
     private class Writer : IStandardStreamWriter
     {
         private readonly StringBuilder _line = new();
-        private readonly ScopeContextLocation _context;
-
-        public Writer(ScopeContextLocation context) => _context = context;
+        private object _lock = new object();
 
         public void Write(string? value)
         {
-            (bool term, string resultValue) = value switch
+            lock (_lock)
             {
-                string v when v == "\r" => (true, string.Empty),
-                string v when v == "\n" => (true, string.Empty),
-                string v when v == "\r\n" => (true, string.Empty),
-                string v when v.EndsWith("\r\n") => (true, value[0..^3]),
-                string v when v.EndsWith("\n") => (true, value[0..^2]),
-                string v when v.EndsWith("\r") => (true, value[0..^2]),
-
-                _ => (false, value ?? string.Empty)
-            };
-
-            _line.Append(resultValue);
-
-            if (term) Dump();
+                if (value != null) _line.Append(value);
+            }
         }
 
-        public void Dump()
+        public void Dump(ScopeContext context)
         {
-            if (_line.Length == 0) return;
+            lock (_lock)
+            {
+                var line = _line.ToString();
+                _line.Clear();
+                if (line.IsEmpty()) return;
 
-            _context.LogInformation("From Command Router: {line}", _line.ToString());
-            _line.Clear();
+                var logText = line.Replace("\n", null).Replace("\r", Environment.NewLine).TrimEnd();
+                context.LogInformation("From Command Router: {line}", logText);
+            }
         }
     }
 }
