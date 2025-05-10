@@ -23,7 +23,7 @@ internal class SystemSettings : ICommandRoute
         _graphHostManager = graphHostManager.NotNull();
         _logger = logger.NotNull();
 
-        _context = new ScopeContext(_logger);
+        _context = _logger.ToScopeContext();
     }
 
     public CommandSymbol CommandSymbol() => new CommandSymbol("settings", "KGraph's database management and settings")

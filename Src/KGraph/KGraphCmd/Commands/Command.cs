@@ -51,8 +51,6 @@ internal class Command : ICommandRoute
         _context.LogInformation("Starting command shell...");
         await Task.Delay(TimeSpan.FromMilliseconds(100));
 
-        var hashLsn = new HashSet<string>();
-
         while (true)
         {
             await _graphHostManager.Start(jsonFile);
@@ -87,11 +85,9 @@ internal class Command : ICommandRoute
 
                 return args;
             }
-            catch
-            {
-                Console.WriteLine("Syntax error");
-            }
+            catch { }
 
+            Console.WriteLine("Syntax error");
             return Array.Empty<string>();
         }
     }

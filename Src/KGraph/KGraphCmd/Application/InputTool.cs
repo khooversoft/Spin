@@ -81,7 +81,7 @@ public static class InputTool
     public static string ToLoggingFormat(this IEnumerable<KeyValuePair<string, string?>> data)
     {
         var result = data.NotNull()
-            .Select(x => $"{x.Key}={fmt(x.Value)}")
+            .Select(x => $"{x.Key}: {fmt(x.Value)}")
             .Join(Environment.NewLine);
 
         return result;

@@ -1,5 +1,6 @@
 {
   "SecretName": "aspnet-TicketShareWeb-dev",
+  "DumpFolder": "E:\\Work\\TicketShareDev",
 
   "Storage": {
     "Account": "ticketsharestoredev",
