@@ -1,9 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace TicketShare.sdk;
@@ -30,7 +28,7 @@ public readonly struct AccountContext
 
     private async Task<Option> AddOrSet(bool useSet, AccountRecord accountRecord, ScopeContext context)
     {
-        accountRecord.PrincipalId.Should().Be(_principalId, "PrincipalId does not match");
+        accountRecord.PrincipalId.Be(_principalId, "PrincipalId does not match");
 
         var queryOption = AccountTool.CreateQuery(accountRecord, useSet, context);
         if (queryOption.IsError()) return queryOption.ToOptionStatus();

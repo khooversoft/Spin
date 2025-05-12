@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Toolbox.Journal;
 using Toolbox.Store;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
@@ -28,7 +30,7 @@ public static class GraphStartup
             ReadOnly = hostOption.ReadOnly,
         });
 
-        services.AddSingleton<IGraphClient, GraphQueryRunner>();
+        services.AddSingleton<IGraphClient, GraphQueryExecute>();
         services.AddSingleton<IGraphStore, GraphStore>();
 
         if (!hostOption.DisableCache)
@@ -38,6 +40,16 @@ public static class GraphStartup
         }
 
         return services;
+    }
+
+    public static async Task<Option> StartGraphEngine(this IServiceProvider serviceProvider)
+    {
+        serviceProvider.NotNull();
+        var graphHost = serviceProvider.GetRequiredService<IGraphHost>();
+        var context = serviceProvider.GetRequiredService<ILogger<GraphHost>>().ToScopeContext();
+
+        var result = await graphHost.Run(context).ConfigureAwait(false);
+        return result;
     }
 }
 

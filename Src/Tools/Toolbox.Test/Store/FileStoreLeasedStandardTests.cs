@@ -49,14 +49,14 @@ public class FileStoreLeasedStandardTests
         writeResult.IsOk().BeTrue(writeResult.ToString());
 
         var leaseResult = await lease1.Release(_context);
-        leaseResult.IsOk().BeTrue(leaseResult.ToString());
+        leaseResult.BeOk(leaseResult.ToString());
 
         dataBytes = Encoding.UTF8.GetBytes(data3);
         writeResult = await fileAccess.Set(dataBytes, _context);
-        writeResult.IsOk().BeTrue(writeResult.ToString());
+        writeResult.BeOk(writeResult.ToString());
 
         receive = await fileAccess.Get(_context);
-        receive.IsOk().BeTrue();
+        receive.BeOk();
         Enumerable.SequenceEqual(dataBytes, receive.Return().Data).BeTrue();
     }
 

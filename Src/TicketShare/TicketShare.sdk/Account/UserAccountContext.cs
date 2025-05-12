@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Logging;
 using Toolbox.Graph.Extensions;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 

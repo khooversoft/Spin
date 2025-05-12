@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace TicketShare.sdk.test.Schema;
 
@@ -10,7 +10,7 @@ public class TicketGroupRecordSerializationTests
     {
         var n1 = new TicketGroupRecord();
         var n2 = new TicketGroupRecord();
-        (n1 == n2).Should().BeTrue();
+        (n1 == n2).BeTrue();
     }
 
     [Fact]
@@ -64,6 +64,6 @@ public class TicketGroupRecordSerializationTests
         var json = rec1.ToJson();
         var rec2 = json.ToObject<TicketGroupRecord>();
 
-        (rec1 == rec2).Should().BeTrue();
+        (rec1 == rec2).BeTrue();
     }
 }

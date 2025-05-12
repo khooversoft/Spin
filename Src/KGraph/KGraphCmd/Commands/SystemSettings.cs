@@ -107,9 +107,9 @@ internal class SystemSettings : ICommandRoute
         var files = await fileStore.Search(GraphConstants.DbDatabaseSearchPath, _context);
         files = files.OrderByDescending(x => x.Path).ToArray();
 
-        foreach (var file in files)
+        foreach (IStorePathDetail file in files)
         {
-            _context.LogInformation("Deleting file {file}", file);
+            _context.LogInformation("Deleting path={path}", file.Path);
             var option = await fileStore.File(file.Path).Delete(_context);
             if (option.IsError()) option.LogStatus(_context, "Failed to delete file {file}", [file]);
         }

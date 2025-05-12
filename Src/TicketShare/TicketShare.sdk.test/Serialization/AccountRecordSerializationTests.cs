@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Schema;
@@ -18,12 +17,12 @@ public class AccountRecordSerializationTests
         };
 
         var option = rec.Validate();
-        option.IsOk().Should().BeTrue();
+        option.IsOk().BeTrue();
 
         var json = rec.ToJson();
         var rec2 = json.ToObject<AccountRecord>();
         rec2.NotNull();
-        (rec == rec2).Should().BeTrue();
+        (rec == rec2).BeTrue();
     }
 
     [Fact]
@@ -60,11 +59,11 @@ public class AccountRecordSerializationTests
         };
 
         var option = rec.Validate();
-        option.IsOk().Should().BeTrue();
+        option.IsOk().BeTrue();
 
         var json = rec.ToJson();
         var rec2 = json.ToObject<AccountRecord>();
         rec2.NotNull();
-        (rec == rec2).Should().BeTrue();
+        (rec == rec2).BeTrue();
     }
 }

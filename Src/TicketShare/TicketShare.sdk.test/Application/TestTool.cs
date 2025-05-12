@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.Applications;
@@ -22,7 +22,7 @@ internal static class TestTool
         };
 
         var result = await client.Set(user, context);
-        result.IsOk().Should().BeTrue(result.ToString());
+        result.IsOk().BeTrue(result.ToString());
     }
 
     public static async Task AddAccount(AccountRecord accountRecord, GraphHostService testHost, ScopeContext context)
@@ -30,7 +30,7 @@ internal static class TestTool
         var client = testHost.Services.GetRequiredService<AccountClient>();
 
         var result = await client.GetContext(accountRecord.PrincipalId).Add(accountRecord, context);
-        result.IsOk().Should().BeTrue(result.ToString());
+        result.IsOk().BeTrue(result.ToString());
     }
 
     public static AccountRecord CreateAccountModel(string principalId)
@@ -66,7 +66,7 @@ internal static class TestTool
         };
 
         var option = rec.Validate();
-        option.IsOk().Should().BeTrue();
+        option.IsOk().BeTrue();
 
         return rec;
     }

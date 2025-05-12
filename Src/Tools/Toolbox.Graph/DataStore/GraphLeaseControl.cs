@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -71,10 +72,14 @@ public class GraphLeaseControl
 
             while (loopCount-- > 0)
             {
-                leaseOption = await _graphStore
-                    .File(GraphConstants.MapDatabasePath)
-                    .AcquireExclusive(true, context)
-                    .ConfigureAwait(false);
+                leaseOption = await _graphStore.File(GraphConstants.MapDatabasePath).AcquireExclusive(true, context).ConfigureAwait(false);
+                if (leaseOption.IsOk())
+                {
+                    _exclusiveLock = leaseOption.Return();
+                    _leaseCounter.ActiveExclusive.Record(1);
+                    context.LogTrace("Exclusive lock acquired");
+                    return StatusCode.OK;
+                }
 
                 if (leaseOption.IsLocked())
                 {
@@ -88,13 +93,10 @@ public class GraphLeaseControl
                     continue;
                 }
 
-                if (leaseOption.IsError()) return leaseOption.ToOptionStatus();
+                return leaseOption.ToOptionStatus();
             }
 
-            _exclusiveLock = leaseOption.Return();
-            _leaseCounter.ActiveExclusive.Record(1);
-            context.LogTrace("Exclusive lock acquired");
-            return StatusCode.OK;
+            throw new UnreachableException("Flow failed");
         }
         finally
         {
@@ -185,7 +187,7 @@ public class GraphLeaseControl
     }
 
 
-    public class ScopedWriteAccess : IFileLeasedAccess
+    public class ScopedWriteAccess : IFileLeasedAccess, IAsyncDisposable
     {
         private readonly IFileLeasedAccess _writeAccess;
         private readonly Func<Task> _release;

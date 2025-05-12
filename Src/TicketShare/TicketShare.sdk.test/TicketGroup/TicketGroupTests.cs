@@ -3,7 +3,7 @@ using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.test.TicketGroup;
@@ -28,14 +28,14 @@ public class TicketGroupTests
 
         var ticketGroup = CreateTicketGroupModel("sam/2020/hockey", principalId, null);
         var result = await ticketGroupClient.Add(ticketGroup, context);
-        result.IsOk().Should().BeTrue(result.ToString());
+        result.IsOk().BeTrue(result.ToString());
 
         var readTicketGroupOption = await ticketGroupClient.Get(ticketGroup.TicketGroupId, context);
-        readTicketGroupOption.IsOk().Should().BeTrue();
+        readTicketGroupOption.IsOk().BeTrue();
         var readTicketGroup = readTicketGroupOption.Return();
 
         ticketGroup = ticketGroup with { ChannelId = readTicketGroup.ChannelId };
-        (ticketGroup == readTicketGroup).Should().BeTrue();
+        (ticketGroup == readTicketGroup).BeTrue();
 
         ticketGroup = ticketGroup with
         {
@@ -45,36 +45,36 @@ public class TicketGroupTests
         };
 
         result = await ticketGroupClient.Set(ticketGroup, context);
-        result.IsOk().Should().BeTrue(result.ToString());
+        result.IsOk().BeTrue(result.ToString());
 
         readTicketGroupOption = await ticketGroupClient.Get(ticketGroup.TicketGroupId, context);
-        readTicketGroupOption.IsOk().Should().BeTrue();
+        readTicketGroupOption.IsOk().BeTrue();
 
         (await ticketGroupClient.Search(principalId, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                (y[0] == ticketGroup).Should().BeTrue();
+                y.Count.Be(1);
+                (y[0] == ticketGroup).BeTrue();
             });
         });
 
         (await ticketGroupClient.Search(friendPrincipalId, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                (y[0] == ticketGroup).Should().BeTrue();
+                y.Count.Be(1);
+                (y[0] == ticketGroup).BeTrue();
             });
         });
 
         var delete = await ticketGroupClient.Delete(ticketGroup.TicketGroupId, context);
-        delete.IsOk().Should().BeTrue();
+        delete.IsOk().BeTrue();
 
         readTicketGroupOption = await ticketGroupClient.Get(ticketGroup.TicketGroupId, context);
-        readTicketGroupOption.IsError().Should().BeTrue();
+        readTicketGroupOption.IsError().BeTrue();
     }
 
     [Fact]
@@ -103,10 +103,10 @@ public class TicketGroupTests
         async Task<IReadOnlyList<TicketGroupRecord>> getAndTest(string ticketGroupId, Func<Task<Option<IReadOnlyList<TicketGroupRecord>>>> getFunc)
         {
             var result = await getFunc();
-            result.IsOk().Should().BeTrue();
+            result.IsOk().BeTrue();
             var subject = result.Return();
-            subject.Count.Should().Be(1);
-            subject[0].TicketGroupId.Should().Be(ticketGroupId);
+            subject.Count.Be(1);
+            subject[0].TicketGroupId.Be(ticketGroupId);
 
             return subject;
         }
@@ -122,36 +122,36 @@ public class TicketGroupTests
         await TestTool.AddAccount(accountRecord, testHost, context);
 
         var ticketGroup = CreateTicketGroupModel(ticketGroupId, principalId, friendPrincipalId);
-        (await client.Add(ticketGroup, context)).IsOk().Should().BeTrue();
+        (await client.Add(ticketGroup, context)).IsOk().BeTrue();
 
         var readTicketGroupOption = await client.Get(ticketGroup.TicketGroupId, context);
-        readTicketGroupOption.IsOk().Should().BeTrue();
+        readTicketGroupOption.IsOk().BeTrue();
 
         var readTicketGroup = readTicketGroupOption.Return();
         ticketGroup = ticketGroup with { ChannelId = readTicketGroup.ChannelId };
-        (ticketGroup == readTicketGroup).Should().BeTrue();
+        (ticketGroup == readTicketGroup).BeTrue();
 
         readTicketGroupOption = await client.Get(ticketGroup.TicketGroupId, context);
-        readTicketGroupOption.IsOk().Should().BeTrue();
-        (ticketGroup == readTicketGroupOption.Return()).Should().BeTrue();
+        readTicketGroupOption.IsOk().BeTrue();
+        (ticketGroup == readTicketGroupOption.Return()).BeTrue();
 
         (await client.Search(principalId, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                (y[0] == ticketGroup).Should().BeTrue();
+                y.Count.Be(1);
+                (y[0] == ticketGroup).BeTrue();
             });
         });
 
         (await client.Search(friendPrincipalId, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                (y[0] == ticketGroup).Should().BeTrue();
+                y.Count.Be(1);
+                (y[0] == ticketGroup).BeTrue();
             });
         });
     }

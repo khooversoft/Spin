@@ -4,7 +4,7 @@ using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Graph.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.test.TicketGroup;
@@ -38,56 +38,56 @@ public class TicketGroupManagerTests
         await TestTool.AddAccount(accountRecord, testHost, context);
 
         var createAccount = await manager.Create(new TicketGroupHeaderModel { Name = _modelName, Description = _modelDescription }, context);
-        createAccount.IsOk().Should().BeTrue();
+        createAccount.IsOk().BeTrue();
 
         var ticketContext = manager.GetContext(createAccount.Return());
-        (await ticketContext.Get(context)).IsOk().Should().BeTrue();
+        (await ticketContext.Get(context)).IsOk().BeTrue();
         var principalModelId = ticketContext.Input.Roles.Single().Value.Id;
 
         SeatModel s1 = new SeatModel { Id = _modelSeat1Id, Section = "1", Row = "10", Seat = _modelSeat1, AssignedToPrincipalId = principalId, Date = _seatDate };
-        (await ticketContext.Seats.Set(s1, context)).IsOk().Should().BeTrue();
+        (await ticketContext.Seats.Set(s1, context)).IsOk().BeTrue();
 
         SeatModel s2 = new SeatModel { Id = _modelSeat2Id, Section = "1", Row = "10", Seat = _modelSeat2, AssignedToPrincipalId = principalId, Date = _seatDate };
-        (await ticketContext.Seats.Set(s2, context)).IsOk().Should().BeTrue();
+        (await ticketContext.Seats.Set(s2, context)).IsOk().BeTrue();
 
-        (await ticketContext.Get(context)).IsOk().Should().BeTrue();
+        (await ticketContext.Get(context)).IsOk().BeTrue();
 
         var expectedModel = CreateTicketGroupModel(createAccount.Return(), principalId, principalModelId, null).ConvertTo();
-        (ticketContext.Input == expectedModel).Should().BeTrue();
+        (ticketContext.Input == expectedModel).BeTrue();
 
         RoleModel s3 = new RoleModel { Id = _roleId2, PrincipalId = friendPrincipalId, MemberRole = RoleType.Contributor.ToString() };
-        (await ticketContext.Roles.Set(s3, context)).IsOk().Should().BeTrue();
-        (await ticketContext.Get(context)).IsOk().Should().BeTrue();
+        (await ticketContext.Roles.Set(s3, context)).IsOk().BeTrue();
+        (await ticketContext.Get(context)).IsOk().BeTrue();
 
         expectedModel = CreateTicketGroupModel(createAccount.Return(), principalId, principalModelId, friendPrincipalId).ConvertTo();
-        (ticketContext.Input == expectedModel).Should().BeTrue();
+        (ticketContext.Input == expectedModel).BeTrue();
 
         var expectedRecord = expectedModel.ConvertTo();
 
         (await manager.Search(principalId, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                (y[0] == expectedRecord).Should().BeTrue();
+                y.Count.Be(1);
+                (y[0] == expectedRecord).BeTrue();
             });
         });
 
         (await manager.Search(friendPrincipalId, context)).Action(x =>
         {
-            x.IsOk().Should().BeTrue();
+            x.IsOk().BeTrue();
             x.Return().Action(y =>
             {
-                y.Count.Should().Be(1);
-                (y[0] == expectedRecord).Should().BeTrue();
+                y.Count.Be(1);
+                (y[0] == expectedRecord).BeTrue();
             });
         });
 
         var delete = await ticketContext.Delete(context);
-        delete.IsOk().Should().BeTrue();
+        delete.IsOk().BeTrue();
 
-        (await ticketContext.Get(context)).IsOk().Should().BeFalse();
+        (await ticketContext.Get(context)).IsOk().BeFalse();
     }
 
     private TicketGroupRecord CreateTicketGroupModel(string ticketGroupId, string principalId, string principalModelId, string? contributorPrincipalId)

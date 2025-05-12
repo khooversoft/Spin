@@ -6,10 +6,8 @@ using Microsoft.Extensions.Logging;
 using TicketApi.sdk.MasterList;
 using Toolbox;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -53,20 +51,20 @@ public class TicketDataTests
     //public async Task BuildModel()
     //{
     //    var deleteOption = await _manager.ClearData(_context);
-    //    deleteOption.IsOk().Should().BeTrue();
+    //    deleteOption.IsOk().BeTrue();
 
     //    var readOption = await _manager.Build(_context);
-    //    readOption.IsOk().Should().BeTrue();
+    //    readOption.IsOk().BeTrue();
 
     //    var exist = await _filestore.Exist(TicketDataClient.Path, _context);
-    //    exist.IsOk().Should().BeTrue();
+    //    exist.IsOk().BeTrue();
     //}
 
     [Fact]
     public async Task LoadTicketData()
     {
         var readOption = await _dataClient.Get(_context);
-        readOption.IsOk().Should().BeTrue();
+        readOption.IsOk().BeTrue();
         var read = readOption.Return();
 
         var attractions = read.Attractions

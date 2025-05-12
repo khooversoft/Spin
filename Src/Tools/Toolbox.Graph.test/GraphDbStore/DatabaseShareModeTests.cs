@@ -105,7 +105,7 @@ public class DatabaseShareModeTests
         var q1 = await testClient.Execute("select (key=node1);", context1);
         q1.Action(x =>
         {
-            x.IsOk().BeTrue();
+            x.BeOk();
             x.Return().Action(y =>
             {
                 y.Nodes.Count.Be(1);
@@ -167,7 +167,7 @@ public class DatabaseShareModeTests
             var s1 = await host.Execute("select (key=node1);", context);
             s1.Action(x =>
             {
-                x.IsOk().BeTrue(x.ToString());
+                x.BeOk();
                 x.Return().Action(y =>
                 {
                     y.Nodes.Count.Be(1);

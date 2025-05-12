@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class InMemoryLeasedAccess : IFileLeasedAccess
+public class InMemoryLeasedAccess : IFileLeasedAccess, IAsyncDisposable
 {
     private readonly LeaseRecord _leaseRecord;
     private readonly MemoryStore _memoryStore;

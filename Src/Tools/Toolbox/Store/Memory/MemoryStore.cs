@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -15,7 +16,6 @@ public sealed class MemoryStore
     private readonly ConcurrentDictionary<string, LeaseRecord> _leaseStore = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new object();
     private readonly ILogger<MemoryStore> _logger;
-    private readonly QueueLock _queueLock = new();
 
     public MemoryStore(ILogger<MemoryStore> logger) => _logger = logger.NotNull();
 
@@ -177,33 +177,68 @@ public sealed class MemoryStore
     {
         context = context.With(_logger);
 
-        if (!_store.TryGetValue(path, out var _)) return StatusCode.NotFound;
-
-        Option acquiredScope = _queueLock.AcquireLock(TimeSpan.FromSeconds(1));
-        if (acquiredScope.IsError()) return acquiredScope.LogStatus(context, "Failed to acquire scope lock").ToOptionStatus<LeaseRecord>();
+        LeaseRecord? leaseRecord = null!;
+        Option result = StatusCode.OK;
 
         lock (_lock)
         {
-            if (!_store.TryGetValue(path, out var payload)) return StatusCode.NotFound;
+            DirectoryDetail directoryDetail = _store.AddOrUpdate(path,
+                x =>
+                {
+                    var data = new byte[0].ToDataETag();
+                    StorePathDetail storePathDetail = data.ConvertTo(path);
+                    leaseRecord = new LeaseRecord(path, leaseDuration);
+                    _leaseStore[leaseRecord.LeaseId] = leaseRecord;
 
-            Option result = payload.LeaseRecord switch
-            {
-                LeaseRecord v when v.IsLeaseValid() == true => (StatusCode.Conflict, "Path is already leased"),
-                LeaseRecord v => _leaseStore.TryRemove(v.LeaseId, out _) ? StatusCode.OK : (StatusCode.Conflict, "Failed to remove old lease"),
-                _ => StatusCode.OK,
-            };
+                    DirectoryDetail dirDetail = new DirectoryDetail(storePathDetail, data, leaseRecord);
+                    result = StatusCode.OK;
+                    return dirDetail;
+                },
+                (x, v) =>
+                {
+                    result = v.LeaseRecord switch
+                    {
+                        LeaseRecord i when i.IsLeaseValid() == true => (StatusCode.Locked, "Path is already leased"),
+                        _ => StatusCode.OK,
+                    };
 
-            if (result.IsError()) return result.LogStatus(context, "Failed to acquire lease").ToOptionStatus<LeaseRecord>();
+                    if (result.IsError())
+                    {
+                        context.LogError("Failed to acquire lease, path={path}, current leaseId={leaseId}", path, v.LeaseRecord?.LeaseId);
+                        return v;
+                    }
 
-            LeaseRecord leaseRecord = new(path, leaseDuration);
-            var newPayload = payload with { LeaseRecord = leaseRecord };
+                    leaseRecord = new LeaseRecord(path, leaseDuration);
+                    var dirDetail = v with { LeaseRecord = leaseRecord };
+                    _leaseStore[leaseRecord.LeaseId] = leaseRecord;
 
-            _store[path] = newPayload;
-            _leaseStore[newPayload.LeaseRecord.LeaseId] = leaseRecord;
+                    context.LogDebug("Acquire lease Path={path}, leaseId={leaseId}", path, leaseRecord.LeaseId);
+                    return dirDetail;
+                });
 
-            context.LogDebug("Acquire lease Path={path}, leaseId={leaseId}", path, newPayload.LeaseRecord.LeaseId);
-            return newPayload.LeaseRecord;
+            return new Option<LeaseRecord>(leaseRecord, result.StatusCode, result.Error);
         }
+
+        //if (leaseRecord != null) return leaseRecord;
+
+        //Option result = directoryDetail.LeaseRecord switch
+        //{
+        //    LeaseRecord v when v.IsLeaseValid() == true => (StatusCode.Conflict, "Path is already leased"),
+        //    LeaseRecord v => _leaseStore.TryRemove(v.LeaseId, out _) ? StatusCode.OK : (StatusCode.Conflict, "Failed to remove old lease"),
+        //    _ => StatusCode.OK,
+        //};
+
+        //if (result.IsError()) return result.LogStatus(context, "Failed to acquire lease").ToOptionStatus<LeaseRecord>();
+
+        //leaseRecord = new(path, leaseDuration);
+        //var newPayload = directoryDetail with { LeaseRecord = leaseRecord };
+
+        //_store[path] = newPayload;
+        //_leaseStore[newPayload.LeaseRecord.LeaseId] = leaseRecord.NotNull();
+
+        //context.LogDebug("Acquire lease Path={path}, leaseId={leaseId}", path, newPayload.LeaseRecord.LeaseId);
+        //return newPayload.LeaseRecord;
+        //}
     }
 
     public Option BreakLease(string path, ScopeContext context)
@@ -213,7 +248,6 @@ public sealed class MemoryStore
         lock (_lock)
         {
             if (!_store.TryGetValue(path, out var payload)) return (StatusCode.NotFound, "Lease not found");
-            _queueLock.ReleaseLock();
 
             if (payload.LeaseRecord != null)
             {
@@ -233,7 +267,6 @@ public sealed class MemoryStore
         lock (_lock)
         {
             if (!_leaseStore.TryRemove(leaseId, out var leaseRecord)) return (StatusCode.NotFound, "Lease not found");
-            _queueLock.ReleaseLock();
 
             _store[leaseRecord.Path] = _store[leaseRecord.Path] with { LeaseRecord = null };
             context.LogDebug("Release lease Path={path}, leaseId={leaseId}", leaseRecord.Path, leaseId);

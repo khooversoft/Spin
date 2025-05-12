@@ -2,7 +2,7 @@
 using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
 using Toolbox.Graph;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Account;
@@ -21,25 +21,25 @@ public class AccountRecordTests
         await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1", testHost, context);
 
         var result = await client.GetContext(accountRecord.PrincipalId).Add(accountRecord, context);
-        result.IsOk().Should().BeTrue(result.ToString());
+        result.IsOk().BeTrue(result.ToString());
 
         var readAccount = await client.GetContext(accountRecord.PrincipalId).Get(context);
-        readAccount.IsOk().Should().BeTrue();
+        readAccount.IsOk().BeTrue();
 
-        (accountRecord == readAccount.Return()).Should().BeTrue();
+        (accountRecord == readAccount.Return()).BeTrue();
 
         string accountKey = AccountTool.ToNodeKey(accountRecord.PrincipalId);
         var queryResult = await graphClient.Execute($"select (key={accountKey}) -> [*] ;", context);
-        queryResult.IsOk().Should().BeTrue();
+        queryResult.IsOk().BeTrue();
         queryResult.Return().Action(x =>
         {
-            x.Nodes.Count.Should().Be(0);
-            x.Edges.Count.Should().Be(1);
+            x.Nodes.Count.Be(0);
+            x.Edges.Count.Be(1);
             x.Edges[0].Action(y =>
             {
-                y.FromKey.Should().Be(accountKey);
-                y.ToKey.Should().Be("user:user1@domain.com");
-                y.EdgeType.Should().Be("account-owns");
+                y.FromKey.Be(accountKey);
+                y.ToKey.Be("user:user1@domain.com");
+                y.EdgeType.Be("account-owns");
             });
         });
 
@@ -51,17 +51,17 @@ public class AccountRecordTests
         };
 
         result = await client.GetContext(accountRecord.PrincipalId).Set(accountRecord, context);
-        result.IsOk().Should().BeTrue();
+        result.IsOk().BeTrue();
 
         readAccount = await client.GetContext(accountRecord.PrincipalId).Get(context);
-        readAccount.IsOk().Should().BeTrue();
-        (accountRecord == readAccount.Return()).Should().BeTrue();
+        readAccount.IsOk().BeTrue();
+        (accountRecord == readAccount.Return()).BeTrue();
 
         var delete = await client.GetContext(accountRecord.PrincipalId).Delete(context);
-        delete.IsOk().Should().BeTrue();
+        delete.IsOk().BeTrue();
 
         readAccount = await client.GetContext(accountRecord.PrincipalId).Get(context);
-        readAccount.IsError().Should().BeTrue();
+        readAccount.IsError().BeTrue();
     }
 
     [Fact]
@@ -76,26 +76,26 @@ public class AccountRecordTests
         await TestTool.AddIdentityUser(principalId, "user1", testHost, context);
 
         var result = await client.Create(principalId, context);
-        result.IsOk().Should().BeTrue(result.ToString());
+        result.IsOk().BeTrue(result.ToString());
         AccountRecord accountRecord = result.Return();
 
         var readAccount = await client.GetContext(principalId).Get(context);
-        readAccount.IsOk().Should().BeTrue();
+        readAccount.IsOk().BeTrue();
 
-        (accountRecord == readAccount.Return()).Should().BeTrue();
+        (accountRecord == readAccount.Return()).BeTrue();
 
         string accountKey = AccountTool.ToNodeKey(accountRecord.PrincipalId);
         var queryResult = await graphClient.Execute($"select (key={accountKey}) -> [*] ;", context);
-        queryResult.IsOk().Should().BeTrue();
+        queryResult.IsOk().BeTrue();
         queryResult.Return().Action(x =>
         {
-            x.Nodes.Count.Should().Be(0);
-            x.Edges.Count.Should().Be(1);
+            x.Nodes.Count.Be(0);
+            x.Edges.Count.Be(1);
             x.Edges[0].Action(y =>
             {
-                y.FromKey.Should().Be(accountKey);
-                y.ToKey.Should().Be("user:user1@domain.com");
-                y.EdgeType.Should().Be("account-owns");
+                y.FromKey.Be(accountKey);
+                y.ToKey.Be("user:user1@domain.com");
+                y.EdgeType.Be("account-owns");
             });
         });
 
@@ -107,16 +107,16 @@ public class AccountRecordTests
         };
 
         var setOption = await client.GetContext(accountRecord.PrincipalId).Set(accountRecord, context);
-        setOption.IsOk().Should().BeTrue();
+        setOption.IsOk().BeTrue();
 
         readAccount = await client.GetContext(accountRecord.PrincipalId).Get(context);
-        readAccount.IsOk().Should().BeTrue();
-        (accountRecord == readAccount.Return()).Should().BeTrue();
+        readAccount.IsOk().BeTrue();
+        (accountRecord == readAccount.Return()).BeTrue();
 
         var delete = await client.GetContext(accountRecord.PrincipalId).Delete(context);
-        delete.IsOk().Should().BeTrue();
+        delete.IsOk().BeTrue();
 
         readAccount = await client.GetContext(accountRecord.PrincipalId).Get(context);
-        readAccount.IsError().Should().BeTrue();
+        readAccount.IsError().BeTrue();
     }
 }

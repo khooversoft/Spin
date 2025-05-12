@@ -134,7 +134,7 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 logger.LogInformation(
     "{appVersion}, Environment={environmentName}: AssemblyVersion={assemblyVersion}",

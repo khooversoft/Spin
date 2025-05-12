@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace TicketApi.sdk.MasterList;
@@ -48,7 +47,7 @@ public static class TeamMasterList
             .Where(x => x.IsNotEmpty())
             .Select(x => (x.IndexOf('='), x.IndexOf(':')) switch
             {
-                (> 0, -1) v => x[v.Item1..],
+                ( > 0, -1) v => x[v.Item1..],
                 _ => null,
             })
             .OfType<string>()
@@ -71,7 +70,7 @@ public static class TeamMasterList
         template.Genres.Count.Assert(x => x > 0, "No Genres found");
         template.SubGenres.Count.Assert(x => x > 0, "No SubGenres found");
         var coverageCount = classifications.Length - template.Segments.Count - template.Genres.Count - template.SubGenres.Count;
-        coverageCount.Should().Be(0, "Not all lines parsed");
+        coverageCount.Be(0, "Not all lines parsed");
 
         var details = lines
             .Where(x => x.IsNotEmpty())

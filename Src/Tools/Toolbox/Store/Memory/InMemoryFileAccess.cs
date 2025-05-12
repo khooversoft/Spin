@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -31,14 +32,32 @@ public class InMemoryFileAccess : IFileAccess
     public Task<Option<IStorePathDetail>> GetDetail(ScopeContext context) => _memoryStore.GetDetail(Path).ToTaskResult();
     public Task<Option<string>> Set(DataETag data, ScopeContext context) => _memoryStore.Set(Path, data, null, context.With(_logger)).ToTaskResult();
 
-    private Task<Option<IFileLeasedAccess>> InternalAcquire(TimeSpan leaseDuration, bool breakLeaseIfExist, ScopeContext context)
+    private async Task<Option<IFileLeasedAccess>> InternalAcquire(TimeSpan leaseDuration, bool breakLeaseIfExist, ScopeContext context)
     {
         if (breakLeaseIfExist) _memoryStore.BreakLease(Path, context);
 
-        Option<LeaseRecord> lease = _memoryStore.AcquireLease(Path, leaseDuration, context.With(_logger));
-        if (lease.IsError()) return lease.ToOptionStatus<IFileLeasedAccess>().ToTaskResult();
+        DateTime dt = DateTime.UtcNow + TimeSpan.FromSeconds(5);
 
-        IFileLeasedAccess access = new InMemoryLeasedAccess(lease.Return(), _memoryStore, _logger);
-        return access.ToOption().ToTaskResult();
+        while(DateTime.UtcNow < dt)
+        {
+            Option<LeaseRecord> lease = _memoryStore.AcquireLease(Path, leaseDuration, context.With(_logger));
+            if (lease.IsOk())
+            {
+                IFileLeasedAccess access = new InMemoryLeasedAccess(lease.Return(), _memoryStore, _logger);
+                return access.ToOption();
+            }
+
+            if(lease.IsLocked())
+            {
+                var waitPeriod = TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(300));
+                await Task.Delay(waitPeriod);
+                context.LogInformation("Lease is locked, waiting for {waitPeriod}", waitPeriod);
+                continue;
+            }
+
+            context.LogError("Failed to acquire lease, {statusCode}", lease.StatusCode);
+        }
+
+        return (StatusCode.Locked, "Timed out getting lease");
     }
 }

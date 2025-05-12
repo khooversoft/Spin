@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -30,7 +29,7 @@ public class TicketDataClient
         context = context.With(_logger);
 
         var cacheOption = GetFromCache(context);
-        if( cacheOption.IsOk()) return cacheOption;
+        if (cacheOption.IsOk()) return cacheOption;
 
         Option<DataETag> dataETag = await _fileStore.File(Path).Get(context);
         dataETag.LogStatus(context, "Get ticket data model, path={path}", [Path]);

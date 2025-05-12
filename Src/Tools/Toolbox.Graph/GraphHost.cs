@@ -44,15 +44,14 @@ public class GraphHost : IGraphHost
 
             using var metric = context.LogDuration("graphHost-loadMap");
 
-            if (map != null) _graphHostEngine.SetMap(map);
-            var loadOption = await _graphHostEngine.InitializeDatabase(context);
-            if (loadOption.IsError()) return loadOption;
-
             var exclusiveLease = await _graphHostEngine.AcquireExclusive(context);
             if (exclusiveLease.IsError()) return exclusiveLease.LogStatus(context, "Failed to acquire exclusive lease and load graph map");
+            context.LogDebug("Acquired exclusive lease for map database");
 
-            context.LogTrace("Acquired exclusive lease for map database");
-
+            if (map != null) await _graphHostEngine.SetMap(map, context);
+            //var loadOption = await _graphHostEngine.InitializeDatabase(context);
+            //if (loadOption.IsError()) return loadOption;
+            context.LogDebug("Graph database initialized");
 
             Interlocked.Exchange(ref _runningState, Running);
             context.LogInformation("GraphHost is running");

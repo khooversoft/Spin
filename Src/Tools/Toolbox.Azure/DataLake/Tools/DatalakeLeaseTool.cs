@@ -89,6 +89,7 @@ public static class DatalakeLeaseTool
                 context.LogTrace("Lease already present. Retrying...");
 
                 var waitPeriod = TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(300));
+
                 await Task.Delay(waitPeriod, context.CancellationToken).ConfigureAwait(false);
                 continue;
             }

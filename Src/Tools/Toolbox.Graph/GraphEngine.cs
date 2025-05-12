@@ -14,12 +14,11 @@ public interface IGraphEngine : IAsyncDisposable
     IJournalFile TransactionLog { get; }
 
     GraphMap Map { get; }
-    void SetMap(GraphMap map);
+    Task SetMap(GraphMap map, ScopeContext context);
     Task<Option> AcquireExclusive(ScopeContext context);
     Task ReleaseExclusive(ScopeContext context);
     Task<Option<IAsyncDisposable>> AcquireScope(ScopeContext context);
     Task<Option> CheckpointMap(ScopeContext context);
-    Task<Option> InitializeDatabase(ScopeContext context);
 
 }
 
@@ -50,9 +49,8 @@ public class GraphEngine : IGraphEngine
     public bool ShareMode => _hostOption.ShareMode;
 
     public GraphMap Map => _mapStore.GetMapReference();
-    public void SetMap(GraphMap map) => _mapStore.SetMap(map);
+    public Task SetMap(GraphMap map, ScopeContext context) => _mapStore.SetMap(map, context);
     public Task<Option> CheckpointMap(ScopeContext context) => _mapStore.CheckpointMap(context);
-    public Task<Option> InitializeDatabase(ScopeContext context) => _mapStore.InitializeDatabase(context);
 
     public Task<Option> AcquireExclusive(ScopeContext context) => _mapStore.AcquireExclusive(context);
     public Task ReleaseExclusive(ScopeContext context) => _mapStore.ReleaseExclusive(context);

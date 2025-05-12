@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Models;
@@ -18,10 +18,10 @@ public class SeatRecordTests
             AssignedToPrincipalId = "user1@domain.com",
         };
 
-        p1.Validate().IsOk().Should().BeTrue();
+        p1.Validate().IsOk().BeTrue();
         string j1 = p1.ToJson();
         var p2 = j1.ToObject<SeatRecord>();
-        (p1 == p2).Should().BeTrue();
+        (p1 == p2).BeTrue();
     }
 
     [Fact]
@@ -35,10 +35,10 @@ public class SeatRecordTests
             Date = DateTime.Now.Date,
         };
 
-        p1.Validate().IsOk().Should().BeTrue();
+        p1.Validate().IsOk().BeTrue();
         string j1 = p1.ToJson();
         var p2 = j1.ToObject<SeatRecord>();
-        (p1 == p2).Should().BeTrue();
+        (p1 == p2).BeTrue();
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class SeatRecordTests
             AssignedToPrincipalId = "user1@domain.com",
         };
 
-        (p1 == p2).Should().BeTrue();
+        (p1 == p2).BeTrue();
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class SeatRecordTests
             Date = dt,
         };
 
-        (p1 == p2).Should().BeTrue();
+        (p1 == p2).BeTrue();
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class SeatRecordTests
             AssignedToPrincipalId = "user1@domain.com",
         };
 
-        (p1 == p2).Should().BeFalse();
+        (p1 == p2).BeFalse();
     }
 
     [Fact]
@@ -139,6 +139,6 @@ public class SeatRecordTests
             AssignedToPrincipalId = "user1@domain.com",
         };
 
-        (p1 == p2).Should().BeFalse();
+        (p1 == p2).BeFalse();
     }
 }

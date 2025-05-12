@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <Folder Include="Docs\" />
-    <Folder Include="Metrics\" />
   </ItemGroup>
 
 </Project>

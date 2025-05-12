@@ -3,7 +3,6 @@ using TicketApi.sdk.MasterList;
 using TicketApi.sdk.test.Application;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace TicketApi.sdk.test;
@@ -23,7 +22,7 @@ public class AttractionTests
         var errors = new Sequence<string>();
 
         var result = await client.GetAttractions(teamDetails, context);
-        result.IsOk().Should().BeTrue();
+        result.IsOk().BeTrue();
         result.Return().NotNull();
         result.Return().Attractions.Count.Assert(x => x > 10, _ => "Empty list");
         result.Return().Images.Count.Assert(x => x > 10, _ => "Empty list");
@@ -50,7 +49,7 @@ public class AttractionTests
         //var count = sequence.Count;
 
         //var result = await client.GetAttractions(context);
-        //result.IsOk().Should().BeTrue();
+        //result.IsOk().BeTrue();
         //result.Return().NotNull();
         //result.Return().Count.Assert(x => x > 10, _ => "Empty list");
     }

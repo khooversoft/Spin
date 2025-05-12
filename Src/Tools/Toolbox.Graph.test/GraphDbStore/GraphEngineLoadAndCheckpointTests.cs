@@ -74,25 +74,25 @@ public class GraphEngineLoadAndCheckpointTests
         });
     }
 
-    [Fact]
-    public async Task LoadInitialDatabase()
-    {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(sharedMode: true, logOutput: x => _outputHelper.WriteLine(x), disableCache: true);
-        var context = graphTestClient.CreateScopeContext<GraphEngineLoadAndCheckpointTests>();
-        IFileStore fileStore = graphTestClient.Services.GetRequiredService<IFileStore>();
-        IGraphEngine host = graphTestClient.Services.GetRequiredService<IGraphEngine>();
-        const int count = 5;
+    //[Fact]
+    //public async Task LoadInitialDatabase()
+    //{
+    //    using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(sharedMode: true, logOutput: x => _outputHelper.WriteLine(x), disableCache: true);
+    //    var context = graphTestClient.CreateScopeContext<GraphEngineLoadAndCheckpointTests>();
+    //    IFileStore fileStore = graphTestClient.Services.GetRequiredService<IFileStore>();
+    //    IGraphEngine host = graphTestClient.Services.GetRequiredService<IGraphEngine>();
+    //    const int count = 5;
 
-        var expectedMap = new GraphMap();
-        Enumerable.Range(0, count).ForEach(x => expectedMap.Add(new GraphNode($"node-{x}")));
-        Enumerable.Range(0, count - 1).ForEach(x => expectedMap.Add(new GraphEdge($"node-{x}", $"node-{x + 1}", "et")));
+    //    var expectedMap = new GraphMap();
+    //    Enumerable.Range(0, count).ForEach(x => expectedMap.Add(new GraphNode($"node-{x}")));
+    //    Enumerable.Range(0, count - 1).ForEach(x => expectedMap.Add(new GraphEdge($"node-{x}", $"node-{x + 1}", "et")));
 
-        string dbJson = expectedMap.ToSerialization().ToJson();
-        (await fileStore.File(GraphConstants.MapDatabasePath).Set(dbJson.ToDataETag(), context)).IsOk().BeTrue();
+    //    string dbJson = expectedMap.ToSerialization().ToJson();
+    //    (await fileStore.File(GraphConstants.MapDatabasePath).Set(dbJson.ToDataETag(), context)).IsOk().BeTrue();
 
-        (await host.InitializeDatabase(context)).IsOk().BeTrue();
+    //    (await host.InitializeDatabase(context)).IsOk().BeTrue();
 
-        var compareMap = GraphCommandTools.CompareMap(expectedMap, graphTestClient.Map, true);
-        compareMap.Count.Be(0);
-    }
+    //    var compareMap = GraphCommandTools.CompareMap(expectedMap, graphTestClient.Map, true);
+    //    compareMap.Count.Be(0);
+    //}
 }

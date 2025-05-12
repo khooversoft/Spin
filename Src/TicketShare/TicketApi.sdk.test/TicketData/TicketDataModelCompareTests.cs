@@ -1,5 +1,5 @@
 ﻿using TicketApi.sdk.Model;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 
 namespace TicketApi.sdk.test.TicketData;
 
@@ -10,7 +10,7 @@ public class TicketDataModelCompareTests
     {
         var m1 = new ImageModel { Ratio = "r", Url = "u", Height = 1, Width = 3 };
         var m2 = new ImageModel { Ratio = "r", Url = "u", Height = 1, Width = 3 };
-        (m1 == m2).Should().BeTrue();
+        (m1 == m2).BeTrue();
     }
 
     [Fact]
@@ -19,7 +19,7 @@ public class TicketDataModelCompareTests
         var m1 = new AttractionModel { Id = "a1", Name = "name1a", Url = "url", Locale = "us-en", Images = [new ImageModel { Ratio = "r", Url = "u", Height = 1, Width = 3 }] };
         var m2 = new AttractionModel { Id = "a1", Name = "name1a", Url = "url", Locale = "us-en", Images = [new ImageModel { Ratio = "r", Url = "u", Height = 1, Width = 3 }] };
 
-        (m1 == m2).Should().BeTrue();
+        (m1 == m2).BeTrue();
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class TicketDataModelCompareTests
         var m1 = new EventRecord { Id = "1b", Name = "name1b", Timezone = "tz1" };
         var m2 = new EventRecord { Id = "1b", Name = "name1b", Timezone = "tz1" };
 
-        (m1 == m2).Should().BeTrue();
+        (m1 == m2).BeTrue();
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class TicketDataModelCompareTests
         var m1 = new VenueRecord { Id = "1c", Name = "name1c", City = "city1c" };
         var m2 = new VenueRecord { Id = "1c", Name = "name1c", City = "city1c" };
 
-        (m1 == m2).Should().BeTrue();
+        (m1 == m2).BeTrue();
     }
 
     [Fact]
@@ -79,6 +79,6 @@ public class TicketDataModelCompareTests
             ],
         };
 
-        (m1 == m2).Should().BeTrue();
+        (m1 == m2).BeTrue();
     }
 }

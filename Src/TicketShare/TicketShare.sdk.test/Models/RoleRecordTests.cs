@@ -1,5 +1,5 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketShare.sdk.test.Models;
@@ -15,10 +15,10 @@ public class RoleRecordTests
             MemberRole = RoleType.Owner,
         };
 
-        p1.Validate().IsOk().Should().BeTrue();
+        p1.Validate().IsOk().BeTrue();
         string j1 = p1.ToJson();
         var p2 = j1.ToObject<RoleRecord>();
-        (p1 == p2).Should().BeTrue();
+        (p1 == p2).BeTrue();
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class RoleRecordTests
             MemberRole = RoleType.Owner,
         };
 
-        (p1 == p2).Should().BeTrue();
+        (p1 == p2).BeTrue();
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class RoleRecordTests
             MemberRole = RoleType.Owner,
         };
 
-        (p1 == p2).Should().BeFalse();
+        (p1 == p2).BeFalse();
     }
 
     [Fact]
@@ -72,6 +72,6 @@ public class RoleRecordTests
             MemberRole = RoleType.Owner,
         };
 
-        (p1 == p2).Should().BeFalse();
+        (p1 == p2).BeFalse();
     }
 }

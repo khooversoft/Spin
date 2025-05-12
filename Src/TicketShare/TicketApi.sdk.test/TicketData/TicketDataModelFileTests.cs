@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox;
-using Toolbox.Extensions;
-using Toolbox.Logging;
 using Toolbox.Store;
-using Toolbox.Tools.Should;
+using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
@@ -38,14 +36,14 @@ public class TicketDataModelFileTests
 
         var m1 = new TicketDataRecord();
         var setResult = await _dataClient.Set(m1, _context);
-        setResult.IsOk().Should().BeTrue();
+        setResult.BeOk();
 
         var getResult = await _dataClient.Get(_context);
-        getResult.IsOk().Should().BeTrue();
+        getResult.BeOk();
 
         var m2 = getResult.Return();
 
-        (m1 == m2).Should().BeTrue();
+        (m1 == m2).BeTrue();
     }
 
     [Fact]
@@ -70,13 +68,13 @@ public class TicketDataModelFileTests
         };
 
         var setResult = await _dataClient.Set(m1, _context);
-        setResult.IsOk().Should().BeTrue();
+        setResult.BeOk();
 
         var getResult = await _dataClient.Get(_context);
-        getResult.IsOk().Should().BeTrue();
+        getResult.BeOk();
 
         var m2 = getResult.Return();
 
-        (m1 == m2).Should().BeTrue();
+        (m1 == m2).BeTrue();
     }
 }

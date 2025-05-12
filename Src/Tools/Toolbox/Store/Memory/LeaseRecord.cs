@@ -7,6 +7,7 @@ public record class LeaseRecord
     public LeaseRecord(string path, TimeSpan leaseDuration)
     {
         Path = path.NotNull();
+        Duration = leaseDuration;
 
         (Infinite, Expiration) = (leaseDuration == TimeSpan.FromSeconds(-1)) switch
         {
