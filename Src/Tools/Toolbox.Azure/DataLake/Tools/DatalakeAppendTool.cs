@@ -28,7 +28,7 @@ public static class DatalakeAppendTool
     {
         data.NotNull().Assert(x => x.Data.Length > 0, $"{nameof(data)} length must be greater then 0, path={fileClient.Path}");
         using var metric = context.LogDuration("dataLakeStore-append", "path={path}, dataSize={dataSize}", fileClient.Path, data.Data.Length);
-        context.Location().LogTrace("Appending to {path}, data.Length={data.Length}", fileClient.Path, data.Data.Length);
+        context.LogDebug("Appending to {path}, data.Length={data.Length}", fileClient.Path, data.Data.Length);
 
         using var memoryBuffer = new MemoryStream(data.Data.ToArray());
 
@@ -47,12 +47,12 @@ public static class DatalakeAppendTool
             Response<PathInfo> result = await fileClient.FlushAsync(pathDetail.ContentLength + data.Data.Length).ConfigureAwait(false);
             if (!result.HasValue) return (StatusCode.Conflict, "Failed to flush data");
 
-            context.Location().LogTrace("Appended to path={path}", fileClient.Path);
+            context.LogDebug("Appended to path={path}", fileClient.Path);
             return result.Value.ETag.ToString();
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "PathNotFound" || ex.ErrorCode == "BlobNotFound")
         {
-            context.Location().LogTrace("Creating path={path}", fileClient.Path);
+            context.LogDebug("Creating path={path}", fileClient.Path);
             return await fileClient.Set(data, context).ConfigureAwait(false);
         }
         catch (TaskCanceledException ex)

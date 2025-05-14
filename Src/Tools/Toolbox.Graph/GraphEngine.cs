@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Journal;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -15,14 +16,14 @@ public interface IGraphEngine : IAsyncDisposable
 
     GraphMap Map { get; }
     Task SetMap(GraphMap map, ScopeContext context);
-    Task<Option> AcquireExclusive(ScopeContext context);
+    Task<Option<IFileLeasedAccess>> AcquireLease(ScopeContext context);
+    Task<Option> ReleaseLease(ScopeContext context);
     Task ReleaseExclusive(ScopeContext context);
-    Task<Option<IAsyncDisposable>> AcquireScope(ScopeContext context);
     Task<Option> CheckpointMap(ScopeContext context);
 
 }
 
-public class GraphEngine : IGraphEngine
+public class GraphEngine : IGraphEngine, IAsyncDisposable
 {
     private readonly GraphHostOption _hostOption;
     private readonly ILogger<GraphEngine> _logger;
@@ -52,9 +53,9 @@ public class GraphEngine : IGraphEngine
     public Task SetMap(GraphMap map, ScopeContext context) => _mapStore.SetMap(map, context);
     public Task<Option> CheckpointMap(ScopeContext context) => _mapStore.CheckpointMap(context);
 
-    public Task<Option> AcquireExclusive(ScopeContext context) => _mapStore.AcquireExclusive(context);
+    public Task<Option<IFileLeasedAccess>> AcquireLease(ScopeContext context) => _mapStore.AcquireLease(context);
+    public Task<Option> ReleaseLease(ScopeContext context) => _mapStore.ReleaseLease(context);
     public Task ReleaseExclusive(ScopeContext context) => _mapStore.ReleaseExclusive(context);
-    public Task<Option<IAsyncDisposable>> AcquireScope(ScopeContext context) => _mapStore.AcquireScope(context);
 
     public async ValueTask DisposeAsync() => await _mapStore.ReleaseExclusive(new ScopeContext(_logger));
 }

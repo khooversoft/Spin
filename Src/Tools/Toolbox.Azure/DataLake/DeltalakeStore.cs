@@ -39,7 +39,7 @@ public class DatalakeStore : IFileStore
         using var metric = context.LogDuration("dataLakeStore-deleteDirectory", "path={path}", path);
 
         path = _datalakeOption.WithBasePath(path);
-        context.Location().LogTrace("Deleting directory {path}", path);
+        context.LogDebug("Deleting directory {path}", path);
 
         try
         {
@@ -74,7 +74,7 @@ public class DatalakeStore : IFileStore
             Filter = _datalakeOption.WithBasePath(queryParameter.Filter),
             BasePath = _datalakeOption.WithBasePath(queryParameter.BasePath),
         };
-        context.Location().LogTrace("Searching {queryParameter}", queryParameter);
+        context.LogDebug("Searching {queryParameter}", queryParameter);
 
         var collection = new List<PathItem>();
         var matcher = queryParameter.GetMatcher();

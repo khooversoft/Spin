@@ -38,11 +38,11 @@ internal static class LoadAndCheckpointTesting
 
         var cmd = seq.Join(Environment.NewLine);
         var eResult = await testClient.ExecuteBatch(cmd, context);
-        eResult.IsOk().BeTrue(eResult.ToString());
+        eResult.BeOk();
 
         (await fileStore.File(GraphConstants.MapDatabasePath).Get(context)).Action(x =>
         {
-            x.IsOk().BeTrue(x.ToString());
+            x.BeOk();
 
             GraphSerialization readRec = x.Return().ToObject<GraphSerialization>();
             readRec.NotNull();

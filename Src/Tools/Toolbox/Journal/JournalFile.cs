@@ -41,7 +41,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         _name = values.Single().Key.NotEmpty();
         _basePath = values.Single().Value.NotEmpty();
 
-        _logger.LogTrace("JournalFile created, name={name}, basePath={basePath}", _name, _basePath);
+        _logger.LogDebug("JournalFile created, name={name}, basePath={basePath}", _name, _basePath);
 
         if (_fileOption.ReadOnly)
         {
@@ -59,7 +59,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
             return;
         }
 
-        _logger.LogTrace("JournalFile is setup, name={name}", _name);
+        _logger.LogDebug("JournalFile is setup, name={name}", _name);
         _writer = InternalWrite;
     }
 
@@ -92,7 +92,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         var journalEntries = new Sequence<JournalEntry>();
         foreach (var file in files)
         {
-            context.LogTrace("Reading journal file={file}", file);
+            context.LogDebug("Reading journal file={file}", file);
 
             Option<DataETag> readOption = await _fileStore.File(file).Get(context);
             if (readOption.IsError())
@@ -136,7 +136,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         string path = $"{_basePath}/{DateTime.UtcNow:yyyyMM}/{DateTime.UtcNow:yyyyMMdd}.{_name}.json";
 
         string logSequenceNumbers = journalEntries.Select(x => x.LogSequenceNumber).Join(",");
-        context.LogTrace("Writting journal entry to name={name}, path={path}, lsns={lsns}", _name, path, logSequenceNumbers);
+        context.LogDebug("Writting journal entry to name={name}, path={path}, lsns={lsns}", _name, path, logSequenceNumbers);
 
         await _writeLock.WaitAsync(context.CancellationToken);
 
@@ -156,7 +156,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
 
     private async Task<Option> QueueWrite(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context)
     {
-        context.LogTrace("Queueing write journal entries, count={count}", journalEntries.Count);
+        context.LogDebug("Queueing write journal entries, count={count}", journalEntries.Count);
         await _autoFlushQueue.NotNull().Enqueue(journalEntries, context);
 
         return StatusCode.OK;
@@ -164,7 +164,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
 
     private async Task FlushQueue(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context)
     {
-        context.LogTrace("Flushing queue journal entries, count={count}", journalEntries.Count);
+        context.LogDebug("Flushing queue journal entries, count={count}", journalEntries.Count);
         await InternalWrite(journalEntries, context);
     }
 }

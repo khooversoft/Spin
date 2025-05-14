@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.Azure;
 using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
@@ -19,9 +20,10 @@ public class DatabaseInitializationTesting
     [Fact]
     public async Task ExclusiveLockDbNotInitialized()
     {
-        (IServiceProvider service, ScopeContext directContext) = TestApplication.CreateDatalakeDirect<DatabaseInitializationTesting>(_basePath, _output);
+        (IHost host, ScopeContext directContext) = TestApplication.CreateDatalakeDirect<DatabaseInitializationTesting>(_basePath, _output);
+        using var d1 = host;
 
-        IFileStore fileStore = service.GetRequiredService<IFileStore>().NotNull();
+        IFileStore fileStore = host.Services.GetRequiredService<IFileStore>().NotNull();
         (await fileStore.File(GraphConstants.MapDatabasePath).ForceDelete(directContext)).BeOk();
 
         var (testClient, context) = await TestApplication.CreateDatalake<DbDatalakeTests>(_basePath, _output);
@@ -58,9 +60,10 @@ public class LoadInitialDatabaseTest
 
         static async Task<GraphMap> saveDatabase(ITestOutputHelper output)
         {
-            (IServiceProvider service, ScopeContext context) = TestApplication.CreateDatalakeDirect<DbDatalakeTests>(_basePath, output);
+            (IHost host, ScopeContext context) = TestApplication.CreateDatalakeDirect<DbDatalakeTests>(_basePath, output);
+            using var d1 = host;
 
-            IFileStore fileStore = service.GetRequiredService<IFileStore>();
+            IFileStore fileStore = host.Services.GetRequiredService<IFileStore>();
             const int count = 5;
 
             var expectedMap = new GraphMap();

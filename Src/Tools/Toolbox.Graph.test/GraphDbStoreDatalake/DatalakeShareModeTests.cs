@@ -93,8 +93,8 @@ public class DatalakeShareModeTests
             );
 
         var e1 = (await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1)).BeOk();
-        leaseCounter.Acquire.Value.Be(2);
-        leaseCounter.Release.Value.Be(2);
+        leaseCounter.Acquire.Value.Be(4);
+        leaseCounter.Release.Value.Be(4);
         leaseCounter.ActiveExclusive.Value.Be(0);
         leaseCounter.ActiveAcquire.Value.Be(0);
 

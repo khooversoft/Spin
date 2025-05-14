@@ -35,15 +35,24 @@ public class DatalakeFileAccess : IFileAccess
         context = context.With(_logger);
         using var metric = context.LogDuration("dataLakeStore-delete", "path={path}", Path);
 
-        context.Location().LogTrace("Deleting to {path}", _fileClient.Path);
+        context.LogDebug("Deleting to {path}", _fileClient.Path);
 
         try
         {
             Response<bool> response = await _fileClient.DeleteIfExistsAsync(cancellationToken: context).ConfigureAwait(false);
 
-            if (!response.Value) context.Location().LogTrace("File path={path} does not exist", _fileClient.Path);
+            if (!response.Value)
+            {
+                context.LogDebug("File path={path} does not exist", _fileClient.Path);
+                return StatusCode.NotFound;
+            }
 
-            return response.Value ? StatusCode.OK : StatusCode.NotFound;
+            return StatusCode.OK;
+        }
+        catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing")
+        {
+            context.Location().LogError(ex, "Failed to delete file {path}, LeaseIdMissing", _fileClient.Path);
+            return StatusCode.Locked;
         }
         catch (Exception ex)
         {
@@ -57,7 +66,7 @@ public class DatalakeFileAccess : IFileAccess
         context = context.With(_logger);
         using var metric = context.LogDuration("dataLakeStore-exist", "path={path}", _fileClient.Path);
 
-        context.Location().LogTrace("Is path {path} exist", _fileClient.Path);
+        context.LogDebug("Is path {path} exist", _fileClient.Path);
 
         try
         {

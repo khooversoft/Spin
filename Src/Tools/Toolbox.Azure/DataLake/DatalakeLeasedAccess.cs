@@ -40,7 +40,7 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
             return StatusCode.Conflict;
         }
 
-        context.LogTrace("Renewed lease for path={path}, oldLeaseId={oldLeaseId}, newLeaseId={newLeaseId}", Path, LeaseId, result.Value.LeaseId);
+        context.LogDebug("Renewed lease for path={path}, oldLeaseId={oldLeaseId}, newLeaseId={newLeaseId}", Path, LeaseId, result.Value.LeaseId);
         return StatusCode.OK;
     }
 
@@ -57,14 +57,14 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing")
         {
-            context.LogTrace("Invalid lease Id path={path}", Path);
+            context.LogDebug("Invalid lease Id path={path}", Path);
             return StatusCode.OK;
         }
         catch { }
 
         Interlocked.Exchange(ref _disposed, true);
 
-        context.LogTrace("Released lease for path={path}", Path);
+        context.LogDebug("Released lease for path={path}", Path);
         return StatusCode.OK;
     }
 

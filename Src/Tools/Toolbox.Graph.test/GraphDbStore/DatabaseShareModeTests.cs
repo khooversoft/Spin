@@ -37,8 +37,8 @@ public class DatabaseShareModeTests
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1);
         e1.BeOk();
-        leaseCounter.Acquire.Value.Be(1);
-        leaseCounter.Release.Value.Be(1);
+        leaseCounter.Acquire.Value.Be(3);
+        leaseCounter.Release.Value.Be(3);
         leaseCounter.ActiveAcquire.Value.Be(0);
         leaseCounter.ActiveExclusive.Value.Be(0);
 
@@ -53,8 +53,8 @@ public class DatabaseShareModeTests
             });
         });
 
-        leaseCounter.Acquire.Value.Be(2);
-        leaseCounter.Release.Value.Be(2);
+        leaseCounter.Acquire.Value.Be(4);
+        leaseCounter.Release.Value.Be(4);
         leaseCounter.ActiveAcquire.Value.Be(0);
         leaseCounter.ActiveExclusive.Value.Be(0);
 
@@ -69,8 +69,8 @@ public class DatabaseShareModeTests
             });
         });
 
-        leaseCounter.Acquire.Value.Be(3);
-        leaseCounter.Release.Value.Be(3);
+        leaseCounter.Acquire.Value.Be(5);
+        leaseCounter.Release.Value.Be(5);
         leaseCounter.ActiveAcquire.Value.Be(0);
         leaseCounter.ActiveExclusive.Value.Be(0);
     }
@@ -97,8 +97,8 @@ public class DatabaseShareModeTests
 
         var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context1);
         e1.IsOk().BeTrue();
-        leaseCounter.Acquire.Value.Be(1);
-        leaseCounter.Release.Value.Be(1);
+        leaseCounter.Acquire.Value.Be(3);
+        leaseCounter.Release.Value.Be(3);
         leaseCounter.ActiveExclusive.Value.Be(0);
         leaseCounter.ActiveAcquire.Value.Be(0);
 

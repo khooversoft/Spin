@@ -39,11 +39,11 @@ public class JournalTrx : IJournalTrx, IAsyncDisposable
 
         if (_started == 0)
         {
-            _context.LogTrace("Trx not started, normally for query type instructions, trxId={trxId}", _trxId);
+            _context.LogDebug("Trx not started, normally for query type instructions, trxId={trxId}", _trxId);
             return;
         }
 
-        _context.LogTrace("Commit={trxId}", _trxId);
+        _context.LogDebug("Commit={trxId}", _trxId);
 
         var entry = new JournalEntry
         {
@@ -62,7 +62,7 @@ public class JournalTrx : IJournalTrx, IAsyncDisposable
         var read = Interlocked.CompareExchange(ref _started, 1, 0);
         if (read == 0)
         {
-            _context.LogTrace("Starting trx={trxId}", _trxId);
+            _context.LogDebug("Starting trx={trxId}", _trxId);
 
             journalEntries = journalEntries.Prepend(new JournalEntry
             {
@@ -71,7 +71,7 @@ public class JournalTrx : IJournalTrx, IAsyncDisposable
             }).ToArray();
         }
 
-        _context.LogTrace("Writing trx={trxId}, count={count}", _trxId, journalEntries.Count);
+        _context.LogDebug("Writing trx={trxId}, count={count}", _trxId, journalEntries.Count);
 
         var entries = journalEntries
             .Select(x => x with { TransactionId = _trxId })

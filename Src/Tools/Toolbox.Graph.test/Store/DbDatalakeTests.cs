@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.Azure;
-using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
 using Toolbox.Graph.test.Store.TestingCode;
 using Toolbox.Store;
 using Toolbox.Tools;
+using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Store;
@@ -90,9 +91,10 @@ public class DbDatalakeTests
 
     private async Task DeleteDb()
     {
-        await TestApplication.CreateDatalakeDirect<DbDatalakeTests>(_basePath, _outputHelper).Func(async x =>
+        (IHost Host, ScopeContext Context) = TestApplication.CreateDatalakeDirect<DbDatalakeTests>(_basePath, _outputHelper);
+        using (Host)
         {
-            (await x.Service.GetRequiredService<IFileStore>().File(GraphConstants.MapDatabasePath).ForceDelete(x.Context)).BeOk();
-        });
+            (await Host.Services.GetRequiredService<IFileStore>().File(GraphConstants.MapDatabasePath).ForceDelete(Context)).BeOk();
+        }
     }
 }

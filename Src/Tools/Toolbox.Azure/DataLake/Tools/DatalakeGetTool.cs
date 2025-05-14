@@ -46,12 +46,12 @@ public static class DatalakeGetTool
 
             byte[] data = memory.ToArray();
             string etag = response.Value.Properties.ETag.ToString();
-            context.Location().LogTrace("Read file {path}, size={size}, eTag={etag}", fileClient.Path, data.Length, etag);
+            context.LogDebug("Read file {path}, size={size}, eTag={etag}", fileClient.Path, data.Length, etag);
             return new DataETag(data, etag);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "BlobNotFound")
         {
-            context.Location().LogTrace("File not found {path}", fileClient.Path);
+            context.LogDebug("File not found {path}", fileClient.Path);
             return (StatusCode.NotFound, $"File not found, path={fileClient.Path}");
         }
         catch (Exception ex)

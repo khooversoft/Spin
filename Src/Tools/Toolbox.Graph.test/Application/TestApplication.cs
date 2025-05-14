@@ -72,7 +72,7 @@ public static class TestApplication
         return (testClient, context);
     }
 
-    public static (IServiceProvider Service, ScopeContext Context) CreateDatalakeDirect<T>(string basePath, ITestOutputHelper output)
+    public static (IHost Host, ScopeContext Context) CreateDatalakeDirect<T>(string basePath, ITestOutputHelper output)
     {
         DatalakeOption datalakeOption = ReadOption(basePath);
 
@@ -92,7 +92,7 @@ public static class TestApplication
             .Build();
 
         ScopeContext context = new ScopeContext(host.Services.GetRequiredService<ILogger<T>>());
-        return (host.Services, context);
+        return (host, context);
     }
 
     public static async Task<(GraphHostService testClient, ScopeContext context)> CreateDatalake<T>(string basePath, ITestOutputHelper output, bool noClear = false)

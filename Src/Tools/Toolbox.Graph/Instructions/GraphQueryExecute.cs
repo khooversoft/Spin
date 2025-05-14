@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -78,10 +79,10 @@ public class GraphQueryExecute : IGraphClient
         using var metric = pContext.TrxContext.Context.LogDuration("queryExecution-executionInstruction");
         using var release = write ? (await map.ReadWriterLock.WriterLockAsync()) : (await map.ReadWriterLock.ReaderLockAsync());
 
-        Option<IAsyncDisposable> leaseOption = await pContext.TrxContext.AcquireScope();
+        Option<IFileLeasedAccess> leaseOption = await pContext.TrxContext.Acquire();
         if (leaseOption.IsError()) return leaseOption.ToOptionStatus<QueryBatchResult>();
 
-        await using (IAsyncDisposable leaseScope = leaseOption.Return())
+        await using (var leaseScope = leaseOption.Return())
         {
             while (pContext.Cursor.TryGetValue(out var graphInstruction))
             {

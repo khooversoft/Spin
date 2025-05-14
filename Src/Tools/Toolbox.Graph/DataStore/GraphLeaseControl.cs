@@ -1,24 +1,11 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-/// <summary>
-/// Lease management for the Graph Map File
-/// 
-/// If exclusive lock is acquired
-///   Create new WriteAccess that uses the exclusive log for writes, and push on stack
-///   Release will just pop the stack, the exclusive lock will NOT be released
-///   
-/// If no exclusive lock has been acquired
-///   Create new WriteAccess after a limited lock has been acquired, and push on stack
-///   Release will pop the stack and release the limited lock
-/// 
-/// </summary>
 public class GraphLeaseControl
 {
     private const string _leaseAlreadyPresentText = "LeaseAlreadyPresent";
@@ -38,6 +25,7 @@ public class GraphLeaseControl
         _leaseCounter = mapCounters.NotNull().Leases;
         _logger = logger.NotNull();
     }
+    public bool IsExclusiveLocked => _exclusiveLock != null;
 
     public IFileReadWriteAccess GetCurrentFileAccess() => _exclusiveLock switch
     {
@@ -49,54 +37,47 @@ public class GraphLeaseControl
         }
     };
 
-    public bool IsExclusiveLocked => _exclusiveLock != null;
-
-    public async Task<Option> AcquireExclusive(ScopeContext context)
+    public async Task<Option<IFileLeasedAccess>> Acquire(ScopeContext context)
     {
         context = context.With(_logger);
-
-        if (_graphHostOption.ShareMode)
-        {
-            context.LogDebug("Graph is in share mode, exclusive lock is not used");
-            return StatusCode.OK;
-        }
-
         await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
 
         try
         {
-            if (_exclusiveLock != null) return (StatusCode.Conflict, "Exclusive lock already acquired").LogStatus(context, "return");
-
-            int loopCount = 2;
-            Option<IFileLeasedAccess> leaseOption = null!;
-
-            while (loopCount-- > 0)
+            if (_graphHostOption.ShareMode)
             {
-                leaseOption = await _graphStore.File(GraphConstants.MapDatabasePath).AcquireExclusive(true, context).ConfigureAwait(false);
-                if (leaseOption.IsOk())
-                {
-                    _exclusiveLock = leaseOption.Return();
-                    _leaseCounter.ActiveExclusive.Record(1);
-                    context.LogTrace("Exclusive lock acquired");
-                    return StatusCode.OK;
-                }
-
-                if (leaseOption.IsLocked())
-                {
-                    var releaseOption = await ReleaseExclusive(context).ConfigureAwait(false);
-                    if (releaseOption.IsError())
-                    {
-                        context.LogError(releaseOption.Error, "Failed to release exclusive lock");
-                        return releaseOption;
-                    }
-
-                    continue;
-                }
-
-                return leaseOption.ToOptionStatus();
+                var scope = await AcquireScope(context).ConfigureAwait(false);
+                return scope;
             }
 
-            throw new UnreachableException("Flow failed");
+            return await AcquireExclusive(context).ConfigureAwait(false);
+        }
+        finally
+        {
+            _resetEvent.Release();
+        }
+    }
+
+    public async Task<Option> Release(ScopeContext context)
+    {
+        context = context.With(_logger);
+        await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        using var metric = context.LogDuration("ReleaseExclusive - release lock");
+
+        try
+        {
+            if (_exclusiveLock != null) return StatusCode.OK;
+
+            var current = Interlocked.Exchange(ref _scopeLock, null);
+            if (current == null) return StatusCode.OK;
+
+            context.LogTrace("Lease released");
+            _leaseCounter.ActiveAcquire.Record(0);
+            _leaseCounter.Release.Add();
+
+            var result = await current.NotNull().Release(context).ConfigureAwait(false);
+            context.LogTrace("Lock released");
+            return result;
         }
         finally
         {
@@ -108,6 +89,7 @@ public class GraphLeaseControl
     {
         context = context.With(_logger);
         await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        using var metric = context.LogDuration("ReleaseExclusive - release exclusive lock");
 
         try
         {
@@ -130,62 +112,71 @@ public class GraphLeaseControl
         }
     }
 
-    public async Task<Option<IAsyncDisposable>> AcquireScope(ScopeContext context)
+    private async Task<Option<IFileLeasedAccess>> AcquireScope(ScopeContext context)
     {
         context = context.With(_logger);
         using var metric = context.LogDuration("Acquire Scope - acquire time limited lock for database file");
 
-        await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        // If exclusive lock, just return a no-op release
+        if (_exclusiveLock != null) return new ScopedWriteAccess(_exclusiveLock, () => Task.CompletedTask);
+        if (_scopeLock != null) await _scopeLock.Release(context).ConfigureAwait(false);
+        _scopeLock = null;
 
-        try
-        {
-            // If exclusive lock, just return a no-op release
-            if (_exclusiveLock != null) return new ScopedWriteAccess(_exclusiveLock, () => Task.CompletedTask);
-            if (_scopeLock != null) await _scopeLock.Release(context).ConfigureAwait(false);
-            _scopeLock = null;
+        var leaseOption = await _graphStore.File(GraphConstants.MapDatabasePath).Acquire(TimeSpan.FromSeconds(30), context).ConfigureAwait(false);
+        if (leaseOption.IsError()) return leaseOption;
 
-            var leaseOption = await _graphStore.File(GraphConstants.MapDatabasePath).Acquire(TimeSpan.FromSeconds(30), context).ConfigureAwait(false);
-            if (leaseOption.IsError()) return leaseOption.ToOptionStatus<IAsyncDisposable>();
+        _scopeLock = leaseOption.Return();
+        var scopedWriteAccess = new ScopedWriteAccess(_scopeLock, () => Release(context));
 
-            _scopeLock = leaseOption.Return();
-            var scopedWriteAccess = new ScopedWriteAccess(_scopeLock, () => ReleaseScope(context));
+        _leaseCounter.ActiveAcquire.Record(1);
+        _leaseCounter.Acquire.Add();
+        context.LogTrace("Lock acquired");
 
-            _leaseCounter.ActiveAcquire.Record(1);
-            _leaseCounter.Acquire.Add();
-            context.LogTrace("Lock acquired");
+        return scopedWriteAccess;
 
-            return scopedWriteAccess;
-        }
-        finally
-        {
-            _resetEvent.Release();
-        }
     }
 
-    private async Task<Option> ReleaseScope(ScopeContext context)
+    private async Task<Option<IFileLeasedAccess>> AcquireExclusive(ScopeContext context)
     {
-        await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        context = context.With(_logger);
+        using var metric = context.LogDuration("graphMapStore-AcquireExclusive");
 
-        try
+        if (_exclusiveLock != null) return new ScopedWriteAccess(_exclusiveLock, () => Task.CompletedTask);
+
+        int loopCount = 2;
+        Option<IFileLeasedAccess> leaseOption = null!;
+
+        while (loopCount-- > 0)
         {
-            if (_exclusiveLock != null) return StatusCode.OK;
+            leaseOption = await _graphStore.File(GraphConstants.MapDatabasePath).AcquireExclusive(true, context).ConfigureAwait(false);
+            if (leaseOption.IsOk())
+            {
+                _exclusiveLock = leaseOption.Return();
+                _leaseCounter.ActiveExclusive.Record(1);
+                context.LogTrace("Exclusive lock acquired");
 
-            var current = Interlocked.Exchange(ref _scopeLock, null);
-            if (current == null) return StatusCode.OK;
+                var scopedWriteAccess = new ScopedWriteAccess(_exclusiveLock, () => Task.CompletedTask);
+                return scopedWriteAccess;
+            }
 
-            context.LogTrace("Lease released");
-            _leaseCounter.ActiveAcquire.Record(0);
-            _leaseCounter.Release.Add();
-            context.LogTrace("Lock released");
+            if (leaseOption.IsLocked())
+            {
+                var releaseOption = await ReleaseExclusive(context).ConfigureAwait(false);
+                if (releaseOption.IsError())
+                {
+                    context.LogError(releaseOption.Error, "Failed to release exclusive lock");
+                    return releaseOption.ToOptionStatus<IFileLeasedAccess>();
+                }
 
-            return await current.NotNull().Release(context).ConfigureAwait(false);
+                continue;
+            }
+
+            // return error
+            return leaseOption;
         }
-        finally
-        {
-            _resetEvent.Release();
-        }
+
+        throw new UnreachableException("Flow failed");
     }
-
 
     public class ScopedWriteAccess : IFileLeasedAccess, IAsyncDisposable
     {

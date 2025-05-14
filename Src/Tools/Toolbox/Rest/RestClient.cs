@@ -68,7 +68,7 @@ public class RestClient
     {
         string? requestPayload = (await requestMessage.GetContent()).Return(false);
 
-        context.Location().LogTrace(
+        context.Location().LogDebug(
             "[RestClient-Calling] {uri}, method={method}, request={request}",
             requestMessage.RequestUri?.ToString() ?? "<no uri>",
             requestMessage.Method,
@@ -92,7 +92,7 @@ public class RestClient
 
             context.Location().Log(
                 setLogLevel(response),
-                "[Restclient-Response] from {uri}, method={method}, StatusCode={statusCode}, request={request}, response={response}",
+                "[RestClient-Response] from {uri}, method={method}, StatusCode={statusCode}, request={request}, response={response}",
                 requestMessage.RequestUri?.ToString(),
                 requestMessage.Method,
                 response.StatusCode,
@@ -101,7 +101,7 @@ public class RestClient
                 );
 
             context.Location().LogTrace(
-                "[Restclient-Response] from {uri}, method={method}, StatusCode={statusCode}, response={response}",
+                "[RestClient-Response] from {uri}, method={method}, StatusCode={statusCode}, response={response}",
                 requestMessage.RequestUri?.ToString(),
                 requestMessage.Method,
                 response.StatusCode,
@@ -120,7 +120,7 @@ public class RestClient
         }
         catch (Exception ex)
         {
-            context.Location().LogCritical("[Restclient-Error] call to {uri} failed, method={method}, request={request}",
+            context.Location().LogError("[RestClient-Error] call to {uri} failed, method={method}, request={request}",
                 requestMessage.RequestUri?.ToString(),
                 requestMessage.Method,
                 requestPayload
@@ -138,12 +138,11 @@ public class RestClient
 
         LogLevel setLogLevel(HttpResponseMessage response) => response.StatusCode switch
         {
-            HttpStatusCode.OK => LogLevel.Information,
-            HttpStatusCode.NoContent => LogLevel.Information,
-            HttpStatusCode.Created => LogLevel.Information,
-            HttpStatusCode.Accepted => LogLevel.Information,
-
-            HttpStatusCode.NotFound => LogLevel.Warning,
+            HttpStatusCode.OK => LogLevel.Debug,
+            HttpStatusCode.NoContent => LogLevel.Debug,
+            HttpStatusCode.Created => LogLevel.Debug,
+            HttpStatusCode.Accepted => LogLevel.Debug,
+            HttpStatusCode.NotFound => LogLevel.Debug,
 
             _ => LogLevel.Error,
         };

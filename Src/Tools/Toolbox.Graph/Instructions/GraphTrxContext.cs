@@ -13,7 +13,7 @@ public interface IGraphTrxContext : IAsyncDisposable
     IJournalTrx TransactionWriter { get; }
     GraphMap Map { get; }
 
-    Task<Option<IAsyncDisposable>> AcquireScope();
+    Task<Option<IFileLeasedAccess>> Acquire();
     Task<Option> CheckpointMap();
 }
 
@@ -38,7 +38,7 @@ public class GraphTrxContext : IGraphTrxContext, IAsyncDisposable
     public IFileStore FileStore => _graphHost.FileStore;
     public IJournalTrx TransactionWriter { get; }
 
-    public Task<Option<IAsyncDisposable>> AcquireScope() => _graphHost.AcquireScope(Context);
+    public Task<Option<IFileLeasedAccess>> Acquire() => _graphHost.AcquireLease(Context);
     public Task<Option> CheckpointMap() => _graphHost.CheckpointMap(Context);
 
     public async ValueTask DisposeAsync() => await TransactionWriter.DisposeAsync();

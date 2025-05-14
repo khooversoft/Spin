@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -12,7 +13,7 @@ public class GraphMapStore : IAsyncDisposable
     private readonly GraphHostOption _graphHostOption;
     private readonly IGraphMapFactory _graphMapFactory;
     private string? _currentETag;
-    private GraphMap _map = new GraphMap();
+    private GraphMap? _map;
     private GraphLeaseControl _leaseControl;
 
     public GraphMapStore(GraphLeaseControl leaseControl, IGraphMapFactory graphMapFactory, GraphHostOption graphHostOption, ILogger<GraphMapStore> logger)
@@ -23,68 +24,20 @@ public class GraphMapStore : IAsyncDisposable
         _logger = logger.NotNull();
     }
 
-    public async Task SetMap(GraphMap map, ScopeContext context)
+
+    public GraphMap GetMapReference() => _map.NotNull("Graph not loaded");
+
+    public async Task<Option<IFileLeasedAccess>> AcquireLease(ScopeContext context)
     {
-        _map = _graphMapFactory.Create(map.Nodes, map.Edges);
-        await CheckpointMap(context);
-        _map.UpdateCounters();
+        var result = await _leaseControl.Acquire(context);
+        if (result.IsError()) return result;
+        await using var scope = result.Return();
+
+        var loadDatabase = await LoadDatabase(context).ConfigureAwait(false);
+        return result;
     }
 
-    public GraphMap GetMapReference() => _map;
-
-    public async Task<Option> AcquireExclusive(ScopeContext context)
-    {
-        context = context.With(_logger);
-        await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
-        using var metric = context.LogDuration("graphMapStore-AcquireExclusive");
-
-        try
-        {
-            var leaseOption = await _leaseControl.AcquireExclusive(context).ConfigureAwait(false);
-            if (leaseOption.IsError()) return leaseOption;
-
-            var getResult = await LoadDatabase(true, context);
-            if (getResult.IsError())
-            {
-                await _leaseControl.ReleaseExclusive(context).ConfigureAwait(false);
-                return getResult;
-            }
-
-            return StatusCode.OK;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to load exclusive lock");
-            return StatusCode.InternalServerError;
-        }
-        finally
-        {
-            _resetEvent.Release();
-        }
-    }
-
-    public async Task<Option<IAsyncDisposable>> AcquireScope(ScopeContext context)
-    {
-        context = context.With(_logger);
-
-        await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
-        using var metric = context.LogDuration("graphMapStore-AcquireScope");
-
-        try
-        {
-            var leaseOption = await _leaseControl.AcquireScope(context).ConfigureAwait(false);
-            if (leaseOption.IsError()) return leaseOption;
-
-            var getResult = await LoadDatabase(false, context);
-            if (getResult.IsError()) return getResult.ToOptionStatus<IAsyncDisposable>();
-
-            return leaseOption;
-        }
-        finally
-        {
-            _resetEvent.Release();
-        }
-    }
+    public Task<Option> ReleaseLease(ScopeContext context) => _leaseControl.Release(context);
 
     public async Task<Option> CheckpointMap(ScopeContext context)
     {
@@ -95,13 +48,7 @@ public class GraphMapStore : IAsyncDisposable
         try
         {
             var setResult = await SaveDatabase(context).ConfigureAwait(false);
-            if (setResult.IsError())
-            {
-                setResult.LogStatus(context, "Failed to checkpoint map database");
-                return setResult.ToOptionStatus();
-            }
-
-            return StatusCode.OK;
+            return setResult.ToOptionStatus();
         }
         finally
         {
@@ -109,58 +56,35 @@ public class GraphMapStore : IAsyncDisposable
         }
     }
 
-    //public async Task<Option> InitializeDatabase(ScopeContext context)
-    //{
-    //    context = context.With(_logger);
+    public async Task SetMap(GraphMap map, ScopeContext context)
+    {
+        context = context.With(_logger);
+        await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        context.LogDebug("Setting database map to provided value");
 
-    //    await _resetEvent.WaitAsync(context.CancellationToken).ConfigureAwait(false);
-    //    using var metric = context.LogDuration("graphMapStore-get");
-
-    //    try
-    //    {
-    //        var loadOption = await LoadDatabase(false, context).ConfigureAwait(false);
-    //        if (loadOption.IsOk()) return loadOption;
-
-    //        context.LogTrace("Graph data file={mapDatabasePath} not found", GraphConstants.MapDatabasePath);
-    //        if (_graphHostOption.ReadOnly) return (StatusCode.NotFound, $"Graph data file={GraphConstants.MapDatabasePath} not found");
-
-    //        var saveOption = await SaveDatabase(context).ConfigureAwait(false);
-    //        if (saveOption.IsError())
-    //        {
-    //            context.LogError("Failed to set map database, result={result}", saveOption);
-    //            return saveOption.ToOptionStatus();
-    //        }
-
-    //        context.LogTrace("Created database file");
-    //        DataETag dataETag = saveOption.Return();
-    //        _currentETag = dataETag.ETag;
-
-    //        GraphMap newMap = _graphMapFactory.Create(dataETag);
-    //        Interlocked.Exchange(ref _map, newMap);
-    //        _map.UpdateCounters();
-
-    //        context.LogTrace("Read graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
-    //        return StatusCode.OK;
-    //    }
-    //    finally
-    //    {
-    //        _map.UpdateCounters();
-    //        _resetEvent.Release();
-    //    }
-    //}
-
+        try
+        {
+            _map = _graphMapFactory.Create(map.Nodes, map.Edges);
+            (await SaveDatabase(context).ConfigureAwait(false)).ThrowOnError();
+            _map.UpdateCounters();
+        }
+        finally
+        {
+            _resetEvent.Release();
+        }
+    }
 
     public Task ReleaseExclusive(ScopeContext context) => _leaseControl.ReleaseExclusive(context);
 
     public async ValueTask DisposeAsync() => await ReleaseExclusive(new ScopeContext(_logger));
 
-    private async Task<Option> LoadDatabase(bool force, ScopeContext context)
+    private async Task<Option> LoadDatabase(ScopeContext context)
     {
         context = context.With(_logger);
         using var metric = context.LogDuration("graphMapStore-LoadDatabase");
 
         // Check if exclusive locked, not re-load database
-        if (force || _leaseControl.IsExclusiveLocked) return StatusCode.OK;
+        if (_map != null && _leaseControl.IsExclusiveLocked) return StatusCode.OK;
 
         var dataETagOption = await _leaseControl.GetCurrentFileAccess().Get(context).ConfigureAwait(false);
         if (dataETagOption.IsError()) return dataETagOption.ToOptionStatus();
@@ -175,6 +99,13 @@ public class GraphMapStore : IAsyncDisposable
         };
 
         Interlocked.Exchange(ref _map, newMap);
+
+        if (dataETag.Data.Length == 0)
+        {
+            var updateOption = await SaveDatabase(context).ConfigureAwait(false);
+            if (updateOption.IsError()) return updateOption.ToOptionStatus();
+        }
+
         _map.UpdateCounters();
 
         context.LogInformation("Loaded graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
@@ -187,23 +118,20 @@ public class GraphMapStore : IAsyncDisposable
         _graphHostOption.ReadOnly.Assert(x => x == false, "Cannot set map when read-only");
         using var metric = context.LogDuration("graphMapStore-SaveDatabase");
 
-        context.LogTrace("Writing graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
+        context.LogDebug("Writing graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
 
-        DataETag dataETag = _map
+        DataETag dataETag = _map.NotNull("Graph not loaded")
             .ToSerialization()
             .ToDataETag(_currentETag);
 
-        var writeMapSerializer = await _leaseControl.GetCurrentFileAccess()
-            .Set(dataETag, context)
-            .ConfigureAwait(false);
+        var saveOption = await _leaseControl.GetCurrentFileAccess().Set(dataETag, context).ConfigureAwait(false);
+        if (saveOption.IsError()) return saveOption.LogStatus(context, "Failed to save database").ToOptionStatus<DataETag>();
 
-        if (writeMapSerializer.IsError()) return writeMapSerializer.ToOptionStatus<DataETag>();
-
-        string newETag = writeMapSerializer.Return();
+        string newETag = saveOption.Return();
         Interlocked.Exchange(ref _currentETag, newETag);
         _map.UpdateCounters();
 
-        context.LogTrace("Write graph data file={mapDatabasePath}, eTag={etag}", GraphConstants.MapDatabasePath, _currentETag);
+        context.LogDebug("Write graph data file={mapDatabasePath}, eTag={etag}", GraphConstants.MapDatabasePath, _currentETag);
         return dataETag;
     }
 }

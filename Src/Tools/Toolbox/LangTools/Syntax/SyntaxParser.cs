@@ -22,7 +22,7 @@ public class SyntaxParser
 
     public SyntaxResponse Parse(string rawData, ScopeContext context)
     {
-        context.LogTrace("Parsing rawData={rawData}", rawData);
+        context.LogDebug("Parsing rawData={rawData}", rawData);
 
         var tokens = new StringTokenizer()
             .UseSingleQuote()
@@ -32,7 +32,7 @@ public class SyntaxParser
             .SetFilter(x => x.Value.IsNotEmpty())
             .Parse(rawData);
 
-        context.LogTrace("Parsed data, tokens.Count={tokensCount}", tokens.Count);
+        context.LogDebug("Parsed data, tokens.Count={tokensCount}", tokens.Count);
 
         var pContext = new SyntaxParserContext(tokens, context);
 
@@ -68,11 +68,11 @@ public class SyntaxParser
 
     private Option ProcessRules(SyntaxParserContext pContext, ScopeContext context)
     {
-        context.LogTrace("ProcessingRules: pContext={pContext}", pContext.GetDebuggerDisplay());
+        context.LogDebug("ProcessingRules: pContext={pContext}", pContext.GetDebuggerDisplay());
 
         foreach (var rule in _rootRules)
         {
-            context.LogTrace("[Rule] processing: pContext{pContext}", rule.GetDebuggerDisplay());
+            context.LogDebug("[Rule] processing: pContext{pContext}", rule.GetDebuggerDisplay());
 
             var treeBuilder = new SyntaxTreeBuilder { MetaSyntax = rule };
             Option status = ProcessRule(pContext, rule, treeBuilder, context);
@@ -80,7 +80,7 @@ public class SyntaxParser
 
             if (status.IsNotFound())
             {
-                context.LogTrace("[Rule] - no match - processing: pContext{pContext}", rule.GetDebuggerDisplay());
+                context.LogDebug("[Rule] - no match - processing: pContext{pContext}", rule.GetDebuggerDisplay());
                 continue;
             }
 
@@ -93,7 +93,7 @@ public class SyntaxParser
     private Option ProcessRule(SyntaxParserContext pContext, IMetaSyntax parentMetaSyntax, SyntaxTreeBuilder tree, ScopeContext context)
     {
         using var scope = pContext.PushWithScope();
-        context.LogTrace(
+        context.LogDebug(
             "ProcessRule: pContext{pContext}, metaSyntax=[{metaSyntax}]",
             pContext.GetDebuggerDisplay(), parentMetaSyntax.GetDebuggerDisplay()
             );
@@ -160,12 +160,12 @@ public class SyntaxParser
 
         if (returnStatus.IsError())
         {
-            context.LogTrace("ProcessRule: Failed to match rule, pContext{pContext}", pContext.GetDebuggerDisplay());
+            context.LogDebug("ProcessRule: Failed to match rule, pContext{pContext}", pContext.GetDebuggerDisplay());
             return StatusCode.NotFound;
         }
 
         scope.Cancel();
-        context.LogTrace("ProcessRule: Success, pContext{pContext}", pContext.GetDebuggerDisplay());
+        context.LogDebug("ProcessRule: Success, pContext{pContext}", pContext.GetDebuggerDisplay());
         return returnStatus;
 
         static IReadOnlyList<IMetaSyntax> GetMetaSyntaxList(IMetaSyntax metaSyntax) => metaSyntax switch
@@ -205,7 +205,7 @@ public class SyntaxParser
 
         if (!pContext.TokensCursor.TryGetValue(out var current))
         {
-            context.LogTrace("ProcessTerminal: No token found, pContext{pContext}", pContext.GetDebuggerDisplay());
+            context.LogDebug("ProcessTerminal: No token found, pContext{pContext}", pContext.GetDebuggerDisplay());
             return (StatusCode.NotFound, $"ProcessTerminal: No token found, pContext={pContext.GetDebuggerDisplay()}");
         }
 
@@ -213,12 +213,12 @@ public class SyntaxParser
         {
             case var v when isTokenMatch(v.Value):
                 tree.Children.Add(new SyntaxPair { Token = v, MetaSyntaxName = terminal.Name });
-                context.LogTrace("ProcessTerminal: Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
+                context.LogDebug("ProcessTerminal: Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
                 scope.Cancel();
                 return StatusCode.OK;
 
             default:
-                context.LogTrace("ProcessTerminal: Terminal does not match, currentToken={tokenValue}, terminal={terminal} pContext={pContext}",
+                context.LogDebug("ProcessTerminal: Terminal does not match, currentToken={tokenValue}, terminal={terminal} pContext={pContext}",
                     current.Value, terminal.GetDebuggerDisplay(), pContext.GetDebuggerDisplay()
                     );
 

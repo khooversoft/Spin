@@ -38,7 +38,7 @@ public class InMemoryFileAccess : IFileAccess
 
         DateTime dt = DateTime.UtcNow + TimeSpan.FromSeconds(5);
 
-        while(DateTime.UtcNow < dt)
+        while (DateTime.UtcNow < dt)
         {
             Option<LeaseRecord> lease = _memoryStore.AcquireLease(Path, leaseDuration, context.With(_logger));
             if (lease.IsOk())
@@ -47,7 +47,7 @@ public class InMemoryFileAccess : IFileAccess
                 return access.ToOption();
             }
 
-            if(lease.IsLocked())
+            if (lease.IsLocked())
             {
                 var waitPeriod = TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(300));
                 await Task.Delay(waitPeriod);
