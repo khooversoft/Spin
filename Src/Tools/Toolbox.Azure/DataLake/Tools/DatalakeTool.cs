@@ -14,7 +14,7 @@ public static class DatalakeTool
     {
         fileClient.NotNull();
 
-        context.Location().LogTrace("Getting path {path} properties", fileClient.Path);
+        context.Location().LogDebug("Getting path {path} properties", fileClient.Path);
         using var metric = context.LogDuration("dataLakeStore-getPathProperties");
 
         try
@@ -22,7 +22,7 @@ public static class DatalakeTool
             Response<bool> exist = await fileClient.ExistsAsync();
             if (!exist.HasValue || !exist.Value)
             {
-                context.Location().LogTrace("File does not exist, path={path}", fileClient.Path);
+                context.LogDebug("File does not exist, path={path}", fileClient.Path);
                 return new Option<IStorePathDetail>(StatusCode.NotFound);
             }
 

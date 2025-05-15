@@ -64,7 +64,7 @@ public class ChannelClient
             .Build();
 
         var resultOption = await _graphClient.Execute(cmd, context).ConfigureAwait(false);
-        resultOption.LogStatus(context, "Lookup security grup by principalId={principalId}", [principalId]);
+        resultOption.LogStatus(context, "Lookup security group by principalId={principalId}", [principalId]);
         if (resultOption.IsError()) return resultOption.ToOptionStatus<IReadOnlyList<ChannelRecord>>();
 
         var result = resultOption.Return();

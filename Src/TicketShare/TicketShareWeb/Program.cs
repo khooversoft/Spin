@@ -18,24 +18,28 @@ using Toolbox.Graph.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-const string _appVersion = "TicketShareWeb - Version: 1.0.11";
+const string _appVersion = "TicketShareWeb - Version: 0.8.1";
 Console.WriteLine(_appVersion);
 
 var builder = WebApplication.CreateBuilder(args);
 bool enableHttpLogging = builder.Configuration.GetValue<bool>("EnableHttpLogging", false);
 
-builder.Logging.AddApplicationInsights(
-        configureTelemetryConfiguration: (config) =>
-            {
-                string instrumentKey = builder.Configuration["InstrumentationKey"].NotEmpty();
-                config.ConnectionString = instrumentKey;
-            },
-        configureApplicationInsightsLoggerOptions: (options) => { }
-    );
+Console.WriteLine($"Running in developer mode={(builder.Environment.IsDevelopment() ? "yes" : "no")}");
 
-builder.Logging.AddConsole();
+//builder.Logging.AddApplicationInsights(
+//        configureTelemetryConfiguration: (config) =>
+//            {
+//                string instrumentKey = builder.Configuration["InstrumentationKey"].NotEmpty();
+//                config.ConnectionString = instrumentKey;
+//            },
+//        configureApplicationInsightsLoggerOptions: (options) => { }
+//    );
 
-if (enableHttpLogging)
+builder.Logging
+    .AddConsole()
+    .AddFilter(x => true);
+
+if (enableHttpLogging || true)
 {
     builder.Services.AddHttpLogging(config =>
     {
@@ -50,10 +54,10 @@ if (enableHttpLogging)
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddFluentUIComponents();
 
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-});
+//builder.Services.Configure<ForwardedHeadersOptions>(options =>
+//{
+//    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+//});
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -99,7 +103,8 @@ builder.Services
     .AddTicketData()
     .AddEmail(builder.Configuration.Get<EmailOption>("email", EmailOption.Validator).NotNull())
     .AddScoped<AskPanel>()
-    .AddScoped<ApplicationNavigation>();
+    .AddScoped<ApplicationNavigation>()
+    .AddSingleton<TestDisposable>();
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,8 +113,8 @@ WebApplication app = builder.Build();
 
 ///////////////////////////////////////////////////////////////////////////////
 
-if (enableHttpLogging) app.UseHttpLogging();
-app.UseForwardedHeaders();
+if (enableHttpLogging || true) app.UseHttpLogging();
+//app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -144,8 +149,42 @@ logger.LogInformation(
     );
 
 var runOption = await app.Services.StartGraphEngine();
+
+// Example in Program.cs
+app.Lifetime.ApplicationStopping.Register(() =>
+{
+    Console.WriteLine("Application is stopping...***");
+    logger.LogInformation("Application is stopping...*!*");
+    // Add timing or additional diagnostics here
+});
+
 if (runOption.IsOk())
 {
     logger.LogInformation("Starting app");
-    app.Run();
+    await app.RunAsync();
+}
+
+
+public class TestDisposable : IDisposable, IAsyncDisposable
+{
+    private readonly ILogger<TestDisposable> _logger;
+
+    public TestDisposable(ILogger<TestDisposable> logger)
+    {
+        _logger = logger;
+        _logger.LogInformation("TestDisposable created");
+    }
+
+    public void Dispose()
+    {
+        Console.WriteLine("TestDisposable CALLED**");
+        _logger.LogInformation("TestDisposable CALLED");
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        Console.WriteLine("DisposeAsync CALLED**");
+        _logger.LogInformation("DisposeAsync CALLED");
+        return ValueTask.CompletedTask;
+    }
 }

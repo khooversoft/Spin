@@ -7,7 +7,7 @@ internal class EdgeInstruction
 {
     public static Option Process(GiEdge giEdge, QueryExecutionContext pContext)
     {
-        pContext.TrxContext.Context.Location().LogTrace("Process giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.Location().LogDebug("Process giEdge={giEdge}", giEdge);
 
         var result = giEdge.ChangeType switch
         {
@@ -28,14 +28,14 @@ internal class EdgeInstruction
         giEdge.NotNull();
         pContext.NotNull();
 
-        pContext.TrxContext.Context.LogTrace("Adding giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.LogDebug("Adding giEdge={giEdge}", giEdge);
 
         var graphEdge = new GraphEdge(giEdge.From, giEdge.To, giEdge.Type, giEdge.Tags.RemoveDeleteCommands(), DateTime.UtcNow);
 
         var graphResult = pContext.TrxContext.Map.Edges.Add(graphEdge, pContext.TrxContext);
         if (graphResult.IsError()) return graphResult;
 
-        pContext.TrxContext.Context.LogTrace("Added giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.LogDebug("Added giEdge={giEdge}", giEdge);
         return StatusCode.OK;
     }
 
@@ -44,18 +44,18 @@ internal class EdgeInstruction
         giEdge.NotNull();
         pContext.NotNull();
 
-        pContext.TrxContext.Context.LogTrace("Deleting giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.LogDebug("Deleting giEdge={giEdge}", giEdge);
 
         var graphResult = pContext.TrxContext.Map.Edges.Remove(giEdge.GetPrimaryKey(), pContext.TrxContext);
         if (!giEdge.IfExist && graphResult.IsError()) return graphResult;
 
-        pContext.TrxContext.Context.LogTrace("Deleting giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.LogDebug("Deleting giEdge={giEdge}", giEdge);
         return StatusCode.OK;
     }
 
     private static Option Set(GiEdge giEdge, QueryExecutionContext pContext)
     {
-        pContext.TrxContext.Context.LogTrace("Updating giEdge={giEdge}", giEdge);
+        pContext.TrxContext.Context.LogDebug("Updating giEdge={giEdge}", giEdge);
 
         IReadOnlyDictionary<string, string?> tags = giEdge.Tags;
         if (pContext.TrxContext.Map.Edges.TryGetValue(giEdge.GetPrimaryKey(), out var readGraphEdge))

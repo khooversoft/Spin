@@ -37,7 +37,7 @@ public class CmNodeChange : IChangeLog
         graphContext.NotNull();
 
         graphContext.Map.Nodes[CurrentValue.Key] = CurrentValue;
-        graphContext.Context.LogTrace("Rollback Node: restored node logKey={logKey}, key={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
+        graphContext.Context.LogDebug("Rollback Node: restored node logKey={logKey}, key={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
         return ((Option)StatusCode.OK).ToTaskResult();
     }
 }

@@ -8,7 +8,7 @@ internal static class NodeInstruction
 {
     public static async Task<Option> Process(GiNode giNode, QueryExecutionContext pContext)
     {
-        pContext.TrxContext.Context.Location().LogTrace("Process giNode={giNode}, changeType={changeType}", giNode, giNode.ChangeType);
+        pContext.TrxContext.Context.Location().LogDebug("Process giNode={giNode}, changeType={changeType}", giNode, giNode.ChangeType);
 
         var result = giNode.ChangeType switch
         {
@@ -29,7 +29,7 @@ internal static class NodeInstruction
         giNode.NotNull();
         pContext.NotNull();
 
-        pContext.TrxContext.Context.LogTrace("Adding giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogDebug("Adding giNode={giNode}", giNode);
 
         var dataMapOption = await NodeDataTool.AddData(giNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
@@ -53,7 +53,7 @@ internal static class NodeInstruction
         var fk = AddForeignKeys(giNode.Key, foreignKeys, tags, pContext);
         if (fk.IsError()) return fk;
 
-        pContext.TrxContext.Context.LogTrace("Added giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogDebug("Added giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
@@ -62,7 +62,7 @@ internal static class NodeInstruction
         giNode.NotNull();
         pContext.NotNull();
 
-        pContext.TrxContext.Context.LogTrace("Deleting giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogDebug("Deleting giNode={giNode}", giNode);
 
         if (pContext.TrxContext.Map.Nodes.TryGetValue(giNode.Key, out var readGraphNode))
         {
@@ -73,7 +73,7 @@ internal static class NodeInstruction
         var graphResult = pContext.TrxContext.Map.Nodes.Remove(giNode.Key, pContext.TrxContext);
         if (!giNode.IfExist && graphResult.IsError()) return graphResult;
 
-        pContext.TrxContext.Context.LogTrace("Deleting giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogDebug("Deleting giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
@@ -81,11 +81,11 @@ internal static class NodeInstruction
     {
         if (!pContext.TrxContext.Map.Nodes.TryGetValue(giNode.Key, out var currentGraphNode))
         {
-            pContext.TrxContext.Context.LogTrace("Node key={key} not found, adding node for upsert", giNode.Key);
+            pContext.TrxContext.Context.LogDebug("Node key={key} not found, adding node for upsert", giNode.Key);
             return await Add(giNode, pContext);
         }
 
-        pContext.TrxContext.Context.LogTrace("Updating giNode={giNode}", giNode);
+        pContext.TrxContext.Context.LogDebug("Updating giNode={giNode}", giNode);
 
         var dataMapOption = await NodeDataTool.MergeData(giNode, currentGraphNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
@@ -129,7 +129,7 @@ internal static class NodeInstruction
 
         if (foreignKeys.Count == 0) return StatusCode.OK;
 
-        pContext.TrxContext.Context.LogTrace(
+        pContext.TrxContext.Context.LogDebug(
             "Add foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}, tags={tags}",
             fromKey,
             foreignKeys.ToTagsString(),
@@ -149,7 +149,7 @@ internal static class NodeInstruction
             .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.NotEmpty()))
             .ToArray();
 
-        pContext.TrxContext.Context.LogTrace("Foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}", fromKey, fkTags);
+        pContext.TrxContext.Context.LogDebug("Foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}", fromKey, fkTags);
 
         var missingEdges = fkTags
             .Where(x => x.Value.IsNotEmpty())
@@ -158,7 +158,7 @@ internal static class NodeInstruction
             .Select(x => new GraphEdge(x.FromKey, x.ToKey, x.EdgeType))
             .ToArray();
 
-        pContext.TrxContext.Context.LogTrace(
+        pContext.TrxContext.Context.LogDebug(
             "Missing edges fromKey={fromKey}, missingEdges={missingEdges}",
             fromKey,
             missingEdges.Select(x => x.ToString()).Join(',')

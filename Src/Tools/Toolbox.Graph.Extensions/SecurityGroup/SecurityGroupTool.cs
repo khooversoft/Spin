@@ -22,14 +22,14 @@ public static class SecurityGroupTool
         var subject = await client.GetNode<SecurityGroupRecord>(ToNodeKey(securityGroupId), context).ConfigureAwait(false);
         if (subject.IsError())
         {
-            context.LogTrace("Security group not found, securityGroupId={securityGroupId}", securityGroupId);
+            context.LogDebug("Security group not found, securityGroupId={securityGroupId}", securityGroupId);
             return subject.ToOptionStatus();
         }
 
         var read = subject.Return();
         if (read.HasAccess(principalId, accessRequired).IsError(out var status))
         {
-            context.LogTrace("Access denied, securityGroupId={securityGroupId}, principalId={principalId}", securityGroupId, principalId);
+            context.LogDebug("Access denied, securityGroupId={securityGroupId}, principalId={principalId}", securityGroupId, principalId);
             return status;
         }
         return StatusCode.OK;

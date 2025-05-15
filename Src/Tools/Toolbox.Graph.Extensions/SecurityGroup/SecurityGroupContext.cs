@@ -93,7 +93,7 @@ public readonly struct SecurityGroupContext
         var read = subject.Return();
         if (read.HasAccess(_principalId, accessRequired).IsError(out var status))
         {
-            context.LogTrace("Access denied, securityGroupId={securityGroupId}, principalId={principalId}", _securityGroupId, _principalId);
+            context.LogWarning("Access denied, securityGroupId={securityGroupId}, principalId={principalId}", _securityGroupId, _principalId);
             return status.ToOptionStatus<SecurityGroupRecord>();
         }
 

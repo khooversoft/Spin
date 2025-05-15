@@ -30,7 +30,7 @@ public record CmNodeDelete : IChangeLog
         graphContext.NotNull();
 
         graphContext.Map.Nodes[CurrentValue.Key] = CurrentValue;
-        graphContext.Context.LogTrace("Rollback: restored node logKey={logKey}, Node key={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
+        graphContext.Context.LogDebug("Rollback: restored node logKey={logKey}, Node key={key}, value={value}", LogKey, CurrentValue.Key, CurrentValue.ToJson());
         return ((Option)StatusCode.OK).ToTaskResult();
     }
 }

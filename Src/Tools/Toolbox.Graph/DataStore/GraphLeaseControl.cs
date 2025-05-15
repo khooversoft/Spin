@@ -71,12 +71,12 @@ public class GraphLeaseControl
             var current = Interlocked.Exchange(ref _scopeLock, null);
             if (current == null) return StatusCode.OK;
 
-            context.LogTrace("Lease released");
+            context.LogDebug("Lease released");
             _leaseCounter.ActiveAcquire.Record(0);
             _leaseCounter.Release.Add();
 
             var result = await current.NotNull().Release(context).ConfigureAwait(false);
-            context.LogTrace("Lock released");
+            context.LogDebug("Lock released");
             return result;
         }
         finally
@@ -101,7 +101,7 @@ public class GraphLeaseControl
             {
                 await currentLock.Release(context).ConfigureAwait(false);
                 _leaseCounter.ActiveExclusive.Record(0);
-                context.LogTrace("Exclusive lock released");
+                context.LogDebug("Exclusive lock released");
             }
 
             return StatusCode.OK;
@@ -130,7 +130,7 @@ public class GraphLeaseControl
 
         _leaseCounter.ActiveAcquire.Record(1);
         _leaseCounter.Acquire.Add();
-        context.LogTrace("Lock acquired");
+        context.LogDebug("Lock acquired");
 
         return scopedWriteAccess;
 
@@ -153,7 +153,7 @@ public class GraphLeaseControl
             {
                 _exclusiveLock = leaseOption.Return();
                 _leaseCounter.ActiveExclusive.Record(1);
-                context.LogTrace("Exclusive lock acquired");
+                context.LogDebug("Exclusive lock acquired");
 
                 var scopedWriteAccess = new ScopedWriteAccess(_exclusiveLock, () => Task.CompletedTask);
                 return scopedWriteAccess;

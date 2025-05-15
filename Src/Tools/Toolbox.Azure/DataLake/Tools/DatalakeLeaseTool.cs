@@ -46,7 +46,7 @@ public static class DatalakeLeaseTool
             var result = await leaseClient.BreakAsync();
             if (result.GetRawResponse().IsError) return (StatusCode.Conflict, "Failed to break lease");
 
-            context.LogTrace("Break lease");
+            context.LogDebug("Lease has been broken");
             return StatusCode.OK;
         }
         catch (Exception ex)
@@ -70,7 +70,7 @@ public static class DatalakeLeaseTool
             try
             {
                 lease = await leaseClient.AcquireAsync(leaseDuration);
-                context.LogTrace("Lease acquired. Duration={duration}, leaseId={leaseId}", leaseDuration.ToString(), lease.LeaseId);
+                context.LogDebug("Lease acquired. Duration={duration}, leaseId={leaseId}", leaseDuration.ToString(), lease.LeaseId);
                 return new DatalakeLeasedAccess(fileClient, leaseClient, context.Logger);
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == _blobNotFoundText && notFoundCount++ == 0)
@@ -86,7 +86,7 @@ public static class DatalakeLeaseTool
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == _leaseAlreadyPresentText)
             {
-                context.LogTrace("Lease already present. Retrying...");
+                context.LogDebug("Lease already present. Retrying...");
 
                 var waitPeriod = TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(300));
 
