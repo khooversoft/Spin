@@ -48,11 +48,11 @@
     protected override async Task OnParametersSetAsync()
     {
         _scopeContext = new ScopeContext(_logger);
-        _scopeContext.LogInformation("HomeFeedPage: OnParametersSetAsync, instanceId={instanceId}", _instanceId);
+        _scopeContext.LogDebug("HomeFeedPage: OnParametersSetAsync, instanceId={instanceId}", _instanceId);
 
         if (_principalId.IsEmpty())
         {
-            _scopeContext.LogInformation("HomeFeedPage: GetPrincipalIdentity, instanceId={instanceId}", _instanceId);
+            _scopeContext.LogDebug("HomeFeedPage: GetPrincipalIdentity, instanceId={instanceId}", _instanceId);
             var principalOption = await _userAccountContext.GetPrincipalIdentity(_scopeContext).ConfigureAwait(false);
             if (principalOption.IsError())
             {
@@ -68,7 +68,7 @@
             };
         }
 
-        _scopeContext.LogInformation("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
+        _scopeContext.LogDebug("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
         await Refresh();
         await base.OnParametersSetAsync();
     }
@@ -77,7 +77,7 @@
     {
         if (firstRender)
         {
-            _scopeContext.LogInformation("HomeFeedPage: OnAfterRender, instanceId={instanceId}", _instanceId);
+            _scopeContext.LogDebug("HomeFeedPage: OnAfterRender, instanceId={instanceId}", _instanceId);
             _loading = false;
         }
 
@@ -89,13 +89,13 @@
 
         if (_principalId == null)
         {
-            _scopeContext.LogInformation("HomeFeedPage: Refresh, NoPrincipalId, instanceId={instanceId}", _instanceId);
+            _scopeContext.LogDebug("HomeFeedPage: Refresh, NoPrincipalId, instanceId={instanceId}", _instanceId);
             _loading = false;
             _componentList = [];
             return;
         }
 
-        _scopeContext.LogInformation("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
+        _scopeContext.LogDebug("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
         var channelsOption = await _channelManager.GetMessages(_principalId, _scopeContext);
         var accountActive = await _userAccountManager.IsAccountEnabled(_scopeContext);
 

@@ -29,14 +29,14 @@ public class ChannelManager
             var user = await _accountClient.GetContext(principalId).Messages.Send([message], context).ConfigureAwait(false);
             if (user.IsError()) return user.LogStatus(context, "Failed to send message to user, principalId={principalId}, message={message}", [principalId, message]);
 
-            context.LogInformation("Send message to principalId={principalId}, message={message}", principalId, message);
+            context.LogDebug("Send message to principalId={principalId}, message={message}", principalId, message);
             return StatusCode.OK;
         }
 
         var channel = await _channelClient.GetContext(message.ChannelId, message.FromPrincipalId).AddMessage(message, context).ConfigureAwait(false);
         if (channel.IsError()) return channel.LogStatus(context, "Failed to add message to channel, channelId={channelId}, message={message}", [message.ChannelId, message]);
 
-        context.LogInformation("Message sent to channel, channelId={channelId}, message={message}", message.ChannelId, message);
+        context.LogDebug("Message sent to channel, channelId={channelId}, message={message}", message.ChannelId, message);
         return StatusCode.OK;
     }
 

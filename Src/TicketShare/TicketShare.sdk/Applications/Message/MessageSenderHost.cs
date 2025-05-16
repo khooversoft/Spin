@@ -26,7 +26,7 @@ public class MessageSenderHost : ChannelReceiverHost<ChannelMessage>
     protected override async Task<Option> ProcessMessage(ChannelMessage message, ScopeContext context)
     {
         if (message.Validate().IsError(out var r)) return r.LogStatus(context, nameof(ChannelMessage));
-        _logger.LogInformation("Message received, message={message}", message);
+        _logger.LogDebug("Message received, message={message}", message);
 
         var result = await _channelManager.ProcessMessage(message, context).ConfigureAwait(false);
         return result;
@@ -42,14 +42,14 @@ public class MessageSenderHost : ChannelReceiverHost<ChannelMessage>
     //        var user = await _accountClient.GetContext(principalId).Messages.Send([message], context).ConfigureAwait(false);
     //        if (user.IsError()) return user.LogStatus(context, "Failed to send message to user, principalId={principalId}, message={message}", [principalId, message]);
 
-    //        context.LogInformation("Send message to principalId={principalId}, message={message}", principalId, message);
+    //        context.LogDebug("Send message to principalId={principalId}, message={message}", principalId, message);
     //        return StatusCode.OK;
     //    }
 
     //    var channel = await _channelClient.GetContext(message.ChannelId, message.FromPrincipalId).AddMessage(message, context).ConfigureAwait(false);
     //    if (channel.IsError()) return channel.LogStatus(context, "Failed to add message to channel, channelId={channelId}, message={message}", [message.ChannelId, message]);
 
-    //    context.LogInformation("Message sent to channel, channelId={channelId}, message={message}", message.ChannelId, message);
+    //    context.LogDebug("Message sent to channel, channelId={channelId}, message={message}", message.ChannelId, message);
     //    return StatusCode.OK;
     //}
 }

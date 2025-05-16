@@ -17,7 +17,7 @@ public static class ConfigurationExtensions
         return result;
     }
 
-    public static T Get<T>(this IConfiguration configuration, string sectionName, IValidator<T> validator) where T : new()
+    public static T Get<T>(this IConfiguration configuration, string sectionName, IValidator<T> validator) where T : class, new()
     {
         validator.NotNull();
 

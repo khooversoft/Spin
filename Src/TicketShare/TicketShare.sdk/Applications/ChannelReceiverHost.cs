@@ -61,14 +61,13 @@ public abstract class ChannelReceiverHost<T> : IHostedService
                     if (!_channel.Reader.TryRead(out var channelMessage)) continue;
 
                     var result = await ProcessMessage(channelMessage, context).ConfigureAwait(false);
-
                     if (result.IsError())
                     {
                         context.LogError("Failed to process channel={name}, message{message}, error={error}", _name, channelMessage, result.Error);
                         continue;
                     }
 
-                    context.LogInformation("Processed channel={name}, message{message}", _name, channelMessage);
+                    context.LogDebug("Processed channel={name}, message{message}", _name, channelMessage);
                 }
             }
             catch (OperationCanceledException)

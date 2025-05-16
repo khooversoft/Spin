@@ -29,6 +29,7 @@ public static class DatalakeLeaseTool
         if (acquireOption.IsOk()) return acquireOption;
         if (acquireOption.IsLocked() && !breakLeaseIfExist) return acquireOption;
 
+        context.LogWarning("Failed to acquire lease, attempting to break lease");
         var breakOption = await fileClient.Break(context).ConfigureAwait(false);
         if (breakOption.IsError()) return breakOption.ToOptionStatus<IFileLeasedAccess>();
 
@@ -46,7 +47,7 @@ public static class DatalakeLeaseTool
             var result = await leaseClient.BreakAsync();
             if (result.GetRawResponse().IsError) return (StatusCode.Conflict, "Failed to break lease");
 
-            context.LogDebug("Lease has been broken");
+            context.LogWarning("Lease has been broken");
             return StatusCode.OK;
         }
         catch (Exception ex)
@@ -86,10 +87,8 @@ public static class DatalakeLeaseTool
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == _leaseAlreadyPresentText)
             {
-                context.LogDebug("Lease already present. Retrying...");
-
+                context.LogWarning("Lease already present. Retrying...");
                 var waitPeriod = TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(300));
-
                 await Task.Delay(waitPeriod, context.CancellationToken).ConfigureAwait(false);
                 continue;
             }

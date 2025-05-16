@@ -40,7 +40,7 @@
 //        e.Cancel = true;
 //        const string msg = "Shutting down...";
 
-//        _logger.LogInformation(msg);
+//        _logger.LogDebug(msg);
 //        _tokenSource.Cancel();
 //    }
 

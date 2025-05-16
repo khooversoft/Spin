@@ -22,33 +22,41 @@ const string _appVersion = "TicketShareWeb - Version: 0.8.1";
 Console.WriteLine(_appVersion);
 
 var builder = WebApplication.CreateBuilder(args);
-bool enableHttpLogging = builder.Configuration.GetValue<bool>("EnableHttpLogging", false);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5000); // HTTP
+    options.ListenAnyIP(5001, listenOptions =>
+    {
+        listenOptions.UseHttps();
+    });
+});
+
 
 Console.WriteLine($"Running in developer mode={(builder.Environment.IsDevelopment() ? "yes" : "no")}");
 
-//builder.Logging.AddApplicationInsights(
-//        configureTelemetryConfiguration: (config) =>
-//            {
-//                string instrumentKey = builder.Configuration["InstrumentationKey"].NotEmpty();
-//                config.ConnectionString = instrumentKey;
-//            },
-//        configureApplicationInsightsLoggerOptions: (options) => { }
-//    );
+builder.Logging.AddApplicationInsights(
+        configureTelemetryConfiguration: (config) =>
+            {
+                string instrumentKey = builder.Configuration["InstrumentationKey"].NotEmpty();
+                config.ConnectionString = instrumentKey;
+            },
+        configureApplicationInsightsLoggerOptions: (options) => { options.ToString(); }
+    );
 
-builder.Logging
-    .AddConsole()
-    .AddFilter(x => true);
+builder.Logging.AddConsole();
 
-if (enableHttpLogging || true)
-{
-    builder.Services.AddHttpLogging(config =>
-    {
-        config.RequestHeaders.Add("X-Forwarded-Proto");
-        config.RequestHeaders.Add("X-Forwarded-For");
-        config.RequestHeaders.Add("X-Forwarded-Host");
-        config.RequestHeaders.Add("X-Forwarded-Client-Cert");
-    });
-}
+//bool enableHttpLogging = builder.Configuration.GetValue<bool>("EnableHttpLogging", false);
+//if (enableHttpLogging || true)
+//{
+//    builder.Services.AddHttpLogging(config =>
+//    {
+//        config.RequestHeaders.Add("X-Forwarded-Proto");
+//        config.RequestHeaders.Add("X-Forwarded-For");
+//        config.RequestHeaders.Add("X-Forwarded-Host");
+//        config.RequestHeaders.Add("X-Forwarded-Client-Cert");
+//    });
+//}
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
@@ -85,9 +93,37 @@ builder.Services.AddAuthentication(options =>
 
                 context.Response.Redirect(context.RedirectUri + "&prompt=select_account");
                 return Task.CompletedTask;
+            },
+            OnTicketReceived = context =>
+            {
+                context.Properties.NotNull().IsPersistent = true;
+                context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(14);
+                return Task.CompletedTask;
             }
         };
-    }).AddIdentityCookies();
+    }).AddIdentityCookies(o =>
+    {
+        o.ApplicationCookie?.Configure(x =>
+        {
+            x.ExpireTimeSpan = TimeSpan.FromDays(1);
+            x.SlidingExpiration = true;
+            x.Cookie.IsEssential = true;
+            x.Cookie.HttpOnly = true;
+        });
+        //o.ApplicationCookie?.Configure(x => x.SlidingExpiration = true);
+    });
+
+
+//builder.Services.ConfigureApplicationCookie(options =>
+//{
+//    options.ExpireTimeSpan = TimeSpan.FromDays(1); // or your preferred duration
+//    options.SlidingExpiration = true; // extends the cookie if the user is active
+//    options.LoginPath = "/Account/Login";
+//    options.LogoutPath = "/Account/Logout";
+//    options.Cookie.IsEssential = true;
+//    options.Cookie.HttpOnly = true;
+//    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+//});
 
 builder.Services.AddScoped<IUserStore<PrincipalIdentity>, IdentityUserStoreHandler>();
 
@@ -97,14 +133,13 @@ builder.Services
     .AddDefaultTokenProviders();
 
 builder.Services
-    .AddDatalakeFileStore(builder.Configuration.Get<DatalakeOption>("Storage", DatalakeOption.Validator).NotNull())
-    .AddGraphEngine()
+    .AddDatalakeFileStore(builder.Configuration.Get<DatalakeOption>("Storage", DatalakeOption.Validator))
+    .AddGraphEngine(builder.Configuration.Get<GraphHostOption>("GraphHost"))
     .AddTicketShare()
     .AddTicketData()
-    .AddEmail(builder.Configuration.Get<EmailOption>("email", EmailOption.Validator).NotNull())
+    .AddEmail(builder.Configuration.Get<EmailOption>("email", EmailOption.Validator))
     .AddScoped<AskPanel>()
-    .AddScoped<ApplicationNavigation>()
-    .AddSingleton<TestDisposable>();
+    .AddScoped<ApplicationNavigation>();
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -113,7 +148,7 @@ WebApplication app = builder.Build();
 
 ///////////////////////////////////////////////////////////////////////////////
 
-if (enableHttpLogging || true) app.UseHttpLogging();
+//if (enableHttpLogging || true) app.UseHttpLogging();
 //app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
@@ -150,41 +185,13 @@ logger.LogInformation(
 
 var runOption = await app.Services.StartGraphEngine();
 
-// Example in Program.cs
 app.Lifetime.ApplicationStopping.Register(() =>
 {
-    Console.WriteLine("Application is stopping...***");
     logger.LogInformation("Application is stopping...*!*");
-    // Add timing or additional diagnostics here
 });
 
 if (runOption.IsOk())
 {
     logger.LogInformation("Starting app");
     await app.RunAsync();
-}
-
-
-public class TestDisposable : IDisposable, IAsyncDisposable
-{
-    private readonly ILogger<TestDisposable> _logger;
-
-    public TestDisposable(ILogger<TestDisposable> logger)
-    {
-        _logger = logger;
-        _logger.LogInformation("TestDisposable created");
-    }
-
-    public void Dispose()
-    {
-        Console.WriteLine("TestDisposable CALLED**");
-        _logger.LogInformation("TestDisposable CALLED");
-    }
-
-    public ValueTask DisposeAsync()
-    {
-        Console.WriteLine("DisposeAsync CALLED**");
-        _logger.LogInformation("DisposeAsync CALLED");
-        return ValueTask.CompletedTask;
-    }
 }
