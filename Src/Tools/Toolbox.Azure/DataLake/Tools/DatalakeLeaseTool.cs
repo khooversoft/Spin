@@ -41,11 +41,16 @@ public static class DatalakeLeaseTool
     {
         fileClient.NotNull();
         DataLakeLeaseClient leaseClient = fileClient.GetDataLakeLeaseClient();
+        context.LogDebug("Attempting to breaking lease for path={path}, leaseId={leaseId}", fileClient.Path, leaseClient.LeaseId);
 
         try
         {
             var result = await leaseClient.BreakAsync();
-            if (result.GetRawResponse().IsError) return (StatusCode.Conflict, "Failed to break lease");
+            if (result.GetRawResponse().IsError)
+            {
+                context.LogError("Failed to break lease, reason={reason}", result.GetRawResponse().ToString());
+                return (StatusCode.Conflict, "Failed to break lease");
+            }
 
             context.LogWarning("Lease has been broken");
             return StatusCode.OK;
@@ -70,6 +75,7 @@ public static class DatalakeLeaseTool
         {
             try
             {
+                context.LogDebug("Attempting to acquire lease, leaseDuration={leaseDuration}", leaseDuration.ToString());
                 lease = await leaseClient.AcquireAsync(leaseDuration);
                 context.LogDebug("Lease acquired. Duration={duration}, leaseId={leaseId}", leaseDuration.ToString(), lease.LeaseId);
                 return new DatalakeLeasedAccess(fileClient, leaseClient, context.Logger);
@@ -94,11 +100,12 @@ public static class DatalakeLeaseTool
             }
             catch (Exception ex)
             {
-                context.LogError(ex, "Failed to acquire lease, {isCancellationRequested}", context.CancellationToken.IsCancellationRequested);
+                context.LogError(ex, "Failed to acquire lease");
                 return (StatusCode.Conflict, ex.Message);
             }
         }
 
+        context.LogError("Failed to acquire lease, timed out duration={duration}", DefaultLeaseDuration.ToString());
         return (StatusCode.Locked, _leaseAlreadyPresentText);
     }
 }

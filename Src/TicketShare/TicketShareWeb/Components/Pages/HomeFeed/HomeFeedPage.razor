@@ -33,7 +33,6 @@
     @inject ILogger<HomeFeedPage> _logger;
 
     private bool _loading = true;
-    private ScopeContext _scopeContext;
     private string? _principalId = null!;
     private IReadOnlyList<HomeComponent> _componentList = [];
     private string _instanceId = Guid.NewGuid().ToString();
@@ -47,13 +46,13 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        _scopeContext = new ScopeContext(_logger);
-        _scopeContext.LogDebug("HomeFeedPage: OnParametersSetAsync, instanceId={instanceId}", _instanceId);
+        var scopeContext = _logger.ToScopeContext();
+        scopeContext.LogDebug("HomeFeedPage: OnParametersSetAsync, instanceId={instanceId}", _instanceId);
 
         if (_principalId.IsEmpty())
         {
-            _scopeContext.LogDebug("HomeFeedPage: GetPrincipalIdentity, instanceId={instanceId}", _instanceId);
-            var principalOption = await _userAccountContext.GetPrincipalIdentity(_scopeContext).ConfigureAwait(false);
+            scopeContext.LogDebug("HomeFeedPage: GetPrincipalIdentity, instanceId={instanceId}", _instanceId);
+            var principalOption = await _userAccountContext.GetPrincipalIdentity(scopeContext).ConfigureAwait(false);
             if (principalOption.IsError())
             {
                 await signInManager.SignOutAsync();
@@ -68,7 +67,7 @@
             };
         }
 
-        _scopeContext.LogDebug("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
+        scopeContext.LogDebug("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
         await Refresh();
         await base.OnParametersSetAsync();
     }
@@ -77,7 +76,8 @@
     {
         if (firstRender)
         {
-            _scopeContext.LogDebug("HomeFeedPage: OnAfterRender, instanceId={instanceId}", _instanceId);
+            var scopeContext = _logger.ToScopeContext();
+            scopeContext.LogDebug("HomeFeedPage: OnAfterRender, instanceId={instanceId}", _instanceId);
             _loading = false;
         }
 
@@ -86,18 +86,19 @@
 
     private async Task Refresh()
     {
+        var scopeContext = _logger.ToScopeContext();
 
         if (_principalId == null)
         {
-            _scopeContext.LogDebug("HomeFeedPage: Refresh, NoPrincipalId, instanceId={instanceId}", _instanceId);
+            scopeContext.LogDebug("HomeFeedPage: Refresh, NoPrincipalId, instanceId={instanceId}", _instanceId);
             _loading = false;
             _componentList = [];
             return;
         }
 
-        _scopeContext.LogDebug("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
-        var channelsOption = await _channelManager.GetMessages(_principalId, _scopeContext);
-        var accountActive = await _userAccountManager.IsAccountEnabled(_scopeContext);
+        scopeContext.LogDebug("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
+        var channelsOption = await _channelManager.GetMessages(_principalId, scopeContext);
+        var accountActive = await _userAccountManager.IsAccountEnabled(scopeContext);
 
         var messageList = channelsOption.IsOk() switch
         {

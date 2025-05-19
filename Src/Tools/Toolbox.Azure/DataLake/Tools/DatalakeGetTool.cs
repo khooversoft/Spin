@@ -8,10 +8,16 @@ namespace Toolbox.Azure;
 
 public static class DatalakeGetTool
 {
-    public static Task<Option<DataETag>> Get(this DataLakeFileClient fileClient, ScopeContext context) => InternalRead(fileClient, null, context);
+    public static async Task<Option<DataETag>> Get(this DataLakeFileClient fileClient, ScopeContext context)
+    {
+        context.LogDebug("Getting file {path} without lease", fileClient.Path);
+        var result = await InternalRead(fileClient, null, context);
+        return result;
+    }
 
     public static Task<Option<DataETag>> Get(this DataLakeFileClient fileClient, DatalakeLeasedAccess datalakeLease, ScopeContext context)
     {
+        context.LogDebug("Getting file path={path}, leaseId={leaseId}", fileClient.Path, datalakeLease.LeaseId);
         var readOption = new DataLakeFileReadOptions
         {
             Conditions = new DataLakeRequestConditions { LeaseId = datalakeLease.LeaseId }
@@ -25,12 +31,17 @@ public static class DatalakeGetTool
         fileClient.NotNull();
 
         using var metric = context.LogDuration("dataLakeStore-read", "path={path}", fileClient.Path);
+        context.LogDebug("Reading file {path}, isOptions={isOptions}, leaseId?={leaseId}", fileClient.Path, (options != null).ToString(), options?.Conditions.LeaseId ?? "<no data>");
 
         try
         {
             var ifExists = await fileClient.ExistsAsync(context).ConfigureAwait(false);
-            if (ifExists.Value == false) return StatusCode.NotFound;
-            metric.Log("existsAsync");
+            metric.Log("InternalRead");
+            if (ifExists.Value == false)
+            {
+                context.LogWarning("File not found, path={path}", fileClient.Path);
+                return StatusCode.NotFound;
+            }
 
             Response<FileDownloadInfo> response = options switch
             {
@@ -56,7 +67,7 @@ public static class DatalakeGetTool
         }
         catch (Exception ex)
         {
-            context.Location().LogError(ex, "Failed to read file {path}", fileClient.Path);
+            context.Location().LogError(ex, "Failed to read file path={path}, leaseId?={leaseId}", fileClient.Path, options?.Conditions.LeaseId ?? "<no data>");
             return (StatusCode.BadRequest, ex.ToString());
         }
     }

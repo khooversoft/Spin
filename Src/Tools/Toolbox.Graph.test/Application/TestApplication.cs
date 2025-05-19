@@ -133,6 +133,7 @@ public static class TestApplication
                 .UseInMemoryStore(memoryStore == null)
                 .SetShareMode(true)
                 .UseLogging()
+                .AddLogFilter("Toolbox.Graph.GraphQueryExecute", LogLevel.Warning)
                 .SetLogOutput(outputFunc)
                 .SetDisableCache(true)
                 .AddServiceConfiguration(x => x.AddInMemoryFileStore(memoryStore))

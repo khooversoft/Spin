@@ -8,7 +8,6 @@ namespace Toolbox.Graph;
 public class GraphMap : IEnumerable<IGraphCommon>
 {
     private readonly Guid _instance = Guid.NewGuid();
-    private readonly AsyncReaderWriterLock _rwLock = new AsyncReaderWriterLock();
     private readonly object _lock = new object();
 
     public GraphMap()
@@ -37,7 +36,6 @@ public class GraphMap : IEnumerable<IGraphCommon>
         LoadRowsAndEdges(nodes, edges);
     }
 
-    internal AsyncReaderWriterLock ReadWriterLock => _rwLock;
     public GraphNodeIndex Nodes { get; }
     public GraphEdgeIndex Edges { get; }
 

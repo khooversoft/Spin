@@ -36,12 +36,7 @@ public class JournalTrx : IJournalTrx, IAsyncDisposable
     {
         var read = Interlocked.CompareExchange(ref _commitFlag, 1, 0);
         if (read == 1) return;
-
-        if (_started == 0)
-        {
-            _context.LogDebug("Trx not started, normally for query type instructions, trxId={trxId}", _trxId);
-            return;
-        }
+        if (_started == 0) return;
 
         _context.LogDebug("Commit={trxId}", _trxId);
 

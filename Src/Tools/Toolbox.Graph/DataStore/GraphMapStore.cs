@@ -84,9 +84,16 @@ public class GraphMapStore : IAsyncDisposable
         using var metric = context.LogDuration("graphMapStore-LoadDatabase");
 
         // Check if exclusive locked, not re-load database
-        if (_map != null && _leaseControl.IsExclusiveLocked) return StatusCode.OK;
+        if (_map != null && _leaseControl.IsExclusiveLocked)
+        {
+            context.LogWarning("Graph database already loaded, exclusive lock, no reload");
+            return StatusCode.OK;
+        }
 
-        var dataETagOption = await _leaseControl.GetCurrentFileAccess().Get(context).ConfigureAwait(false);
+        IFileReadWriteAccess reader = _leaseControl.GetCurrentFileAccess();
+
+        context.LogDebug("Loading graph data, leaseId={leaseId}", reader.GetLeaseId());
+        var dataETagOption = await reader.Get(context).ConfigureAwait(false);
         if (dataETagOption.IsError()) return dataETagOption.ToOptionStatus();
 
         _currentETag = dataETagOption.Return().ETag;
@@ -118,13 +125,20 @@ public class GraphMapStore : IAsyncDisposable
         _graphHostOption.ReadOnly.Assert(x => x == false, "Cannot set map when read-only");
         using var metric = context.LogDuration("graphMapStore-SaveDatabase");
 
-        context.LogDebug("Writing graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
+        IFileReadWriteAccess writer = _leaseControl.GetCurrentFileAccess();
+        if (writer.GetLeaseId() == null)
+        {
+            context.LogCritical("No lease for writing database file");
+            throw new InvalidOperationException("No lease for writing database file");
+        }
+
+        context.LogDebug("Writing graph data file={mapDatabasePath}, leaseId={leaseId}", GraphConstants.MapDatabasePath, writer.GetLeaseId());
 
         DataETag dataETag = _map.NotNull("Graph not loaded")
             .ToSerialization()
             .ToDataETag(_currentETag);
 
-        var saveOption = await _leaseControl.GetCurrentFileAccess().Set(dataETag, context).ConfigureAwait(false);
+        var saveOption = await writer.Set(dataETag, context).ConfigureAwait(false);
         if (saveOption.IsError()) return saveOption.LogStatus(context, "Failed to save database").ToOptionStatus<DataETag>();
 
         string newETag = saveOption.Return();

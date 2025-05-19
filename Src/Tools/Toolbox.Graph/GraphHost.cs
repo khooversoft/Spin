@@ -34,21 +34,29 @@ public class GraphHost : IGraphHost
     private async Task<Option> InternalRun(GraphMap? map, ScopeContext context)
     {
         context = context.With(_logger);
+        context.LogDebug("Attempting to start GraphHost");
 
         await _semaphore.WaitAsync(context.CancellationToken).ConfigureAwait(false);
 
         try
         {
             int current = Interlocked.CompareExchange(ref _runningState, Running, Stopped);
-            if (current == Running) return (StatusCode.Conflict, "GraphHost is already running");
+            if (current == Running)
+            {
+                context.LogWarning("GraphHost is already running");
+                return (StatusCode.Conflict, "GraphHost is already running");
+            }
 
             using var metric = context.LogDuration("graphHost-loadMap");
 
             var exclusiveLease = await _graphHostEngine.AcquireLease(context);
             if (exclusiveLease.IsError()) return exclusiveLease.LogStatus(context, "Failed to acquire lease").ToOptionStatus();
 
-            if (map != null) await _graphHostEngine.SetMap(map, context);
-            context.LogDebug("Graph database loaded");
+            if (map != null)
+            {
+                context.LogDebug("Graph database manual set and checkpoint");
+                await _graphHostEngine.SetMap(map, context);
+            }
 
             Interlocked.Exchange(ref _runningState, Running);
             context.LogInformation("GraphHost is running");

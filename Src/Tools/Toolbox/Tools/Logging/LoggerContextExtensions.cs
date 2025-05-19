@@ -27,6 +27,7 @@ public static class LoggerContextExtensions
 
         context.Context.Logger.LogInformation(record.Message, record.Args);
     }
+
     [DebuggerStepThrough()]
     public static void LogDebug(this ILoggingContext context, string? message, params object?[] args)
     {

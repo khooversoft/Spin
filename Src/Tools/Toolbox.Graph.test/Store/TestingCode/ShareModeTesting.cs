@@ -66,17 +66,17 @@ internal static class ShareModeTesting
         var mapCounter = testClient.Services.GetRequiredService<GraphMapCounter>();
         var leaseCounter = mapCounter.Leases;
 
-        (await testClient.Execute("select (key=node1);", context)).Assert(x => x.IsOk() && x.Return().Nodes.Count == 0, "not 0");
-        (await secondEngineClient.Execute("select (key=node1);", context)).Assert(x => x.IsOk() && x.Return().Nodes.Count == 0, "not 0");
+        (await testClient.Execute("select (key=node1);", context.WithNewTraceId())).Assert(x => x.IsOk() && x.Return().Nodes.Count == 0, "not 0");
+        (await secondEngineClient.Execute("select (key=node1);", context.WithNewTraceId())).Assert(x => x.IsOk() && x.Return().Nodes.Count == 0, "not 0");
 
-        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context);
+        var e1 = await testClient.Execute("add node key=node1 set t1=v1, t2=v ;", context.WithNewTraceId());
         e1.IsOk().BeTrue();
         leaseCounter.Acquire.Value.Assert(x => x >= 1, "not >= 1");
         leaseCounter.Release.Value.Assert(x => x >= 1, "not >= 1");
         leaseCounter.ActiveExclusive.Value.Be(0);
         leaseCounter.ActiveAcquire.Value.Be(0);
 
-        var q1 = await testClient.Execute("select (key=node1);", context);
+        var q1 = await testClient.Execute("select (key=node1);", context.WithNewTraceId());
         q1.Action(x =>
         {
             x.IsOk().BeTrue();
@@ -138,10 +138,10 @@ internal static class ShareModeTesting
 
         static async Task<Option<QueryResult>> query(GraphHostService host, ScopeContext context)
         {
-            var s1 = await host.Execute("select (key=node1);", context);
+            var s1 = await host.Execute("select (key=node1);", context.WithNewTraceId());
             s1.Action(x =>
             {
-                x.IsOk().BeTrue(x.ToString());
+                x.BeOk();
                 x.Return().Action(y =>
                 {
                     y.Nodes.Count.Be(1);

@@ -46,8 +46,12 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
 
     public async Task<Option> Release(ScopeContext context)
     {
+        context = context.With(_logger);
+
         try
         {
+            context.Location().LogDebug("Releasing lease for path={path}, leaseId={leaseId}", Path, LeaseId);
+
             Response<ReleasedObjectInfo> result = await _leaseClient.ReleaseAsync();
             if (!result.HasValue)
             {
@@ -60,17 +64,26 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
             context.LogDebug("Invalid lease Id path={path}", Path);
             return StatusCode.OK;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            context.LogError(ex, "Ignore error, failed to release lease on path={path}, leaseId={leaseId}", Path, LeaseId);
+        }
 
         Interlocked.Exchange(ref _disposed, true);
 
-        context.LogDebug("Released lease for path={path}", Path);
+        context.LogDebug("Released lease for path={path}, leaseId={leaseId}", Path, LeaseId);
         return StatusCode.OK;
     }
 
     public async ValueTask DisposeAsync()
     {
+        var context = _logger.ToScopeContext();
+
         bool disposed = Interlocked.Exchange(ref _disposed, true);
-        if (!disposed) await Release(new ScopeContext(_logger)).ConfigureAwait(false);
+        if (!disposed)
+        {
+            context.Location().LogDebug("DisposingAsync release lease for path={path}, leaseId={leaseId}", Path, LeaseId);
+            await Release(context).ConfigureAwait(false);
+        }
     }
 }

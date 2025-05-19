@@ -32,19 +32,19 @@ builder.WebHost.ConfigureKestrel(options =>
     });
 });
 
-
 Console.WriteLine($"Running in developer mode={(builder.Environment.IsDevelopment() ? "yes" : "no")}");
 
-builder.Logging.AddApplicationInsights(
-        configureTelemetryConfiguration: (config) =>
-            {
-                string instrumentKey = builder.Configuration["InstrumentationKey"].NotEmpty();
-                config.ConnectionString = instrumentKey;
-            },
-        configureApplicationInsightsLoggerOptions: (options) => { options.ToString(); }
-    );
+//builder.Logging.AddApplicationInsights(
+//        configureTelemetryConfiguration: (config) =>
+//            {
+//                string instrumentKey = builder.Configuration["InstrumentationKey"].NotEmpty();
+//                config.ConnectionString = instrumentKey;
+//            },
+//        configureApplicationInsightsLoggerOptions: (options) => { options.ToString(); }
+//    );
 
 builder.Logging.AddConsole();
+
 
 //bool enableHttpLogging = builder.Configuration.GetValue<bool>("EnableHttpLogging", false);
 //if (enableHttpLogging || true)
