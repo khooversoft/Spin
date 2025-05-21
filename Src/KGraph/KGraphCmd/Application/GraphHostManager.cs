@@ -40,7 +40,7 @@ public class GraphHostManager : IDisposable
                 .UseLogging()
                 .SetConfigurationFile(_loadedJsonFile)
                 .AddDatalakeFileStore()
-                .Build();
+                .BuildAndRun();
 
             // See if we can connect to the datalake
             _graphHost.Services.GetRequiredService<IFileStore>();

@@ -21,10 +21,9 @@ public class GraphEngineLoadAndCheckpointTests
     public async Task EmptyDbSave()
     {
         using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(logOutput: x => _outputHelper.WriteLine(x));
+
         var context = graphTestClient.CreateScopeContext<GraphEngineLoadAndCheckpointTests>();
         IFileStore fileStore = graphTestClient.Services.GetRequiredService<IFileStore>();
-
-        await graphTestClient.GraphEngine.CheckpointMap(context);
 
         (await fileStore.File(GraphConstants.MapDatabasePath).Get(context)).Action(x =>
         {

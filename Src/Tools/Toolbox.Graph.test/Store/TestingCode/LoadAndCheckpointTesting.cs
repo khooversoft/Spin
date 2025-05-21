@@ -13,8 +13,6 @@ internal static class LoadAndCheckpointTesting
     {
         IFileStore fileStore = testClient.Services.GetRequiredService<IFileStore>();
 
-        await testClient.GraphEngine.CheckpointMap(context);
-
         (await fileStore.File(GraphConstants.MapDatabasePath).Get(context)).Action(x =>
         {
             x.IsOk().BeTrue();

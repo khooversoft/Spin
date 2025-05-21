@@ -35,7 +35,7 @@ public class StructureLineBuilderTests
             // TODO
             x.Length.Be(2);
             x[0].NotNull().Cast<StatusCode>().Be(StatusCode.OK);
-            x[1].NotNull().Cast<string>().Be("< no error >");
+            x[1].NotNull().Cast<string>().Be("< null >");
         });
 
         result.GetVariables().Action(x =>
@@ -48,7 +48,7 @@ public class StructureLineBuilderTests
         result.GetVariables().SequenceEqual(["statusCode", "error"]).BeTrue();
         result.GetVariables().BeEquivalent(["error", "statusCode"]);
         result.BuildStringFormat().Be("statusCode={0}, error={1}");
-        result.Format().Be("statusCode=OK, error=< no error >");
+        result.Format().Be("statusCode=OK, error=< null >");
     }
 
     [Fact]

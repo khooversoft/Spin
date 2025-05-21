@@ -29,6 +29,7 @@ public static class ObjectExtensions
         return subject is T to ? to : default!;
     }
 
+    // TODO: use T instead of object
     public static T Cast<T>(this object subject)
     {
         return subject is T to ? to : throw new ArgumentException($"Cannot cast to type={typeof(T).FullName}");

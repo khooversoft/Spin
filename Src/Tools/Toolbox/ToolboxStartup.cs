@@ -40,10 +40,8 @@ public static class ToolboxStartup
         key.NotEmpty();
         option.NotNull().Validate().ThrowOnError();
 
-        services.AddKeyedSingleton<IJournalFile>(key, (serviceProvider, _) =>
-        {
-            return ActivatorUtilities.CreateInstance<JournalFile>(serviceProvider, option);
-        });
+        services.AddSingleton(option);
+        services.AddKeyedSingleton<IJournalFile, JournalFile>(key);
 
         return services;
     }

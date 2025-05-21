@@ -7,39 +7,36 @@ namespace Toolbox.Graph;
 
 public interface IGraphTrxContext : IAsyncDisposable
 {
-    ScopeContext Context { get; }
-    ChangeLog ChangeLog { get; }
-    IFileStore FileStore { get; }
-    IJournalTrx TransactionWriter { get; }
     GraphMap Map { get; }
 
-    Task<Option<IFileLeasedAccess>> AcquireLease();
-    Task<Option> CheckpointMap();
+    ScopeContext Context { get; }
+    ChangeLog ChangeLog { get; }
+    IGraphEngine GraphEngine { get; }
+    IFileStore FileStore { get; }
+    IJournalTrx TransactionWriter { get; }
 }
 
 
 public class GraphTrxContext : IGraphTrxContext, IAsyncDisposable
 {
-    private readonly IGraphEngine _graphHost;
+    private readonly IGraphEngine _graphEngine;
 
-    public GraphTrxContext(IGraphEngine graphHost, ScopeContext context)
+    public GraphTrxContext(IGraphEngine graphEngine, ScopeContext context)
     {
-        _graphHost = graphHost.NotNull();
+        _graphEngine = graphEngine.NotNull();
         Context = context;
 
-        TransactionWriter = graphHost.TransactionLog.NotNull().CreateTransactionContext();
+        TransactionWriter = graphEngine.TransactionLog.NotNull().CreateTransactionContext();
         ChangeLog = new ChangeLog(this);
     }
 
-    public GraphMap Map => _graphHost.Map;
+    public GraphMap Map => _graphEngine.GetMapData().NotNull().Map;
 
     public ScopeContext Context { get; }
     public ChangeLog ChangeLog { get; }
-    public IFileStore FileStore => _graphHost.FileStore;
+    public IGraphEngine GraphEngine => _graphEngine;
+    public IFileStore FileStore => _graphEngine.FileStore;
     public IJournalTrx TransactionWriter { get; }
-
-    public Task<Option<IFileLeasedAccess>> AcquireLease() => _graphHost.AcquireLease(Context);
-    public Task<Option> CheckpointMap() => _graphHost.CheckpointMap(Context);
 
     public async ValueTask DisposeAsync() => await TransactionWriter.DisposeAsync();
 }

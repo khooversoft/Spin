@@ -10,7 +10,6 @@ public class JournalFileOption
 
     // Writes are performed in the background
     public bool UseBackgroundWriter { get; init; }
-    public bool ReadOnly { get; init; }
 
     public static IValidator<JournalFileOption> Validator { get; } = new Validator<JournalFileOption>()
         .RuleFor(x => x.ConnectionString).NotEmpty()

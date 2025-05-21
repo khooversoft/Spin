@@ -19,7 +19,7 @@ public class GraphHostBuilder
     public GraphMap? GraphMap { get; set; }
     public bool ReadOnly { get; set; }
     public bool ShareMode { get; set; }
-    public bool BreakExclusiveLease { get; set; }
+    public bool UseBackgroundWriter { get; set; }
     public bool DisableCache { get; set; }
     public bool InMemoryStore { get; set; }
     public bool Logging { get; set; }
@@ -30,7 +30,7 @@ public class GraphHostBuilder
     public GraphHostBuilder SetMap(GraphMap? map) => this.Action(x => x.GraphMap = map);
     public GraphHostBuilder SetReadOnly(bool readOnly = true) => this.Action((Action<GraphHostBuilder>)(x => x.ReadOnly = readOnly));
     public GraphHostBuilder SetShareMode(bool shareMode = true) => this.Action(x => x.ShareMode = shareMode);
-    public GraphHostBuilder SetBreakExclusiveLease(bool breakExclusiveLease = true) => this.Action(x => x.BreakExclusiveLease = BreakExclusiveLease);
+    public GraphHostBuilder SetUseBackgroundWriter(bool breakExclusiveLease = true) => this.Action(x => x.UseBackgroundWriter = UseBackgroundWriter);
     public GraphHostBuilder SetDisableCache(bool disableCache = true) => this.Action(x => x.DisableCache = disableCache);
     public GraphHostBuilder UseInMemoryStore(bool use = true) => this.Action(x => x.InMemoryStore = use);
     public GraphHostBuilder UseLogging(bool useLogging = true) => this.Action(x => x.Logging = useLogging);
@@ -45,16 +45,15 @@ public class GraphHostBuilder
         return this;
     }
 
-    public async Task<GraphHostService> Build()
+    public GraphHostService Build()
     {
         IConfiguration? config = ConfigurationFile != null ? ReadConfiguration() : null;
 
         GraphHostOption graphHostOption = config?.GetSection("GraphHost").Get<GraphHostOption>() ?? new GraphHostOption
         {
-            ReadOnly = ReadOnly,
             ShareMode = ShareMode,
             DisableCache = DisableCache,
-            BreakExclusiveLease = BreakExclusiveLease,
+            UseBackgroundWriter = UseBackgroundWriter,
         };
 
         LogLevel logLevel = LogLevel;
@@ -80,18 +79,20 @@ public class GraphHostBuilder
             })
             .Build();
 
-        var graphEngine = host.Services.GetRequiredService<GraphHostService>();
-        ScopeContext context = graphEngine.CreateScopeContext<GraphHostService>();
-        IGraphHost graphHost = graphEngine.Services.GetRequiredService<IGraphHost>();
+        var graphEngineService = host.Services.GetRequiredService<GraphHostService>();
+        return graphEngineService;
+    }
 
-        var runOption = GraphMap switch
-        {
-            null => await graphHost.Run(context).ConfigureAwait(false),
-            GraphMap v => await graphHost.Run(v, context).ConfigureAwait(false),
-        };
+    public async Task<GraphHostService> BuildAndRun()
+    {
+        var graphHostService = Build();
+        var startOption = await graphHostService.Services.StartGraphEngine(GraphMap);
+        startOption.ThrowOnError("Failed to start");
 
-        runOption.LogStatus(context, "Run engine").ThrowOnError();
-        return graphEngine;
+        var context = graphHostService.Services.GetRequiredService<ILogger<GraphHostBuilder>>().ToScopeContext();
+        context.LogWarning("Run engine");
+
+        return graphHostService;
     }
 
     private IConfiguration ReadConfiguration()

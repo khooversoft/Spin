@@ -47,12 +47,12 @@ internal class GraphDb : ICommandRoute
         if (jsonFile.IsNotEmpty()) await _graphHostManager.Start(jsonFile);
         var context = _logger.ToScopeContext();
 
-        IGraphEngine graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphEngine>();
-        context.LogInformation("Dumping nodes, count={count}", graphHost.Map.Nodes.Count);
+        IGraphEngine graphEngine = _graphHostManager.ServiceProvider.GetRequiredService<IGraphEngine>();
+        context.LogInformation("Dumping nodes, count={count}", graphEngine.GetMapData().NotNull().Map.Nodes.Count);
 
         DataFormatType dataFormatType = fullDump ? DataFormatType.Full : DataFormatType.Single;
 
-        var list = graphHost.Map.Nodes
+        var list = graphEngine.GetMapData().NotNull().Map.Nodes
             .Where(x => nodeKey == null || x.Key.Equals(nodeKey, StringComparison.OrdinalIgnoreCase))
             .OrderBy(x => x.Key);
 
@@ -70,11 +70,11 @@ internal class GraphDb : ICommandRoute
         //await _graphHostManager.LoadMap(context);
 
         IGraphEngine graphHost = _graphHostManager.ServiceProvider.GetRequiredService<IGraphEngine>();
-        context.LogInformation("Dumping edges, count={count}", graphHost.Map.Edges.Count);
+        context.LogInformation("Dumping edges, count={count}", graphHost.GetMapData().NotNull().Map.Edges.Count);
 
         DataFormatType dataFormatType = fullDump ? DataFormatType.Full : DataFormatType.Single;
 
-        var list = graphHost.Map.Edges
+        var list = graphHost.GetMapData().NotNull().Map.Edges
             .Where(x => fromKey == null || x.FromKey.Equals(fromKey, StringComparison.OrdinalIgnoreCase))
             .Where(x => toKey == null || x.FromKey.Equals(toKey, StringComparison.OrdinalIgnoreCase))
             .Where(x => edgeType == null || x.FromKey.Equals(edgeType, StringComparison.OrdinalIgnoreCase))

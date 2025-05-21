@@ -23,7 +23,7 @@ public class DatalakeShareModeTests
 
         var context2 = testClient.CreateScopeContext<DatalakeShareModeTests>();
         var fileStore = testClient.Services.GetRequiredService<IFileStore>();
-        var graphFileStore = testClient.Services.GetRequiredService<IGraphStore>();
+        var graphFileStore = testClient.Services.GetRequiredService<IGraphFileStore>();
         var mapCounter = testClient.Services.GetRequiredService<GraphMapCounter>();
         var leaseCounter = mapCounter.Leases;
 
@@ -79,14 +79,14 @@ public class DatalakeShareModeTests
 
         var context2 = testClient.CreateScopeContext<DatalakeShareModeTests>();
         var fileStore = testClient.Services.GetRequiredService<IFileStore>();
-        var graphFileStore = testClient.Services.GetRequiredService<IGraphStore>();
+        var graphFileStore = testClient.Services.GetRequiredService<IGraphFileStore>();
         var mapCounter = testClient.Services.GetRequiredService<GraphMapCounter>();
         var leaseCounter = mapCounter.Leases;
 
         using var secondEngineClient = await GraphTestStartup.CreateGraphService(
             logOutput: x => _outputHelper.WriteLine(x),
             config: x => x.AddSingleton<IFileStore>(fileStore)
-                .AddSingleton<IGraphStore>(graphFileStore)
+                .AddSingleton<IGraphFileStore>(graphFileStore)
                 .AddSingleton<GraphMapCounter>(mapCounter),
             sharedMode: true,
             useInMemoryStore: false

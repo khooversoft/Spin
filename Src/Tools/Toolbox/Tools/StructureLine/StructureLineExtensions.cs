@@ -16,7 +16,7 @@ public static class StructureLineExtensions
     {
         var newSubject = subject
             .Add("statusCode={statusCode}", option.StatusCode)
-            .Add("error={error}", option.Error ?? "< no error >");
+            .Add("error={error}", option.Error ?? "< null >");
 
         return newSubject;
     }

@@ -5,18 +5,18 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public interface IGraphStore : IFileStore
+public interface IGraphFileStore : IFileStore
 {
 }
 
 
-public class GraphStore : IGraphStore
+public class GraphFileStore : IGraphFileStore
 {
     private readonly MemoryCacheAccess _memoryCache;
-    private readonly ILogger<GraphStore> _logger;
+    private readonly ILogger<GraphFileStore> _logger;
     private readonly IFileStore _fileStore;
 
-    public GraphStore(IFileStore fileStore, GraphHostOption hostOption, ILogger<GraphStore> logger)
+    public GraphFileStore(IFileStore fileStore, GraphHostOption hostOption, ILogger<GraphFileStore> logger)
     {
         hostOption.NotNull();
 
@@ -26,7 +26,7 @@ public class GraphStore : IGraphStore
         _memoryCache = new MemoryCacheAccess(new NullMemoryCache());
     }
 
-    public GraphStore(IFileStore fileStore, MemoryCacheAccess memoryAccess, GraphHostOption hostOption, ILogger<GraphStore> logger)
+    public GraphFileStore(IFileStore fileStore, MemoryCacheAccess memoryAccess, GraphHostOption hostOption, ILogger<GraphFileStore> logger)
     {
         hostOption.NotNull();
 

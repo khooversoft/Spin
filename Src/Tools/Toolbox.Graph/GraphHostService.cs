@@ -21,7 +21,7 @@ public class GraphHostService : IGraphClient, IDisposable
 
     public IServiceProvider Services => _host.Services;
     public IGraphEngine GraphEngine => _graphEngine;
-    public GraphMap Map => GraphEngine.Map;
+    public GraphMap Map => GraphEngine.GetMapData().NotNull("no map set").Map;
 
 
     public Task<Option<QueryResult>> Execute(string command, ScopeContext context) => _graphClient.Execute(command, context);

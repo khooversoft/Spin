@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -14,11 +13,12 @@ public class GraphQueryExecute : IGraphClient
     private readonly ILogger<GraphQueryExecute> _logger;
     private readonly string _instanceId = Guid.NewGuid().ToString();
     private readonly AsyncReaderWriterLock _rwLock = new AsyncReaderWriterLock();
-    private int _entryCount = 0;
+    private readonly IGraphMapAccess _graphMapAccess;
 
-    public GraphQueryExecute(IGraphEngine graphEngine, ILogger<GraphQueryExecute> logger)
+    public GraphQueryExecute(IGraphEngine graphEngine, IGraphMapAccess graphMapAccess, ILogger<GraphQueryExecute> logger)
     {
         _graphEngine = graphEngine.NotNull();
+        _graphMapAccess = graphMapAccess.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -46,7 +46,7 @@ public class GraphQueryExecute : IGraphClient
 
         var pContextOption = ParseQuery(graphQuery, graphTrxContext, context);
         if (pContextOption.IsError()) return pContextOption.ToOptionStatus<QueryBatchResult>();
-         
+
         var graphQueryResultOption = await ExecuteInstruction(pContextOption.Return());
         if (graphQueryResultOption.IsError()) return graphQueryResultOption;
         var graphQueryResult = graphQueryResultOption.Return();
@@ -75,74 +75,57 @@ public class GraphQueryExecute : IGraphClient
 
     private async Task<Option<QueryBatchResult>> ExecuteInstruction(QueryExecutionContext pContext)
     {
-        bool write = true || pContext.IsMutating;
+        bool writeLockRequired = pContext.TrxContext.GraphEngine.IsShareMode || pContext.IsMutating;
 
-        GraphMap map = pContext.TrxContext.Map;
+        using var metric = pContext.TrxContext.Context.LogDuration($"queryExecution-executionInstruction, iKey={_instanceId}");
+        using var releaseWriteReadLock = writeLockRequired ? (await _rwLock.WriterLockAsync()) : (await _rwLock.ReaderLockAsync());
+        await using var scopeLease = await _graphMapAccess.CreateScope(pContext.TrxContext.Context);
 
-        using var metric = pContext.TrxContext.Context.LogDuration("queryExecution-executionInstruction");
-        //using var releaseWriteReadLock = await _rwLock.WriterLockAsync();
-        var releaseWriteReadLock = write ? (await _rwLock.WriterLockAsync()) : (await _rwLock.ReaderLockAsync());
+        pContext.TrxContext.Context.LogWarning("Executing query: write={write}, graphQuery={graphQuery}, iKey={iKey}", writeLockRequired, pContext.GraphQuery, _instanceId);
 
-        using (releaseWriteReadLock)
+        while (pContext.Cursor.TryGetValue(out var graphInstruction))
         {
-            Interlocked.Increment(ref _entryCount);
-            pContext.TrxContext.Context.LogWarning("Counter: Entry counter={entryCount}, iKey={iKey}", _entryCount, _instanceId);
-            if (_entryCount > 1) pContext.TrxContext.Context.LogError("Counter: Entry counter > 0, counter={entryCount}", _entryCount);
+            var metric2 = pContext.TrxContext.Context.LogDuration("queryExecution-executionInstruction-instruction");
 
-            pContext.TrxContext.Context.LogWarning("Executing query: write={write}, graphQuery={graphQuery}, iKey={iKey}", write, pContext.GraphQuery, _instanceId);
-            Option<IFileLeasedAccess> leaseOption = await pContext.TrxContext.AcquireLease();
-            if (leaseOption.IsError()) return leaseOption.ToOptionStatus<QueryBatchResult>();
-
-            await using (var leaseScope = leaseOption.Return())
+            var queryResult = graphInstruction switch
             {
-                while (pContext.Cursor.TryGetValue(out var graphInstruction))
-                {
-                    var metric2 = pContext.TrxContext.Context.LogDuration("queryExecution-executionInstruction-instruction");
+                GiNode giNode => await NodeInstruction.Process(giNode, pContext),
+                GiEdge giEdge => EdgeInstruction.Process(giEdge, pContext),
+                GiSelect giSelect => await SelectInstruction.Process(giSelect, pContext),
+                GiDelete giDelete => await DeleteInstruction.Process(giDelete, pContext),
+                _ => throw new UnreachableException(),
+            };
 
-                    var queryResult = graphInstruction switch
-                    {
-                        GiNode giNode => await NodeInstruction.Process(giNode, pContext),
-                        GiEdge giEdge => EdgeInstruction.Process(giEdge, pContext),
-                        GiSelect giSelect => await SelectInstruction.Process(giSelect, pContext),
-                        GiDelete giDelete => await DeleteInstruction.Process(giDelete, pContext),
-                        _ => throw new UnreachableException(),
-                    };
+            TimeSpan duration = metric2.Log();
 
-                    TimeSpan duration = metric2.Log();
+            var itemResult = pContext.BuildQueryResult();
 
-                    var itemResult = pContext.BuildQueryResult();
-
-                    if (queryResult.IsError())
-                    {
-                        pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
-                        await pContext.TrxContext.ChangeLog.Rollback();
-                        return itemResult;
-                    }
-                }
-
-                var batchResult = pContext.BuildQueryResult();
-
-                if (write)
-                {
-                    await pContext.TrxContext.ChangeLog.CommitLogs();
-
-                    var writeOption = await pContext.TrxContext.CheckpointMap();
-                    if (writeOption.IsError())
-                    {
-                        writeOption.LogStatus(pContext.TrxContext.Context, "Checkpoint failed - attempting to roll back");
-                        await pContext.TrxContext.ChangeLog.Rollback();
-
-                        return writeOption.ToOptionStatus<QueryBatchResult>();
-                    }
-                }
-
-                Interlocked.Decrement(ref _entryCount);
-                pContext.TrxContext.Context.LogWarning("Counter: Exit counter={entryCount}, iKey={iKey}", _entryCount, _instanceId);
-                if (_entryCount != 0) pContext.TrxContext.Context.LogError("Counter: Exit counter != 0, counter={entryCount}", _entryCount);
-
-                pContext.TrxContext.Context.LogWarning("Graph batch completed: query={graphQuery}, iKey={iKey}", pContext.GraphQuery, _instanceId);
-                return batchResult;
+            if (queryResult.IsError())
+            {
+                pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
+                await pContext.TrxContext.ChangeLog.Rollback();
+                return itemResult;
             }
         }
+
+        var batchResult = pContext.BuildQueryResult();
+
+        if (pContext.IsMutating)
+        {
+            await pContext.TrxContext.ChangeLog.CommitLogs();
+
+            pContext.TrxContext.Context.LogWarning("Saving graph database, iKey={iKey}", _instanceId);
+            var writeOption = await scopeLease.SaveDatabase(pContext.TrxContext.Context).ConfigureAwait(false);
+            if (writeOption.IsError())
+            {
+                writeOption.LogStatus(pContext.TrxContext.Context, "Checkpoint failed - attempting to roll back");
+                await pContext.TrxContext.ChangeLog.Rollback();
+
+                return writeOption.ToOptionStatus<QueryBatchResult>();
+            }
+        }
+
+        pContext.TrxContext.Context.LogWarning("Graph batch completed: query={graphQuery}, iKey={iKey}", pContext.GraphQuery, _instanceId);
+        return batchResult;
     }
 }

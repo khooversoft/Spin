@@ -17,21 +17,23 @@ public static class GraphStartup
         hostOption ??= new GraphHostOption();
 
         services.AddSingleton<GraphHostOption>(hostOption);
-        services.AddSingleton<IGraphHost, GraphHost>();
         services.AddSingleton<IGraphEngine, GraphEngine>();
-        services.AddSingleton<GraphMapStore>();
-        services.AddSingleton<GraphLeaseControl>();
         services.AddSingleton<GraphMapCounter>();
         services.AddSingleton<IGraphMapFactory, GraphMapFactory>();
 
         services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, new JournalFileOption
         {
             ConnectionString = GraphConstants.TrxJournal.ConnectionString,
-            ReadOnly = hostOption.ReadOnly,
+            UseBackgroundWriter = hostOption.UseBackgroundWriter,
         });
 
         services.AddSingleton<IGraphClient, GraphQueryExecute>();
-        services.AddSingleton<IGraphStore, GraphStore>();
+        services.AddSingleton<IGraphFileStore, GraphFileStore>();
+
+        if (hostOption.ShareMode)
+            services.AddSingleton<IGraphMapAccess, MapSharedAccess>();
+        else
+            services.AddSingleton<IGraphMapAccess, MapExclusiveAccess>();
 
         if (!hostOption.DisableCache)
         {
@@ -42,13 +44,18 @@ public static class GraphStartup
         return services;
     }
 
-    public static async Task<Option> StartGraphEngine(this IServiceProvider serviceProvider)
+    public static async Task<Option> StartGraphEngine(this IServiceProvider serviceProvider, GraphMap? map = null)
     {
         serviceProvider.NotNull();
-        var graphHost = serviceProvider.GetRequiredService<IGraphHost>();
-        var context = serviceProvider.GetRequiredService<ILogger<GraphHost>>().ToScopeContext();
+        var graphHost = serviceProvider.GetRequiredService<IGraphEngine>();
+        var context = serviceProvider.GetRequiredService<ILogger<GraphEngine>>().ToScopeContext();
 
-        var result = await graphHost.Run(context).ConfigureAwait(false);
+        var result = map switch
+        {
+            null => await graphHost.Start(context).ConfigureAwait(false),
+            _ => await graphHost.Start(map, context).ConfigureAwait(false),
+        };
+
         return result;
     }
 }

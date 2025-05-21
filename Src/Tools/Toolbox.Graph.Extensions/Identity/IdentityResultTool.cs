@@ -10,7 +10,7 @@ public static class IdentityResultTool
         var identityResult = subject switch
         {
             { StatusCode: StatusCode.OK } => IdentityResult.Success,
-            _ => IdentityResult.Failed(new IdentityError { Code = "Conflict", Description = subject.Error ?? "< no error >" }),
+            _ => IdentityResult.Failed(new IdentityError { Code = "Conflict", Description = subject.Error ?? "< null >" }),
         };
 
         return identityResult;

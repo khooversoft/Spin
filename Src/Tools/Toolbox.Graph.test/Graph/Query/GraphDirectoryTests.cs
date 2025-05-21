@@ -63,7 +63,8 @@ public class GraphDirectoryTests
     [Fact]
     public async Task DirectorySearchQuery()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(GetMap().Clone(), logOutput: x => _outputHelper.WriteLine(x));
+        var map = GetMap().Clone();
+        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(map, logOutput: x => _outputHelper.WriteLine(x));
         var context = graphTestClient.CreateScopeContext<GraphDirectoryTests>();
 
         var search = (await graphTestClient.ExecuteBatch("select [from=system:schedule-work, type=scheduleWorkType:*];", context)).ThrowOnError().Return();

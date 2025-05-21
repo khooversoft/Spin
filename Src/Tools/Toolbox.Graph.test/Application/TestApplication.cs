@@ -18,17 +18,21 @@ public static class TestApplication
         GraphMap? graphMap = null,
         ITestOutputHelper? logOutput = null,
         bool disableCache = false,
-        bool shareMode = false
+        bool shareMode = false,
+        string? logPrefix = null
         )
     {
+        logPrefix = logPrefix.IsNotEmpty() ? $"[{logPrefix}] " : "[] ";
+
         GraphHostService graphHostService = await new GraphHostBuilder()
             .SetMap(graphMap)
             .UseInMemoryStore(true)
             .SetShareMode(shareMode)
-            .UseLogging()
-            .SetLogOutput(x => logOutput?.WriteLine(x))
+            .UseLogging(true)
+            .AddLogFilter("Toolbox.Graph.GraphQueryExecute", LogLevel.Warning)
+            .SetLogOutput(x => logOutput?.WriteLine(logPrefix + x))
             .SetDisableCache(disableCache)
-            .Build();
+            .BuildAndRun();
 
         return graphHostService;
     }
@@ -47,13 +51,14 @@ public static class TestApplication
             .SetMap(graphMap)
             .SetShareMode(true)
             .UseLogging(true)
+            .AddLogFilter("Toolbox.Graph.GraphQueryExecute", LogLevel.Warning)
             .AddLogFilter("Toolbox.Graph.GraphMapStore", LogLevel.Trace)
             .AddLogFilter("Toolbox.Graph.GraphLeaseControl", LogLevel.Trace)
             //.SetLogLevel(LogLevel.Trace)
             .SetLogOutput(logOutput)
             .AddDatalakeFileStore(option)
             .SetDisableCache(disableCache)
-            .Build();
+            .BuildAndRun();
 
         return graphHostService;
     }
@@ -64,9 +69,10 @@ public static class TestApplication
             .UseInMemoryStore()
             .SetShareMode(true)
             .UseLogging()
+            .AddLogFilter("Toolbox.Graph.GraphQueryExecute", LogLevel.Warning)
             .SetLogOutput(x => output.WriteLine(x))
             .SetDisableCache(true)
-            .Build();
+            .BuildAndRun();
 
         var context = testClient.CreateScopeContext<T>();
         return (testClient, context);
@@ -102,12 +108,13 @@ public static class TestApplication
         var testClient = await new GraphHostBuilder()
             .UseLogging()
             .SetShareMode(false)
+            .AddLogFilter("Toolbox.Graph.GraphQueryExecute", LogLevel.Warning)
             .AddLogFilter("Toolbox.Graph.GraphMapStore", LogLevel.Trace)
             .AddLogFilter("Toolbox.Graph.GraphLeaseControl", LogLevel.Trace)
             .SetLogOutput(x => output.WriteLine(x))
             .SetDisableCache(true)
             .AddDatalakeFileStore(datalakeOption)
-            .Build();
+            .BuildAndRun();
 
         var context = testClient.CreateScopeContext<T>();
 
@@ -137,7 +144,7 @@ public static class TestApplication
                 .SetLogOutput(outputFunc)
                 .SetDisableCache(true)
                 .AddServiceConfiguration(x => x.AddInMemoryFileStore(memoryStore))
-                .Build();
+                .BuildAndRun();
 
             return result;
         }

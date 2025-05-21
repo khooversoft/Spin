@@ -12,7 +12,7 @@ internal static class ShareModeTesting
     public static async Task OneWriteOtherRead(GraphHostService testClient, GraphHostService secondEngineClient, ScopeContext context)
     {
         var fileStore = testClient.Services.GetRequiredService<IFileStore>();
-        var graphFileStore = testClient.Services.GetRequiredService<IGraphStore>();
+        var graphFileStore = testClient.Services.GetRequiredService<IGraphFileStore>();
         var mapCounter = testClient.Services.GetRequiredService<GraphMapCounter>();
         var leaseCounter = mapCounter.Leases;
 
@@ -62,7 +62,7 @@ internal static class ShareModeTesting
     public static async Task ParallelReads(GraphHostService testClient, GraphHostService secondEngineClient, ScopeContext context)
     {
         var fileStore = testClient.Services.GetRequiredService<IFileStore>();
-        var graphFileStore = testClient.Services.GetRequiredService<IGraphStore>();
+        var graphFileStore = testClient.Services.GetRequiredService<IGraphFileStore>();
         var mapCounter = testClient.Services.GetRequiredService<GraphMapCounter>();
         var leaseCounter = mapCounter.Leases;
 

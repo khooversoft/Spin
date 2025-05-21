@@ -15,8 +15,9 @@ public interface IJournalFile : IAsyncDisposable
     Task<IReadOnlyList<string>> GetFiles(ScopeContext context);
     Task<IReadOnlyList<JournalEntry>> ReadJournals(ScopeContext context);
     Task<Option> Write(IReadOnlyList<JournalEntry> journalEntries, ScopeContext context);
-
 }
+
+
 
 public class JournalFile : IJournalFile, IAsyncDisposable
 {
@@ -42,13 +43,6 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         _basePath = values.Single().Value.NotEmpty();
 
         _logger.LogDebug("JournalFile created, name={name}, basePath={basePath}", _name, _basePath);
-
-        if (_fileOption.ReadOnly)
-        {
-            _logger.LogInformation("JournalFile is readonly, name={name}", _name);
-            _writer = (_, _) => { return Task.FromResult(new Option(StatusCode.OK)); };
-            return;
-        }
 
         if (_fileOption.UseBackgroundWriter)
         {
@@ -125,7 +119,6 @@ public class JournalFile : IJournalFile, IAsyncDisposable
     {
         journalEntries.NotNull();
         context = context.With(_logger);
-        _fileOption.ReadOnly.Assert(x => x == false, "Cannot write map when read-only");
 
         var writeString = journalEntries
             .Select(x => x.LogSequenceNumber.IsNotEmpty() ? x : x with { LogSequenceNumber = _logSequenceNumber.Next() })
@@ -136,7 +129,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         string path = $"{_basePath}/{DateTime.UtcNow:yyyyMM}/{DateTime.UtcNow:yyyyMMdd}.{_name}.json";
 
         string logSequenceNumbers = journalEntries.Select(x => x.LogSequenceNumber).Join(",");
-        context.LogDebug("Writting journal entry to name={name}, path={path}, lsns={lsns}", _name, path, logSequenceNumbers);
+        context.LogDebug("Writing journal entry to name={name}, path={path}, lsns={lsns}", _name, path, logSequenceNumbers);
 
         await _writeLock.WaitAsync(context.CancellationToken);
 
