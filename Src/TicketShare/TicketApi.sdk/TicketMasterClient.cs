@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Buffers;
+using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -9,6 +11,7 @@ public class TicketMasterClient
 {
     private readonly ILogger<TicketMasterClient> _logger;
     private readonly TicketClassificationClient _classificationClient;
+    private readonly SearchValues<string> _searchValues = SearchValues.Create(["Sports", "Music"], StringComparison.OrdinalIgnoreCase);
 
     public TicketMasterClient(TicketClassificationClient classificationClient, ILogger<TicketMasterClient> logger)
     {
@@ -27,7 +30,13 @@ public class TicketMasterClient
             if (classificationOption.IsError()) return classificationOption.ToOptionStatus<T>();
 
             ClassificationRecord classification = classificationOption.Return();
-            return classification.Cast<T>();
+
+            var result = new ClassificationRecord
+            {
+                Segements = classification.Segements.Where(x => _searchValues.Contains(x.Name)).ToImmutableArray(),
+            };
+
+            return result.Cast<T>();
         }
 
         throw new System.Diagnostics.UnreachableException();

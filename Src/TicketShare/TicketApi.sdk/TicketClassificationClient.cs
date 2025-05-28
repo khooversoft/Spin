@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Rest;
@@ -47,6 +48,7 @@ public class TicketClassificationClient
 
             sequence += masterModel.ConvertTo();
             page++;
+            if (page > 3) Debugger.Break();
 
             if (masterModel.page.totalElements < query.Size) break;
         }

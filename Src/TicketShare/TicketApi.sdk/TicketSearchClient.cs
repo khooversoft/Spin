@@ -20,7 +20,6 @@ public class TicketSearchClient
     private readonly MemoryCacheEntryOptions _memoryOptions = new MemoryCacheEntryOptions { SlidingExpiration = TimeSpan.FromMinutes(30) };
     private readonly TicketMasterClient _ticketMasterClient;
     private readonly TicketOption _ticketOption;
-    private readonly SearchValues<string> _searchValues = SearchValues.Create(["Sports", "Music"], StringComparison.OrdinalIgnoreCase);
 
     public TicketSearchClient(IMemoryCache memoryCache, IFileStore fileStore, TicketMasterClient ticketMasterClient, TicketOption ticketOption, ILogger<TicketSearchClient> logger)
     {
@@ -38,16 +37,7 @@ public class TicketSearchClient
 
         var search = new TicketMasterSearch(TicketSearchType.Classification, _ticketOption, "classification");
         var option = await InternalGet<ClassificationRecord>(search, context);
-        if (option.IsError()) return option;
-
-        var classification = option.Return();
-
-        var result = new ClassificationRecord
-        {
-            Segements = classification.Segements.Where(x => _searchValues.Contains(x.Name)).ToImmutableArray(),
-        };
-
-        return result;
+        return option;
     }
 
     private async Task<Option<T>> InternalGet<T>(TicketMasterSearch search, ScopeContext context)

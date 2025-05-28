@@ -49,11 +49,6 @@ public static class ClassificationRecordExtensions
 
     private static SegmentRecord ConvertTo(this Classification.Model.Segment subject)
     {
-        if (subject == null) Debugger.Break();
-        if (subject.name == null) Debugger.Break();
-        if (subject.locale == null) Debugger.Break();
-        if (subject._embedded == null) Debugger.Break();
-
         return new SegmentRecord
         {
             Id = subject.NotNull().id.NotEmpty(),
@@ -62,7 +57,7 @@ public static class ClassificationRecordExtensions
             Genres = subject._embedded switch
             {
                 null => Array.Empty<GenreRecord>(),
-                var v => v.genres.NotNull("hello").Select(x => x.ConvertTo()).ToImmutableArray(),
+                var v => v.genres.NotNull().Select(x => x.ConvertTo()).ToImmutableArray(),
             },
         };
     }
@@ -75,7 +70,7 @@ public static class ClassificationRecordExtensions
         SubGenres = subject._embedded switch
         {
             null => Array.Empty<SubGenreRecord>(),
-            var v => v.subgenres.Select(x => x.ConvertTo()).ToImmutableArray(),
+            var v => v.subgenres.NotNull().Select(x => x.ConvertTo()).ToImmutableArray(),
         },
     };
 
