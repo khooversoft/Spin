@@ -1,11 +1,36 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace TicketApi.sdk;
 
+public enum TicketSearchType
+{
+    Event,
+    Attraction,
+    Classification,
+    //Venue,
+    //Segment,
+    //Genre,
+    //SubGenre,
+}
+
 public record TicketMasterSearch
 {
-    public string ApiKey { get; set; } = null!;
+    public TicketMasterSearch(TicketSearchType searchType, TicketOption ticketOption, string searchName)
+    {
+        searchType.IsEnumValid().BeTrue();
+        ticketOption.Validate().ThrowOnError();
+        searchName.NotEmpty();
+
+        SearchType = searchType;
+        TicketOption = ticketOption;
+        SearchName = searchName;
+    }
+
+    public TicketSearchType SearchType { get; }
+    public TicketOption TicketOption { get; }
+    public string SearchName { get; }
     public string? Keywords { get; init; }
     public DateTime? StartDateTime { get; init; }
     public DateTime? EndDateTime { get; init; }
@@ -18,19 +43,21 @@ public record TicketMasterSearch
     public string? GenreId { get; init; }
     public string? SubGenreId { get; init; }
 
-    public string Build(string apiKey)
-    {
-        ApiKey = apiKey;
-        return Build();
-    }
-
     public string Build()
     {
-        ApiKey.NotEmpty();
+        string baseUri = SearchType switch
+        {
+            TicketSearchType.Event => TicketOption.EventUrl,
+            TicketSearchType.Attraction => TicketOption.AttractionUrl,
+            TicketSearchType.Classification => TicketOption.ClassificationUrl,
+            _ => throw new ArgumentOutOfRangeException(nameof(SearchType), SearchType, null),
+        };
+
+        int size = Size ?? TicketOption.BatchSize;
 
         var query = new[]
         {
-            $"apikey={ApiKey}",
+            $"apikey={TicketOption.ApiKey}",
             Keywords.ToNullIfEmpty() != null ? $"keyword={Uri.EscapeDataString(Keywords.NotEmpty())}" : null,
             "locale=*",
             StartDateTime?.Func(x => $"startDateTime={dateTimeFormat(x)}"),
@@ -47,7 +74,7 @@ public record TicketMasterSearch
         .Where(x => x.IsNotEmpty())
         .Join('&');
 
-        return query;
+        return baseUri + "?" + query;
 
         string? dateTimeFormat(DateTime? subject) => subject switch
         {
@@ -55,8 +82,6 @@ public record TicketMasterSearch
             var v => v.Value.ToString("yyyy-MM-ddTHH:mm:ssZ"),
         };
     }
-
-    public string GetQueryHash() => Build("query").ToHashHex();
 
     public static IValidator<TicketMasterSearch> Validator => new Validator<TicketMasterSearch>()
         .RuleFor(x => x.Keywords).Must(x => true, _ => "")

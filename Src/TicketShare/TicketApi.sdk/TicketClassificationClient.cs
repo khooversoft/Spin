@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
-using TicketApi.sdk.Model;
 using Toolbox.Extensions;
 using Toolbox.Rest;
 using Toolbox.Tools;
@@ -13,6 +12,7 @@ public class TicketClassificationClient
     protected readonly HttpClient _client;
     private readonly ILogger<TicketEventClient> _logger;
     private readonly TicketOption _ticketMasterOption;
+    private const string _searchName = nameof(TicketClassificationClient);
 
     public TicketClassificationClient(HttpClient client, TicketOption ticketMasterOption, ILogger<TicketEventClient> logger)
     {
@@ -21,64 +21,40 @@ public class TicketClassificationClient
         _logger = logger.NotNull();
     }
 
-    public async Task<Option<IReadOnlyList<ClassificationRecord>>> GetClassifications(ScopeContext context)
+    public async Task<Option<ClassificationRecord>> GetClassifications(ScopeContext context)
     {
-        var sequence = new Sequence<ClassificationModel>();
+        var sequence = new Sequence<ClassificationRecord>();
         int page = 0;
 
         while (true)
         {
-            var query = new TicketMasterSearch
+            var query = new TicketMasterSearch(TicketSearchType.Classification, _ticketMasterOption, _searchName)
             {
-                ApiKey = _ticketMasterOption.ApiKey,
                 Page = page,
                 Size = 1000,
             };
 
-            string url = $"{_ticketMasterOption.ClassificationUrl}?{query}";
+            string url = query.Build();
 
             var model = await new RestClient(_client)
                 .SetPath(url)
                 .GetAsync(context.With(_logger))
-                .GetContent<ClassificationMasterModel>();
+                .GetContent<Classification.Model.Root>();
 
-            if (model.IsError()) return model.ToOptionStatus<IReadOnlyList<ClassificationRecord>>();
+            if (model.IsError()) return model.ToOptionStatus<ClassificationRecord>();
             var masterModel = model.Return();
             if (masterModel._embedded == null) break;
 
-            sequence += masterModel._embedded.Classifications;
+            sequence += masterModel.ConvertTo();
             page++;
+
+            if (masterModel.page.totalElements < query.Size) break;
         }
 
-        var result = sequence
-            .SelectMany(ConvertToRecord)
-            .ToImmutableArray();
-
-        return result;
-    }
-
-    private IReadOnlyList<ClassificationRecord> ConvertToRecord(ClassificationModel subject)
-    {
-        subject.NotNull();
-        if (subject.Segment == null) return Array.Empty<ClassificationRecord>();
-
-        (Class_SegmentModel seg, Class_GenreModel grene, Class_SubGenreModel subgrene)[] list = subject.NotNull().Segment.NotNull().ToEnumerable()
-            .Select(x => (seg: x, grene: x?._embedded?.genres))
-            .SelectMany(x => x.grene ?? Array.Empty<Class_GenreModel>(), (o, i) => (o.seg, grene: i))
-            .SelectMany(x => x.grene._embedded?.subgenres ?? Array.Empty<Class_SubGenreModel>(), (o, i) => (o.seg, o.grene, subgrene: i))
-            .ToArray();
-
-        var result = list
-            .Select(x =>
-            {
-                return new ClassificationRecord
-                {
-                    Segement = x.seg.ConvertTo(),
-                    Grene = x.grene.ConvertTo(),
-                    SubGrene = x.subgrene.ConvertTo(),
-                };
-            })
-            .ToArray();
+        var result = new ClassificationRecord()
+        {
+            Segements = sequence.SelectMany(x => x.Segements).ToImmutableArray(),
+        };
 
         return result;
     }

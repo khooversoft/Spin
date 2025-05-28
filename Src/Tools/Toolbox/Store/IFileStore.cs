@@ -22,7 +22,7 @@ public interface IFileAccess : IFileReadWriteAccess
     public string Path { get; }
     Task<Option<string>> Add(DataETag data, ScopeContext context);
 
-    Task<Option<IStorePathDetail>> GetDetail(ScopeContext context);
+    Task<Option<IStorePathDetail>> GetDetails(ScopeContext context);
     Task<Option> Delete(ScopeContext context);
     Task<Option> Exist(ScopeContext context);
 

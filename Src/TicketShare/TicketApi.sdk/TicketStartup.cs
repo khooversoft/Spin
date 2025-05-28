@@ -8,13 +8,13 @@ namespace TicketApi.sdk;
 
 public static class TicketStartup
 {
-    public static IServiceCollection AddTicketData(this IServiceCollection services)
-    {
-        services.AddSingleton<TicketDataClient>();
-        services.TryAddSingleton<IMemoryCache, MemoryCache>();
+    //public static IServiceCollection AddTicketData(this IServiceCollection services)
+    //{
+    //    //services.AddSingleton<TicketDataClient>();
+    //    services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
-        return services;
-    }
+    //    return services;
+    //}
 
     public static IServiceCollection AddTicketApi(this IServiceCollection services, TicketOption ticketOption)
     {
@@ -23,9 +23,8 @@ public static class TicketStartup
 
         services.AddSingleton(ticketOption);
         services.AddSingleton(_ => new MonitorRate(TimeSpan.FromSeconds(1), 3, 5));
-
-        services.AddSingleton<TicketDataClient>();
-        services.AddSingleton<TicketDataBuilder>();
+        services.AddSingleton<TicketMasterClient>();
+        services.AddSingleton<TicketSearchClient>();
 
         services.AddHttpClient<TicketEventClient>();
         services.AddHttpClient<TicketClassificationClient>();

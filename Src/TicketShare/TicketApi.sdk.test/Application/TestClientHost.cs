@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Toolbox.Azure;
 using Toolbox.Extensions;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -19,19 +22,21 @@ internal static class TestClientHostTool
         var serviceProvider = new ServiceCollection()
             .AddLogging(config => config.AddDebug())
             .AddSingleton(config)
-            .AddTicketApi(config.GetSection("Ticket").Get<TicketOption>().NotNull())
+            .AddSingleton<IMemoryCache, NullMemoryCache>()
+            .AddTicketApi(config.Get<TicketOption>("Ticket", TicketOption.Validator))
+            .AddDatalakeFileStore(config.Get<DatalakeOption>("Storage", DatalakeOption.Validator))
             .BuildServiceProvider();
 
         return new TestClientHost(serviceProvider);
     }
 }
 
-internal readonly struct TestClientHost
+internal class TestClientHost : IDisposable
 {
-    public TestClientHost(IServiceProvider services) => Services = services;
-    public IServiceProvider Services { get; init; }
-    public TicketEventClient GetEventClient() => Services.GetRequiredService<TicketEventClient>();
-    public TicketClassificationClient GetClassificationClient() => Services.GetRequiredService<TicketClassificationClient>();
-    public TicketAttractionClient GetAttractionClient() => Services.GetRequiredService<TicketAttractionClient>();
+    private ServiceProvider? _services;
+    public TestClientHost(ServiceProvider services) => _services = services.NotNull();
+    public IServiceProvider Services => _services.NotNull();
     public ScopeContext GetContext<T>() => Services.GetRequiredService<ILoggerFactory>().CreateLogger<T>().Func(x => new ScopeContext(x));
+
+    public void Dispose() => Interlocked.Exchange(ref _services, null)?.Dispose();
 }

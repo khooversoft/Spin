@@ -1,7 +1,6 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.FluentUI.AspNetCore.Components;
 using TicketApi.sdk;
@@ -136,7 +135,7 @@ builder.Services
     .AddDatalakeFileStore(builder.Configuration.Get<DatalakeOption>("Storage", DatalakeOption.Validator))
     .AddGraphEngine(builder.Configuration.Get<GraphHostOption>("GraphHost"))
     .AddTicketShare()
-    .AddTicketData()
+    .AddTicketApi(builder.Configuration.Get<TicketOption>("Ticket", TicketOption.Validator))
     .AddEmail(builder.Configuration.Get<EmailOption>("email", EmailOption.Validator))
     .AddScoped<AskPanel>()
     .AddScoped<ApplicationNavigation>();

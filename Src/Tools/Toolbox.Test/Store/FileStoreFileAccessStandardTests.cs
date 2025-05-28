@@ -32,13 +32,13 @@ public class FileStoreFileAccessStandardTests
 
         (await fileClient.Exist(_context)).IsOk().BeTrue();
 
-        (await fileClient.GetDetail(_context)).Action(x =>
+        (await fileClient.GetDetails(_context)).Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().ETag.NotNull();
         });
 
-        (await fileClient.GetDetail(_context)).IsOk().BeTrue();
+        (await fileClient.GetDetails(_context)).IsOk().BeTrue();
 
         (await fileClient.Delete(_context)).IsOk().BeTrue();
         (await fileClient.Exist(_context)).IsNotFound().BeTrue();

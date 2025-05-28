@@ -70,7 +70,7 @@ public class GraphStoreFileAccess : IFileAccess
         return result;
     }
 
-    public Task<Option<IStorePathDetail>> GetDetail(ScopeContext context) => _fileAccess.GetDetail(context);
+    public Task<Option<IStorePathDetail>> GetDetails(ScopeContext context) => _fileAccess.GetDetails(context);
 
     public async Task<Option<string>> Set(DataETag dataETag, ScopeContext context)
     {

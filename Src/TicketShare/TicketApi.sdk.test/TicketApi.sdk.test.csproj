@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <UserSecretsId>TicketApi.sdk.test-c1184340-447c-4c3d-8a49-09d46b80b30b</UserSecretsId>
+    <UserSecretsId>TicketMasterApi.sdk.test-c1184340-447c-4c3d-8a49-09d46b80b30b</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Toolbox.Azure\Toolbox.Azure.csproj" />
     <ProjectReference Include="..\TicketApi.sdk\TicketApi.sdk.csproj" />
   </ItemGroup>
 

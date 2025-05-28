@@ -36,7 +36,7 @@ public class TicketEventClient
 
         var searchs = attractionIds.NotNull()
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Select(x => new TicketMasterSearch { AttractionId = x, Size = 200, Page = 0 })
+            .Select(x => new TicketMasterSearch(TicketSearchType.Attraction, _ticketOption, nameof(TicketEventClient)) { AttractionId = x, Size = 200, Page = 0 })
             .ToArray();
 
         var sequence = new Sequence<EventResult>();
@@ -85,7 +85,7 @@ public class TicketEventClient
 
         while (true)
         {
-            string query = search.Build(_ticketOption.ApiKey);
+            string query = search.Build();
             string url = $"{_ticketOption.EventUrl}?{query}";
 
             await _monitorRate.RecordEventAsync(context.CancellationToken);

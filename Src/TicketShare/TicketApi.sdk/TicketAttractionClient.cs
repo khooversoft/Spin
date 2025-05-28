@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
-using TicketApi.sdk.MasterList;
 using TicketApi.sdk.Model;
 using Toolbox.Extensions;
 using Toolbox.Rest;
@@ -90,8 +89,8 @@ public class TicketAttractionClient
 
         while (true)
         {
-            string query = search.Build(_ticketOption.ApiKey);
-            string url = $"{_ticketOption.AttriactionUrl}?{query}";
+            string query = search.Build();
+            string url = $"{_ticketOption.AttractionUrl}?{query}";
 
             await _monitorRate.RecordEventAsync(context.CancellationToken);
 
@@ -114,13 +113,13 @@ public class TicketAttractionClient
     private IReadOnlyList<TicketMasterSearch> BuildSearch(IReadOnlyList<TeamDetail> teamDetails)
     {
         var list = teamDetails
-            .Select(x => (segment: x.Segments.First().Id, genre: x.Genres.First().Id, subGenre: x.SubGenres.First().Id))
-            .GroupBy(x => x)
-            .Select(x => new TicketMasterSearch
+            //.Select(x => (segment: x.Segments.First().Id, genre: x.Genres.First().Id, subGenre: x.SubGenres.First().Id))
+            //.GroupBy(x => x)
+            .Select(x => new TicketMasterSearch(TicketSearchType.Attraction, _ticketOption, nameof(TicketAttractionClient))
             {
-                SegmentId = x.Key.segment,
-                GenreId = x.Key.genre,
-                SubGenreId = x.Key.subGenre,
+                SegmentId = x.Segment.Id,
+                GenreId = x.Genre.Id,
+                SubGenreId = x.SubGenre.Id,
                 Size = 200,
                 Page = 0,
             }).ToArray();

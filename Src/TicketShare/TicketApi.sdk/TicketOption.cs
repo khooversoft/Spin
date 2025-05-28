@@ -8,16 +8,18 @@ namespace TicketApi.sdk;
 public record TicketOption
 {
     public string ApiKey { get; init; } = null!;
+    public int BatchSize { get; init; } = 100;
     public string EventUrl { get; init; } = null!;
     public string ClassificationUrl { get; init; } = null!;
-    public string AttriactionUrl { get; init; } = null!;
+    public string AttractionUrl { get; init; } = null!;
     public IReadOnlyList<ImageSelect> ImageSelectors { get; init; } = Array.Empty<ImageSelect>();
 
     public static IValidator<TicketOption> Validator => new Validator<TicketOption>()
         .RuleFor(x => x.ApiKey).NotEmpty()
         .RuleFor(x => x.EventUrl).NotEmpty()
+        .RuleFor(x => x.BatchSize).Must(x => x > 10, x => $"BatchSize {x} must be greater than 10")
         .RuleFor(x => x.ClassificationUrl).NotEmpty()
-        .RuleFor(x => x.AttriactionUrl).NotEmpty()
+        .RuleFor(x => x.AttractionUrl).NotEmpty()
         .RuleFor(x => x.ImageSelectors).NotNull()
         .RuleForEach(x => x.ImageSelectors).Validate(ImageSelect.Validator)
         .Build();
