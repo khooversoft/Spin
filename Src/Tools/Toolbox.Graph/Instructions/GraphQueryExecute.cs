@@ -81,7 +81,7 @@ public class GraphQueryExecute : IGraphClient
         using var releaseWriteReadLock = writeLockRequired ? (await _rwLock.WriterLockAsync()) : (await _rwLock.ReaderLockAsync());
         await using var scopeLease = await _graphMapAccess.CreateScope(pContext.TrxContext.Context);
 
-        pContext.TrxContext.Context.LogWarning("Executing query: write={write}, graphQuery={graphQuery}, iKey={iKey}", writeLockRequired, pContext.GraphQuery, _instanceId);
+        pContext.TrxContext.Context.LogDebug("Executing query: write={write}, graphQuery={graphQuery}, iKey={iKey}", writeLockRequired, pContext.GraphQuery, _instanceId);
 
         while (pContext.Cursor.TryGetValue(out var graphInstruction))
         {
@@ -114,7 +114,7 @@ public class GraphQueryExecute : IGraphClient
         {
             await pContext.TrxContext.ChangeLog.CommitLogs();
 
-            pContext.TrxContext.Context.LogWarning("Saving graph database, iKey={iKey}", _instanceId);
+            pContext.TrxContext.Context.LogDebug("Saving graph database, iKey={iKey}", _instanceId);
             var writeOption = await scopeLease.SaveDatabase(pContext.TrxContext.Context).ConfigureAwait(false);
             if (writeOption.IsError())
             {
@@ -125,7 +125,7 @@ public class GraphQueryExecute : IGraphClient
             }
         }
 
-        pContext.TrxContext.Context.LogWarning("Graph batch completed: query={graphQuery}, iKey={iKey}", pContext.GraphQuery, _instanceId);
+        pContext.TrxContext.Context.LogDebug("Graph batch completed: query={graphQuery}, iKey={iKey}", pContext.GraphQuery, _instanceId);
         return batchResult;
     }
 }

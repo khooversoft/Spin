@@ -2,9 +2,52 @@
 @attribute [Authorize]
 
 @using Microsoft.AspNetCore.Authorization
+@using TicketApi.sdk
+@using TicketShare.sdk
+@using TicketShareWeb.Components.Pages.Ticket.ScheduleImport
 
+<LoadingBlock Loading=@_loading />
+
+@if (_scheduleContext != null)
+{
+    <FeedColumn>
+        <DialogControls OnClose="OnClose" OnSet="OnSet" DisableSave="_disableSave" />
+
+        <CascadingValue Value="_scheduleContext">
+            <SelectSegment OnRefresh="OnRefresh" />
+            <SelectGenre OnRefresh="OnRefresh" />
+            <SelectSubGenre OnRefresh="OnRefresh" />
+        </CascadingValue>
+
+    </FeedColumn>
+}
 
 
 @code {
+    [Parameter] public string TicketGroupId { get; set; } = null!;
+    @inject IServiceProvider _serviceProvider;
+    @inject ApplicationNavigation _appNavigation;
+    @inject ILogger<SearchByLeague> _logger;
+
+    private TicketScheduleContext? _scheduleContext = null!;
+    private bool _loading = true;
+    private bool _disableSave = true;
+
+    protected override void OnInitialized()
+    {
+        _scheduleContext = ActivatorUtilities.CreateInstance<TicketScheduleContext>(_serviceProvider, TicketGroupId);
+
+        _loading = false;
+    }
+
+    private void OnClose() => _appNavigation.GotoTicketGroup(TicketGroupId);
+    private void OnSet() { }
+
+    private Task OnRefresh()
+    {
+        // InvokeAsync(() => StateHasChanged());
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
 
 }

@@ -14,7 +14,7 @@ public record SegmentRecord
     public string Id { get; init; } = null!;
     public string Name { get; init; } = null!;
     public string? Locale { get; init; }
-    public IReadOnlyList<GenreRecord>? Genres { get; init; }
+    public IReadOnlyList<GenreRecord> Genres { get; init; } = Array.Empty<GenreRecord>();
 }
 
 public record GenreRecord
@@ -22,7 +22,7 @@ public record GenreRecord
     public string Id { get; init; } = null!;
     public string Name { get; init; } = null!;
     public string? Locale { get; init; }
-    public IReadOnlyList<SubGenreRecord>? SubGenres { get; init; }
+    public IReadOnlyList<SubGenreRecord> SubGenres { get; init; } = Array.Empty<SubGenreRecord>();
 }
 
 public record SubGenreRecord

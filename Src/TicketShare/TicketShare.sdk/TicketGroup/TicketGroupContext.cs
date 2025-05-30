@@ -18,6 +18,8 @@ public class TicketGroupContext
         Seats = new CollectionAccessActor<SeatModel>(this, x => Input.Seats[x.Id] = x, x => Input.Seats.TryRemove(x.Id, out var _));
     }
 
+    public string TicketGroupId => _ticketGroupId;
+
     public TicketGroupModel Input { get; private set; } = null!;
     public TicketGroupHeaderModel Header { get; private set; } = null!;
 

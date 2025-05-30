@@ -1,0 +1,48 @@
+﻿@rendermode InteractiveServer
+
+<FeedBlock Title="SubGenre" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.SubGenre == null)" Disabled="@(_scheduleContext.Genre == null)">
+    <div style="margin: 10px">
+
+        @foreach (var item in _scheduleContext.GetSubGenreSelect())
+        {
+            Appearance appearance = _scheduleContext.SubGenre?.Id == item.Id ? Appearance.Accent : Appearance.Outline;
+
+            <FluentButton Appearance="appearance" OnClick="@(() => SwitchButton(item.Id))">@item.Name</FluentButton>
+        }
+
+    </div>
+</FeedBlock>
+
+@code {
+    [CascadingParameter] public TicketScheduleContext _scheduleContext { get; set; } = null!;
+    [Parameter] public EventCallback OnRefresh { get; set; }
+    @inject ILogger<SelectSubGenre> _logger;
+
+    override protected async Task OnInitializedAsync()
+    {
+        var result = await _scheduleContext.GetSegments(_logger.ToScopeContext());
+        if (result.IsError())
+        {
+            _logger.LogError("Failed to get segments from Ticket Master");
+            return;
+        }
+    }
+
+    private async Task Refresh()
+    {
+        await OnRefresh.InvokeAsync();
+        // StateHasChanged();
+    }
+
+    private async Task OnEdit()
+    {
+        _scheduleContext.SetSubGenre(null);
+        await Refresh();
+    }
+
+    private async Task SwitchButton(string id)
+    {
+        _scheduleContext.SetSubGenre(id);
+        await Refresh();
+    }
+}

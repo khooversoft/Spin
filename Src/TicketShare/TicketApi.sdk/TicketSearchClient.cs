@@ -107,7 +107,7 @@ public class TicketSearchClient
             return fileDetails.ToOptionStatus<T>();
         }
 
-        if (fileDetails.Return().LastModified < DateTimeOffset.UtcNow.AddMinutes(-30))
+        if (fileDetails.Return().LastModified < DateTimeOffset.UtcNow.AddDays(-1))
         {
             (await fileAccess.Delete(context)).LogStatus(context, "Delete expired file={file}", [fileAccess.Path]);
             context.LogDebug("File for searchName={searchName} is older than 30 minutes, skipping read", searchName);

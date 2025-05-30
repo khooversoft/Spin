@@ -38,7 +38,7 @@ internal static class MapAccessTool
 
         graphEngine.GetMapData().NotNull().Map.UpdateCounters();
 
-        context.LogInformation("Loaded graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
+        context.LogDebug("Loaded graph data file={mapDatabasePath}", GraphConstants.MapDatabasePath);
         return StatusCode.OK;
     }
 

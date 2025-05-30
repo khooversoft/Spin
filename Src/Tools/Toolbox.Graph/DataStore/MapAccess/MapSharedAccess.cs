@@ -41,7 +41,7 @@ public class MapSharedAccess : IGraphMapAccess
         IFileLeasedAccess fileAccess = leaseOption.Return();
         var scope = ActivatorUtilities.CreateInstance<MapScopeAccess>(_serviceProvider, fileAccess, () => ReleaseInternal(fileAccess, context));
 
-        context.LogWarning("Shared lease acquired, Loading database file for leaseId={leaseId}", scope.LeaseId);
+        context.LogDebug("Shared lease acquired, Loading database file for leaseId={leaseId}", scope.LeaseId);
         var loadDatabaseOption = await scope.LoadDatabase(context);
         if (loadDatabaseOption.IsError())
         {
@@ -70,7 +70,7 @@ public class MapSharedAccess : IGraphMapAccess
     private async Task ReleaseInternal(IFileLeasedAccess fileAccess, ScopeContext context)
     {
         fileAccess.GetLeaseId().NotEmpty("LeaseId is empty");
-        context.LogWarning("Releasing shared lease, leaseId={leaseId}", fileAccess.LeaseId);
+        context.LogDebug("Releasing shared lease, leaseId={leaseId}", fileAccess.LeaseId);
 
         var releaseOption = await fileAccess.Release(context);
         if (releaseOption.IsError())

@@ -41,21 +41,21 @@ public class TicketGroupClient
         context = context.With(_logger);
         context.LogTrace("AddOrSet TicketGroup, useSet={useSet}, ticketGroupId={ticketGroupId}", useSet, ticketGroupRecord.TicketGroupId);
 
-        string[] removeTagList = [];
-        var readOption = await Get(ticketGroupRecord.TicketGroupId, context).ConfigureAwait(false);
-        if (readOption.IsOk())
-        {
-            var read = readOption.Return();
-            if (read.ChannelId.IsNotEmpty()) ticketGroupRecord = ticketGroupRecord with { ChannelId = read.ChannelId };
+        //string[] removeTagList = [];
+        //var readOption = await Get(ticketGroupRecord.TicketGroupId, context).ConfigureAwait(false);
+        //if (readOption.IsOk())
+        //{
+        //    var read = readOption.Return();
+        //    if (read.ChannelId.IsNotEmpty()) ticketGroupRecord = ticketGroupRecord with { ChannelId = read.ChannelId };
 
-            removeTagList = read.Roles
-                .Select(x => x.PrincipalId)
-                .Except(ticketGroupRecord.Roles.Select(x => x.PrincipalId), StringComparer.OrdinalIgnoreCase)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToArray();
+        //    removeTagList = read.Roles
+        //        .Select(x => x.PrincipalId)
+        //        .Except(ticketGroupRecord.Roles.Select(x => x.PrincipalId), StringComparer.OrdinalIgnoreCase)
+        //        .Distinct(StringComparer.OrdinalIgnoreCase)
+        //        .ToArray();
 
-            context.LogTrace("AddOrSet remove tags, ticketGroupId={ticketGroupId}, tags={tags}", ticketGroupRecord.TicketGroupId, removeTagList.Join(','));
-        }
+        //    context.LogTrace("AddOrSet remove tags, ticketGroupId={ticketGroupId}, tags={tags}", ticketGroupRecord.TicketGroupId, removeTagList.Join(','));
+        //}
 
         string securityGroupId = ticketGroupRecord.TicketGroupId;
         string channelId = ticketGroupRecord.TicketGroupId;

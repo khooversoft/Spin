@@ -1,0 +1,51 @@
+﻿@rendermode InteractiveServer
+
+@using TicketApi.sdk
+
+
+<FeedBlock Title="What type?" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Segment == null)">
+    <div style="margin: 10px">
+
+        @foreach (var item in _scheduleContext.GetSegmentSelect())
+        {
+            Appearance appearance = _scheduleContext.Segment?.Id == item.Id ? Appearance.Accent : Appearance.Outline;
+
+            <FluentButton Appearance="appearance" OnClick="@(() => SwitchButton(item.Id))">@item.Name</FluentButton>
+        }
+
+    </div>
+</FeedBlock>
+
+@code {
+    [CascadingParameter] public TicketScheduleContext _scheduleContext { get; set; } = null!;
+    [Parameter] public EventCallback OnRefresh { get; set; }
+    @inject ILogger<SelectSegment> _logger;
+
+    override protected async Task OnInitializedAsync()
+    {
+        var result = await _scheduleContext.GetSegments(_logger.ToScopeContext());
+        if (result.IsError())
+        {
+            _logger.LogError("Failed to get segments from Ticket Master");
+            return;
+        }
+    }
+
+    private async Task Refresh()
+    {
+        await OnRefresh.InvokeAsync();
+        // StateHasChanged();
+    }
+
+    private async Task OnEdit()
+    {
+        _scheduleContext.SetSegment(null);
+        await Refresh();
+    }
+
+    private async Task SwitchButton(string id)
+    {
+        _scheduleContext.SetSegment(id);
+        await Refresh();
+    }
+}
