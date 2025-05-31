@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using TicketApi.sdk.TicketMasterClassification;
 using Toolbox.Tools;
 
 namespace TicketApi.sdk;
@@ -35,7 +36,7 @@ public record SubGenreRecord
 
 public static class ClassificationRecordExtensions
 {
-    public static ClassificationRecord ConvertTo(this Classification.Model.Root subject)
+    public static ClassificationRecord ConvertTo(this ClassificationRootModel subject)
     {
         return new ClassificationRecord
         {
@@ -47,7 +48,7 @@ public static class ClassificationRecordExtensions
         };
     }
 
-    private static SegmentRecord ConvertTo(this Classification.Model.Segment subject)
+    private static SegmentRecord ConvertTo(this Segment subject)
     {
         return new SegmentRecord
         {
@@ -62,7 +63,7 @@ public static class ClassificationRecordExtensions
         };
     }
 
-    public static GenreRecord ConvertTo(this Classification.Model.Genre subject) => new GenreRecord
+    public static GenreRecord ConvertTo(this Genre subject) => new GenreRecord
     {
         Id = subject.NotNull().id.NotEmpty(),
         Name = subject.name.NotEmpty(),
@@ -74,7 +75,7 @@ public static class ClassificationRecordExtensions
         },
     };
 
-    public static SubGenreRecord ConvertTo(this Classification.Model.Subgenre subject) => new SubGenreRecord
+    public static SubGenreRecord ConvertTo(this Subgenre subject) => new SubGenreRecord
     {
         Id = subject.NotNull().id.NotEmpty(),
         Name = subject.name.NotEmpty(),

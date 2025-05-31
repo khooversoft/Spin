@@ -11,11 +11,13 @@ public class TicketMasterClient
 {
     private readonly ILogger<TicketMasterClient> _logger;
     private readonly TicketClassificationClient _classificationClient;
-    private readonly SearchValues<string> _searchValues = SearchValues.Create(["Sports", "Music"], StringComparison.OrdinalIgnoreCase);
+    private readonly SearchValues<string> _classificationFilter = SearchValues.Create(["Sports", "Music"], StringComparison.OrdinalIgnoreCase);
+    private readonly TicketEventClient _eventClient;
 
-    public TicketMasterClient(TicketClassificationClient classificationClient, ILogger<TicketMasterClient> logger)
+    public TicketMasterClient(TicketClassificationClient classificationClient, TicketEventClient eventClient, ILogger<TicketMasterClient> logger)
     {
         _classificationClient = classificationClient.NotNull();
+        _eventClient = eventClient.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -24,21 +26,29 @@ public class TicketMasterClient
         context = context.With(_logger);
         context.LogDebug("Getting data from ticket master for searchName={searchName}", search.SearchName);
 
-        if (search.SearchType == TicketSearchType.Classification)
+        switch (search.SearchType)
         {
-            var classificationOption = await _classificationClient.GetClassifications(context);
-            if (classificationOption.IsError()) return classificationOption.ToOptionStatus<T>();
+            case TicketSearchType.Classification:
+                var classificationOption = await _classificationClient.GetClassifications(context);
+                if (classificationOption.IsError()) return classificationOption.ToOptionStatus<T>();
 
-            ClassificationRecord classification = classificationOption.Return();
+                ClassificationRecord classification = classificationOption.Return();
 
-            var result = new ClassificationRecord
-            {
-                Segements = classification.Segements.Where(x => _searchValues.Contains(x.Name)).ToImmutableArray(),
-            };
+                var result = new ClassificationRecord
+                {
+                    Segements = classification.Segements.Where(x => _classificationFilter.Contains(x.Name)).ToImmutableArray(),
+                };
 
-            return result.Cast<T>();
+                return result.Cast<T>();
+
+            case TicketSearchType.Event:
+                var eventOption = await _eventClient.GetEvents(search, context);
+                if (eventOption.IsError()) return eventOption.ToOptionStatus<T>();
+
+                return eventOption.Return().Cast<T>();
+
+            default:
+                throw new System.Diagnostics.UnreachableException();
         }
-
-        throw new System.Diagnostics.UnreachableException();
     }
 }

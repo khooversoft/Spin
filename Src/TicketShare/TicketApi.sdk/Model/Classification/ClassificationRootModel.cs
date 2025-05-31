@@ -1,8 +1,8 @@
-﻿namespace TicketApi.sdk.Classification.Model;
+﻿namespace TicketApi.sdk.TicketMasterClassification;
 
 // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
 
-public record Root(Embedded _embedded, Links _links, Page page);
+public record ClassificationRootModel(Embedded _embedded, Links _links, Page page);
 
 public record Classification(bool? family, Links _links, Segment segment, Type type);
 

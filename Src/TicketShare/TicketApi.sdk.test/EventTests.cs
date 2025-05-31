@@ -1,30 +1,30 @@
-﻿////using TicketMasterApi.sdk.Model;
-//using TicketApi.sdk.test.Application;
-//using Toolbox.Extensions;
-//using Toolbox.Tools;
-//using Toolbox.Types;
+﻿//using TicketMasterApi.sdk.Model;
+using Microsoft.Extensions.DependencyInjection;
+using TicketApi.sdk.test.Application;
+using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Types;
 
-//namespace TicketApi.sdk.test;
+namespace TicketApi.sdk.test;
 
-//public class EventTests
-//{
-//    [Fact]
-//    public async Task TestSearch()
-//    {
-//        var testHost = TestClientHostTool.Create();
-//        TicketEventClient client = testHost.GetEventClient();
-//        var context = testHost.GetContext<EventTests>();
+public class EventTests
+{
+    [Fact]
+    public async Task TestSearch()
+    {
+        using var testHost = TestClientHostTool.Create();
+        TicketSearchClient client = testHost.Services.GetRequiredService<TicketSearchClient>();
+        var context = testHost.GetContext<EventTests>();
 
-//        var search = new TicketMasterSearch
-//        {
-//            PromoterId = "695",
-//            Page = 0,
-//            Size = 10,
-//        };
+        var classificationOption = await client.GetClassifications(context);
+        classificationOption.IsOk().BeTrue();
+        var segment = classificationOption.Return().Segements.First(x => x.Name == "Sports");
+        var genre = segment.Genres.First(x => x.Name == "Football");
+        var subGenre = genre.SubGenres.First(x => x.Name == "NFL");
 
-//        var result = await client.GetEvents(search, context);
-//        result.IsOk().BeTrue();
-//        result.Return().NotNull();
-//        result.Return().Count.Assert(x => x > 10, _ => "Empty list");
-//    }
-//}
+        var result = await client.GetEvents(segment, genre, subGenre, context);
+        result.IsOk().BeTrue();
+        result.Return().NotNull().Events.Count.Assert(x => x > 1, _ => "No events");
+        //result.Return().Count.Assert(x => x > 10, _ => "Empty list");    }
+    }
+}

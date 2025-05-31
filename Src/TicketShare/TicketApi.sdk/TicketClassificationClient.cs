@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using TicketApi.sdk.TicketMasterClassification;
 using Toolbox.Extensions;
 using Toolbox.Rest;
 using Toolbox.Tools;
@@ -40,7 +41,7 @@ public class TicketClassificationClient
             var model = await new RestClient(_client)
                 .SetPath(url)
                 .GetAsync(context.With(_logger))
-                .GetContent<Classification.Model.Root>();
+                .GetContent<ClassificationRootModel>();
 
             if (model.IsError()) return model.ToOptionStatus<ClassificationRecord>();
             var masterModel = model.Return();

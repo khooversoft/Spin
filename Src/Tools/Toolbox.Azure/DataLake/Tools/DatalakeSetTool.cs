@@ -28,7 +28,6 @@ public static class DatalakeSetTool
     {
         Response<PathInfo> result;
         context.Location().LogDebug("Writing (Upload) to path={path}, length={length}, eTag={etag}", fileClient.Path, dataETag.Data.Length, dataETag.ETag?.ToString() ?? "<null>");
-        context.Location().LogTrace("Writing (Upload) to path={path}, length={length}, data={hexData}", fileClient.Path, dataETag.Data.Length, dataETag.Data.ToHex());
         dataETag.NotNull().Assert(x => x.Data.Length > 0, $"length must be greater then 0, path={fileClient.Path}");
 
         using var metric = context.LogDuration("dataLakeStore-upload", "path={path}", fileClient.Path);

@@ -40,6 +40,30 @@ public class TicketSearchClient
         return option;
     }
 
+    public async Task<Option<EventCollectionRecord>> GetEvents(SegmentRecord segmentRecord, GenreRecord genreRecord, SubGenreRecord subGenreRecord, ScopeContext context)
+    {
+        segmentRecord.NotNull();
+        genreRecord.NotNull();
+        subGenreRecord.NotNull();
+        context = context.With(_logger);
+        context.LogDebug("Getting classification data from TicketMasterClient");
+
+        string segmentName = $"{PathTool.ToValidFileName(segmentRecord.Name)}-{segmentRecord.Id}";
+        string genreName = $"{PathTool.ToValidFileName(genreRecord.Name)}-{genreRecord.Id}";
+        string subGenreName = $"{PathTool.ToValidFileName(subGenreRecord.Name)}-{subGenreRecord.Id}";
+
+        string searchName = $"events-{segmentName}-{genreName}-{subGenreName}";
+        var search = new TicketMasterSearch(TicketSearchType.Event, _ticketOption, searchName)
+        {
+            SegmentId = segmentRecord.Id.NotEmpty(),
+            GenreId = genreRecord.Id.NotEmpty(),
+            SubGenreId = subGenreRecord.Id.NotEmpty(),
+        };
+
+        var option = await InternalGet<EventCollectionRecord>(search, context);
+        return option;
+    }
+
     private async Task<Option<T>> InternalGet<T>(TicketMasterSearch search, ScopeContext context)
     {
         context = context.With(_logger);

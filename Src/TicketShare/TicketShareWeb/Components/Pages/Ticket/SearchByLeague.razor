@@ -33,9 +33,18 @@
     private bool _loading = true;
     private bool _disableSave = true;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        ScopeContext context = _logger.ToScopeContext();
+
         _scheduleContext = ActivatorUtilities.CreateInstance<TicketScheduleContext>(_serviceProvider, TicketGroupId);
+
+        var loadOption = await _scheduleContext.Load(context);
+        if( loadOption.IsError())
+        {
+            context.LogError("Failed to load schedule context for TicketGroup {TicketGroupId}", TicketGroupId);
+            throw new InvalidOperationException($"Failed to load schedule context for TicketGroup {TicketGroupId}");
+        }
 
         _loading = false;
     }
@@ -45,9 +54,7 @@
 
     private Task OnRefresh()
     {
-        // InvokeAsync(() => StateHasChanged());
         StateHasChanged();
         return Task.CompletedTask;
     }
-
 }
