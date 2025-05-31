@@ -1,11 +1,11 @@
 ﻿@rendermode InteractiveServer
 
-<FeedBlock Title="Which League?" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.SubGenre == null)" Disabled="@(_scheduleContext.Genre == null)">
+<FeedBlock Title="Select Seats" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.SubGenre == null)" Disabled="@(_scheduleContext.Genre == null)">
     <div style="margin: 10px">
 
-        @foreach (var item in _scheduleContext.GetSubGenreSelect())
+        @foreach (var item in _scheduleContext.GetTeamSelect())
         {
-            Appearance appearance = _scheduleContext.SubGenre?.Id == item.Id ? Appearance.Accent : Appearance.Outline;
+            Appearance appearance = _scheduleContext.Team?.Id == item.Id ? Appearance.Accent : Appearance.Outline;
 
             <FluentButton Appearance="appearance" OnClick="@(() => SwitchButton(item.Id))">@item.Name</FluentButton>
         }
@@ -16,20 +16,19 @@
 @code {
     [CascadingParameter] public TicketScheduleContext _scheduleContext { get; set; } = null!;
     [Parameter] public EventCallback OnRefresh { get; set; }
-    @inject ILogger<SelectSubGenre> _logger;
+    @inject ILogger<SelectTeam> _logger;
 
     private async Task Refresh() => await OnRefresh.InvokeAsync();
 
     private async Task OnEdit()
     {
-        _scheduleContext.SetSubGenre(null);
+        _scheduleContext.SetTeam(null);
         await Refresh();
     }
 
     private async Task SwitchButton(string id)
     {
-        _scheduleContext.SetSubGenre(id);
-        await _scheduleContext.LoadEvents(_logger.ToScopeContext());
+        _scheduleContext.SetTeam(id);
         await Refresh();
     }
 }

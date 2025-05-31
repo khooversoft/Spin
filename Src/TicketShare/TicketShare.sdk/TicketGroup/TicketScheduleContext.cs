@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace TicketShare.sdk;
 
+
 public class TicketScheduleContext
 {
     private readonly string _ticketGroupId;
@@ -19,6 +20,7 @@ public class TicketScheduleContext
     private readonly ILogger<TicketScheduleContext> _logger;
     private ClassificationRecord? _classificationRecord;
     private EventCollectionRecord? _eventCollectionRecord;
+    private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 
     public TicketScheduleContext(string ticketGroupId, TicketSearchClient ticketSearchClient, ILogger<TicketScheduleContext> logger)
     {
@@ -28,27 +30,84 @@ public class TicketScheduleContext
     }
 
     public string TicketGroupId => _ticketGroupId;
-
-    public async Task<Option> Load(ScopeContext context)
-    {
-        context = context.With(_logger);
-        context.LogDebug("Loading TicketScheduleContext for ticketGroupId={ticketGroupId}", _ticketGroupId);
-
-        var segmentOption = await GetSegments(context).ConfigureAwait(false);
-        if (segmentOption.IsError()) return segmentOption;
-
-        var eventOption = await GetEvents(context).ConfigureAwait(false);
-        if (eventOption.IsError()) return eventOption;
-
-        return StatusCode.OK;
-    }
-
     public SegmentRecord? Segment { get; private set; } = null!;
     public GenreRecord? Genre { get; private set; } = null!;
     public SubGenreRecord? SubGenre { get; private set; } = null!;
     public EventAttractionRecord? Team { get; private set; } = null!;
     public IReadOnlyList<EventRecord> Events { get; private set; } = [];
+    public IReadOnlyList<SeatModel> Seats { get; private set; } = [];
 
+    public bool CanSave() => Segment != null && Genre != null && SubGenre != null && Team != null && Events.Count > 0;
+
+    public async Task<Option> LoadSegments(ScopeContext context)
+    {
+        context = context.With(_logger);
+        context.LogDebug("Loading TicketScheduleContext for ticketGroupId={ticketGroupId}", _ticketGroupId);
+
+        await _lock.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (_classificationRecord == null)
+            {
+                var findOption = await _ticketSearchClient.GetClassifications(context).ConfigureAwait(false);
+                if (findOption.IsError()) return findOption.ToOptionStatus();
+
+                _classificationRecord = findOption.Return();
+                Segment = null;
+                Genre = null;
+                SubGenre = null;
+            }
+
+            return StatusCode.OK;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    public async Task<Option> LoadEvents(ScopeContext context)
+    {
+        await _lock.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        try
+        {
+            _eventCollectionRecord = null;
+            Team = null;
+            Events = [];
+
+            if (Segment == null || Genre == null || SubGenre == null) return StatusCode.OK;
+
+            var findOption = await _ticketSearchClient.GetEvents(Segment, Genre, SubGenre, context).ConfigureAwait(false);
+            if (findOption.IsError()) return findOption.ToOptionStatus();
+
+            _eventCollectionRecord = findOption.Return();
+            return StatusCode.OK;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    public async Task<Option> SaveSchedule(ScopeContext context)
+    {
+        context = context.With(_logger);
+        CanSave().BeTrue("Cannot save schedule, missing required fields");
+        context.LogDebug("Saving TicketScheduleContext for ticketGroupId={ticketGroupId}", _ticketGroupId);
+
+        await _lock.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        try
+        {
+            // Here you would implement the logic to save the schedule, e.g., to a database or file.
+            // This is a placeholder for the actual save logic.
+            context.LogInformation("Schedule saved successfully for ticketGroupId={ticketGroupId}", _ticketGroupId);
+            return StatusCode.OK;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
 
     public void SetSegment(string? id)
     {
@@ -95,7 +154,7 @@ public class TicketScheduleContext
         Events = [];
     }
 
-    public void SetTeam(string id)
+    public void SetTeam(string? id)
     {
         SubGenre.NotNull("SubGenre must be set before setting Team");
 
@@ -106,24 +165,20 @@ public class TicketScheduleContext
         };
     }
 
-    public void SetEvent(string id)
+    public void SetEvent(string? id)
     {
         Team.NotNull("Team must be set before setting Event");
 
         Events = Events
-            .Where(x => x.Id != id)
+            .Where(x => id != null && x.Id != id)
             .Append(GetEvents().FirstOrDefault(x => x.Id == id))
             .ToArray()!;
     }
 
-    public void ClearEvent(string id)
-    {
-        Team.NotNull("Team must be set before clearing Event");
-
-        Events = Events
-            .Where(x => x.Id != id)
-            .ToArray()!;
-    }
+    public void SetSeat(SeatModel? seat) => Seats = Seats
+        .Where(x => x.Id != seat?.Id) // Remove existing seat with the same Id
+        .Concat(seat != null ? [seat] : []) // Append the new seat if it's not null
+        .ToArray();
 
     public IReadOnlyList<SegmentRecord> GetSegmentSelect() => (_classificationRecord?.Segements ?? [])
         .Where(x => Segment == null || x.Id == Segment?.Id)
@@ -156,39 +211,16 @@ public class TicketScheduleContext
         .OrderBy(x => x.eventRecord.Name)
         .ToArray();
 
-    public IReadOnlyList<EventAttractionRecord> GetTeams() => (_eventCollectionRecord?.Events ?? [])
-        .Where(x => x.ClassificationRecord.SubGenre.Id == SubGenre?.Id && x.ClassificationRecord.SubType.Name.EqualsIgnoreCase("Team"))
+    public IReadOnlyList<EventAttractionRecord> GetTeams() => BaseEvents()
         .SelectMany(x => x.Attractions)
+        .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+        .Select(x => x.First())
         .ToArray();
 
-    public IReadOnlyList<EventRecord> GetEvents() => (_eventCollectionRecord?.Events ?? [])
-        .Where(x => x.ClassificationRecord.SubGenre.Id == SubGenre?.Id && x.ClassificationRecord.SubType.Name.EqualsIgnoreCase("Team"))
+    public IReadOnlyList<EventRecord> GetEvents() => BaseEvents()
         .Where(x => x.Attractions.Any(a => a.Id == Team?.Id))
         .ToArray();
 
-    private async Task<Option> GetSegments(ScopeContext context)
-    {
-        if (_classificationRecord == null)
-        {
-            var findOption = await _ticketSearchClient.GetClassifications(context).ConfigureAwait(false);
-            if (findOption.IsError()) return findOption.ToOptionStatus();
-
-            _classificationRecord = findOption.Return();
-        }
-
-        return StatusCode.OK;
-    }
-
-    private async Task<Option> GetEvents(ScopeContext context)
-    {
-        if (_eventCollectionRecord == null)
-        {
-            var findOption = await _ticketSearchClient.GetEvents(context).ConfigureAwait(false);
-            if (findOption.IsError()) return findOption.ToOptionStatus();
-
-            _eventCollectionRecord = findOption.Return();
-        }
-
-        return StatusCode.OK;
-    }
+    private IEnumerable<EventRecord> BaseEvents() => (_eventCollectionRecord?.Events ?? [])
+        .Where(x => x.ClassificationRecord.SubGenre?.Id == SubGenre?.Id && (x.ClassificationRecord.SubType?.Name?.EqualsIgnoreCase("Team") ?? false));
 }

@@ -1,8 +1,6 @@
 ﻿@rendermode InteractiveServer
 
-@using TicketApi.sdk
-
-<FeedBlock Title="Genre" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Genre == null)" Disabled="@(_scheduleContext.Segment == null)">
+<FeedBlock Title="@_title" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Genre == null)" Disabled="@(_scheduleContext.Segment == null)">
     <div style="margin: 10px">
 
         @foreach (var item in _scheduleContext.GetGenreSelect())
@@ -19,6 +17,17 @@
     [CascadingParameter] public TicketScheduleContext _scheduleContext { get; set; } = null!;
     [Parameter] public EventCallback OnRefresh { get; set; }
     @inject ILogger<SelectGenre> _logger;
+
+    private string _title = "What type?";
+
+    // TODO: Need to update based on segment being selected
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _title = _scheduleContext.Segment?.Name != null ? $"What type of {_scheduleContext.Segment.Name}?" : "What type?";
+        }
+    }
 
     private async Task Refresh() => await OnRefresh.InvokeAsync();
 

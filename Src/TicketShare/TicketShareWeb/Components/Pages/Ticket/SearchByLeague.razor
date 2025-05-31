@@ -17,6 +17,8 @@
             <SelectSegment OnRefresh="OnRefresh" />
             <SelectGenre OnRefresh="OnRefresh" />
             <SelectSubGenre OnRefresh="OnRefresh" />
+            <SelectTeam OnRefresh="OnRefresh" />
+            <SelectEvent OnRefresh="OnRefresh" />
         </CascadingValue>
 
     </FeedColumn>
@@ -39,7 +41,7 @@
 
         _scheduleContext = ActivatorUtilities.CreateInstance<TicketScheduleContext>(_serviceProvider, TicketGroupId);
 
-        var loadOption = await _scheduleContext.Load(context);
+        var loadOption = await _scheduleContext.LoadSegments(context);
         if( loadOption.IsError())
         {
             context.LogError("Failed to load schedule context for TicketGroup {TicketGroupId}", TicketGroupId);

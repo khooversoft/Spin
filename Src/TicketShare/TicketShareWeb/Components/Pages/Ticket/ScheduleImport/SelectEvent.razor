@@ -1,0 +1,35 @@
+﻿@rendermode InteractiveServer
+@using TicketApi.sdk
+
+<FeedBlock Title="Select Event" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Events.Count == 0)" Disabled="@(_scheduleContext.Team == null)">
+    <div style="margin: 10px">
+
+        @foreach ((EventRecord eventRecord, bool selected) item in _scheduleContext.GetEventSelect())
+        {
+            Appearance appearance = item.selected ? Appearance.Accent : Appearance.Outline;
+
+            <FluentButton Appearance="appearance" OnClick="@(() => SwitchButton(item.eventRecord.Id))">@item.eventRecord.Name</FluentButton>
+        }
+
+    </div>
+</FeedBlock>
+
+@code {
+    [CascadingParameter] public TicketScheduleContext _scheduleContext { get; set; } = null!;
+    [Parameter] public EventCallback OnRefresh { get; set; }
+    @inject ILogger<SelectEvent> _logger;
+
+    private async Task Refresh() => await OnRefresh.InvokeAsync();
+
+    private async Task OnEdit()
+    {
+        _scheduleContext.SetEvent(null);
+        await Refresh();
+    }
+
+    private async Task SwitchButton(string id)
+    {
+        _scheduleContext.SetEvent(id);
+        await Refresh();
+    }
+}
