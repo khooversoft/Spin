@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Toolbox.Extensions;
 using Toolbox.Types;
@@ -7,6 +8,7 @@ namespace Toolbox.Tools;
 
 public static class VerifyString
 {
+    [DebuggerStepThrough]
     [return: NotNullIfNotNull(nameof(subject))]
     public static string? Be(
         this string? subject,
@@ -24,6 +26,7 @@ public static class VerifyString
         return subject;
     }
 
+    [DebuggerStepThrough]
     [return: NotNullIfNotNull(nameof(subject))]
     public static string? NotBe(
         this string? subject,
@@ -41,6 +44,7 @@ public static class VerifyString
         return subject;
     }
 
+    [DebuggerStepThrough]
     [return: NotNullIfNotNull(nameof(subject))]
     public static string? BeEmpty(
         this string? subject,

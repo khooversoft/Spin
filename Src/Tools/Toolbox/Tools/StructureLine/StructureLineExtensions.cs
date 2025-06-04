@@ -14,9 +14,8 @@ public static class StructureLineExtensions
 
     public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, Option option)
     {
-        var newSubject = subject
-            .Add("statusCode={statusCode}", option.StatusCode)
-            .Add("error={error}", option.Error ?? "< null >");
+        var newSubject = subject.Add("statusCode={statusCode}", option.StatusCode);
+        if (option.Error.IsNotEmpty()) subject.Add("error={error}", option.Error);
 
         return newSubject;
     }

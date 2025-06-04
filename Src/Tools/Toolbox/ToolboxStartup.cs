@@ -45,4 +45,17 @@ public static class ToolboxStartup
 
         return services;
     }
+
+    public static IServiceCollection AddHybridCache(this IServiceCollection services, HybridCacheOption option, Action<HybridCacheBuilder> config)
+    {
+        services.NotNull();
+        config.NotNull();
+
+        services.AddSingleton(option);
+        services.AddSingleton<IHybridCache, HybridCache>();
+        var builder = new HybridCacheBuilder(services);
+        config(builder);
+
+        return services;
+    }
 }

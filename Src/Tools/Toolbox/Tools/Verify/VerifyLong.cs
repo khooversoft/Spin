@@ -1,10 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
 public static class VerifyLong
 {
+    [DebuggerStepThrough]
     public static long Be(
         this long subject,
         long value,
@@ -21,6 +23,7 @@ public static class VerifyLong
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static long? Be(
         this long? subject,
         long? value,
@@ -37,6 +40,7 @@ public static class VerifyLong
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static long NotBe(
         this long subject,
         long value,
@@ -53,6 +57,7 @@ public static class VerifyLong
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static long? NotBe(
         this long? subject,
         long? value,

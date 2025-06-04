@@ -1,16 +1,9 @@
 ﻿using System.Text.Json.Serialization;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
-
-public static class NullScopeContext
-{
-    public static ScopeContext Default { get; } = new ScopeContext(NullLogger.Instance);
-
-    public static ScopeContext ToScopeContext(this ILogger subject) => new ScopeContext(subject, CancellationToken.None);
-}
 
 
 public readonly record struct ScopeContext : ILoggingContext
@@ -42,10 +35,19 @@ public readonly record struct ScopeContext : ILoggingContext
 
     public override string ToString() => "TraceId=" + TraceId;
 
-    public ScopeContext With(ILogger logger) => new ScopeContext(TraceId, logger, CancellationToken);
-    public ScopeContext With(CancellationToken token) => new ScopeContext(TraceId, Logger, token);
-    public ScopeContext WithNewTraceId() => new ScopeContext(Logger, CancellationToken);
+    public ScopeContext With(ILogger logger) => new(TraceId, logger, CancellationToken);
+    public ScopeContext With(CancellationToken token) => new(TraceId, Logger, token);
+    public ScopeContext WithNewTraceId() => new(Logger, CancellationToken);
 
 
     public static implicit operator CancellationToken(ScopeContext context) => context.CancellationToken;
+}
+
+
+public static class ScopeContextTool
+{
+    public static ScopeContext CreateContext<T>(this IServiceProvider service) => service.NotNull()
+        .GetRequiredService<ILogger<T>>()
+        .ToScopeContext();
+
 }

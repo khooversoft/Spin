@@ -1,10 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
 public static class VerifyBool
 {
+    [DebuggerStepThrough]
     public static bool Be(
         this bool subject,
         bool value,
@@ -21,6 +23,7 @@ public static class VerifyBool
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static bool? Be(
         this bool? subject,
         bool? value,
@@ -37,6 +40,7 @@ public static class VerifyBool
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static bool BeTrue(
         this bool subject,
         string? because = null,
@@ -49,6 +53,7 @@ public static class VerifyBool
         return subject.Be(true, because, function, path, lineNumber, name);
     }
 
+    [DebuggerStepThrough]
     public static bool? BeTrue(
         this bool? subject,
         string? because = null,
@@ -61,6 +66,7 @@ public static class VerifyBool
         return subject.Be(true, because, function, path, lineNumber, name);
     }
 
+    [DebuggerStepThrough]
     public static bool BeFalse(
         this bool subject,
         string? because = null,
@@ -73,6 +79,7 @@ public static class VerifyBool
         return subject.Be(false, because, function, path, lineNumber, name);
     }
 
+    [DebuggerStepThrough]
     public static bool? BeFalse(
         this bool? subject,
         string? because = null,

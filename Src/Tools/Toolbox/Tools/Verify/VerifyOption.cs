@@ -1,10 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
 public static class VerifyOption
 {
+    [DebuggerStepThrough]
     public static Option Be(
         this Option subject,
         StatusCode value,
@@ -21,6 +23,7 @@ public static class VerifyOption
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static Option NotBe(
         this Option subject,
         StatusCode value,
@@ -37,6 +40,7 @@ public static class VerifyOption
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static Option<T> Be<T>(
         this Option<T> subject,
         StatusCode value,
@@ -53,6 +57,7 @@ public static class VerifyOption
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static Option<T> NotBe<T>(
         this Option<T> subject,
         StatusCode value,
@@ -69,6 +74,7 @@ public static class VerifyOption
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static Option BeOk(
         this Option subject,
         string? because = null,
@@ -84,6 +90,7 @@ public static class VerifyOption
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static Option<T> BeOk<T>(
         this Option<T> subject,
         string? because = null,
@@ -99,6 +106,7 @@ public static class VerifyOption
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static Option BeError(
         this Option subject,
         string? because = null,
@@ -114,6 +122,7 @@ public static class VerifyOption
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static Option<T> BeError<T>(
         this Option<T> subject,
         string? because = null,

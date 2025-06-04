@@ -1,10 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
 public static class VerifyInt
 {
+    [DebuggerStepThrough]
     public static int Be(
         this int subject,
         int value,
@@ -21,6 +23,7 @@ public static class VerifyInt
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static int? Be(
         this int? subject,
         int? value,
@@ -37,6 +40,7 @@ public static class VerifyInt
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static int NotBe(
         this int subject,
         int value,
@@ -53,6 +57,7 @@ public static class VerifyInt
         return subject;
     }
 
+    [DebuggerStepThrough]
     public static int? NotBe(
         this int? subject,
         int? value,

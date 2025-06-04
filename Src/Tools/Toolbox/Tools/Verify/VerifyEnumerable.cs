@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -6,6 +7,7 @@ namespace Toolbox.Tools;
 
 public static class VerifyEnumerable
 {
+    [DebuggerStepThrough]
     public static IEnumerable<T> BeEquivalent<T>(
         this IEnumerable<T> subject,
         IEnumerable<T> value,

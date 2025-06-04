@@ -1,5 +1,4 @@
-﻿using System.Collections.Frozen;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 
 namespace Toolbox.Tools;
 

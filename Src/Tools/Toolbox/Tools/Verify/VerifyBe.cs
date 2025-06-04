@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Toolbox.Types;
 
@@ -6,6 +7,7 @@ namespace Toolbox.Tools;
 
 public static class VerifyBe
 {
+    [DebuggerStepThrough]
     [return: NotNullIfNotNull(nameof(subject))]
     public static T Be<T>(
         this T subject,

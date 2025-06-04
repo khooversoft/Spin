@@ -14,7 +14,7 @@ internal static class TestApplication
 {
     public static IFileStore GetDatalake(string basePath) => new DatalakeStore(ReadOption(basePath), new NullLogger<DatalakeStore>());
 
-    private static DatalakeOption ReadOption(string basePath) => new ConfigurationBuilder()
+    public static DatalakeOption ReadOption(string basePath) => new ConfigurationBuilder()
         .AddJsonFile("TestSettings.json")
         .AddUserSecrets("Toolbox-Azure-test")
         .Build()
