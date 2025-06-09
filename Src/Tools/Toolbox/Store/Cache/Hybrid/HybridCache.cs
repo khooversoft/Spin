@@ -10,11 +10,6 @@ public class HybridCache<T> : IHybridCache<T>
     private readonly IHybridCache _handler;
     private readonly ILogger<HybridCache<T>> _logger;
 
-    public HybridCache(ILogger<HybridCache<T>> logger)
-    {
-        _logger = logger.NotNull();
-    }
-
     public HybridCache(IHybridCache handler, ILogger<HybridCache<T>> logger)
     {
         _handler = handler.NotNull();

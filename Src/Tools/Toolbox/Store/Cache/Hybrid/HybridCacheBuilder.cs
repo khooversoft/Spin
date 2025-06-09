@@ -73,7 +73,6 @@ public static class HybridCacheBuilderExtensions
     {
         builder.NotNull();
         customProvider.NotNull();
-        //builder.Services.AddSingleton<IHybridCacheProvider>(customProvider);
 
         builder.Handlers.Add(service =>
         {
