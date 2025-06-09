@@ -2,6 +2,6 @@
 
 public record HybridCacheOption
 {
-    public TimeSpan MemoryCacheDuration { get; init; } = TimeSpan.FromMinutes(5);
-    public TimeSpan FileCacheDuration { get; init; } = TimeSpan.FromDays(5);
+    public TimeSpan MemoryCacheDuration { get; set; } = TimeSpan.FromMinutes(5);
+    public TimeSpan FileCacheDuration { get; set; } = TimeSpan.FromDays(5);
 }

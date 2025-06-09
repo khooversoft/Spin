@@ -1,18 +1,20 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Store;
 
+
 public class HybridCacheMemoryProvider : IHybridCacheProvider
 {
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger<HybridCacheMemoryProvider> _logger;
-    private readonly HybridCacheOption _option;
+    private readonly IOptions<HybridCacheOption> _option;
 
-    public HybridCacheMemoryProvider(IMemoryCache memoryCache, HybridCacheOption option, ILogger<HybridCacheMemoryProvider> logger)
+    public HybridCacheMemoryProvider(IMemoryCache memoryCache, IOptions<HybridCacheOption> option, ILogger<HybridCacheMemoryProvider> logger)
     {
         _memoryCache = memoryCache.NotNull();
         _option = option.NotNull();
@@ -34,7 +36,7 @@ public class HybridCacheMemoryProvider : IHybridCacheProvider
         return new Option<string>(StatusCode.NotFound).ToTaskResult();
     }
 
-    public Task<Option> Delete<T>(string key, ScopeContext context)
+    public Task<Option> Delete(string key, ScopeContext context)
     {
         context = context.With(_logger);
         context.LogDebug("Deleting key={key} from in-memory cache", key);
@@ -69,7 +71,7 @@ public class HybridCacheMemoryProvider : IHybridCacheProvider
 
         var cacheOption = new MemoryCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = _option.MemoryCacheDuration,
+            AbsoluteExpirationRelativeToNow = _option.Value.MemoryCacheDuration,
         };
 
         _memoryCache.Set(key, value, cacheOption);

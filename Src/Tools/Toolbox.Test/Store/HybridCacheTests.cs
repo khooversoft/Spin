@@ -14,6 +14,7 @@ public class HybridCacheTests
 
     [Fact]
     public async Task NoCache()
+
     {
         using var host = BuildService(false, false, null);
         await HybridCacheCommonTests.NoCache(host);
@@ -86,7 +87,13 @@ public class HybridCacheTests
                     _ => new HybridCacheOption()
                 };
 
-                services.AddHybridCache(option, builder =>
+                services.Configure<HybridCacheOption>(x =>
+                {
+                    x.MemoryCacheDuration = option.MemoryCacheDuration;
+                    x.FileCacheDuration = option.FileCacheDuration;
+                });
+
+                services.AddHybridCache(builder =>
                 {
                     if (addMemory) builder.AddMemoryCache();
                     if (addFileStore) builder.AddFileStoreCache();

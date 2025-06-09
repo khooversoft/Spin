@@ -31,7 +31,7 @@ public class Sequence<T> : List<T>
 }
 
 
-public static class Sequence
+public static class SequenceExtensions
 {
     public static Sequence<T> ToSequence<T>(this IEnumerable<T> values) => new(values.NotNull());
 }

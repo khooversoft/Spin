@@ -7,21 +7,21 @@ using Toolbox.Types;
 
 namespace Toolbox.Test.Store;
 
-public static class HybridCacheCommonTests
+public static class HybridCacheTypedCommonTests
 {
     public static async Task NoCache(IHost host)
     {
         host.NotNull();
         const string key = nameof(NoCache);
 
-        IHybridCache cache = host.Services.GetHybridCache();
+        IHybridCache<EntityModel> cache = host.Services.GetHybridCache<EntityModel>();
         var context = host.Services.CreateContext<HybridCacheTests>();
 
         var model = new EntityModel { Name = "NoCache", Age = 25 };
         var result = await cache.Set(key, model, context);
         result.BeError();
 
-        var readOption = await cache.Get<EntityModel>(key, context);
+        var readOption = await cache.Get(key, context);
         readOption.IsNotFound().BeTrue();
     }
 
@@ -33,10 +33,10 @@ public static class HybridCacheCommonTests
 
         var custom = new CustomProvider(x => command = x);
 
-        IHybridCache cache = host.Services.GetHybridCache();
+        IHybridCache<EntityModel> cache = host.Services.GetHybridCache<EntityModel>();
         var context = host.Services.CreateContext<HybridCacheTests>();
 
-        var readOption = await cache.Get<EntityModel>(key, context);
+        var readOption = await cache.Get(key, context);
         readOption.BeOk();
 
         readOption.Return().Action(x =>
@@ -51,7 +51,7 @@ public static class HybridCacheCommonTests
         host.NotNull();
         const string key = nameof(OnlyMemoryCache);
 
-        IHybridCache cache = host.Services.GetHybridCache();
+        IHybridCache<EntityModel> cache = host.Services.GetHybridCache<EntityModel>();
         var context = host.Services.CreateContext<HybridCacheTests>();
         IHybridCacheProvider memoryProvider = host.Services.GetRequiredService<HybridCacheMemoryProvider>();
 
@@ -67,7 +67,7 @@ public static class HybridCacheCommonTests
         memoryProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#2 - Get from memory");
-        var readOption = await cache.Get<EntityModel>(key, context);
+        var readOption = await cache.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(1);            // Hit count
@@ -86,7 +86,7 @@ public static class HybridCacheCommonTests
         });
 
         context.Location().LogInformation("#4 - Waiting for memory to expire");
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await cache.Get(key, context);
         readOption.IsNotFound().BeTrue();
         memoryProvider.Counters.Hits.Be(1);                //.Assert(x => x >= 1);  // At least one hit
         memoryProvider.Counters.Misses.Be(1);              // Miss count
@@ -100,7 +100,7 @@ public static class HybridCacheCommonTests
     {
         const string key = nameof(OnlyFileCache);
 
-        IHybridCache cache = host.Services.GetHybridCache();
+        IHybridCache<EntityModel> cache = host.Services.GetHybridCache<EntityModel>();
         var context = host.Services.CreateContext<HybridCacheTests>();
         IHybridCacheProvider counter = host.Services.GetRequiredService<HybridCacheFileStoreProvider>();
 
@@ -114,7 +114,7 @@ public static class HybridCacheCommonTests
         counter.Counters.DeleteCount.Be(0);
         counter.Counters.RetireCount.Be(0);
 
-        var readOption = await cache.Get<EntityModel>(key, context);
+        var readOption = await cache.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         counter.Counters.Hits.Be(1);                // Hit count
@@ -131,7 +131,7 @@ public static class HybridCacheCommonTests
             return false;
         });
 
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await cache.Get(key, context);
         readOption.IsNotFound().BeTrue();
         counter.Counters.Hits.Assert(x => x >= 1);  // At least one hit
         counter.Counters.Misses.Be(1);              // Memory retired
@@ -148,7 +148,7 @@ public static class HybridCacheCommonTests
         wait1 ??= TimeSpan.FromMilliseconds(100);
         wait2 ??= TimeSpan.FromMilliseconds(500);
 
-        IHybridCache cache = host.Services.GetHybridCache();
+        IHybridCache<EntityModel> cache = host.Services.GetHybridCache<EntityModel>();
         var context = host.Services.CreateContext<HybridCacheTests>();
         IHybridCacheProvider memoryProvider = host.Services.GetRequiredService<HybridCacheMemoryProvider>();
         IHybridCacheProvider fileProvider = host.Services.GetRequiredService<HybridCacheFileStoreProvider>();
@@ -171,7 +171,7 @@ public static class HybridCacheCommonTests
         fileProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#2 - get from memory");
-        var readOption = await cache.Get<EntityModel>(key, context);
+        var readOption = await cache.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(1);              // Hit on memory
@@ -196,7 +196,7 @@ public static class HybridCacheCommonTests
         });
 
         context.Location().LogInformation("#4 - Get from file, refresh cache");
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await cache.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(1);
@@ -221,7 +221,7 @@ public static class HybridCacheCommonTests
         });
 
         context.Location().LogInformation("#6 - Failed to return any value, all caches failed");
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await cache.Get(key, context);
         readOption.IsNotFound().BeTrue();
         memoryProvider.Counters.Hits.Assert(x => x >= 1, x => $"Invalid value={x}");
         memoryProvider.Counters.Misses.Be(2);            // Missed memory
@@ -243,7 +243,7 @@ public static class HybridCacheCommonTests
         wait1 ??= TimeSpan.FromMilliseconds(100);
         wait2 ??= TimeSpan.FromMilliseconds(500);
 
-        IHybridCache cache = host.Services.GetHybridCache();
+        IHybridCache<EntityModel> cache = host.Services.GetHybridCache<EntityModel>();
         var context = host.Services.CreateContext<HybridCacheTests>();
         IHybridCacheProvider memoryProvider = host.Services.GetRequiredService<HybridCacheMemoryProvider>();
         IHybridCacheProvider fileProvider = host.Services.GetRequiredService<HybridCacheFileStoreProvider>();
@@ -257,7 +257,7 @@ public static class HybridCacheCommonTests
         var model = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
 
         context.Location().LogInformation("#1 - value is provided by the customer provider");
-        var readOption = await cache.Get<EntityModel>(key, context);   // Read from custom provider
+        var readOption = await cache.Get(key, context);   // Read from custom provider
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(0);              // Hit on memory
@@ -274,7 +274,7 @@ public static class HybridCacheCommonTests
         fileProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#2 - value is read from memory cache");
-        readOption = await cache.Get<EntityModel>(key, context);  // Re-read, should be satisfied by cache
+        readOption = await cache.Get(key, context);  // Re-read, should be satisfied by cache
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(1);              // Hit on memory
@@ -299,7 +299,7 @@ public static class HybridCacheCommonTests
         });
 
         context.Location().LogInformation("#4 - Getting value from file");
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await cache.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(1);
@@ -324,7 +324,7 @@ public static class HybridCacheCommonTests
         });
 
         context.Location().LogInformation("#6 - Miss for memory and file, get from custom provider");
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await cache.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
 
@@ -357,7 +357,7 @@ public static class HybridCacheCommonTests
         });
     }
 
-    private record EntityModel
+    public record EntityModel
     {
         public string Name { get; init; } = null!;
         public int Age { get; init; }
@@ -401,5 +401,4 @@ public static class HybridCacheCommonTests
             return Task.FromResult<Option>(StatusCode.OK);
         }
     }
-
 }

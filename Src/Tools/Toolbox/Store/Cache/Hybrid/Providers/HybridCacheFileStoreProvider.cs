@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -9,9 +10,9 @@ public class HybridCacheFileStoreProvider : IHybridCacheProvider
 {
     private readonly IFileStore _fileStore;
     private readonly ILogger<HybridCacheFileStoreProvider> _logger;
-    private readonly HybridCacheOption _option;
+    private readonly IOptions<HybridCacheOption> _option;
 
-    public HybridCacheFileStoreProvider(IFileStore fileStore, HybridCacheOption option, ILogger<HybridCacheFileStoreProvider> logger)
+    public HybridCacheFileStoreProvider(IFileStore fileStore, IOptions<HybridCacheOption> option, ILogger<HybridCacheFileStoreProvider> logger)
     {
         _fileStore = fileStore.NotNull();
         _option = option.NotNull();
@@ -28,7 +29,7 @@ public class HybridCacheFileStoreProvider : IHybridCacheProvider
         var detailsOption = await _fileStore.File(key).GetDetails(context);
         if (detailsOption.IsError()) return detailsOption.ToOptionStatus<string>();
 
-        if (detailsOption.Return().CreatedOn < DateTime.UtcNow - _option.FileCacheDuration)
+        if (detailsOption.Return().CreatedOn < DateTime.UtcNow - _option.Value.FileCacheDuration)
         {
             return StatusCode.NotFound;
         }
@@ -36,7 +37,7 @@ public class HybridCacheFileStoreProvider : IHybridCacheProvider
         return Name;
     }
 
-    public async Task<Option> Delete<T>(string key, ScopeContext context)
+    public async Task<Option> Delete(string key, ScopeContext context)
     {
         context = context.With(_logger);
         context.LogDebug("Deleting key={key} from hybrid provider cache, name={name}", key, Name);
@@ -62,7 +63,7 @@ public class HybridCacheFileStoreProvider : IHybridCacheProvider
         var detailsOption = await file.GetDetails(context);
         if (detailsOption.IsError()) return detailsOption.ToOptionStatus<T>();
 
-        if (detailsOption.Return().CreatedOn < DateTime.UtcNow - _option.FileCacheDuration)
+        if (detailsOption.Return().CreatedOn < DateTime.UtcNow - _option.Value.FileCacheDuration)
         {
             Counters.AddRetireCount();
             Counters.AddMisses();

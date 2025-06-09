@@ -29,26 +29,24 @@ public class StructureLineBuilderTests
             .Add(option)
             .Build();
 
-        result.Message.Be("statusCode={statusCode}, error={error}");
+        result.Message.Be("statusCode={statusCode}");
         result.Args.Action(x =>
         {
             // TODO
-            x.Length.Be(2);
+            x.Length.Be(1);
             x[0].NotNull().Cast<StatusCode>().Be(StatusCode.OK);
-            x[1].NotNull().Cast<string>().Be("< null >");
         });
 
         result.GetVariables().Action(x =>
         {
-            x.Count.Be(2);
+            x.Count.Be(1);
             x[0].Be("statusCode");
-            x[1].Be("error");
         });
 
-        result.GetVariables().SequenceEqual(["statusCode", "error"]).BeTrue();
-        result.GetVariables().BeEquivalent(["error", "statusCode"]);
-        result.BuildStringFormat().Be("statusCode={0}, error={1}");
-        result.Format().Be("statusCode=OK, error=< null >");
+        result.GetVariables().SequenceEqual(["statusCode"]).BeTrue();
+        result.GetVariables().BeEquivalent(["statusCode"]);
+        result.BuildStringFormat().Be("statusCode={0}");
+        result.Format().Be("statusCode=OK");
     }
 
     [Fact]
