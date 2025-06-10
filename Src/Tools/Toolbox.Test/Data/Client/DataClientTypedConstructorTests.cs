@@ -12,12 +12,12 @@ using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
-namespace Toolbox.Test.Store;
+namespace Toolbox.Test.Data.Client;
 
-public class HybridCacheTypedConstructorTests
+public class DataClientTypedConstructorTests
 {
     private readonly ITestOutputHelper _outputHelper;
-    public HybridCacheTypedConstructorTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+    public DataClientTypedConstructorTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     [Fact]
     public async Task DiConstructorTestsWithInterface()
@@ -41,7 +41,7 @@ public class HybridCacheTypedConstructorTests
                 services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
                 services.AddInMemoryFileStore();
 
-                services.Configure<HybridCacheOption>(x => { });
+                services.Configure<DataClientOption>(x => { });
 
                 services.AddHybridCache<EntityModel>(builder =>
                 {
@@ -65,18 +65,18 @@ public class HybridCacheTypedConstructorTests
 
     public class MyType
     {
-        public MyType(IHybridCache<EntityModel> cache)
+        public MyType(IDataClient<EntityModel> cache)
         {
             Cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
-        public IHybridCache<EntityModel> Cache { get; }
+        public IDataClient<EntityModel> Cache { get; }
     }
 
-    public class CustomProvider : IHybridCacheProvider
+    public class CustomProvider : IDataProvider
     {
         public string Name => throw new NotImplementedException();
-        public HybridCacheCounters Counters => new();
+        public DataClientCounters Counters => new();
 
         public Task<Option> Delete(string key, ScopeContext context) => Task.FromResult<Option>(StatusCode.OK);
         public Task<Option<string>> Exists(string key, ScopeContext context) => new Option<string>(StatusCode.OK).ToTaskResult();
@@ -84,7 +84,7 @@ public class HybridCacheTypedConstructorTests
         public Task<Option<T>> Get<T>(string key, ScopeContext context)
         {
             var result = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
-            return result.Cast<T>().ToOption<T>().ToTaskResult();
+            return result.Cast<T>().ToOption().ToTaskResult();
         }
 
         public Task<Option> Set<T>(string key, T value, ScopeContext context) => Task.FromResult<Option>(StatusCode.OK);

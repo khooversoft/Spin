@@ -10,11 +10,11 @@ namespace TicketApi.sdk;
 public class TicketMasterClient
 {
     private readonly ILogger<TicketMasterClient> _logger;
-    private readonly TicketClassificationClient _classificationClient;
+    private readonly TmClassificationClient _classificationClient;
     private readonly SearchValues<string> _classificationFilter = SearchValues.Create(["Sports", "Music"], StringComparison.OrdinalIgnoreCase);
     private readonly TicketEventClient _eventClient;
 
-    public TicketMasterClient(TicketClassificationClient classificationClient, TicketEventClient eventClient, ILogger<TicketMasterClient> logger)
+    public TicketMasterClient(TmClassificationClient classificationClient, TicketEventClient eventClient, ILogger<TicketMasterClient> logger)
     {
         _classificationClient = classificationClient.NotNull();
         _eventClient = eventClient.NotNull();

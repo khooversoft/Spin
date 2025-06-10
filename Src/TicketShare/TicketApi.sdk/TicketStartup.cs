@@ -27,8 +27,8 @@ public static class TicketStartup
         services.AddSingleton<TicketSearchClient>();
 
         services.AddHttpClient<TicketEventClient>();
-        services.AddHttpClient<TicketClassificationClient>();
-        services.AddHttpClient<TicketAttractionClient>();
+        services.AddHttpClient<TmClassificationClient>();
+        services.AddHttpClient<TmAttractionClient>();
 
         services.TryAddSingleton<IMemoryCache, MemoryCache>();
 

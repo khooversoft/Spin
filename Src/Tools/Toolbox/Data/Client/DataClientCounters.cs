@@ -1,6 +1,6 @@
 ﻿namespace Toolbox.Store;
 
-public class HybridCacheCounters
+public class DataClientCounters
 {
     private long _hits;
     private long _misses;

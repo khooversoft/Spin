@@ -5,12 +5,12 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class HybridCache<T> : IHybridCache<T>
+public class DataClient<T> : IDataClient<T>
 {
-    private readonly IHybridCache _handler;
-    private readonly ILogger<HybridCache<T>> _logger;
+    private readonly IDataClient _handler;
+    private readonly ILogger<DataClient<T>> _logger;
 
-    public HybridCache(IHybridCache handler, ILogger<HybridCache<T>> logger)
+    public DataClient(IDataClient handler, ILogger<DataClient<T>> logger)
     {
         _handler = handler.NotNull();
         _logger = logger.NotNull();

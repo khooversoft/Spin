@@ -5,18 +5,18 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class HybridCacheHandler : IHybridCache
+public class DataClientHandler : IDataClient
 {
-    private readonly IHybridCacheProvider _provider;
-    private readonly ILogger<HybridCacheHandler> _logger;
+    private readonly IDataProvider _provider;
+    private readonly ILogger<DataClientHandler> _logger;
 
-    public HybridCacheHandler(IHybridCacheProvider provider, ILogger<HybridCacheHandler> logger)
+    public DataClientHandler(IDataProvider provider, ILogger<DataClientHandler> logger)
     {
         _provider = provider.NotNull();
         _logger = logger.NotNull();
     }
 
-    public HybridCacheHandler? InnerHandler { get; set; }
+    public DataClientHandler? InnerHandler { get; set; }
 
     public async Task<Option> Delete(string key, ScopeContext context)
     {

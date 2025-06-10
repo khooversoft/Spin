@@ -8,21 +8,21 @@ using Toolbox.Types;
 namespace Toolbox.Store;
 
 
-public class HybridCacheMemoryProvider : IHybridCacheProvider
+public class CacheMemoryDataProvider : IDataProvider
 {
     private readonly IMemoryCache _memoryCache;
-    private readonly ILogger<HybridCacheMemoryProvider> _logger;
-    private readonly IOptions<HybridCacheOption> _option;
+    private readonly ILogger<CacheMemoryDataProvider> _logger;
+    private readonly IOptions<DataClientOption> _option;
 
-    public HybridCacheMemoryProvider(IMemoryCache memoryCache, IOptions<HybridCacheOption> option, ILogger<HybridCacheMemoryProvider> logger)
+    public CacheMemoryDataProvider(IMemoryCache memoryCache, IOptions<DataClientOption> option, ILogger<CacheMemoryDataProvider> logger)
     {
         _memoryCache = memoryCache.NotNull();
         _option = option.NotNull();
         _logger = logger.NotNull();
     }
 
-    public string Name => nameof(HybridCacheMemoryProvider);
-    public HybridCacheCounters Counters { get; } = new();
+    public string Name => nameof(CacheMemoryDataProvider);
+    public DataClientCounters Counters { get; } = new();
 
     public Task<Option<string>> Exists(string key, ScopeContext context)
     {

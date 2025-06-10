@@ -6,21 +6,21 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class HybridCacheFileStoreProvider : IHybridCacheProvider
+public class CacheFileStoreDataProvider : IDataProvider
 {
     private readonly IFileStore _fileStore;
-    private readonly ILogger<HybridCacheFileStoreProvider> _logger;
-    private readonly IOptions<HybridCacheOption> _option;
+    private readonly ILogger<CacheFileStoreDataProvider> _logger;
+    private readonly IOptions<DataClientOption> _option;
 
-    public HybridCacheFileStoreProvider(IFileStore fileStore, IOptions<HybridCacheOption> option, ILogger<HybridCacheFileStoreProvider> logger)
+    public CacheFileStoreDataProvider(IFileStore fileStore, IOptions<DataClientOption> option, ILogger<CacheFileStoreDataProvider> logger)
     {
         _fileStore = fileStore.NotNull();
         _option = option.NotNull();
         _logger = logger.NotNull();
     }
 
-    public string Name => nameof(HybridCacheFileStoreProvider);
-    public HybridCacheCounters Counters { get; } = new();
+    public string Name => nameof(CacheFileStoreDataProvider);
+    public DataClientCounters Counters { get; } = new();
 
     public async Task<Option<string>> Exists(string key, ScopeContext context)
     {

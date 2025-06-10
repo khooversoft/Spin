@@ -47,34 +47,34 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static IServiceCollection AddHybridCache(this IServiceCollection services, Action<HybridCacheBuilder> config, string? name = "default")
+    public static IServiceCollection AddHybridCache(this IServiceCollection services, Action<DataClientBuilder> config, string? name = "default")
     {
         services.NotNull();
         config.NotNull();
 
-        var builder = new HybridCacheBuilder(services) { Name = name };
+        var builder = new DataClientBuilder(services) { Name = name };
         config(builder);
         builder.Name.NotEmpty("Name is required");
 
-        services.TryAddSingleton<HybridCacheFactory>();
+        services.TryAddSingleton<DataClientFactory>();
         services.AddKeyedSingleton(builder.Name, builder);
         return services;
     }
 
-    public static IServiceCollection AddHybridCache<T>(this IServiceCollection services, Action<HybridCacheBuilder>? config = null)
+    public static IServiceCollection AddHybridCache<T>(this IServiceCollection services, Action<DataClientBuilder>? config = null)
     {
         services.NotNull();
         config.NotNull();
 
-        var builder = new HybridCacheBuilder(services) { Name = typeof(T).Name };
+        var builder = new DataClientBuilder(services) { Name = typeof(T).Name };
         config(builder);
 
-        services.TryAddSingleton<HybridCacheFactory>();
+        services.TryAddSingleton<DataClientFactory>();
         services.AddKeyedSingleton(builder.Name, builder);
 
-        builder.Services.AddTransient<IHybridCache<T>>(serviceProvider =>
+        builder.Services.AddTransient<IDataClient<T>>(serviceProvider =>
         {
-            var factory = serviceProvider.GetRequiredService<HybridCacheFactory>();
+            var factory = serviceProvider.GetRequiredService<DataClientFactory>();
             return factory.Create<T>();
         });
 

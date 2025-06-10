@@ -5,10 +5,10 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class HybridCacheDefault : IHybridCache
+public class DataClientDefault : IDataClient
 {
-    private readonly ILogger<HybridCacheDefault> _logger;
-    public HybridCacheDefault(ILogger<HybridCacheDefault> logger) => _logger = logger.NotNull();
+    private readonly ILogger<DataClientDefault> _logger;
+    public DataClientDefault(ILogger<DataClientDefault> logger) => _logger = logger.NotNull();
 
     public Task<Option> Delete(string key, ScopeContext context)
     {
@@ -38,10 +38,10 @@ public class HybridCacheDefault : IHybridCache
     }
 }
 
-public class HybridCacheDefault<T> : IHybridCache<T>
+public class DataClientDefault<T> : IDataClient<T>
 {
-    private readonly ILogger<HybridCacheDefault> _logger;
-    public HybridCacheDefault(ILogger<HybridCacheDefault> logger) => _logger = logger.NotNull();
+    private readonly ILogger<DataClientDefault> _logger;
+    public DataClientDefault(ILogger<DataClientDefault> logger) => _logger = logger.NotNull();
 
     public Task<Option> Delete(string key, ScopeContext context)
     {

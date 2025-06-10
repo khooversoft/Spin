@@ -2,7 +2,7 @@
 
 namespace Toolbox.Store;
 
-public interface IHybridCache
+public interface IDataClient
 {
     public Task<Option<string>> Exists(string key, ScopeContext context);
     public Task<Option<T>> Get<T>(string key, ScopeContext context);
@@ -10,7 +10,7 @@ public interface IHybridCache
     public Task<Option> Delete(string key, ScopeContext context);
 }
 
-public interface IHybridCache<T>
+public interface IDataClient<T>
 {
     public Task<Option<string>> Exists(string key, ScopeContext context);
     public Task<Option<T>> Get(string key, ScopeContext context);
@@ -18,10 +18,10 @@ public interface IHybridCache<T>
     public Task<Option> Delete(string key, ScopeContext context);
 }
 
-public interface IHybridCacheProvider
+public interface IDataProvider
 {
     public string Name { get; }
-    HybridCacheCounters Counters { get; }
+    DataClientCounters Counters { get; }
     public Task<Option<string>> Exists(string key, ScopeContext context);
     public Task<Option<T>> Get<T>(string key, ScopeContext context);
     public Task<Option> Set<T>(string key, T value, ScopeContext context);
