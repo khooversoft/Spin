@@ -71,6 +71,13 @@ public static class ToolboxStartup
 
         services.TryAddSingleton<HybridCacheFactory>();
         services.AddKeyedSingleton(builder.Name, builder);
+
+        builder.Services.AddTransient<IHybridCache<T>>(serviceProvider =>
+        {
+            var factory = serviceProvider.GetRequiredService<HybridCacheFactory>();
+            return factory.Create<T>();
+        });
+
         return services;
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Store;
 
@@ -21,10 +22,15 @@ public class HybridCacheFactory
         name.NotEmpty();
         HybridCacheBuilder builder = _serviceProvider.GetRequiredKeyedService<HybridCacheBuilder>(name);
 
-        var handlers = GetHandlers(builder);
+        var handler = GetHandlers(builder);
 
-        if (!handlers.Any()) return ActivatorUtilities.CreateInstance<HybridCacheDefault>(_serviceProvider);
-        return handlers.First();
+        IHybridCache cache = handler switch
+        {
+            { StatusCode: StatusCode.OK } v => v.Return(),
+            _ => ActivatorUtilities.CreateInstance<HybridCacheDefault>(_serviceProvider),
+        };
+
+        return cache;
     }
 
     public IHybridCache<T> Create<T>()
@@ -32,33 +38,32 @@ public class HybridCacheFactory
         string name = typeof(T).Name;
         HybridCacheBuilder builder = _serviceProvider.GetRequiredKeyedService<HybridCacheBuilder>(name);
 
-        var handlers = GetHandlers(builder);
+        var handler = GetHandlers(builder);
 
-        IHybridCache<T> handler = handlers.Any() switch
+        IHybridCache<T> cache = handler switch
         {
-            true => ActivatorUtilities.CreateInstance<HybridCache<T>>(_serviceProvider, handlers.First()),
-            false => ActivatorUtilities.CreateInstance<HybridCacheDefault<T>>(_serviceProvider)
+            { StatusCode: StatusCode.OK } v => ActivatorUtilities.CreateInstance<HybridCache<T>>(_serviceProvider, v.Return()),
+            _ => ActivatorUtilities.CreateInstance<HybridCacheDefault<T>>(_serviceProvider),
         };
 
-        return handler;
+        return cache;
     }
 
-    private IReadOnlyList<HybridCacheHandler> GetHandlers(HybridCacheBuilder builder)
+    private Option<HybridCacheHandler> GetHandlers(HybridCacheBuilder builder)
     {
-        HybridCacheHandler? lastHandler = null;
-
         var result = builder.Handlers
             .Reverse()
-            .Select(x =>
+            .Aggregate((HybridCacheHandler?)null, (next, current) =>
             {
-                var handler = x(_serviceProvider);
-                handler.InnerHandler = lastHandler;
-                lastHandler = handler;
+                var handler = current(_serviceProvider);
+                handler.InnerHandler = next;
                 return handler;
-            })
-            .Reverse()
-            .ToArray();
+            });
 
-        return result;
+        return result switch
+        {
+            null => StatusCode.NotFound,
+            _ => result,
+        };
     }
 }

@@ -237,11 +237,9 @@ public static class HybridCacheTypedCommonTests
         fileProvider.Counters.RetireCount.Be(1);         // File was retried
     }
 
-    public static async Task MemoryAndFileCacheWithProviderAsSource(IHost host, TimeSpan? wait1 = null, TimeSpan? wait2 = null)
+    public static async Task MemoryAndFileCacheWithProviderAsSource(IHost host)
     {
         const string key = nameof(MemoryAndFileCacheWithProviderAsSource);
-        wait1 ??= TimeSpan.FromMilliseconds(100);
-        wait2 ??= TimeSpan.FromMilliseconds(500);
 
         IHybridCache<EntityModel> cache = host.Services.GetHybridCache<EntityModel>();
         var context = host.Services.CreateContext<HybridCacheTests>();
@@ -374,8 +372,6 @@ public static class HybridCacheTypedCommonTests
 
         public string Name => throw new NotImplementedException();
         public HybridCacheCounters Counters => new();
-
-        public string SourceName => nameof(CustomProvider);
 
         public Task<Option> Delete(string key, ScopeContext context)
         {

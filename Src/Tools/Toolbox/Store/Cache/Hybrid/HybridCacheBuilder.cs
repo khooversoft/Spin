@@ -87,7 +87,6 @@ public static class HybridCacheBuilderExtensions
     {
         builder.NotNull();
         builder.Services.AddSingleton<T>();
-        builder.Services.AddTransient(typeof(HybridCache<>));
 
         builder.Services.Configure<HybridCacheBuilder>(builder.Name, (HybridCacheBuilder option) =>
         {
