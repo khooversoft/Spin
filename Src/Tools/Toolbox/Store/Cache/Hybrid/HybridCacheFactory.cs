@@ -53,10 +53,10 @@ public class HybridCacheFactory
     {
         var result = builder.Handlers
             .Reverse()
-            .Aggregate((HybridCacheHandler?)null, (next, current) =>
+            .Aggregate((HybridCacheHandler?)null, (prev, current) =>
             {
                 var handler = current(_serviceProvider);
-                handler.InnerHandler = next;
+                handler.InnerHandler = prev;
                 return handler;
             });
 
