@@ -12,11 +12,11 @@ namespace TicketApi.sdk;
 public class TmClassificationClient
 {
     protected readonly HttpClient _client;
-    private readonly ILogger<TicketEventClient> _logger;
+    private readonly ILogger<TmEventClient> _logger;
     private readonly TicketOption _ticketMasterOption;
     private const string _searchName = nameof(TmClassificationClient);
 
-    public TmClassificationClient(HttpClient client, TicketOption ticketMasterOption, ILogger<TicketEventClient> logger)
+    public TmClassificationClient(HttpClient client, TicketOption ticketMasterOption, ILogger<TmEventClient> logger)
     {
         _client = client.NotNull();
         _ticketMasterOption = ticketMasterOption.NotNull();

@@ -4,46 +4,42 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketApi.sdk;
 
-public class TmEventHandler : IHybridCacheProvider
+public class TmEventHandler : IDataProvider
 {
     private readonly ILogger<TmEventHandler> _logger;
-    private readonly TicketMasterClient _ticketMasterClient;
+    private readonly TmEventClient _eventClient;
     private readonly TicketOption _ticketOption;
 
-    public TmEventHandler(TicketMasterClient ticketMasterClient, TicketOption ticketOption, ILogger<TmEventHandler> logger)
+    public TmEventHandler(TmEventClient eventClient, TicketOption ticketOption, ILogger<TmEventHandler> logger)
     {
-        _ticketMasterClient = ticketMasterClient;
+        _eventClient = eventClient;
         _ticketOption = ticketOption;
         _logger = logger.NotNull();
     }
 
     public string Name => throw new NotImplementedException();
 
-    public HybridCacheCounters Counters => throw new NotImplementedException();
+    public DataClientCounters Counters => new DataClientCounters();
 
-    public Task<Option> Delete(string key, ScopeContext context)
+
+    public Task<Option> Delete(string key, ScopeContext context) => new Option(StatusCode.OK).ToTaskResult();
+    public Task<Option<string>> Exists(string key, ScopeContext context) => new Option<string>(StatusCode.NotFound).ToTaskResult();
+
+    public async Task<Option<T>> Get<T>(string key, ScopeContext context)
     {
-        throw new NotImplementedException();
+        var eventOption = await _eventClient.GetEvents(search, context);
+        if (eventOption.IsError()) return eventOption.ToOptionStatus<T>();
+
+        return eventOption.Return().Cast<T>();
     }
 
-    public Task<Option<string>> Exists(string key, ScopeContext context)
-    {
-        throw new NotImplementedException();
-    }
+    public Task<Option> Set<T>(string key, T value, ScopeContext context) => new Option(StatusCode.Conflict).ToTaskResult();
 
-    public Task<Option<T>> Get<T>(string key, ScopeContext context)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<Option> Set<T>(string key, T value, ScopeContext context)
-    {
-        throw new NotImplementedException();
-    }
 }

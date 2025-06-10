@@ -13,7 +13,7 @@ using Toolbox.Types;
 
 namespace TicketApi.sdk;
 
-public class TmClassificationHandler : IHybridCacheProvider
+public class TmClassificationHandler : IDataProvider
 {
     private readonly SearchValues<string> _classificationFilter = SearchValues.Create(["Sports", "Music"], StringComparison.OrdinalIgnoreCase);
     private readonly ILogger<TmClassificationHandler> _logger;
@@ -29,7 +29,7 @@ public class TmClassificationHandler : IHybridCacheProvider
 
     public string Name => throw new NotImplementedException();
 
-    public HybridCacheCounters Counters { get; } = new HybridCacheCounters();
+    public DataClientCounters Counters { get; } = new DataClientCounters();
 
     public Task<Option> Delete(string key, ScopeContext context) => new Option(StatusCode.OK).ToTaskResult();
     public Task<Option<string>> Exists(string key, ScopeContext context) => new Option<string>(StatusCode.NotFound).ToTaskResult();

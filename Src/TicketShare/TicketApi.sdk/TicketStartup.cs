@@ -26,7 +26,7 @@ public static class TicketStartup
         services.AddSingleton<TicketMasterClient>();
         services.AddSingleton<TicketSearchClient>();
 
-        services.AddHttpClient<TicketEventClient>();
+        services.AddHttpClient<TmEventClient>();
         services.AddHttpClient<TmClassificationClient>();
         services.AddHttpClient<TmAttractionClient>();
 

@@ -9,14 +9,14 @@ using Toolbox.Types;
 
 namespace TicketApi.sdk;
 
-public class TicketEventClient
+public class TmEventClient
 {
     protected readonly HttpClient _client;
-    private readonly ILogger<TicketEventClient> _logger;
+    private readonly ILogger<TmEventClient> _logger;
     private readonly TicketOption _ticketMasterOption;
-    private const string _searchName = nameof(TicketEventClient);
+    private const string _searchName = nameof(TmEventClient);
 
-    public TicketEventClient(HttpClient client, TicketOption ticketMasterOption, ILogger<TicketEventClient> logger)
+    public TmEventClient(HttpClient client, TicketOption ticketMasterOption, ILogger<TmEventClient> logger)
     {
         _client = client.NotNull();
         _ticketMasterOption = ticketMasterOption.NotNull();
