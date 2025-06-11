@@ -63,6 +63,17 @@ public class DataClientTests
         command.Be(1);
     }
 
+    [Fact]
+    public async Task MemoryAndFileCacheWithProviderAsSourceWithState()
+    {
+        int command = -1;
+        var custom = new DataClientCommonTests.CustomProvider(x => command = x);
+
+        using var host = BuildService(true, true, custom, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500));
+        await DataClientCommonTests.MemoryAndFileCacheWithProviderAsSourceWithState(host);
+        command.Be(3);
+    }
+
 
     private IHost BuildService(
         bool addMemory,

@@ -53,7 +53,7 @@ public class CacheFileStoreDataProvider : IDataProvider
         return StatusCode.OK;
     }
 
-    public async Task<Option<T>> Get<T>(string key, ScopeContext context)
+    public async Task<Option<T>> Get<T>(string key, object? state, ScopeContext context)
     {
         context = context.With(_logger);
         context.LogDebug("Getting key={key} from file store cache, name={name}", key, Name);
@@ -86,7 +86,7 @@ public class CacheFileStoreDataProvider : IDataProvider
         return subject;
     }
 
-    public async Task<Option> Set<T>(string key, T value, ScopeContext context)
+    public async Task<Option> Set<T>(string key, T value, object? state, ScopeContext context)
     {
         context = context.With(_logger);
         context.LogDebug("Setting key={key} to file store cache, name={name}", key, Name);

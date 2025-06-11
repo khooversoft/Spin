@@ -34,11 +34,11 @@ internal static class InterLangAnalysis
 
     private static Option ValidateSelect(IReadOnlyList<ISelectInstruction> instructions)
     {
-        const int netural = 0;
+        const int none = 0;
         const int node = 1;
         const int edge = 2;
 
-        int direction = netural;
+        int direction = none;
         var stack = instructions.Reverse().ToStack();
 
         while (stack.TryPop(out var value))

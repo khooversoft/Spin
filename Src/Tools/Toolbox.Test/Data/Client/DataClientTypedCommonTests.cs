@@ -384,14 +384,14 @@ public static class DataClientTypedCommonTests
             return new Option<string>(StatusCode.OK).ToTaskResult();
         }
 
-        public Task<Option<T>> Get<T>(string key, ScopeContext context)
+        public Task<Option<T>> Get<T>(string key, object? state, ScopeContext context)
         {
             _action(GetCmd);
             var result = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
             return result.Cast<T>().ToOption().ToTaskResult();
         }
 
-        public Task<Option> Set<T>(string key, T value, ScopeContext context)
+        public Task<Option> Set<T>(string key, T value, object? state, ScopeContext context)
         {
             _action(SetCmd);
             return Task.FromResult<Option>(StatusCode.OK);

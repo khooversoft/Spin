@@ -237,11 +237,9 @@ public static class DataClientCommonTests
         fileProvider.Counters.RetireCount.Be(1);         // File was retried
     }
 
-    public static async Task MemoryAndFileCacheWithProviderAsSource(IHost host, TimeSpan? wait1 = null, TimeSpan? wait2 = null)
+    public static async Task MemoryAndFileCacheWithProviderAsSource(IHost host)
     {
         const string key = nameof(MemoryAndFileCacheWithProviderAsSource);
-        wait1 ??= TimeSpan.FromMilliseconds(100);
-        wait2 ??= TimeSpan.FromMilliseconds(500);
 
         IDataClient cache = host.Services.GetDataClient();
         var context = host.Services.CreateContext<DataClientTests>();
@@ -256,7 +254,7 @@ public static class DataClientCommonTests
 
         var model = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
 
-        context.Location().LogInformation("#1 - value is provided by the customer provider");
+        context.Location().LogInformation("#1 - value is provided by the custom provider");
         var readOption = await cache.Get<EntityModel>(key, context);   // Read from custom provider
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
@@ -342,6 +340,29 @@ public static class DataClientCommonTests
         fileProvider.Counters.RetireCount.Be(1);         // File was retried
     }
 
+    public static async Task MemoryAndFileCacheWithProviderAsSourceWithState(IHost host)
+    {
+        const string key = nameof(MemoryAndFileCacheWithProviderAsSource);
+
+        IDataClient cache = host.Services.GetDataClient();
+        var context = host.Services.CreateContext<DataClientTests>();
+        IDataProvider memoryProvider = host.Services.GetRequiredService<CacheMemoryDataProvider>();
+        IDataProvider fileProvider = host.Services.GetRequiredService<CacheFileStoreDataProvider>();
+
+        // Make sure the cache is clear
+        context.Location().LogInformation("#01 - clear cache for setup");
+        await cache.Delete(key, context);
+        memoryProvider.Counters.Clear();
+        fileProvider.Counters.Clear();
+
+        var model = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
+
+        context.Location().LogInformation("#1 - value is provided by the custom provider");
+        var readOption = await cache.Get<EntityModel>(key, 1, context);   // Read from custom provider
+        readOption.BeOk();
+        (readOption.Return() == model).BeTrue();
+    }
+
     private static async Task WaitFor(Func<Task<bool>> action)
     {
         await new CancellationTokenSource(TimeSpan.FromMinutes(1)).Func(async x =>
@@ -368,6 +389,7 @@ public static class DataClientCommonTests
         public const int DeleteCmd = 0;
         public const int GetCmd = 1;
         public const int SetCmd = 2;
+        public const int SetCustom = 3;
 
         private readonly Action<int> _action;
         public CustomProvider(Action<int> action) => _action = action.NotNull();
@@ -388,14 +410,15 @@ public static class DataClientCommonTests
             return new Option<string>(StatusCode.OK).ToTaskResult();
         }
 
-        public Task<Option<T>> Get<T>(string key, ScopeContext context)
+        public Task<Option<T>> Get<T>(string key, object? state, ScopeContext context)
         {
-            _action(GetCmd);
+            if (state != null) _action(SetCustom); else _action(GetCmd);
+
             var result = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
             return result.Cast<T>().ToOption().ToTaskResult();
         }
 
-        public Task<Option> Set<T>(string key, T value, ScopeContext context)
+        public Task<Option> Set<T>(string key, T value, object? state, ScopeContext context)
         {
             _action(SetCmd);
             return Task.FromResult<Option>(StatusCode.OK);

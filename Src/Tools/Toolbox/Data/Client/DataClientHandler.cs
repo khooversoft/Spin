@@ -35,28 +35,28 @@ public class DataClientHandler : IDataClient
         return await InnerHandler.Exists(key, context);
     }
 
-    public async Task<Option<T>> Get<T>(string key, ScopeContext context)
+    public async Task<Option<T>> Get<T>(string key, object? state, ScopeContext context)
     {
-        var getOption = await _provider.Get<T>(key, context).ConfigureAwait(false);
+        var getOption = await _provider.Get<T>(key, state, context).ConfigureAwait(false);
         if (getOption.IsOk()) return getOption;
 
         if (InnerHandler == null) return StatusCode.NotFound;
-        var innerGetOption = await InnerHandler.Get<T>(key, context);
+        var innerGetOption = await InnerHandler.Get<T>(key, state, context);
         if (innerGetOption.IsError()) return innerGetOption;
 
         var value = innerGetOption.Return().NotNull();
-        var setOption = await _provider.Set<T>(key, value, context).ConfigureAwait(false);
+        var setOption = await _provider.Set<T>(key, value, state, context).ConfigureAwait(false);
         if (setOption.IsError()) return setOption.ToOptionStatus<T>();
 
         return value;
     }
 
-    public async Task<Option> Set<T>(string key, T value, ScopeContext context)
+    public async Task<Option> Set<T>(string key, T value, object? state, ScopeContext context)
     {
-        var setOption = await _provider.Set<T>(key, value, context).ConfigureAwait(false);
+        var setOption = await _provider.Set<T>(key, value, state, context).ConfigureAwait(false);
         if (setOption.IsError()) return setOption;
 
         if (InnerHandler == null) return StatusCode.OK;
-        return await InnerHandler.Set<T>(key, value, context);
+        return await InnerHandler.Set<T>(key, value, state, context);
     }
 }

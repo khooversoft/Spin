@@ -47,7 +47,7 @@ public class CacheMemoryDataProvider : IDataProvider
         return new Option(StatusCode.OK).ToTaskResult();
     }
 
-    public Task<Option<T>> Get<T>(string key, ScopeContext context)
+    public Task<Option<T>> Get<T>(string key, object? state, ScopeContext context)
     {
         context = context.With(_logger);
         context.LogDebug("Getting key={key} from in-memory cache", key);
@@ -64,7 +64,7 @@ public class CacheMemoryDataProvider : IDataProvider
         return new Option<T>(StatusCode.NotFound).ToTaskResult();
     }
 
-    public Task<Option> Set<T>(string key, T value, ScopeContext context)
+    public Task<Option> Set<T>(string key, T value, object? state, ScopeContext context)
     {
         context = context.With(_logger);
         context.LogDebug("Setting key={key} from in-memory cache", key);

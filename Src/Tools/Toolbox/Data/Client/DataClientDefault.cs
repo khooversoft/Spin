@@ -23,14 +23,14 @@ public class DataClientDefault : IDataClient
         return new Option<string>(StatusCode.NotFound).ToTaskResult();
     }
 
-    public Task<Option<T>> Get<T>(string key, ScopeContext context)
+    public Task<Option<T>> Get<T>(string key, object? state, ScopeContext context)
     {
         context = context.With(_logger);
         context.Location().LogDebug("No handler found for key={key}", key);
         return new Option<T>(StatusCode.NotFound).ToTaskResult();
     }
 
-    public Task<Option> Set<T>(string key, T value, ScopeContext context)
+    public Task<Option> Set<T>(string key, T value, object? state, ScopeContext context)
     {
         context = context.With(_logger);
         context.Location().LogDebug("No handler found for key={key}", key);
@@ -56,14 +56,14 @@ public class DataClientDefault<T> : IDataClient<T>
         return new Option<string>(StatusCode.NotFound).ToTaskResult();
     }
 
-    public Task<Option<T>> Get(string key, ScopeContext context)
+    public Task<Option<T>> Get(string key, object? state, ScopeContext context)
     {
         context = context.With(_logger);
         context.Location().LogDebug("No handler found for key={key}", key);
         return new Option<T>(StatusCode.NotFound).ToTaskResult();
     }
 
-    public Task<Option> Set(string key, T value, ScopeContext context)
+    public Task<Option> Set(string key, T value, object? state, ScopeContext context)
     {
         context = context.With(_logger);
         context.Location().LogDebug("No handler found for key={key}", key);
