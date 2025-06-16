@@ -1,7 +1,5 @@
 ﻿using System.Collections.Immutable;
-using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace TicketApi.sdk;
 
@@ -17,10 +15,12 @@ public record EventRecord
     public DateTime? LocalDateTime { get; init; }
     public string? Timezone { get; init; }
     public string? EventUrl { get; init; }
+    public IReadOnlyList<ImageRecord> Images { get; init; } = Array.Empty<ImageRecord>();
     public EventClassificationRecord ClassificationRecord { get; init; } = null!;
     public EventVenueRecord Venue { get; init; } = null!;
     public IReadOnlyList<EventAttractionRecord> Attractions { get; init; } = Array.Empty<EventAttractionRecord>();
 }
+
 
 public record EventClassificationTypeRecord
 {
@@ -75,6 +75,7 @@ public static class EventCollectionModelExtensions
             LocalDateTime = x.dates?.start?.dateTime,
             Timezone = x.dates?.timezone,
             EventUrl = x.url,
+            Images = x.images.ConvertTo(),
             ClassificationRecord = x.classifications.ConvertTo(),
             Venue = x._embedded.venues.ConvertTo(),
             Attractions = x._embedded.attractions.ConvertTo(),
@@ -116,12 +117,31 @@ public static class EventCollectionModelExtensions
 
     private static IReadOnlyList<EventAttractionRecord> ConvertTo(this IEnumerable<TicketMasterEvent.AttractionModel> subject)
     {
-        var result = subject.NotNull().Select(x => new EventAttractionRecord
+        if (subject == null) return Array.Empty<EventAttractionRecord>();
+
+        var result = subject.Select(x => new EventAttractionRecord
         {
             Id = x.id,
             Name = x.name,
             Url = x.url,
             Locale = x.locale
+        }).ToImmutableArray();
+
+        return result;
+    }
+
+    public static IReadOnlyList<ImageRecord> ConvertTo(this IEnumerable<TicketMasterEvent.ImageModel> subject)
+    {
+        if (subject == null) return Array.Empty<ImageRecord>();
+
+        var result = subject.Select(x => new ImageRecord
+        {
+            Url = x.url,
+            Ratio = x.ratio,
+            Width = x.width,
+            Height = x.height,
+            Attribution = x.attribution,
+            Fallback = x.fallback == true,
         }).ToImmutableArray();
 
         return result;

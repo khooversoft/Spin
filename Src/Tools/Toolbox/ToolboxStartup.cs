@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Toolbox.Data;
 using Toolbox.Journal;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -47,7 +48,7 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static IServiceCollection AddHybridCache(this IServiceCollection services, Action<DataClientBuilder> config, string? name = "default")
+    public static IServiceCollection AddDataClient(this IServiceCollection services, Action<DataClientBuilder> config, string? name = "default")
     {
         services.NotNull();
         config.NotNull();
@@ -61,7 +62,7 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static IServiceCollection AddHybridCache<T>(this IServiceCollection services, Action<DataClientBuilder>? config = null)
+    public static IServiceCollection AddDataClient<T>(this IServiceCollection services, Action<DataClientBuilder>? config = null)
     {
         services.NotNull();
         config.NotNull();

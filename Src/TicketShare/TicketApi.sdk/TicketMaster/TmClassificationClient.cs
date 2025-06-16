@@ -56,7 +56,7 @@ public class TmClassificationClient
 
         var result = new ClassificationRecord()
         {
-            Segements = sequence.SelectMany(x => x.Segements).ToImmutableArray(),
+            Segments = sequence.SelectMany(x => x.Segments).ToImmutableArray(),
         };
 
         return result;

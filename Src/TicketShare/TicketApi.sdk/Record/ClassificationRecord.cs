@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics;
 using TicketApi.sdk.TicketMasterClassification;
 using Toolbox.Tools;
 
@@ -7,7 +6,7 @@ namespace TicketApi.sdk;
 
 public record ClassificationRecord
 {
-    public IReadOnlyList<SegmentRecord> Segements { get; init; } = Array.Empty<SegmentRecord>();
+    public IReadOnlyList<SegmentRecord> Segments { get; init; } = Array.Empty<SegmentRecord>();
 }
 
 public record SegmentRecord
@@ -40,7 +39,7 @@ public static class ClassificationRecordExtensions
     {
         return new ClassificationRecord
         {
-            Segements = subject._embedded switch
+            Segments = subject._embedded switch
             {
                 null => Array.Empty<SegmentRecord>(), // No segments available
                 var v => v.classifications.Where(x => x.segment != null).Select(x => x.segment.ConvertTo()).ToImmutableArray(),

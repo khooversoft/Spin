@@ -3,13 +3,15 @@
 
 <FeedBlock Title="Select Event" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Events.Count == 0)" Disabled="@(_scheduleContext.Team == null)">
     <div style="margin: 10px">
+        <FluentStack Orientation="Orientation.Horizontal" Wrap=true>
 
-        @foreach ((EventRecord eventRecord, bool selected) item in _scheduleContext.GetEventSelect())
-        {
-            Appearance appearance = item.selected ? Appearance.Accent : Appearance.Outline;
+            @foreach (var item in _scheduleContext.GetEventSelect())
+            {
+                bool isSelected = item.selected;
+                <SelectButton IsSelected="@isSelected" Id="@item.eventRecord.Id" Name="@item.eventRecord.Name" OnSwitch="SwitchButton" />
+            }
 
-            <FluentButton Appearance="appearance" OnClick="@(() => SwitchButton(item.eventRecord.Id))">@item.eventRecord.Name</FluentButton>
-        }
+        </FluentStack>
 
     </div>
 </FeedBlock>

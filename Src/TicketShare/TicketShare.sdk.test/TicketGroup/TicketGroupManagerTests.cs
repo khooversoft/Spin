@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using TicketShare.sdk.Applications;
 using Toolbox.Extensions;
 using Toolbox.Graph;

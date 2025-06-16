@@ -1,10 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
 public static class OptionExtensionTools
 {
+    [DebuggerStepThrough]
     public static Option ThrowOnError(
         this Option option,
         string? message = "< no message >",
@@ -19,6 +21,7 @@ public static class OptionExtensionTools
             function: function, path: path, lineNumber: lineNumber, name: name
             );
 
+    [DebuggerStepThrough]
     public static async Task<Option> ThrowOnError(this Task<Option> option,
         string? message = "< no message >",
         [CallerMemberName] string function = "",
@@ -32,6 +35,7 @@ public static class OptionExtensionTools
             function: function, path: path, lineNumber: lineNumber, name: name
             );
 
+    [DebuggerStepThrough]
     public static Option<T> ThrowOnError<T>(this Option<T> option,
         string? message = "< no message >",
         [CallerMemberName] string function = "",
@@ -45,6 +49,7 @@ public static class OptionExtensionTools
             function: function, path: path, lineNumber: lineNumber, name: name
             );
 
+    [DebuggerStepThrough]
     public static async Task<Option<T>> ThrowOnError<T>(this Task<Option<T>> option,
         string? message = "< no message >",
         [CallerMemberName] string function = "",

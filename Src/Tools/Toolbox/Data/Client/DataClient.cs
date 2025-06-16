@@ -3,7 +3,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Store;
+namespace Toolbox.Data;
 
 public class DataClient<T> : IDataClient<T>
 {

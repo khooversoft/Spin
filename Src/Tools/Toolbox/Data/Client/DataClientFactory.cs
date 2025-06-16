@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Store;
+namespace Toolbox.Data;
 
 public class DataClientFactory
 {

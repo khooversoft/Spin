@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Toolbox.Extensions;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Store;
+namespace Toolbox.Data;
 
 public class CacheFileStoreDataProvider : IDataProvider
 {

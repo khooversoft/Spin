@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Toolbox.Store;
+using Toolbox.Data;
 using Toolbox.Tools;
 using Xunit.Abstractions;
 
@@ -92,11 +92,11 @@ public class DataClientTypedTests
                     x.FileCacheDuration = option.FileCacheDuration;
                 });
 
-                services.AddHybridCache<DataClientTypedCommonTests.EntityModel>(builder =>
+                services.AddDataClient<DataClientTypedCommonTests.EntityModel>(builder =>
                 {
                     if (addMemory) builder.AddMemoryCache();
                     if (addFileStore) builder.AddFileStoreCache();
-                    if (custom != null) builder.AddProvider(custom);
+                    if (custom != null) builder.AddProvider(_ => custom);
                 });
             })
             .Build();

@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Store;
+namespace Toolbox.Data;
 
 public class DataClientBuilder
 {
@@ -38,7 +38,6 @@ public static class DataClientBuilderExtensions
     {
         builder.NotNull();
 
-        builder.Services.TryAddTransient<DataClientHandler>();
         builder.Services.TryAddSingleton<CacheMemoryDataProvider>();
         builder.Services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
@@ -56,7 +55,6 @@ public static class DataClientBuilderExtensions
     {
         builder.NotNull();
 
-        builder.Services.TryAddTransient<DataClientHandler>();
         builder.Services.TryAddSingleton<CacheFileStoreDataProvider>();
 
         builder.Handlers.Add(service =>
@@ -69,13 +67,13 @@ public static class DataClientBuilderExtensions
         return builder;
     }
 
-    public static DataClientBuilder AddProvider(this DataClientBuilder builder, IDataProvider customProvider)
+    public static DataClientBuilder AddProvider(this DataClientBuilder builder, Func<IServiceProvider, IDataProvider> config)
     {
         builder.NotNull();
-        customProvider.NotNull();
 
         builder.Handlers.Add(service =>
         {
+            var customProvider = config(service);
             var handler = ActivatorUtilities.CreateInstance<DataClientHandler>(service, customProvider);
             return handler;
         });
@@ -88,14 +86,11 @@ public static class DataClientBuilderExtensions
         builder.NotNull();
         builder.Services.AddSingleton<T>();
 
-        builder.Services.Configure<DataClientBuilder>(builder.Name, (DataClientBuilder option) =>
+        builder.Handlers.Add(service =>
         {
-            option.Handlers.Add(service =>
-            {
-                IDataProvider provider = service.GetRequiredService<T>();
-                var handler = ActivatorUtilities.CreateInstance<DataClientHandler>(service, provider);
-                return handler;
-            });
+            IDataProvider provider = service.GetRequiredService<T>();
+            var handler = ActivatorUtilities.CreateInstance<DataClientHandler>(service, provider);
+            return handler;
         });
 
         return builder;

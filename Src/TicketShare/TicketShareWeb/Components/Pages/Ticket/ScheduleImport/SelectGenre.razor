@@ -2,14 +2,15 @@
 
 <FeedBlock Title="@_title" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Genre == null)" Disabled="@(_scheduleContext.Segment == null)">
     <div style="margin: 10px">
+        <FluentStack Orientation="Orientation.Horizontal" Wrap=true>
 
-        @foreach (var item in _scheduleContext.GetGenreSelect())
-        {
-            Appearance appearance = _scheduleContext.Genre?.Id == item.Id ? Appearance.Accent : Appearance.Outline;
+            @foreach (var item in _scheduleContext.GetGenreSelect())
+            {
+                bool isSelected = _scheduleContext.Genre?.Id == item.Id;
+                <SelectButton IsSelected="@isSelected" Id="@item.Id" Name="@item.Name" OnSwitch="SwitchButton" />
+            }
 
-            <FluentButton Appearance="appearance" OnClick="@(() => SwitchButton(item.Id))">@item.Name</FluentButton>
-        }
-
+        </FluentStack>
     </div>
 </FeedBlock>
 

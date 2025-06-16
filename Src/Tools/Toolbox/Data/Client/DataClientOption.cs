@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Store;
+﻿namespace Toolbox.Data;
 
 public record DataClientOption
 {

@@ -1,39 +1,35 @@
 ﻿using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using TicketApi.sdk.Model;
-using Toolbox.Extensions;
+using TicketApi.sdk.TicketMasterAttraction;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace TicketApi.sdk;
 
-public class TmEventClient
+public class TmAttractionClient
 {
     protected readonly HttpClient _client;
-    private readonly ILogger<TmEventClient> _logger;
+    private readonly ILogger<TmAttractionClient> _logger;
     private readonly TicketOption _ticketMasterOption;
-    private const string _searchName = nameof(TmEventClient);
+    private const string _searchName = nameof(TmClassificationClient);
 
-    public TmEventClient(HttpClient client, TicketOption ticketMasterOption, ILogger<TmEventClient> logger)
+    public TmAttractionClient(HttpClient client, TicketOption ticketMasterOption, ILogger<TmAttractionClient> logger)
     {
         _client = client.NotNull();
         _ticketMasterOption = ticketMasterOption.NotNull();
         _logger = logger.NotNull();
     }
 
-    public async Task<Option<EventCollectionRecord>> GetEvents(TicketMasterSearch search, ScopeContext context)
+    public async Task<Option<AttractionCollectionRecord>> GetAttraction(TicketMasterSearch search, ScopeContext context)
     {
-        search.NotNull();
-
-        const int pageSize = 200;
-        var sequence = new Sequence<EventCollectionRecord>();
+        var sequence = new Sequence<AttractionCollectionRecord>();
         int page = 0;
+        const int pageSize = 200;
 
         while (true)
         {
-            var query = new TicketMasterSearch(TicketSearchType.Event, _ticketMasterOption, _searchName)
+            var query = new TicketMasterSearch(TicketSearchType.Attraction, _ticketMasterOption, _searchName)
             {
                 Page = page,
                 Size = pageSize,
@@ -47,21 +43,21 @@ public class TmEventClient
             var model = await new RestClient(_client)
                 .SetPath(url)
                 .GetAsync(context.With(_logger))
-                .GetContent<TicketMasterEvent.EventRootModel>();
+                .GetContent<AttractionRootModel>();
 
-            if (model.IsError()) return model.ToOptionStatus<EventCollectionRecord>();
+            if (model.IsError()) return model.ToOptionStatus<AttractionCollectionRecord>();
             var masterModel = model.Return();
             if (masterModel._embedded == null) break;
 
             sequence += masterModel.ConvertTo();
             page++;
 
-            if (masterModel.page.totalElements <= sequence.SelectMany(x => x.Events).Count()) break;
+            if (masterModel.page.totalElements < query.Size) break;
         }
 
-        var result = new EventCollectionRecord()
+        var result = new AttractionCollectionRecord()
         {
-            Events = sequence.SelectMany(x => x.Events).ToImmutableArray(),
+            Attractions = sequence.SelectMany(x => x.Attractions).ToImmutableArray(),
         };
 
         return result;

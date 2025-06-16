@@ -1,55 +1,30 @@
-﻿////using TicketMasterApi.sdk.Model;
-//using TicketApi.sdk.test.Application;
-//using Toolbox.Extensions;
-//using Toolbox.Tools;
-//using Toolbox.Types;
+﻿//using TicketMasterApi.sdk.Model;
+using Microsoft.Extensions.DependencyInjection;
+using TicketApi.sdk.test.Application;
+using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Types;
 
-//namespace TicketApi.sdk.test;
+namespace TicketApi.sdk.test;
 
-//public class AttractionTests
-//{
-//    [Fact]
-//    public async Task TestSearch()
-//    {
-//        var testHost = TestClientHostTool.Create();
-//        TicketAttractionClient client = testHost.GetAttractionClient();
-//        var context = testHost.GetContext<AttractionTests>();
+public class AttractionTests
+{
+    [Fact]
+    public async Task TestSearch()
+    {
+        using var testHost = TestClientHostTool.Create();
 
-//        IDictionary<string, TeamDetail> teamDetails = TeamMasterList.GetDetails();
-//        var sequence = new Sequence<AttractionRecord>();
-//        var notFound = new Sequence<string>();
-//        var errors = new Sequence<string>();
+        TicketMasterClient client = testHost.Services.GetRequiredService<TicketMasterClient>();
+        var context = testHost.GetContext<AttractionTests>();
 
-//        var result = await client.GetAttractions(teamDetails.Values, context);
-//        result.IsOk().BeTrue();
-//        result.Return().NotNull();
-//        result.Return().Attractions.Count.Assert(x => x > 10, _ => "Empty list");
-//        result.Return().Images.Count.Assert(x => x > 10, _ => "Empty list");
+        var classificationOption = await client.GetClassifications(context);
+        classificationOption.IsOk().BeTrue();
+        var segment = classificationOption.Return().Segments.First(x => x.Name == "Sports");
+        var genre = segment.Genres.First(x => x.Name == "Football");
+        var subGenre = genre.SubGenres.First(x => x.Name == "NFL");
 
-//        //foreach (var team in teamDetails)
-//        //{
-//        //    if (result.IsError())
-//        //    {
-//        //        errors += $"Team={team.Name}, error={result.Error}";
-//        //        continue;
-//        //    }
-
-//        //    var data = result.Return().NotNull();
-//        //    if (data.Count == 0)
-//        //    {
-//        //        notFound += team.Name;
-//        //        continue;
-//        //    }
-
-//        //    sequence += data;
-//        //    page++;
-//        //}
-
-//        //var count = sequence.Count;
-
-//        //var result = await client.GetAttractions(context);
-//        //result.IsOk().BeTrue();
-//        //result.Return().NotNull();
-//        //result.Return().Count.Assert(x => x > 10, _ => "Empty list");
-//    }
-//}
+        var result = await client.GetAttractions(segment, genre, subGenre, context);
+        result.IsOk().BeTrue();
+        result.Return().NotNull().Attractions.Count.Assert(x => x > 1, _ => "No attractions found");
+    }
+}

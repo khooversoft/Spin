@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure.test.Application;
+using Toolbox.Data;
 using Toolbox.Store;
 using Toolbox.Test.Data.Client;
 using Toolbox.Tools;
@@ -74,7 +75,7 @@ public class DataClientTests
             fileCacheDuration: TimeSpan.FromSeconds(2)
             );
 
-        await DataClientCommonTests.MemoryAndFileCacheWithProviderAsSource(host, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3));
+        await DataClientCommonTests.MemoryAndFileCacheWithProviderAsSource(host);
         command.Be(1);
     }
 
@@ -110,11 +111,11 @@ public class DataClientTests
                     x.FileCacheDuration = option.FileCacheDuration;
                 });
 
-                services.AddHybridCache(builder =>
+                services.AddDataClient(builder =>
                 {
                     if (addMemory) builder.AddMemoryCache();
                     if (addFileStore) builder.AddFileStoreCache();
-                    if (custom != null) builder.AddProvider(custom);
+                    if (custom != null) builder.AddProvider(_ => custom);
                 });
             })
             .Build();

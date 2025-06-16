@@ -1,0 +1,39 @@
+﻿@rendermode InteractiveServer
+
+@using System.Collections.Frozen;
+
+<div class="parent-wrapper">
+    <FluentButton Appearance="_appearance" OnClick="@(() => OnSwitch.InvokeAsync(Id))" Style="min-width: 360px;">
+        <div class="control-container">
+            <img src=@_icon class="image" />
+            <span class="text-content">@Name</span>
+        </div>
+    </FluentButton>
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = null!;
+    [Parameter] public string Name { get; set; } = null!;
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback<string> OnSwitch { get; set; }
+
+    private Appearance _appearance;
+    private string _icon = null!;
+
+    private static readonly IDictionary<string, string> IconMap = new Dictionary<string, string>
+    {
+        { "music", "select/musical-note-50.png" },
+        { "sports", "select/trophy-32.png" },
+        { "football", "select/football.png" },
+        { "basketball", "select/basketball-50.png" },
+        { "baseball", "select/baseball-48.png" },
+        { "hockey", "select/hockey-50.png" },
+        { "soccer", "select/soccer-50.png" }
+    }.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+    protected override void OnParametersSet()
+    {
+        _appearance = IsSelected ? Appearance.Lightweight : Appearance.Outline;
+        _icon = IconMap.TryGetValue(Name, out var mappedIcon) ? mappedIcon : "select/two-tickets-50.png";
+    }
+}

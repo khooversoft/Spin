@@ -1,15 +1,18 @@
 ﻿@rendermode InteractiveServer
 
+@using TicketApi.sdk
+
 <FeedBlock Title="What type?" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Segment == null)">
     <div style="margin: 10px">
+        <FluentStack Orientation="Orientation.Horizontal" Wrap=true>
 
-        @foreach (var item in _scheduleContext.GetSegmentSelect())
-        {
-            Appearance appearance = _scheduleContext.Segment?.Id == item.Id ? Appearance.Accent : Appearance.Outline;
+            @foreach (var item in _scheduleContext.GetSegmentSelect())
+            {
+                bool isSelected = _scheduleContext.Segment?.Id == item.Id;
+                <SelectButton IsSelected="@isSelected" Id="@item.Id" Name="@item.Name" OnSwitch="SwitchButton" />
+            }
 
-            <FluentButton Appearance="appearance" OnClick="@(() => SwitchButton(item.Id))">@item.Name</FluentButton>
-        }
-
+        </FluentStack>
     </div>
 </FeedBlock>
 
