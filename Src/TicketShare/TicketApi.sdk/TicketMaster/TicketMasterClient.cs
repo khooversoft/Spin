@@ -11,8 +11,8 @@ public class TicketMasterClient
     private readonly ILogger<TicketMasterClient> _logger;
     private readonly IDataClient<ClassificationRecord> _classificationClient;
     private readonly IDataClient<EventCollectionRecord> _eventClient;
-    private readonly TicketOption _ticketOption;
     private readonly IDataClient<AttractionCollectionRecord> _attractionClient;
+    private readonly TicketOption _ticketOption;
 
     public TicketMasterClient(
         IDataClient<ClassificationRecord> classificationClient,

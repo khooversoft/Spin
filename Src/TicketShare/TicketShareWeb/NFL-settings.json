@@ -1,0 +1,138 @@
+{
+  "Ticket": {
+    "Logos": [
+      {
+        "MatchTo": "NFL",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/10/nfl-logo-vector-svg.svg"
+      },
+      {
+        "MatchTo": "Arizona Cardinals",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/06/arizona-cardinals-wordmark-logo-svg.svg"
+      },
+      {
+        "MatchTo": "Atlanta Falcons",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/06/atlanta-falcons-wordmark-logo-svg-hex-color.svg"
+      },
+      {
+        "MatchTo": "Baltimore Ravens",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2024/01/baltimore-ravens-maryland-themed-shield-logo-svg.svg"
+      },
+      {
+        "MatchTo": "Buffalo Bills",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/06/buffalo-bills-logosvg-hex-color.svg"
+      },
+      {
+        "MatchTo": "Carolina Panthers",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/06/carolina-panthers-logo-svg-hexa-color.svg"
+      },
+      {
+        "MatchTo": "Chicago Bears",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/07/chicago-bears-logo-svg-hexa-colors.svg"
+      },
+      {
+        "MatchTo": "Cincinnati Bengals",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/07/cincinnati-bengals-logo-svg.svg"
+      },
+      {
+        "MatchTo": "Cleveland Browns",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/07/cleveland-browns-logo-svg.svg"
+      },
+      {
+        "MatchTo": "Dallas Cowboys",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2024/12/cowboys-silver-wordmark-logo-svg.svg"
+      },
+      {
+        "MatchTo": "Denver Broncos",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/denver-broncos-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "Detroit Lions",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/detroit-lions-emblem-logo-svg.svg"
+      },
+      {
+        "MatchTo": "Green Bay Packers",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/green-bay-packers-symbol-logo-svg.svg"
+      },
+      {
+        "MatchTo": "Houston Texans",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2024/12/h-town-houston-texans-simbol-svg-vector.svg"
+      },
+      {
+        "MatchTo": "Indianapolis Colts",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/indianapolis-colts-logo-symbol-svg.svg"
+      },
+      {
+        "MatchTo": "Jacksonville Jaguars",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/jacksonville-jaguars-logo-symbol-svg.svg"
+      },
+      {
+        "MatchTo": "Kansas City Chiefs",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/kansas-city-chiefs-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "Las Vegas Raiders",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/kansas-city-chiefs-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "Los Angeles Chargers",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/los-angeles-chargers-logo-symbol-svg.svg"
+      },
+      {
+        "MatchTo": "Los Angeles Rams",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/los-angeles-rams-football-logo-svg.svg"
+      },
+      {
+        "MatchTo": "Miami Dolphins",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/miami-dolphins-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "Minnesota Vikings",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/minnesota-vikings-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "New England Patriots",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/new-england-patriots-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "New Orleans Saints",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/new-orleans-saints-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "New York Giants",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/new-york-giants-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "New York Jets",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/new-york-jets-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "Philadelphia Eagles",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/philadelphia-eagles-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "Pittsburgh Steelers",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/pittsburgh-steelers-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "San Francisco 49ers",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/san-francisco-49ers-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "Seattle Seahawks",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/seattle-seahawks-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "Tampa Bay Buccaneers",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/tampa-bay-buccaneers-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "Tennessee Titans",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/tennessee-titans-logo-emblem-svg.svg"
+      },
+      {
+        "MatchTo": "Washington Commanders",
+        "LogoUrl": "https://nfldesigns.com/wp-content/uploads/2023/09/washington-commanders-logo-emblem-svg.svg"
+      }
+    ]
+  }
+}

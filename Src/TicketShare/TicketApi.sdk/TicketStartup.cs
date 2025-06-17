@@ -26,6 +26,7 @@ public static class TicketStartup
         services.AddSingleton(ticketOption);
         services.AddSingleton(_ => new MonitorRate(TimeSpan.FromSeconds(1), 3, 5));
         services.AddSingleton<TicketMasterClient>();
+        services.AddSingleton<IconCollectionService>();
 
         services.AddHttpClient<TmEventClient>();
         services.AddHttpClient<TmClassificationClient>();

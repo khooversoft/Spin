@@ -13,6 +13,9 @@ public record TicketOption
     public string AttractionUrl { get; init; } = null!;
     public IReadOnlyList<ImageSelect> ImageSelectors { get; init; } = Array.Empty<ImageSelect>();
     public IReadOnlyList<string> Include { get; init; } = Array.Empty<string>();
+    public IReadOnlyList<LogoOption> Logos { get; init; } = Array.Empty<LogoOption>();
+    public IReadOnlyList<string> IncludeLogoFiles { get; init; } = Array.Empty<string>();
+
 
     public static IValidator<TicketOption> Validator => new Validator<TicketOption>()
         .RuleFor(x => x.ApiKey).NotEmpty()
@@ -23,6 +26,8 @@ public record TicketOption
         .RuleFor(x => x.ImageSelectors).NotNull()
         .RuleForEach(x => x.ImageSelectors).Validate(ImageSelect.Validator)
         .RuleFor(x => x.Include).NotNull()
+        .RuleForEach(x => x.Logos).Validate(LogoOption.Validator)
+        .RuleFor(x => x.IncludeLogoFiles).NotNull()
         .Build();
 }
 
@@ -32,11 +37,27 @@ public record ImageSelect
     public int Width { get; init; }
     public int Height { get; init; }
 
-    public static IValidator<ImageSelect> Validator => new Validator<ImageSelect>()
+    public static IValidator<ImageSelect> Validator { get; } = new Validator<ImageSelect>()
         .RuleFor(x => x.Ratio).NotEmpty()
         .RuleFor(x => x.Width).Must(x => x > 0, _ => "Width must be greater than 0")
         .RuleFor(x => x.Height).Must(x => x > 0, _ => "Height must be greater than 0")
         .Build();
+}
+
+public record LogoOption
+{
+    public string MatchTo { get; init; } = null!;
+    public string LogoUrl { get; init; } = null!;
+
+    public static IValidator<LogoOption> Validator { get; } = new Validator<LogoOption>()
+        .RuleFor(x => x.MatchTo).NotEmpty()
+        .RuleFor(x => x.LogoUrl).NotEmpty()
+        .Build();
+}
+
+public record LogoCollection
+{
+    public IReadOnlyList<LogoOption> Logos { get; init; } = Array.Empty<LogoOption>();
 }
 
 public static class TicketMasterOptionExtensions

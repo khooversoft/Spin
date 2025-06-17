@@ -16,11 +16,13 @@ public class TicketScheduleContext
     private AttractionCollectionRecord? _attractionCollectionRecord;
     private EventCollectionRecord? _eventCollectionRecord;
     private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+    private readonly IconCollectionService _iconCollection;
 
-    public TicketScheduleContext(string ticketGroupId, TicketMasterClient ticketSearchClient, ILogger<TicketScheduleContext> logger)
+    public TicketScheduleContext(string ticketGroupId, TicketMasterClient ticketSearchClient, IconCollectionService iconCollection, ILogger<TicketScheduleContext> logger)
     {
         _ticketGroupId = ticketGroupId.NotEmpty();
         _ticketSearchClient = ticketSearchClient.NotNull();
+        _iconCollection = iconCollection.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -80,6 +82,7 @@ public class TicketScheduleContext
             if (findOption.IsError()) return findOption.ToOptionStatus();
 
             _attractionCollectionRecord = findOption.Return();
+            _iconCollection.AddAndMerge(_attractionCollectionRecord, context);
 
             return StatusCode.OK;
         }
