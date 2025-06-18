@@ -35,9 +35,7 @@ public class TmEventClient
             {
                 Page = page,
                 Size = pageSize,
-                SegmentId = search.SegmentId.NotEmpty(),
-                GenreId = search.GenreId.NotEmpty(),
-                SubGenreId = search.SubGenreId.NotEmpty(),
+                AttractionId = search.AttractionId.NotEmpty(),
             };
 
             string url = query.Build();

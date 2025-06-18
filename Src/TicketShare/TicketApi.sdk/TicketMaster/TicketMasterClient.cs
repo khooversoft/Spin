@@ -41,24 +41,18 @@ public class TicketMasterClient
         return option;
     }
 
-    public async Task<Option<EventCollectionRecord>> GetEvents(SegmentRecord segmentRecord, GenreRecord genreRecord, SubGenreRecord subGenreRecord, ScopeContext context)
+    public async Task<Option<EventCollectionRecord>> GetEvents(AttractionRecord team, ScopeContext context)
     {
-        segmentRecord.NotNull();
-        genreRecord.NotNull();
-        subGenreRecord.NotNull();
+        team.NotNull();
         context = context.With(_logger);
 
-        string segmentName = $"{PathTool.ToValidFileName(segmentRecord.Name)}-{segmentRecord.Id}";
-        string genreName = $"{PathTool.ToValidFileName(genreRecord.Name)}-{genreRecord.Id}";
-        string subGenreName = $"{PathTool.ToValidFileName(subGenreRecord.Name)}-{subGenreRecord.Id}";
+        string teamName= $"{PathTool.ToValidFileName(team.Name)}-{team.Id}";
 
-        string searchName = $"events-{segmentName}-{genreName}-{subGenreName}";
+        string searchName = $"events-{teamName}";
         context.LogDebug("Getting events data from TicketMasterClient, searchName={searchName}", searchName);
         var search = new TicketMasterSearch(TicketSearchType.Event, _ticketOption, searchName)
         {
-            SegmentId = segmentRecord.Id.NotEmpty(),
-            GenreId = genreRecord.Id.NotEmpty(),
-            SubGenreId = subGenreRecord.Id.NotEmpty(),
+            AttractionId = team.Id.NotEmpty(),
         };
 
         string path = CreatePath(search.SearchName);

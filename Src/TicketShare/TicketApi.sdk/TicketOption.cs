@@ -11,6 +11,7 @@ public record TicketOption
     public string EventUrl { get; init; } = null!;
     public string ClassificationUrl { get; init; } = null!;
     public string AttractionUrl { get; init; } = null!;
+    public bool OnlyHomeGames { get; init; }
     public IReadOnlyList<ImageSelect> ImageSelectors { get; init; } = Array.Empty<ImageSelect>();
     public IReadOnlyList<string> Include { get; init; } = Array.Empty<string>();
     public IReadOnlyList<LogoOption> Logos { get; init; } = Array.Empty<LogoOption>();

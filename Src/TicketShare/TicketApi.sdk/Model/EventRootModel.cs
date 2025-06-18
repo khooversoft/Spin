@@ -69,7 +69,6 @@ public record DatesModel(StartModel start, string timezone, StatusModel status, 
 
 public record DmaModel(int? id);
 
-
 public record ExternalLinksModel(IReadOnlyList<TwitterModel> twitter, IReadOnlyList<WikiModel> wiki, IReadOnlyList<FacebookModel> facebook, IReadOnlyList<InstagramModel> instagram, IReadOnlyList<HomepageModel> homepage);
 
 public record FacebookModel(string url);

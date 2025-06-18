@@ -101,12 +101,11 @@ public class TicketScheduleContext
         try
         {
             _eventCollectionRecord = null;
-            Team = null;
             Events = [];
 
-            if (Segment == null || Genre == null || SubGenre == null) return StatusCode.OK;
+            if (Team == null) return StatusCode.OK;
 
-            var findOption = await _ticketSearchClient.GetEvents(Segment, Genre, SubGenre, context).ConfigureAwait(false);
+            var findOption = await _ticketSearchClient.GetEvents(Team, context).ConfigureAwait(false);
             if (findOption.IsError()) return findOption.ToOptionStatus();
 
             _eventCollectionRecord = findOption.Return();
@@ -195,6 +194,9 @@ public class TicketScheduleContext
             (string v, AttractionRecord r) when v == r.Id => null,
             _ => _attractionCollectionRecord.Attractions.FirstOrDefault(x => x.Id == id),
         };
+
+        _eventCollectionRecord = null;
+        Events = [];
     }
 
     public void SetEvent(string? id)
@@ -203,7 +205,7 @@ public class TicketScheduleContext
 
         Events = Events
             .Where(x => id != null && x.Id != id)
-            .Append(GetEvents().FirstOrDefault(x => x.Id == id))
+            .Append(GetEvents(false).FirstOrDefault(x => x.Id == id))
             .ToArray()!;
     }
 
@@ -238,21 +240,12 @@ public class TicketScheduleContext
         .OrderBy(x => x.Name)
         .ToArray();
 
-    public IReadOnlyList<(EventRecord eventRecord, bool selected)> GetEventSelect() => GetEvents()
+    public IReadOnlyList<(EventRecord eventRecord, bool selected)> GetEventSelect(bool onlyHome) => GetEvents(onlyHome)
         .Select(x => (eventRecord: x, selected: Events.Any(y => x.Id == y.Id)))
         .OrderBy(x => x.eventRecord.Name)
         .ToArray();
 
-    public IReadOnlyList<EventAttractionRecord> GetTeams() => BaseEvents()
-        .SelectMany(x => x.Attractions)
-        .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
-        .Select(x => x.First())
+    public IReadOnlyList<EventRecord> GetEvents(bool onlyHome) => (_eventCollectionRecord?.Events?.ToArray() ?? [])
+        .Where(x => !onlyHome || (Team != null && x.Attractions.FirstOrDefault()?.Id == Team.Id))
         .ToArray();
-
-    public IReadOnlyList<EventRecord> GetEvents() => BaseEvents()
-        .Where(x => x.Attractions.Any(a => a.Id == Team?.Id))
-        .ToArray();
-
-    private IEnumerable<EventRecord> BaseEvents() => (_eventCollectionRecord?.Events ?? [])
-        .Where(x => x.ClassificationRecord.SubGenre?.Id == SubGenre?.Id && (x.ClassificationRecord.SubType?.Name?.EqualsIgnoreCase("Team") ?? false));
 }
