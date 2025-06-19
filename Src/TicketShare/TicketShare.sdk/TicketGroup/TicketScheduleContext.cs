@@ -43,6 +43,7 @@ public class TicketScheduleContext
     public IReadOnlyList<SeatModel> Seats { get; private set; } = [];
 
     public bool CanSave() => Segment != null && Genre != null && SubGenre != null && Team != null && Events.Any(x => x.Selected);
+    public bool ShowSegment() => _classificationRecord == null || _classificationRecord.Segments.Count != 1;
 
     public async Task<Option> LoadSegments(ScopeContext context)
     {
@@ -58,11 +59,12 @@ public class TicketScheduleContext
             if (findOption.IsError()) return findOption.ToOptionStatus();
 
             _classificationRecord = findOption.Return();
-            _attractionCollectionRecord = null;
             Segment = null;
+            _attractionCollectionRecord = null;
             Genre = null;
             SubGenre = null;
 
+            if (_classificationRecord.Segments.Count == 1) SetSegment(_classificationRecord.Segments[0].Id);
             return StatusCode.OK;
         }
         finally

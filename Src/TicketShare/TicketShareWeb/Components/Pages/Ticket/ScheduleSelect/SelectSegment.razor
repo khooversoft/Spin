@@ -2,19 +2,22 @@
 
 @using TicketApi.sdk
 
-<FeedBlock Title="What type?" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Segment == null)">
-    <div style="margin: 10px">
-        <FluentStack Orientation="Orientation.Horizontal" Wrap=true>
+@if (_scheduleContext.ShowSegment())
+{
+    <FeedBlock Title="What type?" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Segment == null)">
+        <div style="margin: 10px">
+            <FluentStack Orientation="Orientation.Horizontal" Wrap=true>
 
-            @foreach (var item in _scheduleContext.GetSegmentSelect())
-            {
-                bool isSelected = _scheduleContext.Segment?.Id == item.Id;
-                <SelectButton IsSelected="@isSelected" Id="@item.Id" Name="@item.Name" OnSwitch="SwitchButton" />
-            }
+                @foreach (var item in _scheduleContext.GetSegmentSelect())
+                {
+                    bool isSelected = _scheduleContext.Segment?.Id == item.Id;
+                    <SelectButton IsSelected="@isSelected" Id="@item.Id" Name="@item.Name" OnSwitch="SwitchButton" />
+                }
 
-        </FluentStack>
-    </div>
-</FeedBlock>
+            </FluentStack>
+        </div>
+    </FeedBlock>
+}
 
 @code {
     [CascadingParameter] public TicketScheduleContext _scheduleContext { get; set; } = null!;

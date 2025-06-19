@@ -30,34 +30,7 @@ public class TmClassificationHandler : DataProviderBase
 
         ClassificationRecord classification = classificationOption.Return();
 
-        var result = new ClassificationRecord
-        {
-            Segments = classification.Segments.Where(x => _ticketOption.ShouldInclude(x.Name))
-                .Select(c => c with
-                {
-                    Genres = c.Genres.Where(g => shouldInclude(c.Name, g.Name))
-                    .Select(g => g with
-                    {
-                        SubGenres = g.SubGenres.Where(sg => shouldIncludeSub(c.Name, g.Name, sg.Name)).ToImmutableArray()
-                    }).ToImmutableArray()
-                })
-                .ToImmutableArray()
-        };
-
-
         Counters.AddHits();
-        return result.Cast<T>();
-
-        bool shouldInclude(string segmentName, string genreName)
-        {
-            string path = $"{segmentName}/{genreName}";
-            return _ticketOption.ShouldInclude(path);
-        }
-
-        bool shouldIncludeSub(string segmentName, string genreName, string subGenreName)
-        {
-            string path = $"{segmentName}/{genreName}/{subGenreName}";
-            return _ticketOption.ShouldInclude(path);
-        }
+        return classification.Cast<T>();
     }
 }

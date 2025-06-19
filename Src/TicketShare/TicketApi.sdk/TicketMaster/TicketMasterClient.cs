@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -38,7 +39,24 @@ public class TicketMasterClient
         var search = new TicketMasterSearch(TicketSearchType.Classification, _ticketOption, "classification");
         string path = CreatePath(search.SearchName);
         var option = await _classificationClient.Get(path, search, context);
-        return option;
+
+        ClassificationRecord classification = option.Return();
+
+        var result = new ClassificationRecord
+        {
+            Segments = classification.Segments.Where(x => _ticketOption.ShouldInclude(x.Name))
+                .Select(c => c with
+                {
+                    Genres = c.Genres.Where(g => _ticketOption.ShouldInclude(c.Name, g.Name))
+                    .Select(g => g with
+                    {
+                        SubGenres = g.SubGenres.Where(sg => _ticketOption.ShouldIncludeSub(c.Name, g.Name, sg.Name)).ToImmutableArray()
+                    }).ToImmutableArray()
+                })
+                .ToImmutableArray()
+        };
+
+        return result;
     }
 
     public async Task<Option<EventCollectionRecord>> GetEvents(AttractionRecord team, ScopeContext context)

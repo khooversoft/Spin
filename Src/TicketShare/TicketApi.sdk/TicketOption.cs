@@ -78,6 +78,27 @@ public static class TicketMasterOptionExtensions
         return false;
     }
 
+    public static bool ShouldInclude(this TicketOption subject, string segmentName, string genreName)
+    {
+        subject.NotNull();
+        segmentName.NotEmpty();
+        genreName.NotEmpty();
+
+        string path = $"{segmentName}/{genreName}";
+        return subject.ShouldInclude(path);
+    }
+
+    public static bool ShouldIncludeSub(this TicketOption subject, string segmentName, string genreName, string subGenreName)
+    {
+        subject.NotNull();
+        segmentName.NotEmpty();
+        genreName.NotEmpty();
+        subGenreName.NotEmpty();
+
+        string path = $"{segmentName}/{genreName}/{subGenreName}";
+        return subject.ShouldInclude(path);
+    }
+
     //public static bool IsImageSelected(this TicketOption subject, ImageModel imageModel) => subject.ImageSelectors.Any(x => x.IsImageSelected(imageModel));
 
     //private static bool IsImageSelected(this ImageSelect imageSelect, ImageModel imageModel) =>
