@@ -46,7 +46,7 @@ public class TicketMasterClient
         team.NotNull();
         context = context.With(_logger);
 
-        string teamName= $"{PathTool.ToValidFileName(team.Name)}-{team.Id}";
+        string teamName = $"{PathTool.ToValidFileName(team.Name)}-{team.Id}";
 
         string searchName = $"events-{teamName}";
         context.LogDebug("Getting events data from TicketMasterClient, searchName={searchName}", searchName);

@@ -19,6 +19,8 @@ public record EventRecord
     public EventClassificationRecord ClassificationRecord { get; init; } = null!;
     public EventVenueRecord Venue { get; init; } = null!;
     public IReadOnlyList<EventAttractionRecord> Attractions { get; init; } = Array.Empty<EventAttractionRecord>();
+
+    public DateTime GetLocalDateTime() => LocalDateTime ?? DateTime.MinValue;
 }
 
 

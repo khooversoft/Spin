@@ -1,0 +1,4 @@
+﻿.highlight-row {
+    background-color: black; /* Light cyan */
+    transition: background-color 0.3s ease;
+}

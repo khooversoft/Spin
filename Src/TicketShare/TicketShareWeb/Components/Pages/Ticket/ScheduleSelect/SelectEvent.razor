@@ -3,19 +3,21 @@
 
 <FeedBlock Title="Select Event" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Events.Count == 0)" Disabled="@(_scheduleContext.Team == null)">
     <FluentDataGrid Class="feed-block-datagrid"
-                    Items="@_events"
+                    Items="@GetEvents()"
                     ShowHover="true"
                     GenerateHeader=GenerateHeaderOption.None
-                    TGridItem="EventDisplay"
+                    TGridItem="EventRecordSelect"
                     AutoFit="true"
                     ResizableColumns="false"
-                    OnRowClick="HandleRowFocus">
+                    OnRowClick="HandleRowFocus"
+                    RowClass="@GetRowClass">
 
-        <PropertyColumn Property="@(p => p.Date)" Sortable="true" Format="mm/dd/yy" Width="90px" />
-        <PropertyColumn Property="@(p => p.Name)" Sortable="true" />
-        <TemplateColumn Title="Bonus">
-            <FluentButton Appearance="Appearance.Accent" @onclick="@(() => Bonus())">Regular</FluentButton>
+        <TemplateColumn Width="25px" Style="padding: 0" TGridItem="EventRecordSelect">
+            <FluentCheckbox Appearance="Appearance.Accent" @bind-Value="@context.Selected" @onclick="@(() => SwitchButton(context.Id))" />
         </TemplateColumn>
+
+        <PropertyColumn Property="@(p => p.Date)" Sortable="true" Format="MM/dd/yy" Width="65px" Style="padding: 6px 2px" />
+        <PropertyColumn Property="@(p => p.Name)" Sortable="true" Style="padding: 6px 2px" />
     </FluentDataGrid>
 
 </FeedBlock>
@@ -42,20 +44,6 @@
     @inject ILogger<SelectEvent> _logger;
     @inject TicketOption _ticketOption;
 
-    private IQueryable<EventDisplay> _events = null!;
-
-    void Bonus() { }
-
-    protected override void OnInitialized()
-    {
-        _events = GetEvents();
-    }
-
-    protected override void OnParametersSet()
-    {
-        _events = GetEvents();
-    }
-
     private async Task Refresh() => await OnRefresh.InvokeAsync();
 
     private async Task OnEdit()
@@ -70,31 +58,14 @@
         await Refresh();
     }
 
-    private async Task HandleRowFocus(FluentDataGridRow<EventDisplay> row)
+    private async Task HandleRowFocus(FluentDataGridRow<EventRecordSelect> row)
     {
-        // var result = await _rightPanelDialog.Edit(row.Item.NotNull(), "Edit Seat");
-        // if (result == RightPanelDialog.Canceled) return;
-
-        // Refresh();
-        await InvokeAsync(StateHasChanged);
+        _scheduleContext.SetEvent(row.Item.NotNull().Id);
+        await Refresh();
     }
 
-    private IQueryable<EventDisplay> GetEvents() => _scheduleContext.GetEventSelect(_ticketOption.OnlyHomeGames)
-        .Select(x => x.eventRecord)
-        .Where(x => x.LocalDateTime != null)
-        .Select(x => new EventDisplay(x.LocalDateTime!.Value, x.Name))
-        .OrderBy(x => x.Date)
-        .AsQueryable();
 
-    private readonly struct EventDisplay
-    {
-        public EventDisplay(DateTime date, string name)
-        {
-            Date = date;
-            Name = name;
-        }
+    private string GetRowClass(EventRecordSelect eventDisplay) => eventDisplay.Selected ? "highlight-row" : string.Empty;
 
-        public DateTime Date { get; }
-        public string Name { get; }
-    }
+    private IQueryable<EventRecordSelect> GetEvents() => _scheduleContext.GetEventSelect().AsQueryable();
 }

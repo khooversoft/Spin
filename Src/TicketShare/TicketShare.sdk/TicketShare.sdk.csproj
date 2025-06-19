@@ -32,7 +32,7 @@
     <PackageReference Include="Microsoft.Orleans.Client" Version="9.1.2" />
     <PackageReference Include="Microsoft.Orleans.Sdk" Version="9.1.2" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="9.1.2" />
-    <PackageReference Include="System.Text.Json" Version="9.0.5" />
+    <PackageReference Include="System.Text.Json" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>

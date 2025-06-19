@@ -17,12 +17,20 @@ public class TicketScheduleContext
     private EventCollectionRecord? _eventCollectionRecord;
     private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
     private readonly IconCollectionService _iconCollection;
+    private readonly TicketOption _ticketOption;
 
-    public TicketScheduleContext(string ticketGroupId, TicketMasterClient ticketSearchClient, IconCollectionService iconCollection, ILogger<TicketScheduleContext> logger)
+    public TicketScheduleContext(
+        string ticketGroupId,
+        TicketMasterClient ticketSearchClient,
+        IconCollectionService iconCollection,
+        TicketOption ticketOption,
+        ILogger<TicketScheduleContext> logger
+        )
     {
         _ticketGroupId = ticketGroupId.NotEmpty();
         _ticketSearchClient = ticketSearchClient.NotNull();
         _iconCollection = iconCollection.NotNull();
+        _ticketOption = ticketOption.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -31,10 +39,10 @@ public class TicketScheduleContext
     public GenreRecord? Genre { get; private set; } = null!;
     public SubGenreRecord? SubGenre { get; private set; } = null!;
     public AttractionRecord? Team { get; private set; } = null!;
-    public IReadOnlyList<EventRecord> Events { get; private set; } = [];
+    public IReadOnlyList<EventRecordSelect> Events { get; private set; } = [];
     public IReadOnlyList<SeatModel> Seats { get; private set; } = [];
 
-    public bool CanSave() => Segment != null && Genre != null && SubGenre != null && Team != null && Events.Count > 0;
+    public bool CanSave() => Segment != null && Genre != null && SubGenre != null && Team != null && Events.Any(x => x.Selected);
 
     public async Task<Option> LoadSegments(ScopeContext context)
     {
@@ -109,6 +117,7 @@ public class TicketScheduleContext
             if (findOption.IsError()) return findOption.ToOptionStatus();
 
             _eventCollectionRecord = findOption.Return();
+            BuildEventSelect();
             return StatusCode.OK;
         }
         finally
@@ -201,12 +210,15 @@ public class TicketScheduleContext
 
     public void SetEvent(string? id)
     {
-        Team.NotNull("Team must be set before setting Event");
+        Events.NotNull("Events are not set before setting Event");
 
-        Events = Events
-            .Where(x => id != null && x.Id != id)
-            .Append(GetEvents(false).FirstOrDefault(x => x.Id == id))
-            .ToArray()!;
+        if (id == null)
+        {
+            Events.ForEach(x => x.Selected = false);
+            return;
+        }
+
+        Events.Where(x => x.Id == id).First().Action(x => x.Selected = !x.Selected);
     }
 
     public void SetSeat(SeatModel? seat) => Seats = Seats
@@ -240,12 +252,20 @@ public class TicketScheduleContext
         .OrderBy(x => x.Name)
         .ToArray();
 
-    public IReadOnlyList<(EventRecord eventRecord, bool selected)> GetEventSelect(bool onlyHome) => GetEvents(onlyHome)
-        .Select(x => (eventRecord: x, selected: Events.Any(y => x.Id == y.Id)))
-        .OrderBy(x => x.eventRecord.Name)
-        .ToArray();
-
     public IReadOnlyList<EventRecord> GetEvents(bool onlyHome) => (_eventCollectionRecord?.Events?.ToArray() ?? [])
         .Where(x => !onlyHome || (Team != null && x.Attractions.FirstOrDefault()?.Id == Team.Id))
         .ToArray();
+
+    public IReadOnlyList<EventRecordSelect> GetEventSelect() => Events;
+
+    private void BuildEventSelect()
+    {
+        Events = GetEvents(_ticketOption.OnlyHomeGames)
+            .Select(x => (eventRecord: x, selected: Events.Any(y => x.Id == y.Id)))
+            .OrderBy(x => x.eventRecord.GetLocalDateTime())
+            .Select(x => new EventRecordSelect(x.eventRecord.Id, x.selected, x.eventRecord.GetLocalDateTime(), x.eventRecord.Name))
+            .ToArray();
+
+        if (Events.Any(x => x.Selected)) System.Diagnostics.Debugger.Break();
+    }
 }
