@@ -21,14 +21,14 @@ public class JournalLogTests
     }
 
     [Fact]
-    public Task AddMulitpleJournal()
+    public Task AddMultipleJournal()
     {
-        return _test.AddMulitpleJournal();
+        return _test.AddMultipleJournal();
     }
 
     [Fact]
-    public Task AddMulitpleBatchJournal()
+    public Task AddMultipleBatchJournal()
     {
-        return _test.AddMulitpleBatchJournal();
+        return _test.AddMultipleBatchJournal();
     }
 }

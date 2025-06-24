@@ -1,28 +1,22 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Toolbox.Test.Application;
 
-namespace Toolbox.Test.Data.Client;
+namespace Toolbox.Test.Data.Client.Common;
 
-public static class DataClientCommonTests
+public static class DataClientTypedCommonTests
 {
-    public static async Task NoCache(IHost host)
+    public static void NoCache(IHost host)
     {
         host.NotNull();
-        const string key = nameof(NoCache);
 
-        IDataClient cache = host.Services.GetDataClient();
-        var context = host.Services.CreateContext<DataClientTests>();
-
-        var model = new EntityModel { Name = "NoCache", Age = 25 };
-        var result = await cache.Set(key, model, context);
-        result.BeError();
-
-        var readOption = await cache.Get<EntityModel>(key, context);
-        readOption.IsNotFound().BeTrue();
+        Verify.Throw<ArgumentException>(() => host.Services.GetDataClient<EntityModel>());
     }
 
     public static async Task ProviderCreatedCache(IHost host)
@@ -33,10 +27,10 @@ public static class DataClientCommonTests
 
         var custom = new CustomProvider(x => command = x);
 
-        IDataClient cache = host.Services.GetDataClient();
+        IDataClient<EntityModel> cache = host.Services.GetDataClient<EntityModel>();
         var context = host.Services.CreateContext<DataClientTests>();
 
-        var readOption = await cache.Get<EntityModel>(key, context);
+        var readOption = await cache.Get(key, context);
         readOption.BeOk();
 
         readOption.Return().Action(x =>
@@ -51,13 +45,14 @@ public static class DataClientCommonTests
         host.NotNull();
         const string key = nameof(OnlyMemoryCache);
 
-        IDataClient cache = host.Services.GetDataClient();
+        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>();
         var context = host.Services.CreateContext<DataClientTests>();
-        IDataProvider memoryProvider = host.Services.GetRequiredService<CacheMemoryDataProvider>();
+        CacheMemoryDataProvider memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryDataProvider>().First();
+        IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
 
         context.Location().LogInformation("#1 - Set value");
         var model = new EntityModel { Name = "OnlyMemoryCache", Age = 25 };
-        var result = await cache.Set(key, model, context);
+        var result = await dataHandler.Set(key, model, context);
         result.BeOk();
         memoryProvider.Counters.Hits.Be(0);
         memoryProvider.Counters.Misses.Be(0);
@@ -67,7 +62,7 @@ public static class DataClientCommonTests
         memoryProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#2 - Get from memory");
-        var readOption = await cache.Get<EntityModel>(key, context);
+        var readOption = await dataHandler.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(1);            // Hit count
@@ -78,15 +73,10 @@ public static class DataClientCommonTests
         memoryProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#3 - Waiting for memory to expire");
-        await WaitFor(async () =>
-        {
-            var existsOption = await memoryProvider.Exists(key, context);
-            if (existsOption.IsNotFound()) return true;
-            return false;
-        });
+        WaitForTool.WaitFor(() => !memoryCache.TryGetValue(key, out _), TimeSpan.FromMinutes(1));
 
         context.Location().LogInformation("#4 - Waiting for memory to expire");
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await dataHandler.Get(key, context);
         readOption.IsNotFound().BeTrue();
         memoryProvider.Counters.Hits.Be(1);                //.Assert(x => x >= 1);  // At least one hit
         memoryProvider.Counters.Misses.Be(1);              // Miss count
@@ -100,45 +90,45 @@ public static class DataClientCommonTests
     {
         const string key = nameof(OnlyFileCache);
 
-        IDataClient cache = host.Services.GetDataClient();
+        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>();
         var context = host.Services.CreateContext<DataClientTests>();
-        IDataProvider counter = host.Services.GetRequiredService<CacheFileStoreDataProvider>();
+        FileStoreDataProvider fileStore = dataHandler.GetDataProviders().OfType<FileStoreDataProvider>().First();
 
         var model = new EntityModel { Name = "OnlyFileCache", Age = 25 };
-        var result = await cache.Set(key, model, context);
+        var result = await dataHandler.Set(key, model, context);
         result.BeOk();
-        counter.Counters.Hits.Be(0);
-        counter.Counters.Misses.Be(0);
-        counter.Counters.SetCount.Be(1);            // Set count
-        counter.Counters.SetFailCount.Be(0);
-        counter.Counters.DeleteCount.Be(0);
-        counter.Counters.RetireCount.Be(0);
+        fileStore.Counters.Hits.Be(0);
+        fileStore.Counters.Misses.Be(0);
+        fileStore.Counters.SetCount.Be(1);            // Set count
+        fileStore.Counters.SetFailCount.Be(0);
+        fileStore.Counters.DeleteCount.Be(0);
+        fileStore.Counters.RetireCount.Be(0);
 
-        var readOption = await cache.Get<EntityModel>(key, context);
+        var readOption = await dataHandler.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
-        counter.Counters.Hits.Be(1);                // Hit count
-        counter.Counters.Misses.Be(0);
-        counter.Counters.SetCount.Be(1);
-        counter.Counters.SetFailCount.Be(0);
-        counter.Counters.DeleteCount.Be(0);
-        counter.Counters.RetireCount.Be(0);
+        fileStore.Counters.Hits.Be(1);                // Hit count
+        fileStore.Counters.Misses.Be(0);
+        fileStore.Counters.SetCount.Be(1);
+        fileStore.Counters.SetFailCount.Be(0);
+        fileStore.Counters.DeleteCount.Be(0);
+        fileStore.Counters.RetireCount.Be(0);
 
-        await WaitFor(async () =>
+        await WaitForTool.WaitFor(async () =>
         {
-            var existsOption = await cache.Exists(key, context);
+            var existsOption = await fileStore.IsCacheIsValid(key, context);
             if (existsOption.IsNotFound()) return true;  // File expired
             return false;
-        });
+        }, TimeSpan.FromMinutes(1));
 
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await dataHandler.Get(key, context);
         readOption.IsNotFound().BeTrue();
-        counter.Counters.Hits.Assert(x => x >= 1);  // At least one hit
-        counter.Counters.Misses.Be(1);              // Memory retired
-        counter.Counters.SetCount.Be(1);
-        counter.Counters.SetFailCount.Be(0);
-        counter.Counters.DeleteCount.Be(0);
-        counter.Counters.RetireCount.Be(1);
+        fileStore.Counters.Hits.Assert(x => x >= 1);  // At least one hit
+        fileStore.Counters.Misses.Be(2);              // Memory retired
+        fileStore.Counters.SetCount.Be(1);
+        fileStore.Counters.SetFailCount.Be(0);
+        fileStore.Counters.DeleteCount.Be(1);
+        fileStore.Counters.RetireCount.Be(1);
     }
 
 
@@ -148,14 +138,15 @@ public static class DataClientCommonTests
         wait1 ??= TimeSpan.FromMilliseconds(100);
         wait2 ??= TimeSpan.FromMilliseconds(500);
 
-        IDataClient cache = host.Services.GetDataClient();
+        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>();
         var context = host.Services.CreateContext<DataClientTests>();
-        IDataProvider memoryProvider = host.Services.GetRequiredService<CacheMemoryDataProvider>();
-        IDataProvider fileProvider = host.Services.GetRequiredService<CacheFileStoreDataProvider>();
+        CacheMemoryDataProvider memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryDataProvider>().First();
+        FileStoreDataProvider fileProvider = dataHandler.GetDataProviders().OfType<FileStoreDataProvider>().First();
+        IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
 
         context.Location().LogInformation("#1 - Create value");
         var model = new EntityModel { Name = "OnlyFileCache", Age = 25 };
-        var result = await cache.Set(key, model, context);
+        var result = await dataHandler.Set(key, model, context);
         result.BeOk();
         memoryProvider.Counters.Hits.Be(0);
         memoryProvider.Counters.Misses.Be(0);
@@ -171,7 +162,7 @@ public static class DataClientCommonTests
         fileProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#2 - get from memory");
-        var readOption = await cache.Get<EntityModel>(key, context);
+        var readOption = await dataHandler.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(1);              // Hit on memory
@@ -188,15 +179,10 @@ public static class DataClientCommonTests
         fileProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#3 - Waiting for memory to expire");
-        await WaitFor(async () =>
-        {
-            var lookup = await memoryProvider.Exists(key, context);
-            if (lookup.IsNotFound()) return true;  // Memory expired
-            return false;
-        });
+        WaitForTool.WaitFor(() => !memoryCache.TryGetValue(key, out _), TimeSpan.FromMinutes(1));
 
         context.Location().LogInformation("#4 - Get from file, refresh cache");
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await dataHandler.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(1);
@@ -213,15 +199,15 @@ public static class DataClientCommonTests
         fileProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#5 - Waiting for file to expire");
-        await WaitFor(async () =>
+        await WaitForTool.WaitFor(async () =>
         {
-            var lookup = await fileProvider.Exists(key, context);
-            if (lookup.IsNotFound()) return true;  // File expired
+            var existsOption = await fileProvider.IsCacheIsValid(key, context);
+            if (existsOption.IsNotFound()) return true;  // File expired
             return false;
-        });
+        }, TimeSpan.FromMinutes(1));
 
         context.Location().LogInformation("#6 - Failed to return any value, all caches failed");
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await dataHandler.Get(key, context);
         readOption.IsNotFound().BeTrue();
         memoryProvider.Counters.Hits.Assert(x => x >= 1, x => $"Invalid value={x}");
         memoryProvider.Counters.Misses.Be(2);            // Missed memory
@@ -230,10 +216,10 @@ public static class DataClientCommonTests
         memoryProvider.Counters.DeleteCount.Be(0);
         memoryProvider.Counters.RetireCount.Be(0);
         fileProvider.Counters.Hits.Be(1);
-        fileProvider.Counters.Misses.Be(1);              // Missed file
+        fileProvider.Counters.Misses.Be(2);              // Missed file
         fileProvider.Counters.SetCount.Be(1);
         fileProvider.Counters.SetFailCount.Be(0);
-        fileProvider.Counters.DeleteCount.Be(0);
+        fileProvider.Counters.DeleteCount.Be(1);
         fileProvider.Counters.RetireCount.Be(1);         // File was retried
     }
 
@@ -241,21 +227,22 @@ public static class DataClientCommonTests
     {
         const string key = nameof(MemoryAndFileCacheWithProviderAsSource);
 
-        IDataClient cache = host.Services.GetDataClient();
+        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>();
         var context = host.Services.CreateContext<DataClientTests>();
-        IDataProvider memoryProvider = host.Services.GetRequiredService<CacheMemoryDataProvider>();
-        IDataProvider fileProvider = host.Services.GetRequiredService<CacheFileStoreDataProvider>();
+        CacheMemoryDataProvider memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryDataProvider>().First();
+        FileStoreDataProvider fileProvider = dataHandler.GetDataProviders().OfType<FileStoreDataProvider>().First();
+        IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
 
         // Make sure the cache is clear
         context.Location().LogInformation("#01 - clear cache for setup");
-        await cache.Delete(key, context);
+        await dataHandler.Delete(key, context);
         memoryProvider.Counters.Clear();
         fileProvider.Counters.Clear();
 
         var model = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
 
-        context.Location().LogInformation("#1 - value is provided by the custom provider");
-        var readOption = await cache.Get<EntityModel>(key, context);   // Read from custom provider
+        context.Location().LogInformation("#1 - value is provided by the customer provider");
+        var readOption = await dataHandler.Get(key, context);   // Read from custom provider
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(0);              // Hit on memory
@@ -265,14 +252,14 @@ public static class DataClientCommonTests
         memoryProvider.Counters.DeleteCount.Be(0);
         memoryProvider.Counters.RetireCount.Be(0);
         fileProvider.Counters.Hits.Be(0);
-        fileProvider.Counters.Misses.Be(0);
+        fileProvider.Counters.Misses.Be(1);
         fileProvider.Counters.SetCount.Be(1);
         fileProvider.Counters.SetFailCount.Be(0);
         fileProvider.Counters.DeleteCount.Be(0);
         fileProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#2 - value is read from memory cache");
-        readOption = await cache.Get<EntityModel>(key, context);  // Re-read, should be satisfied by cache
+        readOption = await dataHandler.Get(key, context);  // Re-read, should be satisfied by cache
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(1);              // Hit on memory
@@ -282,22 +269,17 @@ public static class DataClientCommonTests
         memoryProvider.Counters.DeleteCount.Be(0);
         memoryProvider.Counters.RetireCount.Be(0);
         fileProvider.Counters.Hits.Be(0);
-        fileProvider.Counters.Misses.Be(0);
+        fileProvider.Counters.Misses.Be(1);
         fileProvider.Counters.SetCount.Be(1);
         fileProvider.Counters.SetFailCount.Be(0);
         fileProvider.Counters.DeleteCount.Be(0);
         fileProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#3 - Waiting for memory to expire, retrieved by file");
-        await WaitFor(async () =>
-        {
-            var lookup = await memoryProvider.Exists(key, context);
-            if (lookup.IsNotFound()) return true;  // Memory expired
-            return false;
-        });
+        WaitForTool.WaitFor(() => !memoryCache.TryGetValue(key, out _), TimeSpan.FromMinutes(1));
 
         context.Location().LogInformation("#4 - Getting value from file");
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await dataHandler.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
         memoryProvider.Counters.Hits.Be(1);
@@ -307,22 +289,22 @@ public static class DataClientCommonTests
         memoryProvider.Counters.DeleteCount.Be(0);
         memoryProvider.Counters.RetireCount.Be(0);
         fileProvider.Counters.Hits.Be(1);                // File hit
-        fileProvider.Counters.Misses.Be(0);
+        fileProvider.Counters.Misses.Be(1);
         fileProvider.Counters.SetCount.Be(1);
         fileProvider.Counters.SetFailCount.Be(0);
         fileProvider.Counters.DeleteCount.Be(0);
         fileProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#5 - Waiting for memory to expire, retrieved by file");
-        await WaitFor(async () =>
+        await WaitForTool.WaitFor(async () =>
         {
-            var lookup = await fileProvider.Exists(key, context);
-            if (lookup.IsNotFound()) return true;       // File expired
+            var existsOption = await fileProvider.IsCacheIsValid(key, context);
+            if (existsOption.IsNotFound()) return true;  // File expired
             return false;
-        });
+        }, TimeSpan.FromMinutes(1));
 
         context.Location().LogInformation("#6 - Miss for memory and file, get from custom provider");
-        readOption = await cache.Get<EntityModel>(key, context);
+        readOption = await dataHandler.Get(key, context);
         readOption.BeOk();
         (readOption.Return() == model).BeTrue();
 
@@ -333,52 +315,14 @@ public static class DataClientCommonTests
         memoryProvider.Counters.DeleteCount.Be(0);
         memoryProvider.Counters.RetireCount.Be(0);
         fileProvider.Counters.Hits.Be(1);
-        fileProvider.Counters.Misses.Be(1);              // Missed file
+        fileProvider.Counters.Misses.Be(3);              // Missed file
         fileProvider.Counters.SetCount.Be(2);
         fileProvider.Counters.SetFailCount.Be(0);
-        fileProvider.Counters.DeleteCount.Be(0);
+        fileProvider.Counters.DeleteCount.Be(1);
         fileProvider.Counters.RetireCount.Be(1);         // File was retried
     }
 
-    public static async Task MemoryAndFileCacheWithProviderAsSourceWithState(IHost host)
-    {
-        const string key = nameof(MemoryAndFileCacheWithProviderAsSource);
-
-        IDataClient cache = host.Services.GetDataClient();
-        var context = host.Services.CreateContext<DataClientTests>();
-        IDataProvider memoryProvider = host.Services.GetRequiredService<CacheMemoryDataProvider>();
-        IDataProvider fileProvider = host.Services.GetRequiredService<CacheFileStoreDataProvider>();
-
-        // Make sure the cache is clear
-        context.Location().LogInformation("#01 - clear cache for setup");
-        await cache.Delete(key, context);
-        memoryProvider.Counters.Clear();
-        fileProvider.Counters.Clear();
-
-        var model = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
-
-        context.Location().LogInformation("#1 - value is provided by the custom provider");
-        var readOption = await cache.Get<EntityModel>(key, 1, context);   // Read from custom provider
-        readOption.BeOk();
-        (readOption.Return() == model).BeTrue();
-    }
-
-    private static async Task WaitFor(Func<Task<bool>> action)
-    {
-        await new CancellationTokenSource(TimeSpan.FromMinutes(1)).Func(async x =>
-        {
-            while (true)
-            {
-                x.Token.ThrowIfCancellationRequested();
-                var isReady = await action();
-                if (isReady) return;  // Condition met
-
-                await Task.Delay(TimeSpan.FromMilliseconds(100));
-            }
-        });
-    }
-
-    private record EntityModel
+    public record EntityModel
     {
         public string Name { get; init; } = null!;
         public int Age { get; init; }
@@ -389,40 +333,35 @@ public static class DataClientCommonTests
         public const int DeleteCmd = 0;
         public const int GetCmd = 1;
         public const int SetCmd = 2;
-        public const int SetCustom = 3;
 
         private readonly Action<int> _action;
         public CustomProvider(Action<int> action) => _action = action.NotNull();
 
-        public string Name => throw new NotImplementedException();
-        public DataClientCounters Counters => new();
+        public IDataProvider? InnerHandler { get; set; }
 
-        public string SourceName => nameof(CustomProvider);
-
-        public Task<Option> Delete(string key, ScopeContext context)
+        public Task<Option<DataPipelineContext>> Execute(DataPipelineContext dataContext, ScopeContext context)
         {
-            _action(DeleteCmd);
-            return Task.FromResult<Option>(StatusCode.OK);
-        }
+            switch (dataContext.Command)
+            {
+                case DataPipelineCommand.Append: throw new NotImplementedException("Append not implemented in CustomProvider");
 
-        public Task<Option<string>> Exists(string key, ScopeContext context)
-        {
-            return new Option<string>(StatusCode.OK).ToTaskResult();
-        }
+                case DataPipelineCommand.Delete:
+                    _action(DeleteCmd);
+                    break;
 
-        public Task<Option<T>> Get<T>(string key, object? state, ScopeContext context)
-        {
-            if (state != null) _action(SetCustom); else _action(GetCmd);
+                case DataPipelineCommand.Get:
+                    var result = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
+                    var data = result.ToDataETag();
+                    dataContext = dataContext with { GetData = [data] };
+                    _action(GetCmd);
+                    break;
 
-            var result = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
-            return result.Cast<T>().ToOption().ToTaskResult();
-        }
+                case DataPipelineCommand.Set:
+                    _action(SetCmd);
+                    break;
+            }
 
-        public Task<Option> Set<T>(string key, T value, object? state, ScopeContext context)
-        {
-            _action(SetCmd);
-            return Task.FromResult<Option>(StatusCode.OK);
+            return dataContext.ToOption().ToTaskResult();
         }
     }
-
 }

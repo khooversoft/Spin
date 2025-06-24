@@ -22,7 +22,7 @@ public class DataClientTwoTypedTests
         var myType2 = host.Services.GetRequiredService<MyType2>();
         var context = host.Services.CreateContext<MyType1>();
 
-        (await myType1.Cache.Get("anyKey1", null, context)).Action(result =>
+        (await myType1.Cache.Get("anyKey1", context)).Action(result =>
         {
             result.BeOk();
 
@@ -32,7 +32,7 @@ public class DataClientTwoTypedTests
             });
         });
 
-        (await myType2.Cache.Get("anyKey2", null, context)).Action(result =>
+        (await myType2.Cache.Get("anyKey2", context)).Action(result =>
         {
             result.BeOk();
 
@@ -51,19 +51,19 @@ public class DataClientTwoTypedTests
                 services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
                 services.AddInMemoryFileStore();
 
-                services.Configure<DataClientOption>(x => { });
+                services.Configure<DataPipelineOption>(x => { });
 
-                services.AddDataClient<EntityModel1>(builder =>
+                services.AddDataPipeline<EntityModel1>(builder =>
                 {
-                    builder.AddMemoryCache();
-                    builder.AddFileStoreCache();
+                    builder.AddMemory();
+                    builder.AddFileStore();
                     builder.AddProvider<CustomProvider1>();
                 });
 
-                services.AddDataClient<EntityModel2>(builder =>
+                services.AddDataPipeline<EntityModel2>(builder =>
                 {
-                    builder.AddMemoryCache();
-                    builder.AddFileStoreCache();
+                    builder.AddMemory();
+                    builder.AddFileStore();
                     builder.AddProvider<CustomProvider2>();
                 });
 
@@ -109,21 +109,41 @@ public class DataClientTwoTypedTests
         public IDataClient<EntityModel2> Cache { get; }
     }
 
-    public class CustomProvider1 : DataProviderBase
+    public class CustomProvider1 : IDataProvider
     {
-        public override Task<Option<T>> Get<T>(string key, object? state, ScopeContext context)
+        public IDataProvider? InnerHandler { get; set; }
+
+        public Task<Option<DataPipelineContext>> Execute(DataPipelineContext dataContext, ScopeContext context)
         {
-            var result = new EntityModel1 { Name = "CustomerProviderCreated-1", Age = 25 };
-            return result.Cast<T>().ToOption().ToTaskResult();
+            switch (dataContext.Command)
+            {
+                case DataPipelineCommand.Get:
+                    var result = new EntityModel1 { Name = "CustomerProviderCreated-1", Age = 25 };
+                    dataContext = dataContext with { GetData = [result.ToDataETag()] };
+                    return dataContext.ToOption().ToTaskResult();
+
+                default:
+                    throw new NotImplementedException();
+            }
         }
     }
 
-    public class CustomProvider2 : DataProviderBase
+    public class CustomProvider2 : IDataProvider
     {
-        public override Task<Option<T>> Get<T>(string key, object? state, ScopeContext context)
+        public IDataProvider? InnerHandler { get; set; }
+
+        public Task<Option<DataPipelineContext>> Execute(DataPipelineContext dataContext, ScopeContext context)
         {
-            var result = new EntityModel2 { City = "Kirkland", Date = new DateTime(2025, 1, 10) };
-            return result.Cast<T>().ToOption().ToTaskResult();
+            switch (dataContext.Command)
+            {
+                case DataPipelineCommand.Get:
+                    var result = new EntityModel2 { City = "Kirkland", Date = new DateTime(2025, 1, 10) };
+                    dataContext = dataContext with { GetData = [result.ToDataETag()] };
+                    return dataContext.ToOption().ToTaskResult();
+
+                default:
+                    throw new NotImplementedException();
+            }
         }
     }
 }

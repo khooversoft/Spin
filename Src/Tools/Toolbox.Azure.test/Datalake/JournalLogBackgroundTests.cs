@@ -29,6 +29,6 @@ public class JournalLogBackgroundTests
     [Fact]
     public Task AddMulitpleBatchJournal()
     {
-        return _test.AddMulitpleBatchJournal();
+        return _test.AddMultipleBatchJournal();
     }
 }

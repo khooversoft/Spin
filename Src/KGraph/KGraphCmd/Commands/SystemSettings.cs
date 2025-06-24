@@ -96,7 +96,7 @@ internal class SystemSettings : ICommandRoute
                 services.AddLogging(config =>
                 {
                     config.SimpleConsole();
-                    //config.AddFilter((category, level) => level >= LogLevel.Information);
+                    config.AddFilter((category, level) => level >= LogLevel.Information);
                 });
                 services.AddDatalakeFileStore(datalakeOption);
             })

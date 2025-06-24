@@ -53,7 +53,7 @@ public class GraphStoreFileAccess : IFileAccess
         return _fileAccess.Delete(context);
     }
 
-    public Task<Option> Exist(ScopeContext context) => _fileAccess.Exist(context);
+    public Task<Option> Exists(ScopeContext context) => _fileAccess.Exists(context);
 
     public async Task<Option<DataETag>> Get(ScopeContext context)
     {

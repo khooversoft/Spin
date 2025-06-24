@@ -27,6 +27,7 @@ public class GlobFilePatternTests
     [InlineData("nodes/path/path1/file.md", "nodes/**/path1/*.md", true)]
     [InlineData("nodes/path/path2/file.md", "nodes/**/path1/*.md", false)]
     [InlineData("nodes/path/path1/file.cpp", "nodes/**/path1/*.md", false)]
+    [InlineData("/journal3/data/202506/20250622.journal3Key.json", "journal3/data/**/*", false)]
     public void MatchExact(string file, string pattern, bool expected)
     {
         var matcher = new GlobFileMatching(pattern);

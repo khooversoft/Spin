@@ -21,6 +21,7 @@ public sealed class MemoryStore
     public Option<string> Add(string path, DataETag data, ScopeContext context)
     {
         context = context.With(_logger);
+        path = RemoveForwardSlash(path);
 
         if (!FileStoreTool.IsPathValid(path)) return (StatusCode.BadRequest, "Path is invalid");
 
@@ -44,6 +45,7 @@ public sealed class MemoryStore
     public Option<string> Append(string path, DataETag data, string? leaseId, ScopeContext context)
     {
         context = context.With(_logger);
+        path = RemoveForwardSlash(path);
 
         lock (_lock)
         {
@@ -53,7 +55,7 @@ public sealed class MemoryStore
 
             if (_store.TryGetValue(path, out var readPayload))
             {
-                var newPayload = readPayload with { Data = readPayload.Data.Data.Concat(data.Data).ToDataETag().WithHash() };
+                var newPayload = readPayload with { Data = (readPayload.Data + data).WithHash() };
                 _store[path] = newPayload;
                 context.LogDebug("Append Path={path}, length={length}", path, data.Data.Length);
                 return newPayload.Data.ETag.NotEmpty();
@@ -70,7 +72,7 @@ public sealed class MemoryStore
         var query = QueryParameter.Parse(pattern);
         var matcher = query.GetMatcher();
 
-        var restul = _store.Keys
+        var result = _store.Keys
             .Where(x => matcher.IsMatch(x, false))
             .Select(x => Delete(x, null, context))
             .ToList();
@@ -78,9 +80,9 @@ public sealed class MemoryStore
         return StatusCode.OK;
     }
 
-    public bool Exist(string path) => _store.ContainsKey(path);
+    public bool Exist(string path) => _store.ContainsKey(RemoveForwardSlash(path));
 
-    public Option<DataETag> Get(string path) => _store.TryGetValue(path, out var payload) switch
+    public Option<DataETag> Get(string path) => _store.TryGetValue(RemoveForwardSlash(path), out var payload) switch
     {
         true => payload.Data,
         false => StatusCode.NotFound,
@@ -89,6 +91,7 @@ public sealed class MemoryStore
     public Option Delete(string path, string? leaseId, ScopeContext context)
     {
         context = context.With(_logger);
+        path = RemoveForwardSlash(path);
 
         lock (_lock)
         {
@@ -108,6 +111,8 @@ public sealed class MemoryStore
 
     public Option<IStorePathDetail> GetDetail(string path)
     {
+        path = RemoveForwardSlash(path);
+
         return _store.TryGetValue(path, out var payload) switch
         {
             true => payload.PathDetail,
@@ -118,6 +123,7 @@ public sealed class MemoryStore
     public Option<string> Set(string path, DataETag data, string? leaseId, ScopeContext context)
     {
         context = context.With(_logger);
+        path = RemoveForwardSlash(path);
 
         if (!FileStoreTool.IsPathValid(path)) return (StatusCode.BadRequest, "Path is invalid");
 
@@ -147,11 +153,12 @@ public sealed class MemoryStore
 
     public IReadOnlyList<IStorePathDetail> Search(string pattern)
     {
+        pattern = RemoveForwardSlash(pattern);
         var query = QueryParameter.Parse(pattern).GetMatcher();
 
         var list = _store.Values
-            .Select(x => x.PathDetail)
-            .Where(x => pattern == "*" || query.IsMatch(x.Path, false))
+            .Where(x => pattern == "*" || query.IsMatch(x.PathDetail.Path, false))
+            .Select(x => x.PathDetail with { Path = RemoveForwardSlash(x.PathDetail.Path) })
             .ToImmutableArray();
 
         return list;
@@ -175,6 +182,7 @@ public sealed class MemoryStore
     public Option<LeaseRecord> AcquireLease(string path, TimeSpan leaseDuration, ScopeContext context)
     {
         context = context.With(_logger);
+        path = RemoveForwardSlash(path);
 
         LeaseRecord? leaseRecord = null!;
         Option result = StatusCode.OK;
@@ -217,31 +225,11 @@ public sealed class MemoryStore
 
             return new Option<LeaseRecord>(leaseRecord, result.StatusCode, result.Error);
         }
-
-        //if (leaseRecord != null) return leaseRecord;
-
-        //Option result = directoryDetail.LeaseRecord switch
-        //{
-        //    LeaseRecord v when v.IsLeaseValid() == true => (StatusCode.Conflict, "Path is already leased"),
-        //    LeaseRecord v => _leaseStore.TryRemove(v.LeaseId, out _) ? StatusCode.OK : (StatusCode.Conflict, "Failed to remove old lease"),
-        //    _ => StatusCode.OK,
-        //};
-
-        //if (result.IsError()) return result.LogStatus(context, "Failed to acquire lease").ToOptionStatus<LeaseRecord>();
-
-        //leaseRecord = new(path, leaseDuration);
-        //var newPayload = directoryDetail with { LeaseRecord = leaseRecord };
-
-        //_store[path] = newPayload;
-        //_leaseStore[newPayload.LeaseRecord.LeaseId] = leaseRecord.NotNull();
-
-        //context.LogDebug("Acquire lease Path={path}, leaseId={leaseId}", path, newPayload.LeaseRecord.LeaseId);
-        //return newPayload.LeaseRecord;
-        //}
     }
 
     public Option BreakLease(string path, ScopeContext context)
     {
+        path = RemoveForwardSlash(path);
         context = context.With(_logger);
 
         lock (_lock)
@@ -275,6 +263,8 @@ public sealed class MemoryStore
 
     public bool IsLeased(string path, string? leaseId = null)
     {
+        path = RemoveForwardSlash(path);
+        
         // Path does not exist or there is no lease
         if (!_store.TryGetValue(path, out var directoryDetail) || directoryDetail.LeaseRecord == null) return false;
 
@@ -291,4 +281,10 @@ public sealed class MemoryStore
         if (directoryDetail.LeaseRecord.IsLeaseValid(leaseId) == true) return true;
         return false;
     }
+
+    private static string RemoveForwardSlash(string path) => path.NotEmpty().StartsWith('/') switch
+    {
+        true => path[1..],
+        false => path,
+    };
 }

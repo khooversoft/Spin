@@ -39,6 +39,10 @@ public readonly record struct ScopeContext : ILoggingContext
     public ScopeContext With(CancellationToken token) => new(TraceId, Logger, token);
     public ScopeContext WithNewTraceId() => new(Logger, CancellationToken);
 
+    internal ScopeContext With(object logger)
+    {
+        throw new NotImplementedException();
+    }
 
     public static implicit operator CancellationToken(ScopeContext context) => context.CancellationToken;
 }

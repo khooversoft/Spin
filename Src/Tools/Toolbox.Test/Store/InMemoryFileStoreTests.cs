@@ -234,7 +234,7 @@ public class InMemoryFileStoreTests
         Option<string> result = await func(path, data);
         result.IsOk().BeTrue();
         (await store.Search("*", NullScopeContext.Default)).Count.Be(beginCount + increment);
-        (await store.File(path).Exist(NullScopeContext.Default)).Action(x => x.IsOk().BeTrue());
+        (await store.File(path).Exists(NullScopeContext.Default)).Action(x => x.IsOk().BeTrue());
 
         Option<DataETag> getResult = await store.File(path).Get(NullScopeContext.Default);
         result.IsOk().BeTrue();
@@ -246,13 +246,13 @@ public class InMemoryFileStoreTests
 
     private async Task DeleteFile(IFileStore store, string path, int expectedCount)
     {
-        (await store.File(path).Exist(NullScopeContext.Default)).Action(x => x.IsOk().BeTrue());
+        (await store.File(path).Exists(NullScopeContext.Default)).Action(x => x.IsOk().BeTrue());
 
         var deleteOption = await store.File(path).Delete(NullScopeContext.Default);
         deleteOption.IsOk().BeTrue();
 
         (await store.Search("*", NullScopeContext.Default)).Count.Be(expectedCount);
-        (await store.File(path).Exist(NullScopeContext.Default)).Action(x => x.IsOk().BeFalse());
+        (await store.File(path).Exists(NullScopeContext.Default)).Action(x => x.IsOk().BeFalse());
 
         var deleteOption2 = await store.File(path).Delete(NullScopeContext.Default);
         deleteOption2.IsError().BeTrue();

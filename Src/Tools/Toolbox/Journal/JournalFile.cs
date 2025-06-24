@@ -48,7 +48,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         {
             _logger.LogInformation("JournalFile using background writer, name={name}", _name);
             _context = new ScopeContext(_logger);
-            _autoFlushQueue = new AutoFlushQueue<JournalEntry>(1000, TimeSpan.FromMilliseconds(100), async x => await FlushQueue(x, _context));
+            _autoFlushQueue = new AutoFlushQueue<JournalEntry>(1000, TimeSpan.FromMilliseconds(100), async x => await FlushQueue(x, _context), _logger);
             _writer = QueueWrite;
             return;
         }
@@ -63,6 +63,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
         if (autoFlushQueue == null) return;
 
         await autoFlushQueue.Complete();
+        _logger.ToScopeContext().LogDebug("Closed journal file={name}", _name);
     }
 
     public IJournalTrx CreateTransactionContext(string? transactionId = null) => transactionId switch
@@ -143,7 +144,7 @@ public class JournalFile : IJournalFile, IAsyncDisposable
             _writeLock.Release();
         }
 
-        result.LogStatus(context, "Completed writting journal entry to name={name}, path={path}", [_name, path]);
+        result.LogStatus(context, "Completed writing journal entry to name={name}, path={path}", [_name, path]);
         return result.ToOptionStatus();
     }
 

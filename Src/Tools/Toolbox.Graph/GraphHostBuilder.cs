@@ -23,7 +23,7 @@ public class GraphHostBuilder
     public bool DisableCache { get; set; }
     public bool InMemoryStore { get; set; }
     public bool Logging { get; set; }
-    public LogLevel LogLevel { get; set; } = LogLevel.Debug;
+    public LogLevel LogLevel { get; set; } = LogLevel.Information;
     public string? ConfigurationFile { get; set; }
     public Action<string>? LogOutput { get; set; }
 

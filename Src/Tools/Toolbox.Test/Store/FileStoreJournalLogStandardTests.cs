@@ -15,7 +15,7 @@ public class FileStoreJournalLogStandardTests
 {
     private readonly IServiceProvider _services;
     private readonly ScopeContext _context;
-    private const string _searchPath = "journal3/data/**/*";
+    private const string _searchPath = "/journal3/data/**/*";
 
     public FileStoreJournalLogStandardTests(IFileStore fileStore, ITestOutputHelper outputHelper)
     {
@@ -70,7 +70,7 @@ public class FileStoreJournalLogStandardTests
         });
     }
 
-    public async Task AddMulitpleJournal()
+    public async Task AddMultipleJournal()
     {
         IJournalFile journal = _services.GetRequiredKeyedService<IJournalFile>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();
@@ -130,7 +130,7 @@ public class FileStoreJournalLogStandardTests
         }
     }
 
-    public async Task AddMulitpleBatchJournal()
+    public async Task AddMultipleBatchJournal()
     {
         IJournalFile journal = _services.GetRequiredKeyedService<IJournalFile>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();

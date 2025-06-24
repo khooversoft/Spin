@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -17,7 +18,7 @@ public class AutoFlushQueueTests
         {
             x.ForEach(x => data.Enqueue(x));
             return Task.CompletedTask;
-        });
+        }, NullLogger.Instance);
 
         await Enumerable.Range(0, count).ForEachAsync(async x => await queue.Enqueue(x, default));
         await queue.FlushBuffer();
@@ -38,7 +39,7 @@ public class AutoFlushQueueTests
             int currentCount = Interlocked.Increment(ref flushCount);
             x.ForEach(x => data.Enqueue((x, currentCount)));
             return Task.CompletedTask;
-        });
+        }, NullLogger.Instance);
 
         foreach (var n in Enumerable.Range(0, count))
         {

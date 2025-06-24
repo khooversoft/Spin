@@ -1,7 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading.Tasks.Dataflow;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
@@ -10,14 +12,16 @@ public class AutoFlushQueue<T>
     private readonly ConcurrentQueue<T> _queue = new();
     private readonly int _bufferSize;
     private readonly TimeSpan _flushInterval;
+    private readonly ILogger _logger;
     private readonly ActionBlock<IReadOnlyList<T>> _writer;
     private readonly Timer _timer;
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
-    public AutoFlushQueue(int bufferSize, TimeSpan flushInterval, Func<IReadOnlyList<T>, Task> writeAction)
+    public AutoFlushQueue(int bufferSize, TimeSpan flushInterval, Func<IReadOnlyList<T>, Task> writeAction, ILogger logger)
     {
         _bufferSize = bufferSize;
         _flushInterval = flushInterval;
+        _logger = logger.NotNull();
 
         _writer = new ActionBlock<IReadOnlyList<T>>(writeAction);
         _timer = new Timer(FlushBufferFromTimer, null, _flushInterval, _flushInterval);
@@ -52,6 +56,10 @@ public class AutoFlushQueue<T>
             _queue.Clear();
             await _writer.SendAsync(list);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to flush buffer");
+        }
         finally
         {
             _semaphore.Release();
@@ -60,6 +68,7 @@ public class AutoFlushQueue<T>
 
     public async Task Complete()
     {
+        await FlushBuffer();
         _writer.Complete();
         await _writer.Completion;
     }

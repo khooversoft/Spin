@@ -30,7 +30,7 @@ public class FileStoreFileAccessStandardTests
 
         Enumerable.SequenceEqual(dataBytes, receive.Return().Data).BeTrue();
 
-        (await fileClient.Exist(_context)).IsOk().BeTrue();
+        (await fileClient.Exists(_context)).IsOk().BeTrue();
 
         (await fileClient.GetDetails(_context)).Action(x =>
         {
@@ -41,7 +41,7 @@ public class FileStoreFileAccessStandardTests
         (await fileClient.GetDetails(_context)).IsOk().BeTrue();
 
         (await fileClient.Delete(_context)).IsOk().BeTrue();
-        (await fileClient.Exist(_context)).IsNotFound().BeTrue();
+        (await fileClient.Exists(_context)).IsNotFound().BeTrue();
 
         (await _fileStore.Search(path, _context)).Count.Be(0);
     }

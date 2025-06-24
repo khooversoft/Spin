@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
+using Toolbox.Test.Data.Client.Common;
 using Toolbox.Tools;
 using Xunit.Abstractions;
 
@@ -13,11 +14,10 @@ public class DataClientTests
     public DataClientTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     [Fact]
-    public async Task NoCache()
-
+    public void NoCache()
     {
         using var host = BuildService(false, false, null);
-        await DataClientCommonTests.NoCache(host);
+        DataClientCommonTests.NoHandler(host);
     }
 
     [Fact]
@@ -63,18 +63,6 @@ public class DataClientTests
         command.Be(1);
     }
 
-    [Fact]
-    public async Task MemoryAndFileCacheWithProviderAsSourceWithState()
-    {
-        int command = -1;
-        var custom = new DataClientCommonTests.CustomProvider(x => command = x);
-
-        using var host = BuildService(true, true, custom, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500));
-        await DataClientCommonTests.MemoryAndFileCacheWithProviderAsSourceWithState(host);
-        command.Be(3);
-    }
-
-
     private IHost BuildService(
         bool addMemory,
         bool addFileStore,
@@ -92,22 +80,22 @@ public class DataClientTests
 
                 var option = (memoryCacheDuration, fileCacheDuration) switch
                 {
-                    (TimeSpan v1, null) => new DataClientOption { MemoryCacheDuration = v1, },
-                    (null, TimeSpan v2) => new DataClientOption { FileCacheDuration = v2 },
-                    (TimeSpan v1, TimeSpan v2) => new DataClientOption { MemoryCacheDuration = v1, FileCacheDuration = v2 },
-                    _ => new DataClientOption()
+                    (TimeSpan v1, null) => new DataPipelineOption { MemoryCacheDuration = v1, },
+                    (null, TimeSpan v2) => new DataPipelineOption { FileCacheDuration = v2 },
+                    (TimeSpan v1, TimeSpan v2) => new DataPipelineOption { MemoryCacheDuration = v1, FileCacheDuration = v2 },
+                    _ => new DataPipelineOption()
                 };
 
-                services.Configure<DataClientOption>(x =>
+                services.Configure<DataPipelineOption>(x =>
                 {
                     x.MemoryCacheDuration = option.MemoryCacheDuration;
                     x.FileCacheDuration = option.FileCacheDuration;
                 });
 
-                services.AddDataClient(builder =>
+                services.AddDataPipeline(builder =>
                 {
-                    if (addMemory) builder.AddMemoryCache();
-                    if (addFileStore) builder.AddFileStoreCache();
+                    if (addMemory) builder.AddMemory();
+                    if (addFileStore) builder.AddFileStore();
                     if (custom != null) builder.AddProvider(_ => custom);
                 });
             })

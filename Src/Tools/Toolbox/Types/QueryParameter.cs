@@ -29,7 +29,10 @@ public record QueryParameter
 
     public static QueryParameter Parse(string value)
     {
-        Stack<KeyValuePair<string, string?>> values = PropertyStringSchema.FileSearch.Parse(value).ThrowOnError().Return().Reverse().ToStack();
+        Stack<KeyValuePair<string, string?>> values = PropertyStringSchema.FileSearch.Parse(value)
+            .ThrowOnError().Return()
+            .Reverse()
+            .ToStack();
 
         int index = 0;
         int count = 1000;
@@ -79,12 +82,12 @@ public record QueryParameter
     }
 }
 
-public class QueryParamterMatcher
+public class QueryParameterMatcher
 {
     private readonly QueryParameter _queryParameter;
     private readonly GlobFileMatching _matcher;
 
-    public QueryParamterMatcher(QueryParameter queryParameter)
+    public QueryParameterMatcher(QueryParameter queryParameter)
     {
         _queryParameter = queryParameter.NotNull();
         _matcher = new GlobFileMatching(queryParameter.Filter);
@@ -132,7 +135,7 @@ public static class QueryParameterExtensions
         .Join('&');
     }
 
-    public static QueryParamterMatcher GetMatcher(this QueryParameter subject) => new QueryParamterMatcher(subject);
+    public static QueryParameterMatcher GetMatcher(this QueryParameter subject) => new QueryParameterMatcher(subject);
 
     //public static bool IsMatch(this QueryParameter subject, string path, bool isFolder)
     //{

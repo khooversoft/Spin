@@ -61,7 +61,7 @@ public class DatalakeFileAccess : IFileAccess
         }
     }
 
-    public async Task<Option> Exist(ScopeContext context)
+    public async Task<Option> Exists(ScopeContext context)
     {
         context = context.With(_logger);
         using var metric = context.LogDuration("dataLakeStore-exist", "path={path}", _fileClient.Path);

@@ -120,7 +120,7 @@ public class JournalLogBackgroundStandardTests
         }
     }
 
-    public async Task AddMulitpleBatchJournal()
+    public async Task AddMultipleBatchJournal()
     {
         IJournalFile journal = _services.GetRequiredKeyedService<IJournalFile>("test");
         IFileStore fileStore = _services.GetRequiredService<IFileStore>();

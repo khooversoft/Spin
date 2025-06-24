@@ -19,6 +19,28 @@ public static class Verify
         {
             return;
         }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("oops - not expected", ex);
+        }
+
+        throw new ArgumentException(Verify.FormatException($"Should throw ex={typeof(TException).Name}", because));
+    }
+
+    public static async Task ThrowAsync<TException>(Func<Task> action, string? because = null) where TException : Exception
+    {
+        try
+        {
+            await action();
+        }
+        catch (TException)
+        {
+            return;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("oops - not expected", ex);
+        }
 
         throw new ArgumentException(Verify.FormatException($"Should throw ex={typeof(TException).Name}", because));
     }

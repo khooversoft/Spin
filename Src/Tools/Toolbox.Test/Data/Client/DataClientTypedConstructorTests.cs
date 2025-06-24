@@ -21,7 +21,7 @@ public class DataClientTypedConstructorTests
         var myType = host.Services.GetRequiredService<MyType>();
         var context = host.Services.CreateContext<MyType>();
 
-        var readOption = await myType.Cache.Get("anyKey", null, context);   // Read from custom provider
+        var readOption = await myType.Cache.Get("anyKey", context);   // Read from custom provider
         readOption.BeOk();
 
         var compare = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
@@ -36,12 +36,12 @@ public class DataClientTypedConstructorTests
                 services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
                 services.AddInMemoryFileStore();
 
-                services.Configure<DataClientOption>(x => { });
+                services.Configure<DataPipelineOption>(x => { });
 
-                services.AddDataClient<EntityModel>(builder =>
+                services.AddDataPipeline<EntityModel>(builder =>
                 {
-                    builder.AddMemoryCache();
-                    builder.AddFileStoreCache();
+                    builder.AddMemory();
+                    builder.AddFileStore();
                     builder.AddProvider<CustomProvider>();
                 });
 
@@ -69,12 +69,22 @@ public class DataClientTypedConstructorTests
         public IDataClient<EntityModel> Cache { get; }
     }
 
-    public class CustomProvider : DataProviderBase
+    public class CustomProvider : IDataProvider
     {
-        public override Task<Option<T>> Get<T>(string key, object? state, ScopeContext context)
+        public IDataProvider? InnerHandler { get; set; }
+
+        public Task<Option<DataPipelineContext>> Execute(DataPipelineContext dataContext, ScopeContext context)
         {
-            var result = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
-            return result.Cast<T>().ToOption().ToTaskResult();
+            switch (dataContext.Command)
+            {
+                case DataPipelineCommand.Get:
+                    var result = new EntityModel { Name = "CustomerProviderCreated", Age = 25 };
+                    dataContext = dataContext with { GetData = [result.ToDataETag()] };
+                    return dataContext.ToOption().ToTaskResult();
+
+                default:
+                    throw new NotImplementedException();
+            }
         }
     }
 }

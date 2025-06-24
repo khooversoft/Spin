@@ -16,7 +16,6 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         logging.ClearProviders();
         logging.SimpleConsole();
-        logging.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
     })
     .ConfigureServices(services =>
     {
@@ -38,23 +37,3 @@ ICommandRouterHost mainCommand = host.Services.GetCommandRouterHost("main");
 ScopeContext context = host.Services.GetRequiredService<ILogger<Program>>().ToScopeContext();
 
 await mainCommand.Run(context, args);
-
-//var state = await new CommandRouterBuilder()
-//    .SetArgs(args)
-//    .ConfigureAppConfiguration((config, service) =>
-//    {
-//        config.AddJsonFile("appsettings.json");
-//    })
-//    .AddCommand<Command>()
-//    //.AddCommand<SystemSettings>()
-//    .AddCommand<GraphDb>()
-//    //.AddCommand<TraceLog>()
-//    .AddCommand<TransactionLog>()
-//    .ConfigureService(x =>
-//    {
-//        x.AddSingleton<GraphHostManager>();
-//    })
-//    .Build()
-//    .Run();
-
-//return state;

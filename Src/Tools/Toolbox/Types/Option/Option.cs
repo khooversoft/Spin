@@ -58,4 +58,5 @@ public static class OptionExtensions
     public static bool IsUnauthorized(this Option subject) => subject.StatusCode.IsUnauthorized();
     public static bool IsForbidden(this Option subject) => subject.StatusCode.IsForbidden();
     public static bool IsLocked(this Option subject) => subject.StatusCode.IsLocked();
+    public static bool IsMethodNotAllowed(this Option subject) => subject.StatusCode.IsMethodNotAllowed();
 }

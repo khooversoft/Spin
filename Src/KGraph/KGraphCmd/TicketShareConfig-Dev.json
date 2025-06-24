@@ -1,4 +1,13 @@
 {
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "System.Net.Http": "Trace",
+      "Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware": "Information"
+    }
+  },
+
   "SecretName": "aspnet-TicketShareWeb-dev",
   "DumpFolder": "E:\\Work\\TicketShareDev",
 

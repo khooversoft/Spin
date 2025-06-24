@@ -26,13 +26,15 @@ public readonly struct DataETag : IEquatable<DataETag>
     public ImmutableArray<byte> Data { get; }
     public string? ETag { get; }
 
-    public static implicit operator DataETag(byte[] data) => new(data);
-
-    public static bool operator ==(DataETag left, DataETag right) => left.Equals(right);
-    public static bool operator !=(DataETag left, DataETag right) => !(left == right);
     public override bool Equals(object? obj) => obj is DataETag tag && Equals(tag);
     public bool Equals(DataETag other) => !other.Data.IsDefault && Data.SequenceEqual(other.Data);
     public override int GetHashCode() => HashCode.Combine(Data, ETag);
+
+
+    public static implicit operator DataETag(byte[] data) => new(data);
+    public static bool operator ==(DataETag left, DataETag right) => left.Equals(right);
+    public static bool operator !=(DataETag left, DataETag right) => !(left == right);
+    public static DataETag operator +(DataETag left, DataETag right) => left.Append(right);
 
     public static IValidator<DataETag> Validator { get; } = new Validator<DataETag>()
         .RuleFor(x => x.Data).NotNull()
@@ -45,6 +47,14 @@ public static class DataETagExtensions
 {
     public static Option Validate(this DataETag subject) => DataETag.Validator.Validate(subject).ToOptionStatus();
 
+    public static string DataToString(this DataETag subject) => subject.Data.BytesToString();
+
+    public static DataETag ToDataETag(this DataETag? subject) => subject switch
+    {
+        null => throw new ArgumentException("DataETag cannot be null"),
+        { } data => data,
+    };
+
     public static DataETag ToDataETag<T>(this T value)
     {
         value.NotNull();
@@ -52,6 +62,8 @@ public static class DataETagExtensions
         var bytes = value switch
         {
             null => throw new ArgumentNullException("value"),
+            DataETag => throw new ArgumentException("No data etag"),
+            IEnumerable<DataETag> => throw new ArgumentException("No array are allowed"),
             IEnumerable<byte> v => v.ToArray(),
             string v => v.ToBytes(),
             Memory<byte> v => v.ToArray(),
@@ -93,4 +105,6 @@ public static class DataETagExtensions
 
         return result;
     }
+
+    public static DataETag Append(this DataETag subject, DataETag append) => subject.Data.Concat(append.Data).ToDataETag();
 }
