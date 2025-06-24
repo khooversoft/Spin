@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Toolbox.Azure.test.Application;
 using Toolbox.Data;
 using Toolbox.Test.Data.Client.Common;
 using Toolbox.Tools;
 using Xunit.Abstractions;
 
-namespace Toolbox.Test.Data.Client;
+namespace Toolbox.Azure.test;
 
 public class JournalClientTests
 {
@@ -41,12 +42,13 @@ public class JournalClientTests
 
     private IHost BuildService()
     {
+        var datalakeOption = TestApplication.ReadOption("datastore-hybridCache-tests");
+
         var host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
                 services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
-                services.AddInMemoryFileStore();
-                services.Configure<DataPipelineOption>(x => { });
+                services.AddDatalakeFileStore(datalakeOption);
 
                 services.AddJournalPipeline<DataJournalCommonTests.EntityModel>(builder =>
                 {
@@ -58,5 +60,4 @@ public class JournalClientTests
 
         return host;
     }
-
 }
