@@ -264,7 +264,7 @@ public sealed class MemoryStore
     public bool IsLeased(string path, string? leaseId = null)
     {
         path = RemoveForwardSlash(path);
-        
+
         // Path does not exist or there is no lease
         if (!_store.TryGetValue(path, out var directoryDetail) || directoryDetail.LeaseRecord == null) return false;
 

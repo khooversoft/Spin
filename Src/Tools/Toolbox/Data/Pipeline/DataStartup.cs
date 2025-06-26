@@ -1,67 +1,60 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
+
+[assembly: InternalsVisibleTo("Toolbox.Test")]
 
 namespace Toolbox.Data;
 
 public static class DataStartup
 {
-    public static IServiceCollection AddDataPipeline(this IServiceCollection services, Action<DataPipelineBuilder> config, string? name = "default")
+    public static IServiceCollection AddDataPipeline<T>(this IServiceCollection services, Action<DataPipelineBuilder> config, string pipelineName)
     {
         services.NotNull();
         config.NotNull();
+        pipelineName.NotEmpty();
 
-        var builder = new DataPipelineBuilder(services) { Name = name };
+        var builder = new DataPipelineBuilder(services, pipelineName);
         config(builder);
-        builder.Name.NotEmpty("Name is required");
+        builder.Validate().ThrowOnError();
+
+        string keyedName = DataPipelineBuilderTool.CreateKeyedName<T>(pipelineName);
+        services.AddKeyedSingleton(keyedName, builder);
 
         services.TryAddSingleton<DataClientFactory>();
-        services.AddKeyedSingleton(builder.Name, builder);
-        return services;
-    }
-
-    public static IServiceCollection AddDataPipeline<T>(this IServiceCollection services, Action<DataPipelineBuilder>? config = null)
-    {
-        services.NotNull();
-        config.NotNull();
-
-        var builder = new DataPipelineBuilder(services) { Name = typeof(T).Name };
-        config(builder);
-
-        services.TryAddSingleton<DataClientFactory>();
-        services.AddKeyedSingleton(builder.Name, builder);
-
-        builder.Services.AddTransient<IDataClient>(serviceProvider =>
-        {
-            var factory = serviceProvider.GetRequiredService<DataClientFactory>();
-            return factory.Create("default");
-        });
 
         builder.Services.AddTransient<IDataClient<T>>(serviceProvider =>
         {
             var factory = serviceProvider.GetRequiredService<DataClientFactory>();
-            return factory.Create<T>();
+            return factory.Create<T>(pipelineName);
         });
 
         return services;
     }
 
-    public static IServiceCollection AddJournalPipeline<T>(this IServiceCollection services, Action<DataPipelineBuilder> config)
+    public static IServiceCollection AddJournalPipeline<T>(this IServiceCollection services, Action<DataPipelineBuilder> config, string pipelineName)
     {
         services.NotNull();
         config.NotNull();
+        pipelineName.NotEmpty();
 
-        var builder = new DataPipelineBuilder(services) { Name = typeof(T).Name };
+        pipelineName ??= typeof(T).Name;
+        var builder = new DataPipelineBuilder(services, pipelineName);
         config(builder);
+        builder.Validate().ThrowOnError();
+
+        string keyedName = DataPipelineBuilderTool.CreateKeyedName<T>(pipelineName);
+        services.AddKeyedSingleton(keyedName, builder);
 
         services.TryAddSingleton<JournalClientFactory>();
-        services.AddKeyedSingleton(builder.Name, builder);
 
         builder.Services.AddTransient<IJournalClient<T>>(serviceProvider =>
         {
             var factory = serviceProvider.GetRequiredService<JournalClientFactory>();
-            return factory.Create<T>();
+            return factory.Create<T>(pipelineName);
         });
 
         return services;

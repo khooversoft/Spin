@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Data;
@@ -17,66 +16,67 @@ public static class DataPipelineCommand
 
 public record DataPipelineContext
 {
-    public string Command { get; init; } = null!;
-    public string Key { get; init; } = null!;
+    public DataPipelineContext(string command, string path, IDataPipelineConfig pipelineConfig)
+    {
+        Command = command.NotEmpty();
+        Path = path.NotEmpty();
+        PipelineConfig = pipelineConfig.NotNull();
+    }
+
+    public string Command { get; }
+    public string Path { get; }
+    public IDataPipelineConfig PipelineConfig { get; init; } = null!;
     public IReadOnlyList<DataETag> SetData { get; init; } = Array.Empty<DataETag>();
     public IReadOnlyList<DataETag> GetData { get; init; } = Array.Empty<DataETag>();
+
+    public static IValidator<DataPipelineContext> Validator { get; } = new Validator<DataPipelineContext>()
+        .RuleFor(x => x.Command).NotEmpty()
+        .RuleFor(x => x.Path).NotEmpty()
+        .RuleFor(x => x.PipelineConfig).NotNull()
+        .RuleFor(x => x.SetData).NotNull()
+        .RuleFor(x => x.SetData).NotNull()
+        .Build();
 }
 
-public record DataAppend : DataPipelineContext
+public static class DataPipelineContextExtensions
 {
-    public DataAppend(string key, DataETag setData)
+    public static Option Validate(this DataPipelineContext subject) => DataPipelineContext.Validator.Validate(subject).ToOptionStatus();
+
+    public static DataPipelineContext CreateAppend<T>(this IDataPipelineConfig pipelineConfig, string key, DataETag data)
     {
-        Command = DataPipelineCommand.Append;
-        Key = key.NotEmpty();
-        SetData = [setData];
+        string path = pipelineConfig.CreatePath<T>(key);
+        return new DataPipelineContext(DataPipelineCommand.Append, path, pipelineConfig) { SetData = [data] };
+    }
+
+    public static DataPipelineContext CreateDelete<T>(this IDataPipelineConfig pipelineConfig, string key)
+    {
+        string path = pipelineConfig.CreatePath<T>(key);
+        return new DataPipelineContext(DataPipelineCommand.Delete, path, pipelineConfig);
+    }
+
+    public static DataPipelineContext CreateGet<T>(this IDataPipelineConfig pipelineConfig, string key)
+    {
+        string path = pipelineConfig.CreatePath<T>(key);
+        return new DataPipelineContext(DataPipelineCommand.Get, path, pipelineConfig);
+    }
+
+    public static DataPipelineContext CreateSet<T>(this IDataPipelineConfig pipelineConfig, string key, DataETag data)
+    {
+        string path = pipelineConfig.CreatePath<T>(key);
+        return new DataPipelineContext(DataPipelineCommand.Set, path, pipelineConfig) { SetData = [data] };
+    }
+
+    public static DataPipelineContext CreateAppendList<T>(this IDataPipelineConfig pipelineConfig, string key, params IEnumerable<DataETag> data)
+    {
+        data.NotNull().Assert(x => x.Any(), "Data cannot be empty");
+
+        string path = pipelineConfig.CreatePath<T>(key);
+        return new DataPipelineContext(DataPipelineCommand.AppendList, path, pipelineConfig) { SetData = [.. data] };
+    }
+
+    public static DataPipelineContext CreateGetList<T>(this IDataPipelineConfig pipelineConfig, string key)
+    {
+        string path = pipelineConfig.CreatePath<T>(key);
+        return new DataPipelineContext(DataPipelineCommand.GetList, path, pipelineConfig);
     }
 }
-
-public record DataDelete : DataPipelineContext
-{
-    public DataDelete(string key)
-    {
-        Command = DataPipelineCommand.Delete;
-        Key = key.NotEmpty();
-    }
-}
-
-public record DataGet : DataPipelineContext
-{
-    public DataGet(string key)
-    {
-        Command = DataPipelineCommand.Get;
-        Key = key.NotEmpty();
-    }
-}
-
-public record DataSet : DataPipelineContext
-{
-    public DataSet(string key, DataETag setData)
-    {
-        Command = DataPipelineCommand.Set;
-        Key = key.NotEmpty();
-        SetData = [setData];
-    }
-}
-
-public record DataAppendList : DataPipelineContext
-{
-    public DataAppendList(string key, IEnumerable<DataETag> dataItems)
-    {
-        Command = DataPipelineCommand.AppendList;
-        Key = key.NotEmpty();
-        SetData = dataItems.NotNull().ToImmutableArray();
-    }
-}
-
-public record DataGetList : DataPipelineContext
-{
-    public DataGetList(string key)
-    {
-        Command = DataPipelineCommand.GetList;
-        Key = key.NotEmpty();
-    }
-}
-

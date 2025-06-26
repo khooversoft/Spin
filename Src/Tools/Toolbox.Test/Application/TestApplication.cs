@@ -5,6 +5,8 @@ using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
+[assembly: InternalsVisibleTo("Toolbox.Azure.test")]
+
 namespace Toolbox.Test.Application;
 
 internal static class TestApplication
@@ -27,4 +29,6 @@ internal static class TestApplication
 
     public static ILogger<T> CreateLogger<T>(this IServiceProvider serviceProvider) => serviceProvider.GetRequiredService<ILogger<T>>();
     public static ScopeContext CreateScopeContext<T>(this IServiceProvider serviceProvider) => new ScopeContext(serviceProvider.CreateLogger<T>());
+
+
 }

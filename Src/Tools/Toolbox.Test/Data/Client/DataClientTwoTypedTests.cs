@@ -11,7 +11,9 @@ namespace Toolbox.Test.Data.Client;
 
 public class DataClientTwoTypedTests
 {
+    private const string _pipelineName = nameof(DataClientTests) + ".pipeline";
     private readonly ITestOutputHelper _outputHelper;
+
     public DataClientTwoTypedTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     [Fact]
@@ -22,24 +24,18 @@ public class DataClientTwoTypedTests
         var myType2 = host.Services.GetRequiredService<MyType2>();
         var context = host.Services.CreateContext<MyType1>();
 
-        (await myType1.Cache.Get("anyKey1", context)).Action(result =>
+        (await myType1.Handler.Get("anyKey1", context)).Action(result =>
         {
             result.BeOk();
 
-            new EntityModel1 { Name = "CustomerProviderCreated-1", Age = 25 }.Action(x =>
-            {
-                (result.Return() == x).BeTrue();
-            });
+            (result.Return() == new EntityModel1 { Name = "CustomerProviderCreated-1", Age = 25 }).BeTrue();
         });
 
-        (await myType2.Cache.Get("anyKey2", context)).Action(result =>
+        (await myType2.Handler.Get("anyKey2", context)).Action(result =>
         {
             result.BeOk();
 
-            new EntityModel2 { City = "Kirkland", Date = new DateTime(2025, 1, 10) }.Action(x =>
-            {
-                (result.Return() == x).BeTrue();
-            });
+            (result.Return() == new EntityModel2 { City = "Kirkland", Date = new DateTime(2025, 1, 10) }).BeTrue();
         });
     }
 
@@ -51,21 +47,27 @@ public class DataClientTwoTypedTests
                 services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
                 services.AddInMemoryFileStore();
 
-                services.Configure<DataPipelineOption>(x => { });
-
                 services.AddDataPipeline<EntityModel1>(builder =>
                 {
+                    builder.MemoryCacheDuration = TimeSpan.FromMinutes(1);
+                    builder.FileCacheDuration = TimeSpan.FromMinutes(1);
+                    builder.BasePath = nameof(DataClientTypedTests);
+
                     builder.AddMemory();
                     builder.AddFileStore();
                     builder.AddProvider<CustomProvider1>();
-                });
+                }, _pipelineName);
 
                 services.AddDataPipeline<EntityModel2>(builder =>
                 {
+                    builder.MemoryCacheDuration = TimeSpan.FromMinutes(1);
+                    builder.FileCacheDuration = TimeSpan.FromMinutes(1);
+                    builder.BasePath = nameof(DataClientTypedTests);
+
                     builder.AddMemory();
                     builder.AddFileStore();
                     builder.AddProvider<CustomProvider2>();
-                });
+                }, _pipelineName);
 
                 services.AddSingleton<MyType1>();
                 services.AddSingleton<MyType2>();
@@ -91,22 +93,22 @@ public class DataClientTwoTypedTests
 
     public class MyType1
     {
-        public MyType1(IDataClient<EntityModel1> cache)
+        public MyType1(IDataClient<EntityModel1> handler)
         {
-            Cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            Handler = handler ?? throw new ArgumentNullException(nameof(handler));
         }
 
-        public IDataClient<EntityModel1> Cache { get; }
+        public IDataClient<EntityModel1> Handler { get; }
     }
 
     public class MyType2
     {
-        public MyType2(IDataClient<EntityModel2> cache)
+        public MyType2(IDataClient<EntityModel2> handler)
         {
-            Cache = cache ?? throw new ArgumentNullException(nameof(cache));
+            Handler = handler ?? throw new ArgumentNullException(nameof(handler));
         }
 
-        public IDataClient<EntityModel2> Cache { get; }
+        public IDataClient<EntityModel2> Handler { get; }
     }
 
     public class CustomProvider1 : IDataProvider

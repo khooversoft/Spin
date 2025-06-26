@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -30,19 +24,19 @@ public class JournalStoreDataProvider : IDataProvider
 
     public async Task<Option<DataPipelineContext>> Execute(DataPipelineContext dataContext, ScopeContext context)
     {
-        dataContext.NotNull();
+        dataContext.NotNull().Validate().ThrowOnError();
         context = context.With(_logger);
         context.LogDebug("JournalStoreDataProvider: Executing command={command}, name={name}", dataContext.Command, _name);
 
         switch (dataContext.Command)
         {
             case DataPipelineCommand.AppendList:
-                var appendOption = await OnAppendList(dataContext.Key, dataContext.SetData, context).ConfigureAwait(false);
+                var appendOption = await OnAppendList(dataContext.Path, dataContext.SetData, context).ConfigureAwait(false);
                 if (appendOption.IsError()) return appendOption.ToOptionStatus<DataPipelineContext>();
                 break;
 
             case DataPipelineCommand.Delete:
-                await OnDelete(dataContext.Key, context);
+                await OnDelete(dataContext.Path, context);
                 break;
 
             case DataPipelineCommand.GetList:
@@ -60,14 +54,15 @@ public class JournalStoreDataProvider : IDataProvider
         return nextOption;
     }
 
-    public async Task<Option> OnAppendList(string key, IReadOnlyList<DataETag> dataItems, ScopeContext context)
+    public async Task<Option> OnAppendList(string path, IReadOnlyList<DataETag> dataItems, ScopeContext context)
     {
         dataItems.NotNull().Assert(x => x.Count > 0, _ => "Empty list");
+        context.LogDebug("Appending path={path}, name={name}", path, _name);
 
         string json = dataItems.Aggregate(string.Empty, (a, x) => a += x.DataToString() + Environment.NewLine);
         DataETag data = json.ToDataETag();
 
-        var detailsOption = await _fileStore.File(key).Append(data, context);
+        var detailsOption = await _fileStore.File(path).Append(data, context);
         if (detailsOption.IsError())
         {
             Counters.AddAppendFailCount();
@@ -78,14 +73,14 @@ public class JournalStoreDataProvider : IDataProvider
         return StatusCode.OK;
     }
 
-    public async Task<Option> OnDelete(string key, ScopeContext context)
+    public async Task<Option> OnDelete(string path, ScopeContext context)
     {
-        context.LogDebug("Deleting key={key} provider cache, name={name}", key, _name);
+        context.LogDebug("Delete path={path}, name={name}", path, _name);
 
-        var deleteOption = await _fileStore.File(key).Delete(context);
+        var deleteOption = await _fileStore.File(path).Delete(context);
         if (deleteOption.IsError())
         {
-            context.LogDebug("Fail to delete key={key} from file store, name={name}", key, _name);
+            context.LogDebug("Fail to delete path={path}, name={name}", path, _name);
             Counters.AddDeleteFailCount();
             return deleteOption;
         }
@@ -96,13 +91,13 @@ public class JournalStoreDataProvider : IDataProvider
 
     private async Task<Option<DataPipelineContext>> OnGetList(DataPipelineContext dataContext, ScopeContext context)
     {
-        context.LogDebug("Getting key={key} from file store, name={name}", dataContext.Key, _name);
+        context.LogDebug("Getting path={path}, name={name}", dataContext.Path, _name);
 
-        var readOption = await _fileStore.File(dataContext.Key).Get(context);
+        var readOption = await _fileStore.File(dataContext.Path).Get(context);
         if (readOption.IsError())
         {
             Counters.AddMisses();
-            context.LogDebug("Fail to read key={key} from file store, name={name}", dataContext.Key, _name);
+            context.LogDebug("Fail to read path={path}, name={name}", dataContext.Path, _name);
             return StatusCode.NotFound;
         }
 
@@ -114,7 +109,7 @@ public class JournalStoreDataProvider : IDataProvider
             .ToImmutableList();
 
         Counters.AddHits();
-        context.LogDebug("Found key={key} in file store cache, name={name}", dataContext.Key, _name);
+        context.LogDebug("Found path={path}, name={name}", dataContext.Path, _name);
 
         dataContext = dataContext with { GetData = dataItems };
         return dataContext;

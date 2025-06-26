@@ -3,23 +3,22 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Toolbox.Data;
 using Toolbox.Extensions;
-using Toolbox.Store;
+using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
-using Toolbox.Test.Application;
 
 namespace Toolbox.Test.Data.Client.Common;
 
 public static class DataClientTypedCommonTests
 {
-    public static void NoCache(IHost host)
+    public static void NoCache(IHost host, string pipelineName)
     {
         host.NotNull();
 
-        Verify.Throw<ArgumentException>(() => host.Services.GetDataClient<EntityModel>());
+        Verify.Throw<ArgumentException>(() => host.Services.GetDataClient<EntityModel>(pipelineName));
     }
 
-    public static async Task ProviderCreatedCache(IHost host)
+    public static async Task ProviderCreatedCache(IHost host, string pipelineName)
     {
         host.NotNull();
         const string key = nameof(ProviderCreatedCache);
@@ -27,7 +26,7 @@ public static class DataClientTypedCommonTests
 
         var custom = new CustomProvider(x => command = x);
 
-        IDataClient<EntityModel> cache = host.Services.GetDataClient<EntityModel>();
+        IDataClient<EntityModel> cache = host.Services.GetDataClient<EntityModel>(pipelineName);
         var context = host.Services.CreateContext<DataClientTests>();
 
         var readOption = await cache.Get(key, context);
@@ -40,15 +39,16 @@ public static class DataClientTypedCommonTests
         });
     }
 
-    public static async Task OnlyMemoryCache(IHost host)
+    public static async Task OnlyMemoryCache(IHost host, string pipelineName)
     {
         host.NotNull();
         const string key = nameof(OnlyMemoryCache);
 
-        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>();
+        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>(pipelineName);
         var context = host.Services.CreateContext<DataClientTests>();
         CacheMemoryDataProvider memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryDataProvider>().First();
         IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
+        DataPipelineContext dataContext = host.Services.GetDataPipelineBuilder<EntityModel>(pipelineName).CreateGet<EntityModel>(key);
 
         context.Location().LogInformation("#1 - Set value");
         var model = new EntityModel { Name = "OnlyMemoryCache", Age = 25 };
@@ -73,7 +73,7 @@ public static class DataClientTypedCommonTests
         memoryProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#3 - Waiting for memory to expire");
-        WaitForTool.WaitFor(() => !memoryCache.TryGetValue(key, out _), TimeSpan.FromMinutes(1));
+        WaitForTool.WaitFor(() => !memoryCache.TryGetValue(dataContext.Path, out _), TimeSpan.FromMinutes(1));
 
         context.Location().LogInformation("#4 - Waiting for memory to expire");
         readOption = await dataHandler.Get(key, context);
@@ -86,13 +86,14 @@ public static class DataClientTypedCommonTests
         memoryProvider.Counters.RetireCount.Be(0);
     }
 
-    public static async Task OnlyFileCache(IHost host)
+    public static async Task OnlyFileCache(IHost host, string pipelineName)
     {
         const string key = nameof(OnlyFileCache);
 
-        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>();
+        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>(pipelineName);
         var context = host.Services.CreateContext<DataClientTests>();
         FileStoreDataProvider fileStore = dataHandler.GetDataProviders().OfType<FileStoreDataProvider>().First();
+        DataPipelineContext dataContext = host.Services.GetDataPipelineBuilder<EntityModel>(pipelineName).CreateGet<EntityModel>(key);
 
         var model = new EntityModel { Name = "OnlyFileCache", Age = 25 };
         var result = await dataHandler.Set(key, model, context);
@@ -116,7 +117,7 @@ public static class DataClientTypedCommonTests
 
         await WaitForTool.WaitFor(async () =>
         {
-            var existsOption = await fileStore.IsCacheIsValid(key, context);
+            var existsOption = await fileStore.IsCacheIsValid(dataContext, context);
             if (existsOption.IsNotFound()) return true;  // File expired
             return false;
         }, TimeSpan.FromMinutes(1));
@@ -132,17 +133,16 @@ public static class DataClientTypedCommonTests
     }
 
 
-    public static async Task MemoryAndFileCache(IHost host, TimeSpan? wait1 = null, TimeSpan? wait2 = null)
+    public static async Task MemoryAndFileCache(IHost host, string pipelineName)
     {
         const string key = nameof(MemoryAndFileCache);
-        wait1 ??= TimeSpan.FromMilliseconds(100);
-        wait2 ??= TimeSpan.FromMilliseconds(500);
 
-        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>();
+        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>(pipelineName);
         var context = host.Services.CreateContext<DataClientTests>();
         CacheMemoryDataProvider memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryDataProvider>().First();
         FileStoreDataProvider fileProvider = dataHandler.GetDataProviders().OfType<FileStoreDataProvider>().First();
         IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
+        DataPipelineContext dataContext = host.Services.GetDataPipelineBuilder<EntityModel>(pipelineName).CreateGet<EntityModel>(key);
 
         context.Location().LogInformation("#1 - Create value");
         var model = new EntityModel { Name = "OnlyFileCache", Age = 25 };
@@ -179,7 +179,7 @@ public static class DataClientTypedCommonTests
         fileProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#3 - Waiting for memory to expire");
-        WaitForTool.WaitFor(() => !memoryCache.TryGetValue(key, out _), TimeSpan.FromMinutes(1));
+        WaitForTool.WaitFor(() => !memoryCache.TryGetValue(dataContext.Path, out _), TimeSpan.FromMinutes(1));
 
         context.Location().LogInformation("#4 - Get from file, refresh cache");
         readOption = await dataHandler.Get(key, context);
@@ -201,7 +201,7 @@ public static class DataClientTypedCommonTests
         context.Location().LogInformation("#5 - Waiting for file to expire");
         await WaitForTool.WaitFor(async () =>
         {
-            var existsOption = await fileProvider.IsCacheIsValid(key, context);
+            var existsOption = await fileProvider.IsCacheIsValid(dataContext, context);
             if (existsOption.IsNotFound()) return true;  // File expired
             return false;
         }, TimeSpan.FromMinutes(1));
@@ -223,15 +223,16 @@ public static class DataClientTypedCommonTests
         fileProvider.Counters.RetireCount.Be(1);         // File was retried
     }
 
-    public static async Task MemoryAndFileCacheWithProviderAsSource(IHost host)
+    public static async Task MemoryAndFileCacheWithProviderAsSource(IHost host, string pipelineName)
     {
         const string key = nameof(MemoryAndFileCacheWithProviderAsSource);
 
-        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>();
+        IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>(pipelineName);
         var context = host.Services.CreateContext<DataClientTests>();
         CacheMemoryDataProvider memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryDataProvider>().First();
         FileStoreDataProvider fileProvider = dataHandler.GetDataProviders().OfType<FileStoreDataProvider>().First();
         IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
+        DataPipelineContext dataContext = host.Services.GetDataPipelineBuilder<EntityModel>(pipelineName).CreateGet<EntityModel>(key);
 
         // Make sure the cache is clear
         context.Location().LogInformation("#01 - clear cache for setup");
@@ -276,7 +277,7 @@ public static class DataClientTypedCommonTests
         fileProvider.Counters.RetireCount.Be(0);
 
         context.Location().LogInformation("#3 - Waiting for memory to expire, retrieved by file");
-        WaitForTool.WaitFor(() => !memoryCache.TryGetValue(key, out _), TimeSpan.FromMinutes(1));
+        WaitForTool.WaitFor(() => !memoryCache.TryGetValue(dataContext.Path, out _), TimeSpan.FromMinutes(1));
 
         context.Location().LogInformation("#4 - Getting value from file");
         readOption = await dataHandler.Get(key, context);
@@ -298,7 +299,7 @@ public static class DataClientTypedCommonTests
         context.Location().LogInformation("#5 - Waiting for memory to expire, retrieved by file");
         await WaitForTool.WaitFor(async () =>
         {
-            var existsOption = await fileProvider.IsCacheIsValid(key, context);
+            var existsOption = await fileProvider.IsCacheIsValid(dataContext, context);
             if (existsOption.IsNotFound()) return true;  // File expired
             return false;
         }, TimeSpan.FromMinutes(1));

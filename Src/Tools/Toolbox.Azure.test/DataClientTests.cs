@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure.test.Application;
 using Toolbox.Data;
-using Toolbox.Store;
 using Toolbox.Test.Data.Client.Common;
 using Toolbox.Tools;
 using Xunit.Abstractions;
@@ -12,14 +11,16 @@ namespace Toolbox.Azure.test;
 
 public class DataClientTests
 {
+    private const string _pipelineName = nameof(DataClientTests) + ".pipeline";
     private readonly ITestOutputHelper _outputHelper;
+
     public DataClientTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     [Fact]
     public void NoHandler()
     {
         using var host = BuildService(false, false, null);
-        DataClientCommonTests.NoHandler(host);
+        DataClientCommonTests.NoHandler(host, _pipelineName);
     }
 
     [Fact]
@@ -29,7 +30,7 @@ public class DataClientTests
         var custom = new DataClientCommonTests.CustomProvider(x => command = x);
 
         using var host = BuildService(false, false, custom);
-        await DataClientCommonTests.ProviderCreatedCache(host);
+        await DataClientCommonTests.ProviderCreatedCache(host, _pipelineName);
         command.Be(1);
     }
 
@@ -37,14 +38,14 @@ public class DataClientTests
     public async Task OnlyMemoryCache()
     {
         using var host = BuildService(true, false, null, memoryCacheDuration: TimeSpan.FromMilliseconds(100));
-        await DataClientCommonTests.OnlyMemoryCache(host);
+        await DataClientCommonTests.OnlyMemoryCache(host, _pipelineName);
     }
 
     [Fact]
     public async Task OnlyFileCache()
     {
         using var host = BuildService(false, true, null, fileCacheDuration: TimeSpan.FromSeconds(1));
-        await DataClientCommonTests.OnlyFileCache(host);
+        await DataClientCommonTests.OnlyFileCache(host, _pipelineName);
     }
 
     [Fact]
@@ -58,7 +59,7 @@ public class DataClientTests
             fileCacheDuration: TimeSpan.FromSeconds(2)
             );
 
-        await DataClientCommonTests.MemoryAndFileCache(host);
+        await DataClientCommonTests.MemoryAndFileCache(host, _pipelineName);
     }
 
     [Fact]
@@ -75,7 +76,7 @@ public class DataClientTests
             fileCacheDuration: TimeSpan.FromSeconds(2)
             );
 
-        await DataClientCommonTests.MemoryAndFileCacheWithProviderAsSource(host);
+        await DataClientCommonTests.MemoryAndFileCacheWithProviderAsSource(host, _pipelineName);
         command.Be(1);
     }
 
@@ -97,26 +98,16 @@ public class DataClientTests
 
                 if (addFileStore) services.AddDatalakeFileStore(datalakeOption);
 
-                var option = (memoryCacheDuration, fileCacheDuration) switch
+                services.AddDataPipeline<DataClientCommonTests.EntityModel>(builder =>
                 {
-                    (TimeSpan v1, null) => new DataPipelineOption { MemoryCacheDuration = v1, },
-                    (null, TimeSpan v2) => new DataPipelineOption { FileCacheDuration = v2 },
-                    (TimeSpan v1, TimeSpan v2) => new DataPipelineOption { MemoryCacheDuration = v1, FileCacheDuration = v2 },
-                    _ => new DataPipelineOption()
-                };
+                    builder.MemoryCacheDuration = memoryCacheDuration;
+                    builder.FileCacheDuration = fileCacheDuration;
+                    builder.BasePath = nameof(DataClientTests);
 
-                services.Configure<DataPipelineOption>(x =>
-                {
-                    x.MemoryCacheDuration = option.MemoryCacheDuration;
-                    x.FileCacheDuration = option.FileCacheDuration;
-                });
-
-                services.AddDataPipeline(builder =>
-                {
                     if (addMemory) builder.AddMemory();
                     if (addFileStore) builder.AddFileStore();
                     if (custom != null) builder.AddProvider(_ => custom);
-                });
+                }, _pipelineName);
             })
             .Build();
 

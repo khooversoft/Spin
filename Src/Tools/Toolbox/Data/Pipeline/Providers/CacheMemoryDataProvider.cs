@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -11,13 +10,11 @@ public class CacheMemoryDataProvider : IDataProvider
 {
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger<CacheMemoryDataProvider> _logger;
-    private readonly IOptions<DataPipelineOption> _option;
     private const string _name = nameof(CacheMemoryDataProvider);
 
-    public CacheMemoryDataProvider(IMemoryCache memoryCache, IOptions<DataPipelineOption> option, ILogger<CacheMemoryDataProvider> logger)
+    public CacheMemoryDataProvider(IMemoryCache memoryCache, ILogger<CacheMemoryDataProvider> logger)
     {
         _memoryCache = memoryCache.NotNull();
-        _option = option.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -26,6 +23,8 @@ public class CacheMemoryDataProvider : IDataProvider
 
     public async Task<Option<DataPipelineContext>> Execute(DataPipelineContext dataContext, ScopeContext context)
     {
+        dataContext.NotNull().Validate().ThrowOnError();
+        dataContext.PipelineConfig.MemoryCacheDuration.Assert(x => x != null && x > TimeSpan.Zero, "MemoryCacheDuration must be set to a valid value");
         context = context.With(_logger);
         context.LogDebug("CacheMemoryDataProvider: Executing command={command}, name={name}", dataContext.Command, _name);
 
@@ -33,11 +32,11 @@ public class CacheMemoryDataProvider : IDataProvider
         switch (dataContext.Command)
         {
             case DataPipelineCommand.Append:
-                OnDelete(dataContext.Key, context);
+                OnDelete(dataContext.Path, context);
                 break;
 
             case DataPipelineCommand.Delete:
-                OnDelete(dataContext.Key, context);
+                OnDelete(dataContext.Path, context);
                 break;
 
             case DataPipelineCommand.Get:
@@ -46,11 +45,11 @@ public class CacheMemoryDataProvider : IDataProvider
                 break;
 
             case DataPipelineCommand.Set:
-                OnSet(dataContext.Key, dataContext.SetData.First(), context);
+                OnSet(dataContext, dataContext.SetData.First(), context);
                 break;
 
             case DataPipelineCommand.AppendList:
-                OnDelete(dataContext.Key, context);
+                OnDelete(dataContext.Path, context);
                 break;
 
             case DataPipelineCommand.GetList:
@@ -74,11 +73,11 @@ public class CacheMemoryDataProvider : IDataProvider
             {
                 case DataPipelineCommand.Get:
                     var getData = data.First();
-                    OnSet(dataContext.Key, getData, context);
+                    OnSet(dataContext, getData, context);
                     break;
 
                 case DataPipelineCommand.GetList:
-                    OnSet(dataContext.Key, data, context);
+                    OnSet(dataContext, data, context);
                     break;
             }
         }
@@ -96,32 +95,32 @@ public class CacheMemoryDataProvider : IDataProvider
 
     private Option<DataPipelineContext> OnGet(DataPipelineContext dataContext, ScopeContext context)
     {
-        context.LogDebug("Getting key={key} from in-memory cache", dataContext.Key);
+        context.LogDebug("Getting key={key} from in-memory cache", dataContext.Path);
 
-        if (_memoryCache.TryGetValue(dataContext.Key, out DataETag value))
+        if (_memoryCache.TryGetValue(dataContext.Path, out DataETag value))
         {
             Counters.AddHits();
-            context.LogDebug("Found key={key} in in-memory cache", dataContext.Key);
+            context.LogDebug("Found key={key} in in-memory cache", dataContext.Path);
             dataContext = dataContext with { GetData = [value] };
             return dataContext;
         }
 
         Counters.AddMisses();
-        context.LogDebug("Not found key={key} in in-memory cache", dataContext.Key);
+        context.LogDebug("Not found key={key} in in-memory cache", dataContext.Path);
 
         return StatusCode.NotFound;
     }
 
-    private void OnSet(string key, object data, ScopeContext context)
+    private void OnSet(DataPipelineContext dataContext, object data, ScopeContext context)
     {
-        context.LogDebug("Setting key={key} from in-memory cache", key);
+        context.LogDebug("Setting key={key} from in-memory cache", dataContext.Path);
 
         var cacheOption = new MemoryCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = _option.Value.MemoryCacheDuration,
+            AbsoluteExpirationRelativeToNow = dataContext.PipelineConfig.MemoryCacheDuration,
         };
 
-        _memoryCache.Set(key, data.NotNull(), cacheOption);
+        _memoryCache.Set(dataContext.Path, data.NotNull(), cacheOption);
         Counters.AddSetCount();
     }
 }

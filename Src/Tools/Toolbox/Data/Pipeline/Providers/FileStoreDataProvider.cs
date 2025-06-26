@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -11,13 +10,11 @@ public class FileStoreDataProvider : IDataProvider
 {
     private readonly IFileStore _fileStore;
     private readonly ILogger<FileStoreDataProvider> _logger;
-    private readonly IOptions<DataPipelineOption> _option;
     private const string _name = nameof(FileStoreDataProvider);
 
-    public FileStoreDataProvider(IFileStore fileStore, IOptions<DataPipelineOption> option, ILogger<FileStoreDataProvider> logger)
+    public FileStoreDataProvider(IFileStore fileStore, ILogger<FileStoreDataProvider> logger)
     {
         _fileStore = fileStore.NotNull();
-        _option = option.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -26,19 +23,19 @@ public class FileStoreDataProvider : IDataProvider
 
     public async Task<Option<DataPipelineContext>> Execute(DataPipelineContext dataContext, ScopeContext context)
     {
-        dataContext.NotNull();
+        dataContext.NotNull().Validate().ThrowOnError();
         context = context.With(_logger);
         context.LogDebug("FileStoreDataProvider: Executing command={command}, name={name}", dataContext.Command, _name);
 
         switch (dataContext.Command)
         {
             case DataPipelineCommand.Append:
-                var appendOption = await OnAppend(dataContext.Key, dataContext.SetData.First(), context).ConfigureAwait(false);
+                var appendOption = await OnAppend(dataContext, dataContext.SetData.First(), context).ConfigureAwait(false);
                 if (appendOption.IsError()) return appendOption.ToOptionStatus<DataPipelineContext>();
                 break;
 
             case DataPipelineCommand.Delete:
-                await OnDelete(dataContext.Key, context);
+                await OnDelete(dataContext.Path, context);
                 break;
 
             case DataPipelineCommand.Get:
@@ -47,7 +44,7 @@ public class FileStoreDataProvider : IDataProvider
                 break;
 
             case DataPipelineCommand.Set:
-                var setOption = await OnSet(dataContext.Key, dataContext.SetData.First(), context);
+                var setOption = await OnSet(dataContext.Path, dataContext.SetData.First(), context);
                 if (setOption.IsError()) return setOption.ToOptionStatus<DataPipelineContext>();
                 break;
 
@@ -63,8 +60,8 @@ public class FileStoreDataProvider : IDataProvider
             switch (dataContext.Command)
             {
                 case DataPipelineCommand.Get:
-                    (await OnSet(dataContext.Key, nextOption.Return().GetData.First(), context))
-                        .LogStatus(context, "Setting key={key} to file store cache, name={name}", [dataContext.Key, _name]);
+                    (await OnSet(dataContext.Path, nextOption.Return().GetData.First(), context))
+                        .LogStatus(context, "Setting path={path} to file store cache, name={name}", [dataContext.Path, _name]);
                     break;
             }
         }
@@ -72,26 +69,26 @@ public class FileStoreDataProvider : IDataProvider
         return nextOption;
     }
 
-    public async Task<Option> OnAppend(string key, DataETag data, ScopeContext context)
+    public async Task<Option> OnAppend(DataPipelineContext dataContext, DataETag data, ScopeContext context)
     {
-        var isValidOption = await IsCacheIsValid(key, context);
+        var isValidOption = await IsCacheIsValid(dataContext, context);
         if (isValidOption.IsError()) return isValidOption;
 
-        var detailsOption = await _fileStore.File(key).Append(data, context);
-        if (detailsOption.IsError()) return detailsOption.ToOptionStatus<string>();
+        var detailsOption = await _fileStore.File(dataContext.Path).Append(data, context);
+        if (detailsOption.IsError()) return detailsOption.ToOptionStatus();
 
         Counters.AddAppendCount();
         return StatusCode.OK;
     }
 
-    public async Task<Option> OnDelete(string key, ScopeContext context)
+    public async Task<Option> OnDelete(string path, ScopeContext context)
     {
-        context.LogDebug("Deleting key={key} provider cache, name={name}", key, _name);
+        context.LogDebug("Deleting path={path} provider cache, name={name}", path, _name);
 
-        var deleteOption = await _fileStore.File(key).Delete(context);
+        var deleteOption = await _fileStore.File(path).Delete(context);
         if (deleteOption.IsError())
         {
-            context.LogDebug("Fail to delete key={key} from file store, name={name}", key, _name);
+            context.LogDebug("Fail to delete path={path} from file store, name={name}", path, _name);
             Counters.AddDeleteFailCount();
             return deleteOption;
         }
@@ -102,31 +99,31 @@ public class FileStoreDataProvider : IDataProvider
 
     private async Task<Option<DataPipelineContext>> OnGet(DataPipelineContext dataContext, ScopeContext context)
     {
-        context.LogDebug("Getting key={key} from file store, name={name}", dataContext.Key, _name);
+        context.LogDebug("Getting path={path} from file store, name={name}", dataContext.Path, _name);
 
-        var isValidOption = await IsCacheIsValid(dataContext.Key, context);
+        var isValidOption = await IsCacheIsValid(dataContext, context);
         if (isValidOption.IsError()) return isValidOption.ToOptionStatus<DataPipelineContext>();
 
-        var readOption = await _fileStore.File(dataContext.Key).Get(context);
+        var readOption = await _fileStore.File(dataContext.Path).Get(context);
         if (readOption.IsError())
         {
             Counters.AddMisses();
-            context.LogDebug("Fail to read key={key} from file store, name={name}", dataContext.Key, _name);
+            context.LogDebug("Fail to read path={path} from file store, name={name}", dataContext.Path, _name);
             return StatusCode.NotFound;
         }
 
         Counters.AddHits();
-        context.LogDebug("Found key={key} in file store cache, name={name}", dataContext.Key, _name);
+        context.LogDebug("Found path={path} in file store cache, name={name}", dataContext.Path, _name);
 
         dataContext = dataContext with { GetData = [readOption.Return()] };
         return dataContext;
     }
 
-    private async Task<Option> OnSet(string key, DataETag data, ScopeContext context)
+    private async Task<Option> OnSet(string path, DataETag data, ScopeContext context)
     {
-        context.LogDebug("Setting key={key} to file store cache, name={name}", key, _name);
+        context.LogDebug("Setting path={path} to file store cache, name={name}", path, _name);
 
-        var setOption = await _fileStore.File(key).Set(data, context);
+        var setOption = await _fileStore.File(path).Set(data, context);
         if (setOption.IsOk())
         {
             Counters.AddSetCount();
@@ -134,34 +131,36 @@ public class FileStoreDataProvider : IDataProvider
         else
         {
             Counters.AddSetFailCount();
-            context.LogDebug("Fail to write key={key} from file store, name={name}", key, _name);
+            context.LogDebug("Fail to write path={path} from file store, name={name}", path, _name);
         }
 
         return setOption.ToOptionStatus();
     }
 
-    internal async Task<Option> IsCacheIsValid(string key, ScopeContext context)
+    internal async Task<Option> IsCacheIsValid(DataPipelineContext dataContext, ScopeContext context)
     {
-        if (!_option.Value.FileCacheDuration.HasValue) return StatusCode.OK;
+        if (dataContext.PipelineConfig.FileCacheDuration == null) return StatusCode.OK;
 
-        context.LogDebug("Check to see if key={key} to file store cache, name={name}", key, _name);
-        var file = _fileStore.File(key);
+        context.LogDebug("Check to see if path={path} to file store cache, name={name}", dataContext.Path, _name);
+        var file = _fileStore.File(dataContext.Path);
 
         var detailsOption = await file.GetDetails(context);
         if (detailsOption.IsError())
         {
             Counters.AddMisses();
-            context.LogDebug("Fail to read key={key} from file store, name={name}", key, _name);
+            context.LogDebug("Fail to read path={path} from file store, name={name}", dataContext.Path, _name);
             return StatusCode.NotFound;
         }
 
         TimeSpan age = DateTime.UtcNow - (detailsOption.Return().CreatedOn ?? DateTime.UtcNow);
-        if (age > _option.Value.FileCacheDuration.Value)
+        if (age > dataContext.PipelineConfig.FileCacheDuration)
         {
-            context.LogDebug("File store cache is too old, key={key}, name={name}, timeLimit={timeLimit}, age={age}", key, _name, _option.Value.FileCacheDuration, age);
+            context.LogDebug("File store cache is too old, path={path}, name={name}, timeLimit={timeLimit}, age={age}",
+                dataContext.Path, _name, dataContext.PipelineConfig.FileCacheDuration, age);
+
             Counters.AddRetireCount();
             Counters.AddMisses();
-            (await OnDelete(key, context)).LogStatus(context, "Deleting expired file={file} from name={name}", [key, _name]);
+            (await OnDelete(dataContext.Path, context)).LogStatus(context, "Deleting expired path={path} from name={name}", [dataContext.Path, _name]);
             return StatusCode.NotFound;
         }
 

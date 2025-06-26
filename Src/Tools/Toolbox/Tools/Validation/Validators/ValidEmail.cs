@@ -1,5 +1,6 @@
 ﻿namespace Toolbox.Tools;
 
+
 public class ValidEmail<T> : ValidatorBase<T, string>
 {
     public ValidEmail(IPropertyRule<T, string> rule, string errorMessage)

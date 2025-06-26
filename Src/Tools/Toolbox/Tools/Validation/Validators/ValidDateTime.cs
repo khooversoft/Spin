@@ -1,5 +1,7 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools;
+
+namespace Toolbox.Tools;
+
 
 public class ValidDateTime<T> : ValidatorBase<T, DateTime>
 {

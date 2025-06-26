@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -17,16 +16,17 @@ public class JournalClientFactory
         _logger = logger.NotNull();
     }
 
-    public IJournalClient<T> Create<T>()
+    public IJournalClient<T> Create<T>(string pipelineName)
     {
-        string name = typeof(T).Name;
-        DataPipelineBuilder builder = _serviceProvider.GetRequiredKeyedService<DataPipelineBuilder>(name);
+        pipelineName = pipelineName.NotEmpty();
+
+        DataPipelineBuilder builder = _serviceProvider.GetDataPipelineBuilder<T>(pipelineName);
 
         var handler = builder.Handlers.BuildHandlers(_serviceProvider);
 
         IJournalClient<T> cache = handler switch
         {
-            { StatusCode: StatusCode.OK } v => ActivatorUtilities.CreateInstance<JournalClient<T>>(_serviceProvider, v.Return()),
+            { StatusCode: StatusCode.OK } v => ActivatorUtilities.CreateInstance<JournalClient<T>>(_serviceProvider, builder, v.Return()),
             _ => throw new ArgumentException("No handler specified"),
         };
 

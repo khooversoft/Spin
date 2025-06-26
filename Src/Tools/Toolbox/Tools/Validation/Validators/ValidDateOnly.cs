@@ -1,5 +1,6 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Tools;
+
+namespace Toolbox.Tools;
 
 public class ValidDateOnly<T> : ValidatorBase<T, DateOnly>
 {
