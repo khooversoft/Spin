@@ -1,0 +1,50 @@
+﻿using System.Collections.Frozen;
+using System.Diagnostics;
+using Toolbox.Extensions;
+using Toolbox.Tools;
+
+namespace Toolbox.Data;
+
+public enum JournalType
+{
+    Action,
+    Start,
+    Commit,
+    Data,
+}
+
+[DebuggerDisplay("{ToString()}")]
+public sealed record JournalEntry
+{
+    public string LogSequenceNumber { get; init; } = null!;
+    public string TransactionId { get; init; } = Guid.NewGuid().ToString();
+    public DateTime Date { get; init; } = DateTime.UtcNow;
+    public JournalType Type { get; init; }
+    public IReadOnlyDictionary<string, string?> Data { get; init; } = FrozenDictionary<string, string?>.Empty;
+
+    public bool Equals(JournalEntry? subject) => subject is JournalEntry &&
+        LogSequenceNumber == subject.LogSequenceNumber &&
+        TransactionId == subject.TransactionId &&
+        Date == subject.Date &&
+        Type == subject.Type &&
+        Data.DeepEqualsComparer(subject.Data);
+
+    public override int GetHashCode() => HashCode.Combine(LogSequenceNumber, TransactionId, Date, Type, Data);
+
+    public override string ToString() => $"Lsn={LogSequenceNumber}, TranId={TransactionId}, Date={Date:o}, Type={Type}, Data=[{Data.ToTagsString()}]";
+
+    public static JournalEntry Create(JournalType type, IEnumerable<KeyValuePair<string, string?>> data) => new JournalEntry
+    {
+        Type = type,
+        Data = data.NotNull().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase),
+    };
+}
+
+public static class JournalEntryTool
+{
+    public static string ToLoggingFormat(this JournalEntry subject) =>
+        $"Lsn={subject.LogSequenceNumber}, TranId={subject.TransactionId}, Date={subject.Date:o}, Type={subject.Type}".ToEnumerable()
+        .Concat(subject.Data.Select(x => TagsTool.FormatTag(x.Key, x.Value?.ToSafeLoggingFormat())))
+        .Join(Environment.NewLine);
+}
+

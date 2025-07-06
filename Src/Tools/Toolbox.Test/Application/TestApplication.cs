@@ -29,6 +29,4 @@ internal static class TestApplication
 
     public static ILogger<T> CreateLogger<T>(this IServiceProvider serviceProvider) => serviceProvider.GetRequiredService<ILogger<T>>();
     public static ScopeContext CreateScopeContext<T>(this IServiceProvider serviceProvider) => new ScopeContext(serviceProvider.CreateLogger<T>());
-
-
 }

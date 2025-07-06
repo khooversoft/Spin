@@ -112,7 +112,7 @@ public class GraphQueryExecute : IGraphClient
 
         if (pContext.IsMutating)
         {
-            await pContext.TrxContext.ChangeLog.CommitLogs();
+            await pContext.TrxContext.ChangeLog.CommitLogs(pContext.TrxContext.Context);
 
             pContext.TrxContext.Context.LogDebug("Saving graph database, iKey={iKey}", _instanceId);
             var writeOption = await scopeLease.SaveDatabase(pContext.TrxContext.Context).ConfigureAwait(false);

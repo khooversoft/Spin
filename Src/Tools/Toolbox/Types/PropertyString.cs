@@ -9,7 +9,7 @@ public static class PropertyStringSchema
 {
     private static FrozenSet<char> _connectionStringAllowCharacters = new[] { '-', '.', ':', '/' }.ToFrozenSet();
     private static FrozenSet<char> _tagAllowCharacters = new[] { '*', '-', '.', ':' }.ToFrozenSet();
-    private static FrozenSet<char> _fileSearchAllowCharacters = new[] { '-', '.', ':', '/', '*' }.ToFrozenSet();
+    private static FrozenSet<char> _fileSearchAllowCharacters = new[] { '-', '_', '.', ':', '/', '*' }.ToFrozenSet();
 
     public static PropertyString<string?> ConnectionString { get; } = new PropertyString<string?>(false, [";", "="], x => x == ";", x => x switch
     {

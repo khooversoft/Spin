@@ -46,7 +46,7 @@ public static class DataClientTypedCommonTests
 
         IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>(pipelineName);
         var context = host.Services.CreateContext<DataClientTests>();
-        CacheMemoryDataProvider memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryDataProvider>().First();
+        CacheMemoryHandler memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryHandler>().First();
         IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
         DataPipelineContext dataContext = host.Services.GetDataPipelineBuilder<EntityModel>(pipelineName).CreateGet<EntityModel>(key);
 
@@ -139,7 +139,7 @@ public static class DataClientTypedCommonTests
 
         IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>(pipelineName);
         var context = host.Services.CreateContext<DataClientTests>();
-        CacheMemoryDataProvider memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryDataProvider>().First();
+        CacheMemoryHandler memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryHandler>().First();
         FileStoreDataProvider fileProvider = dataHandler.GetDataProviders().OfType<FileStoreDataProvider>().First();
         IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
         DataPipelineContext dataContext = host.Services.GetDataPipelineBuilder<EntityModel>(pipelineName).CreateGet<EntityModel>(key);
@@ -229,7 +229,7 @@ public static class DataClientTypedCommonTests
 
         IDataClient<EntityModel> dataHandler = host.Services.GetDataClient<EntityModel>(pipelineName);
         var context = host.Services.CreateContext<DataClientTests>();
-        CacheMemoryDataProvider memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryDataProvider>().First();
+        CacheMemoryHandler memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryHandler>().First();
         FileStoreDataProvider fileProvider = dataHandler.GetDataProviders().OfType<FileStoreDataProvider>().First();
         IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
         DataPipelineContext dataContext = host.Services.GetDataPipelineBuilder<EntityModel>(pipelineName).CreateGet<EntityModel>(key);

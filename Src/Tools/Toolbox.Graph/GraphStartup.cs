@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
-using Toolbox.Journal;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -21,11 +20,12 @@ public static class GraphStartup
         services.AddSingleton<GraphMapCounter>();
         services.AddSingleton<IGraphMapFactory, GraphMapFactory>();
 
-        services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, new JournalFileOption
-        {
-            ConnectionString = GraphConstants.TrxJournal.ConnectionString,
-            UseBackgroundWriter = hostOption.UseBackgroundWriter,
-        });
+        // TODO
+        //services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, new JournalFileOption
+        //{
+        //    ConnectionString = GraphConstants.TrxJournal.ConnectionString,
+        //    UseBackgroundWriter = hostOption.UseBackgroundWriter,
+        //});
 
         services.AddSingleton<IGraphClient, GraphQueryExecute>();
         services.AddSingleton<IGraphFileStore, GraphFileStore>();

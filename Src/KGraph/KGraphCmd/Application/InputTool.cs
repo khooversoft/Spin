@@ -1,5 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace KGraphCmd.Application;
 

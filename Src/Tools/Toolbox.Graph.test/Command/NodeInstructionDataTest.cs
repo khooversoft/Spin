@@ -72,7 +72,7 @@ public class NodeInstructionDataTest
             .AddDataName("entity")
             .Build();
 
-        var readOption = await graphTestClient.Execute(getNode, NullScopeContext.Default);
+        var readOption = await graphTestClient.Execute(getNode, NullScopeContext.Instance);
         readOption.IsOk().BeTrue();
         var read = readOption.Return();
         read.Nodes.Count.Be(9);
@@ -97,7 +97,7 @@ public class NodeInstructionDataTest
             .AddData("entity", nodeData)
             .Build();
 
-        var newMapOption = await testClient.Execute(cmd, NullScopeContext.Default);
+        var newMapOption = await testClient.Execute(cmd, NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
     }
 

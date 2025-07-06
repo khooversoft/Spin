@@ -25,7 +25,7 @@ public class ParallelStressTests
         string tags = $"t1,t2=v{index}";
 
         string cmd = $"set node key={key} set {tags};";
-        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
+        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
         option.IsOk().BeTrue();
     }
 
@@ -36,7 +36,7 @@ public class ParallelStressTests
         string tags = $"t1,t2=v{index}";
 
         string cmd = $"set edge from={fromKey}, to={toKey}, type=et set {tags};";
-        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Default);
+        var option = await testClient.ExecuteBatch(cmd, NullScopeContext.Instance);
         option.IsOk().BeTrue();
         return option.ToOptionStatus();
     }

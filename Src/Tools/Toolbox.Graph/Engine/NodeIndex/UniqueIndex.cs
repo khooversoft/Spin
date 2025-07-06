@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Graph;
 

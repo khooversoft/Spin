@@ -302,7 +302,7 @@ public class SelectInstructionTests
         var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
         var context = testClient.CreateScopeContext<SelectInstructionTests>();
 
-        var newMapOption = await testClient.ExecuteBatch("select [knows] <-> (*) ;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("select [knows] <-> (*) ;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();

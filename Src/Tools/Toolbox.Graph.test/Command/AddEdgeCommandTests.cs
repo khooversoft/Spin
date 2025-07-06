@@ -29,7 +29,7 @@ public class AddEdgeCommandTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Instance);
         newMapOption.IsError().BeTrue();
 
         testClient.Map.Nodes.Count.Be(7);
@@ -41,7 +41,7 @@ public class AddEdgeCommandTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -73,7 +73,7 @@ public class AddEdgeCommandTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set -newTags;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set -newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -96,7 +96,7 @@ public class AddEdgeCommandTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();

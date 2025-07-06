@@ -79,7 +79,7 @@ public class DataClientTests
 
                 if (addFileStore) services.AddInMemoryFileStore();
 
-                services.AddDataPipeline<DataClientCommonTests.EntityModel>(builder =>
+                services.AddDataPipeline<DataClientCommonTests.EntityModel>(_pipelineName, builder =>
                 {
                     builder.MemoryCacheDuration = memoryCacheDuration;
                     builder.FileCacheDuration = fileCacheDuration;
@@ -88,7 +88,7 @@ public class DataClientTests
                     if (addMemory) builder.AddMemory();
                     if (addFileStore) builder.AddFileStore();
                     if (custom != null) builder.AddProvider(_ => custom);
-                }, _pipelineName);
+                });
             })
             .Build();
 

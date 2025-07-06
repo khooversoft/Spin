@@ -47,7 +47,7 @@ public class DataClientTwoTypedTests
                 services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
                 services.AddInMemoryFileStore();
 
-                services.AddDataPipeline<EntityModel1>(builder =>
+                services.AddDataPipeline<EntityModel1>(_pipelineName, builder =>
                 {
                     builder.MemoryCacheDuration = TimeSpan.FromMinutes(1);
                     builder.FileCacheDuration = TimeSpan.FromMinutes(1);
@@ -56,9 +56,9 @@ public class DataClientTwoTypedTests
                     builder.AddMemory();
                     builder.AddFileStore();
                     builder.AddProvider<CustomProvider1>();
-                }, _pipelineName);
+                });
 
-                services.AddDataPipeline<EntityModel2>(builder =>
+                services.AddDataPipeline<EntityModel2>(_pipelineName, builder =>
                 {
                     builder.MemoryCacheDuration = TimeSpan.FromMinutes(1);
                     builder.FileCacheDuration = TimeSpan.FromMinutes(1);
@@ -67,7 +67,7 @@ public class DataClientTwoTypedTests
                     builder.AddMemory();
                     builder.AddFileStore();
                     builder.AddProvider<CustomProvider2>();
-                }, _pipelineName);
+                });
 
                 services.AddSingleton<MyType1>();
                 services.AddSingleton<MyType2>();

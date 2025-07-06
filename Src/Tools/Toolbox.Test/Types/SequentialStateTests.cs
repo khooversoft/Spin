@@ -1,4 +1,5 @@
 ﻿using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
 

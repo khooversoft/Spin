@@ -21,7 +21,7 @@ public class GraphMapStressTest
 
         Task<bool>[] list = Enumerable.Range(0, taskCount)
             .SelectMany(x => new IWorker[] { new WorkerTwoNodesAndEdge(map, _output, x), new WorkerThreeNodesAndEdges(map, _output, x) }, (o, i) => i)
-            .Select(x => x.Run(token, NullScopeContext.Default))
+            .Select(x => x.Run(token, NullScopeContext.Instance))
             .ToArray();
 
         _output.WriteLine("Starting tasks");

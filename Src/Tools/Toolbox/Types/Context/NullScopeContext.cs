@@ -5,7 +5,7 @@ namespace Toolbox.Types;
 
 public static class NullScopeContext
 {
-    public static ScopeContext Default { get; } = new ScopeContext(NullLogger.Instance);
+    public static ScopeContext Instance { get; } = new ScopeContext(NullLogger.Instance);
 
     public static ScopeContext ToScopeContext(this ILogger subject) => new ScopeContext(subject, CancellationToken.None);
 }

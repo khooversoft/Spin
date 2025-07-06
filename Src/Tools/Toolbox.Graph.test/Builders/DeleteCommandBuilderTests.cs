@@ -14,7 +14,7 @@ public class DeleteCommandBuilderTests
 
         graphQuery.Be("delete node key=nodeKey1 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 
@@ -28,7 +28,7 @@ public class DeleteCommandBuilderTests
 
         graphQuery.Be("delete node ifexist key=nodeKey1 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 }

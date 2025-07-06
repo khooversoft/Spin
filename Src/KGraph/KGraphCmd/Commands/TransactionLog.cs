@@ -2,9 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.CommandRouter;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Graph;
-using Toolbox.Journal;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -43,6 +43,6 @@ internal class TransactionLog : ICommandRoute
         context.LogInformation("Starting to list transactions...");
 
         var traceLog = _graphHostManager.ServiceProvider.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed).NotNull();
-        await JournalTool.Display(traceLog, monitor, lastNumber, fullDump, lsn, context);
+        //await JournalTool.Display(traceLog, monitor, lastNumber, fullDump, lsn, context);
     }
 }

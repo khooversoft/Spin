@@ -57,7 +57,7 @@ public class NodeInstructionsIndexTests
         var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
         var context = testClient.CreateScopeContext<NodeInstructionsIndexTests>();
 
-        var newMapOption = await testClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         testClient.Map.Nodes.LookupTag("uniqueIndex").Action(x =>

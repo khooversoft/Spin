@@ -1,5 +1,5 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Journal;
+﻿using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 

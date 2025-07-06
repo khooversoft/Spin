@@ -37,7 +37,7 @@ public class DataClientTypedConstructorTests
                 services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
                 services.AddInMemoryFileStore();
 
-                services.AddDataPipeline<EntityModel>(builder =>
+                services.AddDataPipeline<EntityModel>(_pipelineName, builder =>
                 {
                     builder.MemoryCacheDuration = TimeSpan.FromMinutes(1);
                     builder.FileCacheDuration = TimeSpan.FromMinutes(1);
@@ -46,7 +46,7 @@ public class DataClientTypedConstructorTests
                     builder.AddMemory();
                     builder.AddFileStore();
                     builder.AddProvider<CustomProvider>();
-                }, _pipelineName);
+                });
 
                 services.AddSingleton<MyType>();
                 services.AddSingleton<CustomProvider>();

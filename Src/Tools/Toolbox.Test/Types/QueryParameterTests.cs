@@ -139,6 +139,51 @@ public class QueryParameterTests
     }
 
     [Fact]
+    public void JournalPass()
+    {
+        QueryParameter.Parse("journal2/data/test/journalentry/journal2__data__test__journalentry__*.test.json").Action(result =>
+        {
+            result.Index.Be(0);
+            result.Count.Be(1000);
+            result.Filter.Be("journal2/data/test/journalentry/journal2__data__test__journalentry__*.test.json");
+            result.Recurse.BeFalse();
+            result.IncludeFile.BeTrue();
+            result.IncludeFolder.BeFalse();
+            result.BasePath.Be("journal2/data/test/journalentry");
+
+            result.GetMatcher().Action(result =>
+            {
+                result.IsMatch("journal2/data/test/journalentry/journal2__data__test__journalentry__202507_20250702.test.json", false).BeTrue();
+
+                result.IsMatch("journal2/data/test/journalentry/journal3__data__test__journalentry__202507_20250702.test.json", false).BeFalse();
+            });
+        });
+    }
+
+    [Fact]
+    public void JournalDatePartition()
+    {
+        QueryParameter.Parse("journal2/data/test/journalentry/**/*.json").Action(result =>
+        {
+            result.Index.Be(0);
+            result.Count.Be(1000);
+            result.Filter.Be("journal2/data/test/journalentry/**/*.json");
+            result.Recurse.BeTrue();
+            result.IncludeFile.BeTrue();
+            result.IncludeFolder.BeFalse();
+            result.BasePath.Be("journal2/data/test/journalentry");
+
+            result.GetMatcher().Action(result =>
+            {
+                result.IsMatch("journal2/data/test/journalentry/202507/20250702/journal2__data__test__journalentry__202507_20250702.test.json", false).BeTrue();
+                result.IsMatch("journal2/data/test/journalentry/202507/20250703/journal2__data__test__journalentry__202507_20250703.test.json", false).BeTrue();
+
+                result.IsMatch("journal2/data/test/journalentry2/202507/20250703/journal2__data__test__journalentry__202507_20250703.test.json", false).BeFalse();
+            });
+        });
+    }
+
+    [Fact]
     public void FullPropertySet()
     {
         QueryParameter result = QueryParameter.Parse("filter=base/path.json;index=1;count=2;recurse=true;includeFile=true;includeFolder=true");

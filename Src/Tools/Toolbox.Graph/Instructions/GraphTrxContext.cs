@@ -1,4 +1,4 @@
-﻿using Toolbox.Journal;
+﻿using Toolbox.Data;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;

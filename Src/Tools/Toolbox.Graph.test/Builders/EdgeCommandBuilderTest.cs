@@ -16,7 +16,7 @@ public class EdgeCommandBuilderTest
 
         graphQuery.Be("add edge from=fromNodeKey, to=toNodeKey, type=edgeType1 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 
@@ -32,7 +32,7 @@ public class EdgeCommandBuilderTest
 
         graphQuery.Be("set edge from=fromNodeKey, to=toNodeKey, type=edgeType1 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 
@@ -48,7 +48,7 @@ public class EdgeCommandBuilderTest
 
         graphQuery.Be("add edge from=fromNodeKey, to=toNodeKey, type=edgeType1 set t1=v1 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 
@@ -65,7 +65,7 @@ public class EdgeCommandBuilderTest
 
         graphQuery.Be("set edge from=fromNodeKey, to=toNodeKey, type=edgeType1 set t1 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 
@@ -81,7 +81,7 @@ public class EdgeCommandBuilderTest
 
         graphQuery.Be("add edge from=fromNodeKey, to=toNodeKey, type=edgeType1 set t1=v1 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 
@@ -98,7 +98,7 @@ public class EdgeCommandBuilderTest
 
         graphQuery.Be("add edge from=fromNodeKey, to=toNodeKey, type=edgeType1 set t1=v1,t2=v2 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 
@@ -115,7 +115,7 @@ public class EdgeCommandBuilderTest
 
         graphQuery.Be("set edge from=fromNodeKey, to=toNodeKey, type=edgeType1 set -t1 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 }

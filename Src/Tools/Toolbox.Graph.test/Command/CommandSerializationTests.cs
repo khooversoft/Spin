@@ -58,7 +58,7 @@ public class CommandSerializationTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult r1 = newMapOption.Return();

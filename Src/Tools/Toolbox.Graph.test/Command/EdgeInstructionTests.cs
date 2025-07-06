@@ -32,7 +32,7 @@ public class EdgeInstructionTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch(query, NullScopeContext.Instance);
         newMapOption.IsError().BeTrue();
     }
 
@@ -85,7 +85,7 @@ public class EdgeInstructionTests
         using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone());
         var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         var pk = new GraphEdgePrimaryKey { FromKey = "node7", ToKey = "node1", EdgeType = "newEdgeType" };
@@ -134,7 +134,7 @@ public class EdgeInstructionTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set -newTags;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set -newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -157,7 +157,7 @@ public class EdgeInstructionTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -180,7 +180,7 @@ public class EdgeInstructionTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch("delete edge from=node1, to=node3, type=et1 ;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("delete edge from=node1, to=node3, type=et1 ;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -204,11 +204,11 @@ public class EdgeInstructionTests
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
         // Verify delete will fail
-        var newMapOption = await testClient.ExecuteBatch("delete edge from=node7, to=node2, type=et1 ;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("delete edge from=node7, to=node2, type=et1 ;", NullScopeContext.Instance);
         newMapOption.IsError().BeTrue();
 
         // Delet should not fail because of 'ifexist'
-        newMapOption = await testClient.ExecuteBatch("delete edge ifexist from=node7, to=node2, type=et1 ;", NullScopeContext.Default);
+        newMapOption = await testClient.ExecuteBatch("delete edge ifexist from=node7, to=node2, type=et1 ;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -223,7 +223,7 @@ public class EdgeInstructionTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch("set edge from=node4, to=node3, type=et3 set t1, t2=v2 ;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("set edge from=node4, to=node3, type=et3 set t1, t2=v2 ;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -246,7 +246,7 @@ public class EdgeInstructionTests
     {
         using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
 
-        var newMapOption = await testClient.ExecuteBatch("set edge from=node1, to=node2, type=et1 set t1, t2=v2, -knows ;", NullScopeContext.Default);
+        var newMapOption = await testClient.ExecuteBatch("set edge from=node1, to=node2, type=et1 set t1, t2=v2, -knows ;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();

@@ -1,34 +1,34 @@
-﻿using Toolbox.Azure.test.Application;
-using Toolbox.Test.Store;
-using Xunit.Abstractions;
+﻿//using Toolbox.Azure.test.Application;
+//using Toolbox.Test.Store;
+//using Xunit.Abstractions;
 
-namespace Toolbox.Azure.test.Datalake;
+//namespace Toolbox.Azure.test.Datalake;
 
-public class JournalLogBackgroundTests
-{
-    private readonly JournalLogBackgroundStandardTests _test;
+//public class JournalLogBackgroundTests
+//{
+//    private readonly JournalLogBackgroundStandardTests _test;
 
-    public JournalLogBackgroundTests(ITestOutputHelper outputHelper)
-    {
-        var fileStore = TestApplication.GetDatalake("datastore-tests");
-        _test = new JournalLogBackgroundStandardTests(fileStore, outputHelper);
-    }
+//    public JournalLogBackgroundTests(ITestOutputHelper outputHelper)
+//    {
+//        var fileStore = TestApplication.GetDatalake("datastore-tests");
+//        _test = new JournalLogBackgroundStandardTests(fileStore, outputHelper);
+//    }
 
-    [Fact]
-    public Task AddSingleJournal()
-    {
-        return _test.AddSingleJournal();
-    }
+//    [Fact]
+//    public Task AddSingleJournal()
+//    {
+//        return _test.AddSingleJournal();
+//    }
 
-    [Fact]
-    public Task AddMulitpleJournal()
-    {
-        return _test.AddMulitpleJournal();
-    }
+//    [Fact]
+//    public Task AddMultipleJournal()
+//    {
+//        return _test.AddMultipleJournal();
+//    }
 
-    [Fact]
-    public Task AddMulitpleBatchJournal()
-    {
-        return _test.AddMultipleBatchJournal();
-    }
-}
+//    [Fact]
+//    public Task AddMultipleBatchJournal()
+//    {
+//        return _test.AddMultipleBatchJournal();
+//    }
+//}

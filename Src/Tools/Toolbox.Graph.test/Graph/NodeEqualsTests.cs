@@ -1,6 +1,5 @@
 ﻿using System.Collections.Frozen;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph;
 

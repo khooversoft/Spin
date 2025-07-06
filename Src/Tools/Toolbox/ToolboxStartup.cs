@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Data;
-using Toolbox.Journal;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -35,15 +34,15 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static IServiceCollection AddJournalLog(this IServiceCollection services, string key, JournalFileOption option)
-    {
-        services.NotNull();
-        key.NotEmpty();
-        option.NotNull().Validate().ThrowOnError();
+    //public static IServiceCollection AddJournalLog(this IServiceCollection services, string key, JournalFileOption option)
+    //{
+    //    services.NotNull();
+    //    key.NotEmpty();
+    //    option.NotNull().Validate().ThrowOnError();
 
-        services.AddSingleton(option);
-        services.AddKeyedSingleton<IJournalFile, JournalFile>(key);
+    //    services.AddSingleton(option);
+    //    services.AddKeyedSingleton<IJournalFile, JournalFile>(key);
 
-        return services;
-    }
+    //    return services;
+    //}
 }

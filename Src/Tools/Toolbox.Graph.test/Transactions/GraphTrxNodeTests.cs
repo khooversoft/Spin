@@ -18,7 +18,7 @@ public class GraphTrxNodeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).IsOk().BeTrue();
 
         testClient.Map.Nodes.Count.Be(2);
         testClient.Map.Edges.Count.Be(1);
@@ -28,7 +28,7 @@ public class GraphTrxNodeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
+        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.IsError().BeTrue();
             x.Value.Items.Count.Be(2);
@@ -49,7 +49,7 @@ public class GraphTrxNodeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).IsOk().BeTrue();
 
         testClient.Map.Nodes.Count.Be(2);
         testClient.Map.Edges.Count.Be(1);
@@ -59,7 +59,7 @@ public class GraphTrxNodeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
+        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
@@ -80,7 +80,7 @@ public class GraphTrxNodeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Default)).IsOk().BeTrue();
+        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).IsOk().BeTrue();
 
         testClient.Map.Nodes.Count.Be(3);
         testClient.Map.Edges.Count.Be(1);
@@ -90,7 +90,7 @@ public class GraphTrxNodeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q2, NullScopeContext.Default)).Action(x =>
+        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
         {
             x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));

@@ -54,7 +54,7 @@ public class NodeInstructionTests
     [InlineData("set edge from=user:username1@company.com, to=logonProvider:loginprovider/loginprovider.key1, type=uniqueIndex ;")]
     public void SyntaxShouldPass(string query)
     {
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(query, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(query, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 

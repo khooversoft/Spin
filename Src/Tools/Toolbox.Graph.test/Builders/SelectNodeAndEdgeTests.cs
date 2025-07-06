@@ -98,7 +98,7 @@ public class SelectNodeAndEdgeTests
     private void Verify(string graphQuery, string expected)
     {
         graphQuery.Be(expected);
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Default);
+        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
         parse.Status.IsOk().BeTrue();
     }
 }

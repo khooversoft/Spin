@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Graph;
-using Toolbox.Journal;
 using Toolbox.Tools;
 using Toolbox.Types;
 

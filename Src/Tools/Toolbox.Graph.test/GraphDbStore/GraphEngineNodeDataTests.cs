@@ -331,6 +331,6 @@ public class GraphEngineNodeDataTests
 
     private async Task CheckFileStoreCount(IFileStore fileStore, int count)
     {
-        (await fileStore.Search("nodes/**/*", NullScopeContext.Default)).Count.Be(count);
+        (await fileStore.Search("nodes/**/*", NullScopeContext.Instance)).Count.Be(count);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
-using Toolbox.Journal;
+using Toolbox.Data;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -44,7 +44,7 @@ public class ChangeLog
         }
     }
 
-    public async Task CommitLogs()
+    public async Task CommitLogs(ScopeContext context)
     {
         var journalEntries = _commands
             .Select(x => x.CreateJournal())
@@ -52,7 +52,7 @@ public class ChangeLog
 
         if (journalEntries.Length == 0) return;
 
-        var result = await _graphTrxContext.TransactionWriter.Write(journalEntries);
+        var result = await _graphTrxContext.TransactionWriter.Write(journalEntries, context);
         result.LogStatus(_graphTrxContext.Context, "CommitLogs: length={journalEntries.Length}", [journalEntries.Length]);
         _commands.Clear();
     }

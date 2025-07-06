@@ -16,13 +16,16 @@ public interface IDataProvider
         {
             DataPipelineCommand.Append => ReturnOK(dataContext),
             DataPipelineCommand.Delete => ReturnOK(dataContext),
+            DataPipelineCommand.Drain => ReturnOK(dataContext),
             DataPipelineCommand.Set => ReturnOK(dataContext),
             DataPipelineCommand.AppendList => ReturnOK(dataContext),
 
             DataPipelineCommand.Get => ReturnNotFound(dataContext),
             DataPipelineCommand.GetList => ReturnNotFound(dataContext),
+            DataPipelineCommand.DeleteList => ReturnOK(dataContext),
 
-            _ => new Option<DataPipelineContext>(StatusCode.MethodNotAllowed).ToTaskResult(),
+            _ => throw new ArgumentOutOfRangeException($"Unknown command '{dataContext.Command}'"),
+            //_ => new Option<DataPipelineContext>(StatusCode.MethodNotAllowed).ToTaskResult(),
         },
 
         var handler => handler.Execute(dataContext, context),

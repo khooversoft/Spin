@@ -11,19 +11,30 @@ namespace Toolbox.Data;
 
 public static class DataStartup
 {
-    public static IServiceCollection AddDataPipeline<T>(this IServiceCollection services, Action<DataPipelineBuilder> config, string pipelineName)
+    public static IDataClient<T> GetDataClient<T>(this IServiceProvider serviceProvider, string pipelineName)
+    {
+        serviceProvider.NotNull();
+        var factory = serviceProvider.GetRequiredService<DataClientFactory>();
+        return factory.Create<T>(pipelineName);
+    }
+
+    public static IServiceCollection AddDataPipeline<T>(this IServiceCollection services, string pipelineName, Action<DataPipelineConfig> config)
     {
         services.NotNull();
         config.NotNull();
         pipelineName.NotEmpty();
 
-        var builder = new DataPipelineBuilder(services, pipelineName);
+        var builder = new DataPipelineConfig(services, pipelineName);
         config(builder);
+
+        builder.FilePartitionStrategy ??= config => PartitionSchemas.ScalarFile(config.PipelineConfig, config.TypeName, config.Key);
+        builder.ListPartitionStrategy ??= config => PartitionSchemas.DailyListPartitioning(config.PipelineConfig, config.TypeName, config.Key);
+        builder.ListPartitionSearch ??= config => PartitionSchemas.DailyListPartitionSearch(config.PipelineConfig, config.TypeName, config.Key);
+
         builder.Validate().ThrowOnError();
 
-        string keyedName = DataPipelineBuilderTool.CreateKeyedName<T>(pipelineName);
+        string keyedName = DataPipelineConfigTool.CreateKeyedName<T>(pipelineName);
         services.AddKeyedSingleton(keyedName, builder);
-
         services.TryAddSingleton<DataClientFactory>();
 
         builder.Services.AddTransient<IDataClient<T>>(serviceProvider =>
@@ -35,43 +46,18 @@ public static class DataStartup
         return services;
     }
 
-    public static IServiceCollection AddJournalPipeline<T>(this IServiceCollection services, Action<DataPipelineBuilder> config, string pipelineName)
-    {
-        services.NotNull();
-        config.NotNull();
-        pipelineName.NotEmpty();
-
-        pipelineName ??= typeof(T).Name;
-        var builder = new DataPipelineBuilder(services, pipelineName);
-        config(builder);
-        builder.Validate().ThrowOnError();
-
-        string keyedName = DataPipelineBuilderTool.CreateKeyedName<T>(pipelineName);
-        services.AddKeyedSingleton(keyedName, builder);
-
-        services.TryAddSingleton<JournalClientFactory>();
-
-        builder.Services.AddTransient<IJournalClient<T>>(serviceProvider =>
-        {
-            var factory = serviceProvider.GetRequiredService<JournalClientFactory>();
-            return factory.Create<T>(pipelineName);
-        });
-
-        return services;
-    }
-
-    public static DataPipelineBuilder AddMemory(this DataPipelineBuilder builder)
+    public static DataPipelineConfig AddMemory(this DataPipelineConfig builder)
     {
         builder.NotNull();
 
-        builder.Services.AddTransient<CacheMemoryDataProvider>();
+        builder.Services.AddTransient<CacheMemoryHandler>();
         builder.Services.TryAddSingleton<IMemoryCache, MemoryCache>();
 
-        builder.Handlers.Add<CacheMemoryDataProvider>();
+        builder.Handlers.Add<CacheMemoryHandler>();
         return builder;
     }
 
-    public static DataPipelineBuilder AddFileStore(this DataPipelineBuilder builder)
+    public static DataPipelineConfig AddFileStore(this DataPipelineConfig builder)
     {
         builder.NotNull();
 
@@ -80,23 +66,32 @@ public static class DataStartup
         return builder;
     }
 
-    public static DataPipelineBuilder AddJournalStore(this DataPipelineBuilder builder)
+    public static DataPipelineConfig AddListStore(this DataPipelineConfig builder)
     {
         builder.NotNull();
 
-        builder.Services.AddTransient<JournalStoreDataProvider>();
-        builder.Handlers.Add<JournalStoreDataProvider>();
+        builder.Services.AddTransient<ListStoreDataProvider>();
+        builder.Handlers.Add<ListStoreDataProvider>();
         return builder;
     }
 
-    public static DataPipelineBuilder AddProvider(this DataPipelineBuilder builder, Func<IServiceProvider, IDataProvider> config)
+    public static DataPipelineConfig AddQueueStore(this DataPipelineConfig builder)
+    {
+        builder.NotNull();
+
+        builder.Services.AddTransient<QueueStoreHandler>();
+        builder.Handlers.Add<QueueStoreHandler>();
+        return builder;
+    }
+
+    public static DataPipelineConfig AddProvider(this DataPipelineConfig builder, Func<IServiceProvider, IDataProvider> config)
     {
         builder.NotNull();
         builder.Handlers.Add(service => config(service));
         return builder;
     }
 
-    public static DataPipelineBuilder AddProvider<T>(this DataPipelineBuilder builder) where T : class, IDataProvider
+    public static DataPipelineConfig AddProvider<T>(this DataPipelineConfig builder) where T : class, IDataProvider
     {
         builder.NotNull();
 
