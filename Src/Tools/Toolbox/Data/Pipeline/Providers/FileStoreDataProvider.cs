@@ -34,11 +34,6 @@ public class FileStoreDataProvider : IDataProvider
                 if (appendOption.IsError()) return appendOption.ToOptionStatus<DataPipelineContext>();
                 break;
 
-            //case DataPipelineCommand.AppendList:
-            //    var appendListOption = await OnAppendList(dataContext.Path, dataContext.SetData, context).ConfigureAwait(false);
-            //    if (appendListOption.IsError()) return appendListOption.ToOptionStatus<DataPipelineContext>();
-            //    break;
-
             case DataPipelineCommand.Delete:
                 await OnDelete(dataContext.Path, context);
                 break;
@@ -47,11 +42,6 @@ public class FileStoreDataProvider : IDataProvider
                 var getOption = await OnGet(dataContext, context);
                 if (getOption.IsOk()) return getOption;
                 break;
-
-            //case DataPipelineCommand.GetList:
-            //    var getListOption = await OnGetList(dataContext, context);
-            //    if (getListOption.IsOk()) return getListOption;
-            //    break;
 
             case DataPipelineCommand.Set:
                 var setOption = await OnSet(dataContext.Path, dataContext.SetData.First(), context);
@@ -92,25 +82,6 @@ public class FileStoreDataProvider : IDataProvider
         return StatusCode.OK;
     }
 
-    //public async Task<Option> OnAppendList(string path, IReadOnlyList<DataETag> dataItems, ScopeContext context)
-    //{
-    //    dataItems.NotNull().Assert(x => x.Count > 0, _ => "Empty list");
-    //    context.LogDebug("Appending path={path}, name={name}", path, _name);
-
-    //    string json = dataItems.Aggregate(string.Empty, (a, x) => a += x.DataToString() + Environment.NewLine);
-    //    DataETag data = json.ToDataETag();
-
-    //    var detailsOption = await _fileStore.File(path).Append(data, context);
-    //    if (detailsOption.IsError())
-    //    {
-    //        Counters.AddAppendFailCount();
-    //        return detailsOption.ToOptionStatus<string>();
-    //    }
-
-    //    Counters.AddAppendCount();
-    //    return StatusCode.OK;
-    //}
-
     public async Task<Option> OnDelete(string path, ScopeContext context)
     {
         context.LogDebug("Deleting path={path} provider cache, name={name}", path, _name);
@@ -148,32 +119,6 @@ public class FileStoreDataProvider : IDataProvider
         dataContext = dataContext with { GetData = [readOption.Return()] };
         return dataContext;
     }
-
-    //private async Task<Option<DataPipelineContext>> OnGetList(DataPipelineContext dataContext, ScopeContext context)
-    //{
-    //    context.LogDebug("Getting path={path}, name={name}", dataContext.Path, _name);
-
-    //    var readOption = await _fileStore.File(dataContext.Path).Get(context);
-    //    if (readOption.IsError())
-    //    {
-    //        Counters.AddMisses();
-    //        context.LogDebug("Fail to read path={path}, name={name}", dataContext.Path, _name);
-    //        return StatusCode.NotFound;
-    //    }
-
-    //    var stringData = readOption.Return().DataToString();
-
-    //    var dataItems = stringData
-    //        .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-    //        .Select(x => x.ToDataETag())
-    //        .ToImmutableList();
-
-    //    Counters.AddHits();
-    //    context.LogDebug("Found path={path}, name={name}", dataContext.Path, _name);
-
-    //    dataContext = dataContext with { GetData = dataItems };
-    //    return dataContext;
-    //}
 
     private async Task<Option> OnSet(string path, DataETag data, ScopeContext context)
     {

@@ -33,16 +33,4 @@ public static class ToolboxStartup
         //services.AddSingleton<IFileStore, LocalFileStore>();
         return services;
     }
-
-    //public static IServiceCollection AddJournalLog(this IServiceCollection services, string key, JournalFileOption option)
-    //{
-    //    services.NotNull();
-    //    key.NotEmpty();
-    //    option.NotNull().Validate().ThrowOnError();
-
-    //    services.AddSingleton(option);
-    //    services.AddKeyedSingleton<IJournalFile, JournalFile>(key);
-
-    //    return services;
-    //}
 }

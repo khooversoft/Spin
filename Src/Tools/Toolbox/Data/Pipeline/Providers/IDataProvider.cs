@@ -25,7 +25,6 @@ public interface IDataProvider
             DataPipelineCommand.DeleteList => ReturnOK(dataContext),
 
             _ => throw new ArgumentOutOfRangeException($"Unknown command '{dataContext.Command}'"),
-            //_ => new Option<DataPipelineContext>(StatusCode.MethodNotAllowed).ToTaskResult(),
         },
 
         var handler => handler.Execute(dataContext, context),
