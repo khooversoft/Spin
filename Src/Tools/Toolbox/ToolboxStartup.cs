@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Data;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox;
 
@@ -24,13 +22,13 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static IServiceCollection AddLocalFileStore(this IServiceCollection services, LocalFileStoreOption option)
-    {
-        services.NotNull();
-        option.NotNull().Validate().ThrowOnError("Invalid LocalFileStoreOption");
+    //public static IServiceCollection AddLocalFileStore(this IServiceCollection services, LocalFileStoreOption option)
+    //{
+    //    services.NotNull();
+    //    option.NotNull().Validate().ThrowOnError("Invalid LocalFileStoreOption");
 
-        services.AddSingleton(option);
-        //services.AddSingleton<IFileStore, LocalFileStore>();
-        return services;
-    }
+    //    services.AddSingleton(option);
+    //    //services.AddSingleton<IFileStore, LocalFileStore>();
+    //    return services;
+    //}
 }

@@ -8,25 +8,28 @@ namespace Toolbox.Data;
 public interface IDataPipelineConfig
 {
     string PipelineName { get; }
+    string ServiceKeyedName { get; }
     TimeSpan? MemoryCacheDuration { get; }
     TimeSpan? FileCacheDuration { get; }
-    public string BasePath { get; }
-    public IReadOnlyDictionary<string, string?>? Tags { get; }
-    public Func<FilePartitionConfig, string> FilePartitionStrategy { get; set; }
-    public Func<FilePartitionConfig, string> ListPartitionStrategy { get; set; }
-    public Func<FilePartitionConfig, string> ListPartitionSearch { get; set; }
+    string BasePath { get; }
+    IReadOnlyDictionary<string, string?>? Tags { get; }
+    Func<FilePartitionConfig, string> FilePartitionStrategy { get; set; }
+    Func<FilePartitionConfig, string> ListPartitionStrategy { get; set; }
+    Func<FilePartitionConfig, string> ListPartitionSearch { get; set; }
 }
 
 public class DataPipelineConfig : IDataPipelineConfig
 {
-    public DataPipelineConfig(IServiceCollection services, string pipelineName)
+    public DataPipelineConfig(IServiceCollection services, string pipelineName, string serviceKeyedName)
     {
         Services = services.NotNull();
         PipelineName = pipelineName.NotEmpty();
+        ServiceKeyedName = serviceKeyedName;
     }
 
     public IServiceCollection Services { get; }
     public string PipelineName { get; } = null!;
+    public string ServiceKeyedName { get; }
     public TimeSpan? MemoryCacheDuration { get; set; }
     public TimeSpan? FileCacheDuration { get; set; }
     public string BasePath { get; set; } = null!;
@@ -40,6 +43,7 @@ public class DataPipelineConfig : IDataPipelineConfig
     public static IValidator<DataPipelineConfig> Validator { get; } = new Validator<DataPipelineConfig>()
         .RuleFor(x => x.Services).NotNull()
         .RuleFor(x => x.PipelineName).NotEmpty()
+        .RuleFor(x => x.ServiceKeyedName).NotEmpty()
         .RuleFor(x => x.MemoryCacheDuration).ValidTimeSpanOption()
         .RuleFor(x => x.FileCacheDuration).ValidTimeSpanOption()
         .RuleFor(x => x.BasePath).NotEmpty()
@@ -95,6 +99,9 @@ public static class DataPipelineConfigTool
             .Assert(x => x.Count() == 1, $"Pipeline '{pipelineName}' not found or multiple instances exist");
 
         DataPipelineConfig dataContext = serviceProvider.GetRequiredKeyedService<DataPipelineConfig>(keyedName);
+        dataContext.NotNull().Validate().ThrowOnError();
+        dataContext.ServiceKeyedName.Be(keyedName);
+
         return dataContext;
     }
 

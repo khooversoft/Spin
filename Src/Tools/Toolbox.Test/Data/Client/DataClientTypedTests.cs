@@ -86,7 +86,7 @@ public class DataClientTypedTests
                     builder.FileCacheDuration = fileCacheDuration;
                     builder.BasePath = nameof(DataClientTypedTests);
 
-                    if (addMemory) builder.AddMemory();
+                    if (addMemory) builder.AddCacheMemory();
                     if (addFileStore) builder.AddFileStore();
                     if (custom != null) builder.AddProvider(_ => custom);
                 });

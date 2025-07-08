@@ -24,7 +24,7 @@ public static class DataStartup
         config.NotNull();
         pipelineName.NotEmpty();
 
-        var builder = new DataPipelineConfig(services, pipelineName);
+        var builder = new DataPipelineConfig(services, pipelineName, DataPipelineConfigTool.CreateKeyedName<T>(pipelineName));
         config(builder);
 
         builder.FilePartitionStrategy ??= config => PartitionSchemas.ScalarFile(config.PipelineConfig, config.TypeName, config.Key);
@@ -33,8 +33,7 @@ public static class DataStartup
 
         builder.Validate().ThrowOnError();
 
-        string keyedName = DataPipelineConfigTool.CreateKeyedName<T>(pipelineName);
-        services.AddKeyedSingleton(keyedName, builder);
+        services.AddKeyedSingleton(builder.ServiceKeyedName, builder);
         services.TryAddSingleton<DataClientFactory>();
 
         builder.Services.AddTransient<IDataClient<T>>(serviceProvider =>
@@ -46,7 +45,7 @@ public static class DataStartup
         return services;
     }
 
-    public static DataPipelineConfig AddMemory(this DataPipelineConfig builder)
+    public static DataPipelineConfig AddCacheMemory(this DataPipelineConfig builder)
     {
         builder.NotNull();
 
@@ -63,6 +62,27 @@ public static class DataStartup
 
         builder.Services.AddTransient<FileStoreDataProvider>();
         builder.Handlers.Add<FileStoreDataProvider>();
+        return builder;
+    }
+
+    public static DataPipelineConfig AddFileLocking(this DataPipelineConfig builder, Action<DataPipelineLockConfig> config)
+    {
+        builder.NotNull();
+
+        var lockConfig = new DataPipelineLockConfig();
+        config.NotNull()(lockConfig);
+        builder.Services.AddKeyedSingleton<DataPipelineLockConfig>(builder.ServiceKeyedName, lockConfig);
+
+        builder.Services.AddTransient<FileStoreLockHandler>();
+
+        builder.Services.AddKeyedSingleton<LockDetailCollection>(builder.ServiceKeyedName);
+        builder.Handlers.Add(service =>
+        {
+            var lockDetailCollection = service.GetRequiredKeyedService<LockDetailCollection>(builder.ServiceKeyedName);
+            var lockConfig = service.GetRequiredKeyedService<DataPipelineLockConfig>(builder.ServiceKeyedName);
+            var lockHandler = ActivatorUtilities.CreateInstance<FileStoreLockHandler>(service, lockDetailCollection, lockConfig);
+            return lockHandler;
+        });
         return builder;
     }
 

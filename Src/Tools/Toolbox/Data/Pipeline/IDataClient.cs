@@ -12,5 +12,7 @@ public interface IDataClient<T>
     Task<Option<T>> Get(string key, ScopeContext context);
     Task<Option<IReadOnlyList<T>>> GetList(string key, ScopeContext context);
     Task<Option> Set(string key, T value, ScopeContext context);
+
+    Task<Option> ReleaseLock(string key, ScopeContext context);
 }
 

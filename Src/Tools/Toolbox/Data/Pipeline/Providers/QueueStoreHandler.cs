@@ -13,8 +13,10 @@ internal class QueueStoreHandler : IDataProvider
 
     public QueueStoreHandler(IServiceProvider serviceProvider, ILogger<QueueStoreHandler> logger)
     {
+        serviceProvider.NotNull();
         _logger = logger.NotNull();
-        _operationQueue = new OperationQueue(1000, serviceProvider.NotNull().GetRequiredService<ILogger<OperationQueue>>());
+
+        _operationQueue = new OperationQueue(1000, serviceProvider.GetRequiredService<ILogger<OperationQueue>>());
     }
 
     public IDataProvider? InnerHandler { get; set; }
@@ -39,7 +41,7 @@ internal class QueueStoreHandler : IDataProvider
                     await ((IDataProvider)this).NextExecute(dataContext, context);
                     context.LogDebug("Send completed for command={command}, name={name}", dataContext.Command, _name);
                 }, context);
-                return dataContext with { Queued = true };
+                return dataContext;
 
             case DataPipelineCommand.Get:
             case DataPipelineCommand.GetList:
@@ -50,12 +52,13 @@ internal class QueueStoreHandler : IDataProvider
                     context.LogDebug("Get list complete for command={command}, name={name}", dataContext.Command, _name);
                     return result;
                 }, context);
+
                 return result;
 
             case DataPipelineCommand.Drain:
                 context.LogDebug("Draining, name={name}", _name);
                 await _operationQueue.Drain(context);
-                return dataContext with { Queued = true };
+                return dataContext;
         }
 
         var nextOption = await ((IDataProvider)this).NextExecute(dataContext, context).ConfigureAwait(false);

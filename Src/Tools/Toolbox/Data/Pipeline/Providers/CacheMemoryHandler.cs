@@ -44,10 +44,6 @@ public class CacheMemoryHandler : IDataProvider
                 if (getOption.IsOk()) return getOption;
                 break;
 
-            case DataPipelineCommand.Set:
-                OnSet(dataContext, dataContext.SetData.First(), context);
-                break;
-
             case DataPipelineCommand.AppendList:
                 OnDelete(dataContext.Path, context);
                 break;
@@ -62,17 +58,21 @@ public class CacheMemoryHandler : IDataProvider
 
         if (nextOption.IsOk())
         {
-            var data = nextOption.Return().GetData;
+            var dc = nextOption.Return();
 
             switch (dataContext.Command)
             {
+                case DataPipelineCommand.Set:
+                    OnSet(dataContext, dc.SetData.First(), context);
+                    break;
+
                 case DataPipelineCommand.Get:
-                    var getData = data.First();
+                    var getData = dc.GetData.First();
                     OnSet(dataContext, getData, context);
                     break;
 
                 case DataPipelineCommand.GetList:
-                    OnSet(dataContext, data, context);
+                    OnSet(dataContext, dc.GetData, context);
                     break;
             }
         }

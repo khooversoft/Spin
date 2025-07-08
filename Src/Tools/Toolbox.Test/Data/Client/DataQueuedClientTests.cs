@@ -60,7 +60,7 @@ public class DataQueuedClientTests
                     builder.FileCacheDuration = fileCacheDuration;
                     builder.BasePath = nameof(DataClientTests);
 
-                    if (addMemory) builder.AddMemory();
+                    if (addMemory) builder.AddCacheMemory();
                     builder.AddQueueStore();
                     if (addFileStore) builder.AddFileStore();
                     if (custom != null) builder.AddProvider(_ => custom);

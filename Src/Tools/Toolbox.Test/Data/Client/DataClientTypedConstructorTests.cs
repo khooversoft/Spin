@@ -43,7 +43,7 @@ public class DataClientTypedConstructorTests
                     builder.FileCacheDuration = TimeSpan.FromMinutes(1);
                     builder.BasePath = nameof(DataClientTypedConstructorTests);
 
-                    builder.AddMemory();
+                    builder.AddCacheMemory();
                     builder.AddFileStore();
                     builder.AddProvider<CustomProvider>();
                 });

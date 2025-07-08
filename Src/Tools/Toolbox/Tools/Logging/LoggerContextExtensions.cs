@@ -127,6 +127,6 @@ public static class LoggerContextExtensions
             .Add(context)
             .Build();
 
-        context.Context.Logger.LogTrace(record.Message, record.Args);
+        context.Context.Logger.LogDebug(record.Message, record.Args);
     }
 }

@@ -24,6 +24,10 @@ public interface IDataProvider
             DataPipelineCommand.GetList => ReturnNotFound(dataContext),
             DataPipelineCommand.DeleteList => ReturnOK(dataContext),
 
+            DataPipelineCommand.AcquireLock => ReturnNotFound(dataContext),
+            DataPipelineCommand.AcquireExclusiveLock => ReturnNotFound(dataContext),
+            DataPipelineCommand.ReleaseLock => ReturnOK(dataContext),
+
             _ => throw new ArgumentOutOfRangeException($"Unknown command '{dataContext.Command}'"),
         },
 

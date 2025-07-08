@@ -21,7 +21,6 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
         _fileClient = fileClient.NotNull();
         _leaseClient = leaseClient.NotNull();
         _logger = logger.NotNull();
-
     }
 
     public string Path => _fileClient.Path;

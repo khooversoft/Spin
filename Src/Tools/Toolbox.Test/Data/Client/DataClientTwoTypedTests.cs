@@ -53,7 +53,7 @@ public class DataClientTwoTypedTests
                     builder.FileCacheDuration = TimeSpan.FromMinutes(1);
                     builder.BasePath = nameof(DataClientTypedTests);
 
-                    builder.AddMemory();
+                    builder.AddCacheMemory();
                     builder.AddFileStore();
                     builder.AddProvider<CustomProvider1>();
                 });
@@ -64,7 +64,7 @@ public class DataClientTwoTypedTests
                     builder.FileCacheDuration = TimeSpan.FromMinutes(1);
                     builder.BasePath = nameof(DataClientTypedTests);
 
-                    builder.AddMemory();
+                    builder.AddCacheMemory();
                     builder.AddFileStore();
                     builder.AddProvider<CustomProvider2>();
                 });

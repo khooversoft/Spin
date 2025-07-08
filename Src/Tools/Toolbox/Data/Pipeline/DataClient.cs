@@ -38,15 +38,6 @@ public class DataClient<T> : IDataClient<T>
         return resultOption.ToOptionStatus();
     }
 
-    public async Task<Option> Drain(ScopeContext context)
-    {
-        context.LogDebug("DataClient: Drain");
-
-        var request = PipelineConfig.CreateDrain();
-        var resultOption = await Handler.Execute(request, context);
-        return resultOption.ToOptionStatus();
-    }
-
     public async Task<Option<T>> Get(string key, ScopeContext context)
     {
         context.LogDebug("DataClient: Get key={key}, type={type}", key, typeof(T).Name);
@@ -72,7 +63,7 @@ public class DataClient<T> : IDataClient<T>
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////
     /// List Operations
-    /// 
+    ///
 
     public async Task<Option> AppendList(string key, IEnumerable<T> values, ScopeContext context)
     {
@@ -105,5 +96,28 @@ public class DataClient<T> : IDataClient<T>
         IReadOnlyList<T> values = resultOption.Return().GetData.Select(x => x.ToObject<T>()).ToImmutableArray();
         return values.ToOption();
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// Operations
+    ///
+    public async Task<Option> Drain(ScopeContext context)
+    {
+        context.LogDebug("DataClient: Drain");
+
+        var request = PipelineConfig.CreateDrain();
+        var resultOption = await Handler.Execute(request, context);
+        return resultOption.ToOptionStatus();
+    }
+
+    public async Task<Option> ReleaseLock(string key, ScopeContext context)
+    {
+        context.LogDebug("DataClient: ReleaseLock, key={key}");
+
+        var request = PipelineConfig.CreateReleaseLock<T>(key);
+        var resultOption = await Handler.Execute(request, context);
+
+        return resultOption.ToOptionStatus();
+    }
+
 
 }
