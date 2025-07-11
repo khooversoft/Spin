@@ -1,5 +1,4 @@
 ﻿using System.IO.Compression;
-using FluentAssertions;
 using Toolbox.Tools;
 
 namespace Toolbox.Test.Tools;
@@ -24,7 +23,7 @@ public class ZipMemoryTests
         using (var read = new ZipArchive(writeBuffer, ZipArchiveMode.Read, leaveOpen: true))
         {
             string readData = read.ReadAsString(file);
-            readData.Should().Be(data);
+            readData.Be(data);
         }
     }
 }

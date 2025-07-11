@@ -1,0 +1,5 @@
+<div style="font-size: 12px;">
+    <p>Ticket group {name} has been created with ticket group id {ticketGroupId}.</p>
+
+    <p>Goto to ticket group, click <a href="{ticketGroupUri}">here</a>.</p>
+</div>

@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.LangTools;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Tokenizer
 {
@@ -15,7 +15,7 @@ namespace Toolbox.Test.Tokenizer
                 .UseSingleQuote()
                 .Parse("");
 
-            tokens.Count.Should().Be(0);
+            tokens.Count.Be(0);
         }
 
         [Fact]
@@ -27,8 +27,8 @@ namespace Toolbox.Test.Tokenizer
                 .UseSingleQuote()
                 .Parse("      ");
 
-            tokens.Count.Should().Be(1);
-            tokens[0].Value.Should().Be(" ");
+            tokens.Count.Be(1);
+            tokens[0].Value.Be(" ");
         }
 
         [Fact]
@@ -47,12 +47,12 @@ namespace Toolbox.Test.Tokenizer
                 new TokenValue("def"),
             };
 
-            tokens.Count.Should().Be(expectedTokens.Length);
+            tokens.Count.Be(expectedTokens.Length);
 
             tokens
                 .Zip(expectedTokens, (o, i) => (o, i))
                 .All(x => x.o.Value == x.i.Value)
-                .Should().BeTrue();
+                .BeTrue();
         }
 
         [Fact]
@@ -73,12 +73,12 @@ namespace Toolbox.Test.Tokenizer
                 new TokenValue(" "),
             };
 
-            tokens.Count.Should().Be(expectedTokens.Length);
+            tokens.Count.Be(expectedTokens.Length);
 
             tokens
                 .Zip(expectedTokens, (o, i) => (o, i))
                 .All(x => x.o.Value == x.i.Value)
-                .Should().BeTrue();
+                .BeTrue();
         }
 
         [Fact]
@@ -97,12 +97,12 @@ namespace Toolbox.Test.Tokenizer
                 new TokenValue("def"),
             };
 
-            tokens.Count.Should().Be(expectedTokens.Length);
+            tokens.Count.Be(expectedTokens.Length);
 
             tokens
                 .Zip(expectedTokens, (o, i) => (o, i))
                 .All(x => x.o.Value == x.i.Value)
-                .Should().BeTrue();
+                .BeTrue();
         }
 
         [Fact]
@@ -126,12 +126,12 @@ namespace Toolbox.Test.Tokenizer
                 new TokenValue(" "),
             };
 
-            tokens.Count.Should().Be(expectedTokens.Length);
+            tokens.Count.Be(expectedTokens.Length);
 
             tokens
                 .Zip(expectedTokens, (o, i) => (o, i))
                 .All(x => x.o.Value == x.i.Value)
-                .Should().BeTrue();
+                .BeTrue();
         }
 
         [Fact]
@@ -150,12 +150,12 @@ namespace Toolbox.Test.Tokenizer
                 new TokenValue(" end"),
             };
 
-            tokens.Count.Should().Be(expectedTokens.Length);
+            tokens.Count.Be(expectedTokens.Length);
 
             tokens
                 .Zip(expectedTokens, (o, i) => (o, i))
                 .All(x => x.o.Value == x.i.Value)
-                .Should().BeTrue();
+                .BeTrue();
         }
     }
 }

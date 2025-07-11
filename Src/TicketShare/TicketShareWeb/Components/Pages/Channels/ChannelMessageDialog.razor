@@ -1,0 +1,28 @@
+﻿@using TicketShare.sdk
+@using Toolbox.Graph.Extensions
+
+@implements IDialogContentComponent<PanelParameters<ChannelMessageExpanded>>
+
+<FluentDialogBody>
+    <MenuBar OnClose="OnCloseButton" ShowBottomDivider=true />
+
+    <FluentStack Orientation="Orientation.Vertical">
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentLabel Typo="Typography.Body">@Content.Value.DateAsString</FluentLabel>
+            <FluentLabel Typo="Typography.Body">@Content.Value.UserName</FluentLabel>
+        </FluentStack>
+
+        @if (Content.Value.Message.IsNotEmpty())
+        {
+            <FluentLabel Typo="Typography.Body">@((MarkupString)Content.Value.Message)</FluentLabel>
+        }
+    </FluentStack>
+
+</FluentDialogBody>
+
+@code {
+    [Parameter] public PanelParameters<ChannelMessageExpanded> Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+
+    public async Task OnCloseButton() => await Dialog.CancelAsync();
+}

@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
-using FluentAssertions;
 using Toolbox.Security;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Security;
 
@@ -32,7 +32,7 @@ public class RsaTests
             .SetPrincipleSignature(signature)
             .Build();
 
-        token.Should().NotBeNull();
+        token.NotNull();
 
         // Verify
         var validateRsa = RSA.Create();
@@ -46,7 +46,7 @@ public class RsaTests
             .Build()
             .Parse(token);
 
-        tokenDetails.Digest.Should().Be(digest);
+        tokenDetails.Digest.Be(digest);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class RsaTests
             .SetPrincipleSignature(signature)
             .Build();
 
-        token.Should().NotBeNull();
+        token.NotNull();
 
         // Verify
         var validate = PrincipalSignature.CreateFromPublicKeyOnly(pubk, "kid", "issuer", "audience");
@@ -81,6 +81,6 @@ public class RsaTests
             .Build()
             .Parse(token);
 
-        tokenDetails.Digest.Should().Be(digest);
+        tokenDetails.Digest.Be(digest);
     }
 }

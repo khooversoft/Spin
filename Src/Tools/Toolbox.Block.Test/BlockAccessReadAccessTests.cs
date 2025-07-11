@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Security;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Block.Test;
@@ -36,7 +36,7 @@ public class BlockAccessReadAccessTests
             .Sign(principleSignature, _context)
             .Return();
 
-        blockChain.Add(data).StatusCode.IsOk().Should().BeTrue();
+        blockChain.Add(data).StatusCode.IsOk().BeTrue();
 
         var p2 = new Payload2 { Description = "description1" };
 
@@ -47,8 +47,8 @@ public class BlockAccessReadAccessTests
             .Sign(principleSignature2, _context)
             .Return();
 
-        blockChain.Add(data2).StatusCode.IsOk().Should().BeTrue();
-        blockChain.Count.Should().Be(4);
+        blockChain.Add(data2).StatusCode.IsOk().BeTrue();
+        blockChain.Count.Be(4);
     }
 
     [Fact]
@@ -78,9 +78,9 @@ public class BlockAccessReadAccessTests
             .CreateAclBlock(acl, issuer, _context)
             .Sign(principleSignature, _context);
 
-        aclBlock.StatusCode.IsOk().Should().BeTrue();
+        aclBlock.StatusCode.IsOk().BeTrue();
 
-        blockChain.Add(aclBlock.Return()).StatusCode.IsOk().Should().BeTrue();
+        blockChain.Add(aclBlock.Return()).StatusCode.IsOk().BeTrue();
 
         // Check write access
         var p1 = new Payload1 { Name = "name1", Last = "last1" };
@@ -92,7 +92,7 @@ public class BlockAccessReadAccessTests
             .Sign(principleSignature, _context)
             .Return();
 
-        blockChain.Add(data).StatusCode.IsOk().Should().BeTrue();
+        blockChain.Add(data).StatusCode.IsOk().BeTrue();
 
         var p2 = new Payload2 { Description = "description1" };
 
@@ -103,22 +103,22 @@ public class BlockAccessReadAccessTests
             .Sign(principleSignature2, _context)
             .Return();
 
-        blockChain.Add(data2).StatusCode.IsOk().Should().BeTrue();
-        blockChain.Count.Should().Be(4);
+        blockChain.Add(data2).StatusCode.IsOk().BeTrue();
+        blockChain.Count.Be(4);
 
         // Check read access
         var stream1 = blockChain.HasAccess(issuer2, BlockGrant.Read, nameof(Payload1));
-        stream1.IsError().Should().BeTrue();
+        stream1.IsError().BeTrue();
         var stream2 = blockChain.HasAccess(issuer2, BlockGrant.Read, nameof(Payload2));
-        stream2.IsError().Should().BeTrue();
+        stream2.IsError().BeTrue();
 
         var streamOwner1 = blockChain.Filter<Payload1>(issuer);
-        streamOwner1.IsOk().Should().BeTrue();
-        streamOwner1.Return().ToList().Count.Should().Be(1);
+        streamOwner1.IsOk().BeTrue();
+        streamOwner1.Return().ToList().Count.Be(1);
 
         var streamOwner2 = blockChain.Filter<Payload2>(issuer);
-        streamOwner2.IsOk().Should().BeTrue();
-        streamOwner2.Return().ToList().Count.Should().Be(1);
+        streamOwner2.IsOk().BeTrue();
+        streamOwner2.Return().ToList().Count.Be(1);
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class BlockAccessReadAccessTests
             .Sign(principleSignature, _context)
             .Return();
 
-        blockChain.Add(data).StatusCode.IsOk().Should().BeTrue();
+        blockChain.Add(data).StatusCode.IsOk().BeTrue();
 
         var p2 = new Payload2 { Description = "description1" };
 
@@ -159,24 +159,24 @@ public class BlockAccessReadAccessTests
             .Sign(principleSignature2, _context)
             .Return();
 
-        blockChain.Add(data2).StatusCode.IsOk().Should().BeTrue();
-        blockChain.Count.Should().Be(4);
+        blockChain.Add(data2).StatusCode.IsOk().BeTrue();
+        blockChain.Count.Be(4);
 
         // Check read access
         var stream1 = blockChain.Filter<Payload1>(issuer2);
-        stream1.IsError().Should().BeTrue();
+        stream1.IsError().BeTrue();
 
         var stream3 = blockChain.Filter<Payload2>(issuer2);
-        stream3.IsOk().Should().BeTrue();
-        stream3.Return().ToList().Count.Should().Be(1);
+        stream3.IsOk().BeTrue();
+        stream3.Return().ToList().Count.Be(1);
 
         var streamOwner1 = blockChain.Filter<Payload1>(issuer);
-        streamOwner1.IsOk().Should().BeTrue();
-        streamOwner1.Return().ToList().Count.Should().Be(1);
+        streamOwner1.IsOk().BeTrue();
+        streamOwner1.Return().ToList().Count.Be(1);
 
         var streamOwner2 = blockChain.Filter<Payload2>(issuer);
-        streamOwner2.IsOk().Should().BeTrue();
-        streamOwner2.Return().ToList().Count.Should().Be(1);
+        streamOwner2.IsOk().BeTrue();
+        streamOwner2.Return().ToList().Count.Be(1);
     }
 
     private record Payload1

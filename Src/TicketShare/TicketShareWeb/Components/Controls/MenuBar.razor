@@ -1,0 +1,69 @@
+﻿<FluentStack Orientation="Orientation.Horizontal">
+
+    @if (OnClose.HasDelegate)
+    {
+        <FluentButton @ref="_closeButton"
+                      Appearance=" Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.ArrowLeft())"
+                      OnClick="OnClose">
+        </FluentButton>
+    }
+
+    @if (OnAdd.HasDelegate)
+    {
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.Add())"
+                      Disabled="DisableAdd"
+                      OnClick="OnAdd">
+            Add
+        </FluentButton>
+    }
+
+    @if (OnSave.HasDelegate)
+    {
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.Save())"
+                      Disabled="DisableSave"
+                      OnClick="OnSave">
+            Save
+        </FluentButton>
+    }
+
+    @if (OnDelete.HasDelegate)
+    {
+        <FluentSpacer />
+
+        <FluentButton Appearance="Appearance.Outline"
+                      IconStart="@(new Icons.Regular.Size20.Delete())"
+                      Disabled="DisableDelete"
+                      OnClick="OnDelete">
+            Delete
+        </FluentButton>
+    }
+
+</FluentStack>
+
+@if (ShowBottomDivider)
+{
+    <DividerBlock />
+    @* <hr style="margin: 5px 0px 20px 0px" /> *@
+}
+
+
+@code {
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnAdd { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public bool DisableAdd { get; set; }
+    [Parameter] public bool DisableSave { get; set; }
+    [Parameter] public bool DisableDelete { get; set; }
+    [Parameter] public bool ShowBottomDivider { get; set; }
+
+    private FluentButton _closeButton = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _closeButton != null) await _closeButton.Element.FocusAsync();
+    }
+}

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpinClient.sdk;
+using Toolbox.Logging;
 using Toolbox.Types;
 
 namespace SpinTestTools.sdk.ObjectBuilder.Builders;
@@ -16,7 +17,7 @@ public class UserBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Create(user, context);
 
-            setOption.LogStatus(context, "Creating User userId={userId}", user.UserId);
+            setOption.LogStatus(context, "Creating User userId={userId}", [user.UserId]);
             test.Test(() => setOption);
         }
 

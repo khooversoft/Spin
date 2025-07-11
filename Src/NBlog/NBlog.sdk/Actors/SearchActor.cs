@@ -3,6 +3,7 @@ using Orleans.Runtime;
 using Toolbox.Data;
 using Toolbox.DocumentSearch;
 using Toolbox.Extensions;
+using Toolbox.Orleans;
 using Toolbox.Tools;
 using Toolbox.Types;
 

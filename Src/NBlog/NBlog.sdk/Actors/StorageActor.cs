@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Runtime;
+using Toolbox.Orleans;
 using Toolbox.Tools;
 using Toolbox.Types;
 

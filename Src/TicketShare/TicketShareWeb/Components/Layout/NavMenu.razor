@@ -1,0 +1,71 @@
+﻿@using TicketShareWeb.Components.Settings
+
+@implements IDisposable
+
+<div class="navmenu">
+    <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" />
+    <label for="navmenu-toggle" class="navmenu-icon"><FluentIcon Value="@(new Icons.Regular.Size20.Navigation())" Color="Color.Fill" /></label>
+    <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
+
+        <FluentNavMenu Id="main-menu" Collapsible="true" Width="250" Title="Navigation menu" @bind-Expanded="expanded">
+            <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Home</FluentNavLink>
+
+            <AuthorizeView>
+                <Authorized>
+                    <FluentNavLink Href="TicketGroups" Icon="@(new Icons.Regular.Size20.TicketDiagonal())" IconColor="Color.Accent" Disabled=_disableMenus>Tickets</FluentNavLink>
+                    <FluentNavLink Href="Channels" Icon="@(new Icons.Regular.Size20.Comment())" IconColor="Color.Accent" Disabled=_disableMenus>Channels</FluentNavLink>
+                    <FluentNavLink Href="UserAccount" Icon="@(new Icons.Regular.Size20.PersonAccounts())" Disabled=_disableMenus>Account</FluentNavLink>
+
+                    <SiteSettings />
+
+                    <form action="Account/Logout" method="post">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                        <FluentButton Class="left-justified-button" IconStart="@(new Icons.Regular.Size20.ArrowExit())" Type="ButtonType.Submit" Style="width: 100%;">
+                            <div class="@menuClass">Logout</div>
+                        </FluentButton>
+                    </form>
+                </Authorized>
+            </AuthorizeView>
+        </FluentNavMenu>
+    </nav>
+</div>
+
+@code {
+    @inject NavigationManager _navigationManager
+    @inject UserAccountContext _userAccountContext
+    @inject ILogger<NavMenu> _logger
+
+    private bool expanded = true;
+    private string menuClass => !expanded ? "menu-hidden" : "menu-normal";
+    private string? currentUrl;
+    private bool _disableMenus;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+        _navigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var context = new ScopeContext(_logger);
+            _disableMenus = (await _userAccountContext.IsAccountEnabled(context).ConfigureAwait(false)) == false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = _navigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _navigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
+

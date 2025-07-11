@@ -12,7 +12,16 @@ public readonly struct CodeLocation
         CallerLineNumber = lineNumber;
     }
 
+    public CodeLocation(string function, string path, int lineNumber, string argumentName)
+    {
+        CallerFunction = function.NotEmpty();
+        CallerFilePath = path.NotEmpty();
+        CallerLineNumber = lineNumber;
+        ArgumentName = argumentName.NotEmpty();
+    }
+
     public string CallerFunction { get; }
     public string CallerFilePath { get; }
     public int CallerLineNumber { get; }
+    public string? ArgumentName { get; }
 }

@@ -1,10 +1,11 @@
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
 using SoftBank.sdk.test.Application;
 using Toolbox.Extensions;
+using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace SoftBank.sdk.test.Basic;
@@ -117,7 +118,7 @@ public class SimpleTransactions : IClassFixture<ClusterApiFixture>
         readAccountDetailOption.IsOk().Should().BeTrue();
 
         var readAccountDetail = readAccountDetailOption.Return();
-        (createRequest = readAccountDetail).Should().NotBeNull();
+        (createRequest = readAccountDetail).NotNull();
 
     }
 

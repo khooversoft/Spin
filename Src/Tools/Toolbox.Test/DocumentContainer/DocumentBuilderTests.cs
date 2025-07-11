@@ -1,4 +1,4 @@
-﻿//using FluentAssertions;
+﻿//using Toolbox.Tools.Should;
 //using Toolbox.Data;
 //using Toolbox.Extensions;
 //using Toolbox.Tools;
@@ -18,16 +18,16 @@
 //            .SetDocumentId(documentId.ToObjectId())
 //            .SetContent(payload);
 
-//        builder.DocumentId!.Id.Should().Be(documentId);
-//        builder.Content.NotNull().BytesToString().Should().Be(payload);
+//        builder.DocumentId!.Id.Be(documentId);
+//        builder.Content.NotNull().BytesToString().Be(payload);
 
 //        Document document = builder.Build();
 
-//        document.ObjectId.Should().Be(documentId);
-//        document.Content.BytesToString().Should().Be(payload);
-//        document.ETag.Should().NotBeNull();
+//        document.ObjectId.Be(documentId);
+//        document.Content.BytesToString().Be(payload);
+//        document.ETag.NotBeNull();
 
-//        document.IsHashVerify().Should().BeTrue();
+//        document.IsHashVerify().BeTrue();
 //        document.Verify();
 //    }
 
@@ -46,13 +46,13 @@
 //        string json = Json.Default.Serialize(sourceDocument);
 
 //        Document readDocument = Json.Default.Deserialize<Document>(json)!;
-//        readDocument.Should().NotBeNull();
+//        readDocument.NotBeNull();
 
-//        readDocument.ObjectId.Should().Be(documentId);
-//        readDocument.Content.BytesToString().Should().Be(payload);
-//        readDocument.ETag.Should().NotBeNull();
+//        readDocument.ObjectId.Be(documentId);
+//        readDocument.Content.BytesToString().Be(payload);
+//        readDocument.ETag.NotBeNull();
 
-//        readDocument.IsHashVerify().Should().BeTrue();
+//        readDocument.IsHashVerify().BeTrue();
 //        readDocument.Verify();
 //    }
 
@@ -68,10 +68,10 @@
 
 //        Document document = builder.Build();
 
-//        document.IsHashVerify().Should().BeTrue();
+//        document.IsHashVerify().BeTrue();
 //        document.Verify();
 
-//        document.ToObject<string>().Should().Be(payload);
+//        document.ToObject<string>().Be(payload);
 
 
 //        Document doc2 = new DocumentBuilder()
@@ -80,7 +80,7 @@
 //            .Build()
 //            .Verify();
 
-//        (document == doc2).Should().BeTrue();
+//        (document == doc2).BeTrue();
 //    }
 
 //    [Fact]
@@ -95,9 +95,9 @@
 
 //        Document document = builder.Build();
 
-//        document.IsHashVerify().Should().BeTrue();
+//        document.IsHashVerify().BeTrue();
 //        document.Verify();
-//        document.ToObject<string>().Should().Be(payload);
+//        document.ToObject<string>().Be(payload);
 
 //        Document doc2 = new DocumentBuilder()
 //            .SetDocumentId(documentId.ToObjectId())
@@ -105,7 +105,7 @@
 //            .Build()
 //            .Verify();
 
-//        (document == doc2).Should().BeTrue();
+//        (document == doc2).BeTrue();
 //    }
 
 //    [Fact]
@@ -125,9 +125,9 @@
 
 //        Document document = builder.Build();
 
-//        document.IsHashVerify().Should().BeTrue();
+//        document.IsHashVerify().BeTrue();
 //        document.Verify();
-//        document.ToObject<Payload>().Should().Be(payload);
+//        document.ToObject<Payload>().Be(payload);
 
 //        Document doc2 = new DocumentBuilder()
 //            .SetDocumentId(documentId.ToObjectId())
@@ -135,7 +135,7 @@
 //            .Build()
 //            .Verify();
 
-//        (document == doc2).Should().BeTrue();
+//        (document == doc2).BeTrue();
 //    }
 
 //    private record Payload

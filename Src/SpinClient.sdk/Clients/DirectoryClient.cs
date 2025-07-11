@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.abstraction;
-using Toolbox.Data;
+using Toolbox.Graph;
 using Toolbox.Rest;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -18,14 +18,14 @@ public class DirectoryClient
         _logger = logger.NotNull();
     }
 
-    public async Task<Option<GraphCommandResults>> Execute(string query, ScopeContext context) => await Execute(new DirectoryCommand(query), context);
+    public async Task<Option<QueryBatchResult>> Execute(string query, ScopeContext context) => await Execute(new DirectoryCommand(query), context);
 
-    public async Task<Option<GraphCommandResults>> Execute(DirectoryCommand query, ScopeContext context) => await new RestClient(_client)
+    public async Task<Option<QueryBatchResult>> Execute(DirectoryCommand query, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Directory}/command")
         .AddHeader(SpinConstants.Headers.TraceId, context.TraceId)
         .SetContent(query)
         .PostAsync(context.With(_logger))
-        .GetContent<GraphCommandResults>();
+        .GetContent<QueryBatchResult>();
 
     public async Task<Option> Clear(string principalId, ScopeContext context) => await new RestClient(_client)
         .SetPath($"/{SpinConstants.Schema.Directory}/{Uri.EscapeDataString(principalId)}/clear")

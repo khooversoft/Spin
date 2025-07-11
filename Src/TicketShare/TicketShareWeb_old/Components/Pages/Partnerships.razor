@@ -1,0 +1,29 @@
+﻿@page "/partnerships"
+
+@using TicketShareWeb.Application
+@using TicketShareWeb.Components.Controls;
+
+<h3>Partnerships</h3>
+
+<StandardToolbar Elements=Elements />
+
+@code {
+    private IReadOnlyList<IElement> Elements = null!;
+
+    protected override void OnInitialized()
+    {
+        Elements = new List<IElement>
+        {
+            new ButtonElement { Text = "Partnership", Callback = EventCallback.Factory.Create(this, Button1), StartEnd = new Icons.Regular.Size24.Add() },
+            new ButtonElement { Text = "Refresh", Callback = EventCallback.Factory.Create(this, Button2), StartEnd = new Icons.Regular.Size24.ArrowClockwise(), Disabled = true }
+        };
+    }
+
+    private void Button1()
+    {
+        var element = Elements.OfType<ButtonElement>().First(x => x.Text == "Refresh");
+        element.Disabled = !element.Disabled;
+    }
+
+    private void Button2() { Console.WriteLine("Button 2"); }
+}

@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Rest;
 using Toolbox.TestApi;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Rest;
@@ -19,7 +19,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
         var client = _testApiHost.CreateClient();
 
         var response = await client.GetStringAsync("/hello");
-        response.Should().Be("hello");
+        response.Be("hello");
     }
 
     [Fact]
@@ -32,9 +32,9 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<string>();
 
-        response.HasValue.Should().BeTrue();
-        response.IsOk().Should().BeTrue();
-        response.Return().Should().Be("hello");
+        response.HasValue.BeTrue();
+        response.IsOk().BeTrue();
+        response.Return().Be("hello");
     }
 
     [Fact]
@@ -47,10 +47,10 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<string>();
 
-        response.IsError().Should().BeTrue();
-        response.StatusCode.Should().Be(StatusCode.BadRequest);
-        response.Error.Should().Be("badRequest for hello");
-        response.HasValue.Should().BeFalse();
+        response.IsError().BeTrue();
+        response.StatusCode.Be(StatusCode.BadRequest);
+        response.Error.Be("badRequest for hello");
+        response.HasValue.BeFalse();
     }
 
     [Fact]
@@ -63,9 +63,9 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .ToOption();
 
-        response.StatusCode.IsError().Should().BeTrue();
-        response.StatusCode.Should().Be(StatusCode.Conflict);
-        response.Error.Should().BeNull();
+        response.StatusCode.IsError().BeTrue();
+        response.StatusCode.Be(StatusCode.Conflict);
+        response.Error.BeNull();
     }
 
     [Fact]
@@ -78,11 +78,11 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<string>();
 
-        response.IsError().Should().BeTrue();
-        response.StatusCode.Should().Be(StatusCode.Conflict);
-        response.Error.Should().BeNull();
-        response.HasValue.Should().BeFalse();
-        response.Value.Should().BeNull();
+        response.IsError().BeTrue();
+        response.StatusCode.Be(StatusCode.Conflict);
+        response.Error.BeNull();
+        response.HasValue.BeFalse();
+        response.Value.BeNull();
     }
 
     [Fact]
@@ -95,9 +95,9 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .ToOption();
 
-        response.StatusCode.Should().Be(StatusCode.OK);
-        response.StatusCode.IsError().Should().BeFalse();
-        response.Error.Should().BeNull();
+        response.StatusCode.Be(StatusCode.OK);
+        response.StatusCode.IsError().BeFalse();
+        response.Error.BeNull();
     }
 
     [Fact]
@@ -110,10 +110,10 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<TestModel>();
 
-        response.StatusCode.Should().Be(StatusCode.OK);
-        response.StatusCode.IsError().Should().BeFalse();
-        response.Error.Should().BeNull();
-        (response.Return() == ModelDefaults.TestModel).Should().BeTrue();
+        response.StatusCode.Be(StatusCode.OK);
+        response.StatusCode.IsError().BeFalse();
+        response.Error.BeNull();
+        (response.Return() == ModelDefaults.TestModel).BeTrue();
     }
 
     [Fact]
@@ -126,8 +126,8 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .ToOption();
 
-        response.StatusCode.Should().Be(StatusCode.OK);
-        response.StatusCode.IsError().Should().BeFalse();
-        response.Error.Should().Be("this works");
+        response.StatusCode.Be(StatusCode.OK);
+        response.StatusCode.IsError().BeFalse();
+        response.Error.Be("this works");
     }
 }

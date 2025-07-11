@@ -1,7 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using NBlog.sdk
 @using NBlogWeb3.Components.Controls
-@using NBlogWeb3.Models
+@using NBlogWeb3.Services
 @using Toolbox.Extensions
 @using Toolbox.Tools
 @using Toolbox.Types
@@ -23,6 +23,7 @@
                     <SlideLeftMenu />
                     <div class="x-left-menu-sidebar">
                         <div class="x-left-menu-container">
+                            <ArticleMenu />
                             <ConfigurationMenu />
                         </div>
                     </div>

@@ -4,6 +4,7 @@ using SpinCluster.abstraction;
 using SpinClusterCmd.Application;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -78,7 +79,8 @@ internal class Subscription : ICommandRoute
 
         SubscriptionModel model = readResult.Return();
 
+        context.LogInformation("Creating/Updating Subscription, model={model}", model);
         Option response = await _client.Set(model, context);
-        response.LogStatus(context, "Creating/Updating Subscription, model={model}", model);
+        response.LogStatus(context, "Creating/Updating Subscription");
     }
 }

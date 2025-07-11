@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -33,7 +33,7 @@ public class SiloConfigStore
             return new Option<SiloConfigOption>(StatusCode.NotFound);
         }
 
-        var siloConfigOption = result.Return().Data.ToObject<SiloConfigOption>().NotNull();
+        var siloConfigOption = result.Return().Data.AsSpan().ToObject<SiloConfigOption>().NotNull();
 
         var expanded = siloConfigOption with
         {

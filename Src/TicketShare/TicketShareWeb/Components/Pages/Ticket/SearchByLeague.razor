@@ -1,0 +1,62 @@
+﻿@page "/TicketGroup/SearchByLeague/{TicketGroupId}"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+@using TicketApi.sdk
+@using TicketShare.sdk
+@using TicketShareWeb.Components.Pages.Ticket.ScheduleSelect
+
+<LoadingBlock Loading=@_loading />
+
+@if (_scheduleContext != null)
+{
+    <FeedColumn>
+        <DialogControls OnClose="OnClose" OnSet="OnSet" DisableSave="_disableSave" />
+
+        <CascadingValue Value="_scheduleContext">
+            <SelectSegment OnRefresh="OnRefresh" />
+            <SelectGenre OnRefresh="OnRefresh" />
+            <SelectSubGenre OnRefresh="OnRefresh" />
+            <SelectTeam OnRefresh="OnRefresh" />
+            <SelectEvent OnRefresh="OnRefresh" />
+        </CascadingValue>
+
+    </FeedColumn>
+}
+
+
+@code {
+    [Parameter] public string TicketGroupId { get; set; } = null!;
+    @inject IServiceProvider _serviceProvider;
+    @inject ApplicationNavigation _appNavigation;
+    @inject ILogger<SearchByLeague> _logger;
+
+    private TicketScheduleContext? _scheduleContext = null!;
+    private bool _loading = true;
+    private bool _disableSave = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ScopeContext context = _logger.ToScopeContext();
+
+        _scheduleContext = ActivatorUtilities.CreateInstance<TicketScheduleContext>(_serviceProvider, TicketGroupId);
+
+        var loadOption = await _scheduleContext.LoadSegments(context);
+        if( loadOption.IsError())
+        {
+            context.LogError("Failed to load schedule context for TicketGroup {TicketGroupId}", TicketGroupId);
+            throw new InvalidOperationException($"Failed to load schedule context for TicketGroup {TicketGroupId}");
+        }
+
+        _loading = false;
+    }
+
+    private void OnClose() => _appNavigation.GotoTicketGroup(TicketGroupId);
+    private void OnSet() { }
+
+    private Task OnRefresh()
+    {
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+}

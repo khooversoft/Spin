@@ -50,7 +50,8 @@ public class ArticleDirectoryBuilder
         subject.NotNull();
 
         string tags = new Tags(subject.Tags)
-            .SetValue(NBlogConstants.OrderBy, subject.Index.ToString())
+            .Set(NBlogConstants.OrderBy, subject.Index.ToString())
+            .Set(NBlogConstants.KeyHashTag, subject.GetArticleIdHash())
             .ToString();
 
         return new GraphNode($"article:{subject.ArticleId}", tags);

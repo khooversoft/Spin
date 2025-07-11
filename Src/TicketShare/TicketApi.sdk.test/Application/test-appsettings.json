@@ -1,0 +1,25 @@
+{
+  "Ticket": {
+    "ApiKey": null,
+    "BatchSize": 200,
+    "EventUrl": "https://app.ticketmaster.com/discovery/v2/events",
+    "ClassificationUrl": "https://app.ticketmaster.com/discovery/v2/classifications",
+    "AttractionUrl": "https://app.ticketmaster.com//discovery/v2/attractions",
+    "ImageSelectors": [
+      {
+        "Ratio": "3_2",
+        "Width": 400,
+        "Height": 400
+      }
+    ]
+  },
+  "Storage": {
+    "Account": "devspinstore",
+    "Container": "test",
+    "BasePath": "ticketapi-tests",
+    "Credentials": {
+      "TenantId": "33470f72-2b3b-4a0b-837d-4ba9ba499d69",
+      "ClientId": "61ea128f-dc55-4653-9ad7-048853d2cc7c"
+    }
+  }
+} 

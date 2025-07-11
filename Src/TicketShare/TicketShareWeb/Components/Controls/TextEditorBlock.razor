@@ -1,0 +1,39 @@
+﻿<FluentStack Orientation="Orientation.Vertical" Style="margin: 20px 0px 10px 0px">
+    <div class="divider-trimmed"></div>
+
+    <FluentLabel style="margin: 0px" Typo="Typography.Body">Send a message to the channel</FluentLabel>
+
+    <FluentTextArea style="width: 100%;" @bind-Value=_text Placeholder="enter message to send" />
+
+    <FluentStack Orientation="Orientation.Horizontal">
+        <FluentSpacer />
+
+        @if (YesText.IsNotEmpty() && OnYes.HasDelegate)
+        {
+            <FluentButton Appearance="Appearance.Accent" OnClick="YesEvent">@YesText</FluentButton>
+        }
+
+        @if (NoText.IsNotEmpty() && OnNo.HasDelegate)
+        {
+            <FluentButton Appearance="Appearance.Stealth" OnClick="NoEvent">@NoText</FluentButton>
+        }
+
+    </FluentStack>
+</FluentStack>
+
+@code {
+    [Parameter] public string? YesText { get; set; }
+    [Parameter] public EventCallback<string> OnYes { get; set; }
+    [Parameter] public string? NoText { get; set; }
+    [Parameter] public EventCallback OnNo { get; set; }
+
+    private string _text = null!;
+
+    protected override void OnParametersSet()
+    {
+        _text = null!;
+    }
+
+    private Task YesEvent() => OnYes.InvokeAsync(_text);
+    private Task NoEvent() => OnNo.InvokeAsync();
+}

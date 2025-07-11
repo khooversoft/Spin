@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Toolbox.LangTools;
+﻿using Toolbox.LangTools;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Tokenizer;
 
-public  class UnicodeTokenizerTests
+public class UnicodeTokenizerTests
 {
     [Fact]
     public void CommonUnicoded()
@@ -29,16 +24,16 @@ public  class UnicodeTokenizerTests
                 new TokenValue(" "),
         };
 
-        tokens.Count.Should().Be(expectedTokens.Length);
+        tokens.Count.Be(expectedTokens.Length);
 
         tokens
             .Zip(expectedTokens, (o, i) => (o, i))
             .All(x => x.o.Value == x.i.Value)
-            .Should().BeTrue();
+            .BeTrue();
 
-        tokens[2].TokenType.Should().Be(TokenType.Unicode);
+        tokens[2].TokenType.Be(TokenType.Unicode);
     }
-    
+
     [Fact]
     public void CommonUnicodedNotEscaped()
     {
@@ -56,14 +51,14 @@ public  class UnicodeTokenizerTests
                 new TokenValue(" "),
         };
 
-        tokens.Count.Should().Be(expectedTokens.Length);
+        tokens.Count.Be(expectedTokens.Length);
 
         tokens
             .Zip(expectedTokens, (o, i) => (o, i))
             .All(x => x.o.Value == x.i.Value)
-            .Should().BeTrue();
+            .BeTrue();
     }
-    
+
     [Fact]
     public void StandardUnicoded()
     {
@@ -83,13 +78,13 @@ public  class UnicodeTokenizerTests
                 new TokenValue(" "),
         };
 
-        tokens.Count.Should().Be(expectedTokens.Length);
+        tokens.Count.Be(expectedTokens.Length);
 
         tokens
             .Zip(expectedTokens, (o, i) => (o, i))
             .All(x => x.o.Value == x.i.Value)
-            .Should().BeTrue();
-    
-        tokens[2].TokenType.Should().Be(TokenType.Unicode);
+            .BeTrue();
+
+        tokens[2].TokenType.Be(TokenType.Unicode);
     }
 }

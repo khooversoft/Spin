@@ -1,0 +1,36 @@
+﻿@rendermode InteractiveServer
+
+<FeedBlock Title="Which League?" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.SubGenre == null)" Disabled="@(_scheduleContext.Genre == null)">
+    <div style="margin: 10px">
+        <FluentStack Orientation="Orientation.Horizontal" Wrap=true>
+
+            @foreach (var item in _scheduleContext.GetSubGenreSelect())
+            {
+                bool isSelected = _scheduleContext.SubGenre?.Id == item.Id;
+                <SelectButton IsSelected="@isSelected" Id="@item.Id" Name="@item.Name" OnSwitch="SwitchButton" />
+            }
+
+        </FluentStack>
+    </div>
+</FeedBlock>
+
+@code {
+    [CascadingParameter] public TicketScheduleContext _scheduleContext { get; set; } = null!;
+    [Parameter] public EventCallback OnRefresh { get; set; }
+    @inject ILogger<SelectSubGenre> _logger;
+
+    private async Task Refresh() => await OnRefresh.InvokeAsync();
+
+    private async Task OnEdit()
+    {
+        _scheduleContext.SetSubGenre(null);
+        await Refresh();
+    }
+
+    private async Task SwitchButton(string id)
+    {
+        _scheduleContext.SetSubGenre(id);
+        await _scheduleContext.LoadAttractions(_logger.ToScopeContext());
+        await Refresh();
+    }
+}

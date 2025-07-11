@@ -18,6 +18,28 @@ public class ArticleDirectoryClient
         _logger = logger.NotNull();
     }
 
+    public async Task<Option<ArticleReference>> GetReference(string hashKey, ScopeContext context)
+    {
+        var query = $"select (hashkey={hashKey});";
+
+        var result = await _directoryActor.Execute(query, context.TraceId);
+        if (result.IsError())
+        {
+            context.Location().LogError("Query failed to execute, query={query} with directoryActor", query);
+            return StatusCode.NotFound;
+        }
+
+        GraphQueryResult graphResult = result.Return().Items[0];
+        var nodes = graphResult.Items.OfType<GraphNode>().ToArray();
+        if (nodes.Length == 0) return StatusCode.NotFound;
+
+        var reference = nodes
+            .Select(x => new ArticleReference(RemovePrefix(x.Key), x.Tags[NBlogConstants.OrderBy].NotNull()))
+            .First();
+
+        return reference;
+    }
+
     public async Task<IReadOnlyList<ArticleReference>> GetSummaries(string dbName, ScopeContext context)
     {
         var query = $"select ('db={dbName.ToLower()}') a1 -> [summary;toKey=file:*];";
@@ -47,7 +69,6 @@ public class ArticleDirectoryClient
 
     public Task<IReadOnlyList<ArticleIndex>> GetSummaryIndexes(string dbName, ScopeContext context) => GetIndexes(dbName, "*", "summary", context);
     public Task<IReadOnlyList<ArticleIndex>> GetSummaryIndexes(string dbName, string indexName, ScopeContext context) => GetIndexes(dbName, indexName, "summary", context);
-
     public Task<IReadOnlyList<ArticleIndex>> GetDocIndexes(string dbName, ScopeContext context) => GetIndexes(dbName, "*", "main", context);
 
     public async Task<IReadOnlyList<ArticleIndex>> GetIndexes(string dbName, string indexName, string docAttribute, ScopeContext context)

@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.Block.Test;
 
@@ -10,8 +10,8 @@ public class BlockAccessListTests
     {
         var a1 = new AclBlock();
         var a2 = new AclBlock();
-        (a1 == a2).Should().BeTrue();
-        (a1 != a2).Should().BeFalse();
+        (a1 == a2).BeTrue();
+        (a1 != a2).BeFalse();
     }
 
     [Fact]
@@ -27,8 +27,8 @@ public class BlockAccessListTests
             AccessRights = new AccessBlock { Grant = BlockGrant.Write, Claim = "read.system", BlockType = "blockType", PrincipalId = "user1@domain.com" }.ToEnumerable().ToArray(),
         };
 
-        (a1 == a2).Should().BeTrue();
-        (a1 != a2).Should().BeFalse();
+        (a1 == a2).BeTrue();
+        (a1 != a2).BeFalse();
     }
 
     [Fact]
@@ -44,8 +44,8 @@ public class BlockAccessListTests
             AccessRights = new AccessBlock { Grant = BlockGrant.Read, Claim = "read.system", BlockType = "blockType", PrincipalId = "user2@domain.com" }.ToEnumerable().ToArray(),
         };
 
-        (a1 == a2).Should().BeFalse();
-        (a1 != a2).Should().BeTrue();
+        (a1 == a2).BeFalse();
+        (a1 != a2).BeTrue();
     }
 
     [Fact]
@@ -69,8 +69,8 @@ public class BlockAccessListTests
             },
         };
 
-        (a1 == a2).Should().BeTrue();
-        (a1 != a2).Should().BeFalse();
+        (a1 == a2).BeTrue();
+        (a1 != a2).BeFalse();
     }
 
     [Fact]
@@ -94,8 +94,8 @@ public class BlockAccessListTests
             },
         };
 
-        (a1 == a2).Should().BeFalse();
-        (a1 != a2).Should().BeTrue();
+        (a1 == a2).BeFalse();
+        (a1 != a2).BeTrue();
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class BlockAccessListTests
             },
         };
 
-        (a1 == a2).Should().BeFalse();
-        (a1 != a2).Should().BeTrue();
+        (a1 == a2).BeFalse();
+        (a1 != a2).BeTrue();
     }
 }

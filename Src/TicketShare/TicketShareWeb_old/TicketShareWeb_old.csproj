@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-TicketShareWeb-e9076773-e3de-4c20-8260-df0e9c390006</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="Components\Account\Old\Pages\UserProfile.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="8.0.7" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="7.3.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.10.0" />
+  </ItemGroup>
+  <ItemGroup>
+	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.*-* " />
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.*-* " />
+    <PackageReference Include="Microsoft.Orleans.Server" Version="8.2.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Toolbox.Identity\Toolbox.Identity.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+    <ProjectReference Include="..\TicketShare.sdk\TicketShare.sdk.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Components\Shared\" />
+    <Folder Include="Config\" />
+  </ItemGroup>
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Components\Account\Old\Pages\UserProfile.razor" />
+  </ItemGroup>
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Components\Account\Old\Pages\UserProfile.razor" />
+    <_ContentIncludedByDefault Remove="Components\Account\UserProfilePanel.razor" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Components\Account\UserProfile.razor" />
+  </ItemGroup>
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Components\Account\UserProfilePanel.razor" />
+  </ItemGroup>
+</Project>

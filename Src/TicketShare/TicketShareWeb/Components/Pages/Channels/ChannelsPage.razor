@@ -1,0 +1,132 @@
+﻿@page "/Channels"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+@using TicketShare.sdk
+@using Toolbox.Graph.Extensions
+
+<LoadingBlock Loading=@_loading />
+
+@if (_inputs != null)
+{
+    <FeedColumn>
+        <FeedBlock Title="Channels">
+
+            <FluentDataGrid Class="feed-block-datagrid"
+                            Items="@_entries"
+                            ShowHover="true"
+                            TGridItem="ChannelInfo"
+                            OnCellClick="HandleCellFocus"
+                            AutoFit="true"
+                            GenerateHeader=GenerateHeaderOption.None>
+
+                <PropertyColumn Property="@(p => p.Name)" Sortable="true" />
+
+                <TemplateColumn Style="margin:0px;padding:0px" Title="Actions" Align="@Align.End">
+                    <FluentButton left-justified-button IconEnd="@(new Icons.Regular.Size16.Edit())" OnClick="@(() => Edit(context))" />
+                </TemplateColumn>
+            </FluentDataGrid>
+
+        </FeedBlock>
+    </FeedColumn>
+}
+
+@code {
+    [Inject] public ApplicationNavigation _appNavigation { get; set; } = null!;
+    [Inject] public UserAccountContext _userAccountContext { get; set; } = null!;
+    [Inject] public ChannelClient _channelClient { get; set; } = null!;
+    [Inject] public IDialogService _dialogService { get; set; } = null!;
+    [Inject] public IMessageService _messageService { get; set; } = null!;
+    [Inject] public ILogger<ChannelsPage> _logger { get; set; } = null!;
+
+    private bool _loading { get; set; } = true;
+
+    private IReadOnlyList<ChannelInfo>? _inputs;
+    private IQueryable<ChannelInfo> _entries = null!;
+    private RightPanelDialog<ChannelHeaderModel, EditChannelHeaderDialog> _rightPanelDialog = null!;
+    private ScopeContext _context;
+
+    private record TicketGroupDetail(string TicketGroupId, string Name, string? Description);
+
+    protected override void OnInitialized() => _context = new ScopeContext(_logger);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _rightPanelDialog = new RightPanelDialog<ChannelHeaderModel, EditChannelHeaderDialog>(
+            _dialogService,
+            x => SetChannel(x),
+            null
+            );
+
+        await Refresh();
+    }
+
+    private void HandleCellFocus(FluentDataGridCell<ChannelInfo> row)
+    {
+        if (row.GridColumn != 1) return;
+
+        row.Item.NotNull();
+        _appNavigation.GotoChannel(row.Item.ChannelId);
+    }
+
+    private async Task Edit(ChannelInfo channelInfo)
+    {
+        var model = new ChannelHeaderModel
+            {
+                ChannelId = channelInfo.ChannelId,
+                Name = channelInfo.Name
+            };
+
+        var result = await _rightPanelDialog.Edit(model, "Edit Channel");
+        if (result == RightPanelDialog.Canceled) return;
+
+        await Refresh();
+    }
+
+    private async Task Refresh()
+    {
+        await SetLoading(true);
+
+        var principalOption = await _userAccountContext.GetPrincipalIdentity(_context).ConfigureAwait(false);
+        if (principalOption.IsError())
+        {
+            _inputs = null;
+            return;
+        }
+
+        var principalId = principalOption.Return().PrincipalId;
+
+        var result = await _channelClient.GetChannelsInfo(principalId, _context);
+        result.ThrowOnError();
+
+        _inputs = result.Return();
+        _entries = _inputs
+            .OrderBy(x => x.Name)
+            .AsQueryable();
+
+        await SetLoading(false);
+    }
+
+    private async Task SetLoading(bool visible)
+    {
+        _loading = visible;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SetChannel(ChannelHeaderModel header)
+    {
+        await SetLoading(true);
+
+        var principalOption = await _userAccountContext.GetPrincipalIdentity(_context).ConfigureAwait(false);
+        if (principalOption.IsError()) return;
+        var principalId = principalOption.Return().PrincipalId;
+
+        var result = await _channelClient.GetContext(header.ChannelId, principalId).SetName(header.Name, _context);
+        if (result.IsError())
+        {
+            await _messageService.ShowMessageBarAsync(result.Error.NotEmpty(), MessageIntent.Error, Constants.TopMessageSection);
+        }
+
+        await SetLoading(false);
+    }
+}

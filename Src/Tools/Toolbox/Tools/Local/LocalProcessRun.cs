@@ -29,7 +29,7 @@ public class LocalProcessRun
         int isRunning = Interlocked.CompareExchange(ref _isRunning, 1, 0);
         if (isRunning == 1) return new Option<int>(-1).ToTaskResult();
 
-        _tokenSource = CancellationTokenSource.CreateLinkedTokenSource(context.Token);
+        _tokenSource = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken);
         _tcs = new TaskCompletionSource<Option<int>>();
 
         _process.OutputDataReceived += (s, e) => LogOutput(e.Data);

@@ -1,8 +1,7 @@
-﻿using Azure;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using SpinCluster.abstraction;
 using SpinCluster.sdk.Services;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -101,7 +100,7 @@ public class StorageActor : Grain, IStorageActor
         var blob = new StorageBlobBuilder()
             .SetStorageId(this.GetPrimaryKeyString())
             .SetETag(dataETag.ETag?.ToString())
-            .SetContent(dataETag.Data)
+            .SetContent(dataETag.Data.AsSpan())
             .Build();
 
         return blob;
@@ -112,7 +111,7 @@ public class StorageActor : Grain, IStorageActor
         var context = new ScopeContext(traceId, _logger);
         context.Location().LogInformation("Exist storage, actorKey={actorKey}", this.GetPrimaryKeyString());
 
-        if (!blob.Validate(out var v)) return v;
+        if (blob.Validate().IsError(out var v)) return v;
 
         bool matchActorKey = blob.StorageId.EqualsIgnoreCase(this.GetPrimaryKeyString());
         if (!matchActorKey) return (StatusCode.BadRequest, $"Storage Id={blob.StorageId} does not match actorKey={this.GetPrimaryKeyString()}");
@@ -126,7 +125,7 @@ public class StorageActor : Grain, IStorageActor
         var dataEtag = blob.ETag switch
         {
             null => new DataETag(blob.Content),
-            string e => new DataETag(blob.Content, new ETag(e))
+            string e => new DataETag(blob.Content, e)
         };
 
         var result = await store.Write(filePath, dataEtag, true, context);

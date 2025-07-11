@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -12,11 +11,11 @@ public class OptionSerializationTests
         var option = new Option(StatusCode.OK);
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.NotEmpty();
 
         Option readOption = Json.Default.Deserialize<Option>(json);
-        readOption.StatusCode.Should().Be(option.StatusCode);
-        readOption.Error.Should().Be(option.Error);
+        readOption.StatusCode.Be(option.StatusCode);
+        readOption.Error.Be(option.Error);
     }
 
     [Fact]
@@ -25,11 +24,11 @@ public class OptionSerializationTests
         var option = new Option(StatusCode.NotFound, "Error message");
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.NotEmpty();
 
         Option readOption = Json.Default.Deserialize<Option>(json);
-        readOption.StatusCode.Should().Be(option.StatusCode);
-        readOption.Error.Should().Be(option.Error);
+        readOption.StatusCode.Be(option.StatusCode);
+        readOption.Error.Be(option.Error);
     }
 
     [Fact]
@@ -38,12 +37,12 @@ public class OptionSerializationTests
         var option = new Option<string>(StatusCode.OK);
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.NotEmpty();
 
         Option<string> readOption = Json.Default.Deserialize<Option<string>>(json);
-        readOption.StatusCode.Should().Be(option.StatusCode);
-        readOption.Value.Should().Be(option.Value);
-        readOption.Error.Should().Be(option.Error);
+        readOption.StatusCode.Be(option.StatusCode);
+        readOption.Value.Be(option.Value);
+        readOption.Error.Be(option.Error);
     }
 
     [Fact]
@@ -52,12 +51,12 @@ public class OptionSerializationTests
         var option = new Option<string>(StatusCode.NotFound, "Error message");
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.NotEmpty();
 
         Option<string> readOption = Json.Default.Deserialize<Option<string>>(json);
-        readOption.StatusCode.Should().Be(option.StatusCode);
-        readOption.Value.Should().Be(option.Value);
-        readOption.Error.Should().Be(option.Error);
+        readOption.StatusCode.Be(option.StatusCode);
+        readOption.Value.Be(option.Value);
+        readOption.Error.Be(option.Error);
     }
 
     [Fact]
@@ -66,12 +65,12 @@ public class OptionSerializationTests
         var option = new Option<string>("value");
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.NotEmpty();
 
         Option<string> readOption = Json.Default.Deserialize<Option<string>>(json);
-        readOption.StatusCode.Should().Be(option.StatusCode);
-        readOption.Value.Should().Be(option.Value);
-        readOption.Error.Should().Be(option.Error);
+        readOption.StatusCode.Be(option.StatusCode);
+        readOption.Value.Be(option.Value);
+        readOption.Error.Be(option.Error);
     }
 
     [Fact]
@@ -80,11 +79,11 @@ public class OptionSerializationTests
         var option = new Option<string>("value", StatusCode.NotFound);
 
         var json = Json.Default.Serialize(option);
-        json.Should().NotBeNullOrEmpty();
+        json.NotEmpty();
 
         Option<string> readOption = Json.Default.Deserialize<Option<string>>(json);
-        readOption.StatusCode.Should().Be(option.StatusCode);
-        readOption.Value.Should().Be(option.Value);
-        readOption.Error.Should().Be(option.Error);
+        readOption.StatusCode.Be(option.StatusCode);
+        readOption.Value.Be(option.Value);
+        readOption.Error.Be(option.Error);
     }
 }

@@ -1,0 +1,142 @@
+﻿@page "/RegisterExternalLogin/{id}"
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Identity
+@using System.Security.Claims
+@using Toolbox.Graph.Extensions
+@using Toolbox.Extensions
+@using Microsoft.Extensions.Caching.Memory;
+
+<PageTitle>Register</PageTitle>
+
+<FluentStack Orientation="Orientation.Vertical">
+    <FluentCard Class="card-container" Width="380px">
+        Welcome, please complete the registration..
+    </FluentCard>
+
+    <FluentTextField Class="form-editbox"
+                     Name="Email"
+                     Label="Email"
+                     @bind-Value="_email"
+                     Placeholder="Enter email address for commuication"
+                     @oninput="OnEmailChange" />
+
+    <FluentTextField Class="form-editbox"
+                     Name="UserName"
+                     Label="User Name"
+                     @bind-Value="_userName"
+                     Placeholder="Enter your name"
+                     @oninput="OnUserNameChange" />
+
+    <FluentButton Appearance="Appearance.Accent" Style="width: 100%;margin: 10px 0px" Disabled=@_disableSave OnClick="onRegister">Register</FluentButton>
+
+    <FluentOverlay @bind-Visible=@_visible
+                   Opacity="0.4"
+                   Alignment=Align.Center
+                   Justification=JustifyContent.Center>
+        <FluentProgressRing />
+    </FluentOverlay>
+
+</FluentStack>
+
+
+@code {
+    [Parameter] public string id { get; set; } = default!;
+
+    @inject AuthenticationStateProvider _authenticationStateProvider;
+    @inject SignInManager<PrincipalIdentity> SignInManager;
+    @inject UserManager<PrincipalIdentity> UserManager;
+    @inject ApplicationNavigation _appNavigation;
+    @inject IUserStore<PrincipalIdentity> UserStore;
+    @inject VerifyEmail _verifyEmail;
+    @inject AuthenticationStateProvider _authenticationStateProvider;
+    @inject IMessageService _messageService;
+    @inject IMemoryCache _memoryCache
+    @inject ILogger<RegisterExternalLogin> _logger;
+
+    private ScopeContext _context;
+    private string _email = null!;
+    private string _userName = null!;
+    private bool _disableSave = false;
+    private bool _visible = false;
+    private PrincipalIdentity _principalIdentity = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _context = new ScopeContext(_logger);
+
+        if (!_memoryCache.TryGetValue(id, out PrincipalIdentity? readIdentity))
+        {
+            _context.LogError("No external login information found.");
+            _appNavigation.GotoHome();
+            return;
+        }
+        _principalIdentity = readIdentity.NotNull();
+
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == false)
+        {
+            _context.LogError("User not authenticated.");
+            _appNavigation.GotoHome();
+            return;
+        }
+
+        string principalId = authState.User.Identity.NotNull().Name.NotEmpty();
+        if (_principalIdentity.PrincipalId != principalId)
+        {
+            _context.LogError("PrincipalId does not match.");
+            _appNavigation.GotoHome();
+            return;
+        }
+
+        _userName = _principalIdentity.Name.NotEmpty();
+        _email = _principalIdentity.Email.ToLower();
+
+        // _userName = "user name";
+        // _email = "email@domain.com";
+
+        await base.OnInitializedAsync();
+    }
+
+    private void OnEmailChange(ChangeEventArgs e) => Update(() => _email = e.Value?.ToString() ?? _email);
+    private void OnUserNameChange(ChangeEventArgs e) => Update(() => _userName = e.Value?.ToString() ?? _userName);
+
+    private async Task onRegister()
+    {
+        _principalIdentity.NotNull();
+        _visible = true;
+
+        // var user = new PrincipalIdentity
+        //     {
+        //         PrincipalId = _principalId.ToLower(),
+        //         Name = _userName,
+        //         Email = _email,
+        //         EmailConfirmed = false,
+        //     };
+
+        // await UserStore.SetUserNameAsync(user, _userName, CancellationToken.None);
+
+        IdentityResult result = await UserManager.CreateAsync(_principalIdentity);
+        if (!result.Succeeded)
+        {
+            _visible = false;
+            await _messageService.ShowMessageBarAsync(result.ToString(), MessageIntent.Error, Constants.TopMessageSection);
+            return;
+        }
+
+        _context.LogInformation("Created a user account principalId={principalId} using {Name} provider.", _principalIdentity.PrincipalId, _principalIdentity.LoginProvider);
+        (await _verifyEmail.Send(_principalIdentity, "Account/ConfirmEmail", _context)).LogStatus(_context, "Failed to send conformation email").ThrowOnError();
+
+        _memoryCache.Remove(id);
+        _appNavigation.GotoHome();
+    }
+
+    private void Update(Action update)
+    {
+        update();
+        _disableSave = !HasDataRequired();
+    }
+
+    private bool HasDataRequired() => IsValidEmail(_email) && _userName.IsNotEmpty();
+    private bool IsValidEmail(string value) => value.IsNotEmpty() && StandardValidation.IsEmail(value);
+}

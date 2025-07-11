@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.LangTools;
+﻿using Toolbox.LangTools;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Tokenizer;
 
@@ -14,7 +14,7 @@ public class BlockTokenizerTests
             .UseSingleQuote()
             .Parse("\"quote\"");
 
-        tokens.Count.Should().Be(1);
+        tokens.Count.Be(1);
     }
 
 
@@ -27,7 +27,7 @@ public class BlockTokenizerTests
             .UseSingleQuote()
             .Parse("'quote'");
 
-        tokens.Count.Should().Be(1);
+        tokens.Count.Be(1);
     }
 
     [Fact]
@@ -141,11 +141,11 @@ public class BlockTokenizerTests
 
     private static void test(IReadOnlyList<IToken> tokens, IToken[] expectedTokens)
     {
-        tokens.Count.Should().Be(expectedTokens.Length);
+        tokens.Count.Be(expectedTokens.Length);
 
         tokens
             .Zip(expectedTokens, (o, i) => (o, i))
             .All(x => x.o.Value == x.i.Value)
-            .Should().BeTrue();
+            .BeTrue();
     }
 }

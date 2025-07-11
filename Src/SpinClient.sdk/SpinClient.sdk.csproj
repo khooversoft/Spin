@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SpinCluster.abstraction\SpinCluster.abstraction.csproj" />
     <ProjectReference Include="..\Tools\Toolbox.CommandRouter\Toolbox.CommandRouter.csproj" />
+    <ProjectReference Include="..\Tools\Toolbox.Graph\Toolbox.Graph.csproj" />
     <ProjectReference Include="..\Tools\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

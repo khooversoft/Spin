@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Test.Tools;
@@ -9,7 +8,7 @@ public class DirectoryToolTests
     [Fact]
     public void TestDirectoryFind()
     {
-        string[] roots = [@"d:\sources", @"c:\sources"];
+        string[] roots = [@"d:\sources", @"c:\sources", @"e:\sources"];
         var stack = roots.Reverse().ToStack();
 
         while (stack.TryPop(out var rootPath))
@@ -18,7 +17,7 @@ public class DirectoryToolTests
             if (list.Count == 0) continue;
 
             string matchTo = Path.Combine(rootPath, "NBlogArticles", "Src");
-            list[0].Should().Be(matchTo);
+            list[0].Be(matchTo);
             return;
         }
 

@@ -1,0 +1,71 @@
+﻿@rendermode InteractiveServer
+@using TicketApi.sdk
+
+<FeedBlock Title="Select Event" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Events.Count == 0)" Disabled="@(_scheduleContext.Team == null)">
+    <FluentDataGrid Class="feed-block-datagrid"
+                    Items="@GetEvents()"
+                    ShowHover="true"
+                    GenerateHeader=GenerateHeaderOption.None
+                    TGridItem="EventRecordSelect"
+                    AutoFit="true"
+                    ResizableColumns="false"
+                    OnRowClick="HandleRowFocus"
+                    RowClass="@GetRowClass">
+
+        <TemplateColumn Width="25px" Style="padding: 0" TGridItem="EventRecordSelect">
+            <FluentCheckbox Appearance="Appearance.Accent" @bind-Value="@context.Selected" @onclick="@(() => SwitchButton(context.Id))" />
+        </TemplateColumn>
+
+        <PropertyColumn Property="@(p => p.Date)" Sortable="true" Format="MM/dd/yy" Width="65px" Style="padding: 6px 2px" />
+        <PropertyColumn Property="@(p => p.Name)" Sortable="true" Style="padding: 6px 2px" />
+    </FluentDataGrid>
+
+</FeedBlock>
+
+@* <FeedBlock Title="Select Event" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Events.Count == 0)" Disabled="@(_scheduleContext.Team == null)">
+    <div style="margin: 10px">
+        <FluentStack Orientation="Orientation.Horizontal" Wrap=true>
+
+            @foreach (var item in _scheduleContext.GetEventSelect(_ticketOption.OnlyHomeGames))
+            {
+                bool isSelected = item.selected;
+                string data = $"{item.eventRecord.Name}-{item.eventRecord.LocalDateTime?.ToString()}";
+                <SelectButton IsSelected="@isSelected" Id="@item.eventRecord.Id" Name="@data" OnSwitch="SwitchButton" />
+            }
+
+        </FluentStack>
+
+    </div>
+</FeedBlock>
+ *@
+@code {
+    [CascadingParameter] public TicketScheduleContext _scheduleContext { get; set; } = null!;
+    [Parameter] public EventCallback OnRefresh { get; set; }
+    @inject ILogger<SelectEvent> _logger;
+    @inject TicketOption _ticketOption;
+
+    private async Task Refresh() => await OnRefresh.InvokeAsync();
+
+    private async Task OnEdit()
+    {
+        _scheduleContext.SetEvent(null);
+        await Refresh();
+    }
+
+    private async Task SwitchButton(string id)
+    {
+        _scheduleContext.SetEvent(id);
+        await Refresh();
+    }
+
+    private async Task HandleRowFocus(FluentDataGridRow<EventRecordSelect> row)
+    {
+        _scheduleContext.SetEvent(row.Item.NotNull().Id);
+        await Refresh();
+    }
+
+
+    private string GetRowClass(EventRecordSelect eventDisplay) => eventDisplay.Selected ? "highlight-row" : string.Empty;
+
+    private IQueryable<EventRecordSelect> GetEvents() => _scheduleContext.GetEventSelect().AsQueryable();
+}

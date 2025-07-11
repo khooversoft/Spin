@@ -80,18 +80,24 @@ public static class MustExtensions
 {
     public static Rule<T, TProperty> Must<T, TProperty>(this Rule<T, TProperty> rule, Func<TProperty, Option> check)
     {
+        rule.NotNull();
+        check.NotNull();
         rule.PropertyRule.Validators.Add(new MustFunc<T, TProperty>(rule.PropertyRule, check));
         return rule;
     }
 
     public static Rule<T, TProperty> Must<T, TProperty>(this Rule<T, TProperty> rule, Func<T, TProperty, Option> check)
     {
+        rule.NotNull();
+        check.NotNull();
         rule.PropertyRule.Validators.Add(new MustFuncWithSubject<T, TProperty>(rule.PropertyRule, check));
         return rule;
     }
 
     public static Rule<T, TProperty> Must<T, TProperty>(this Rule<T, TProperty> rule, Func<TProperty, bool> check, Func<TProperty, string> getMsg)
     {
+        rule.NotNull();
+        check.NotNull();
         getMsg.NotNull();
         rule.PropertyRule.Validators.Add(new MustTest<T, TProperty>(rule.PropertyRule, check, getMsg));
         return rule;

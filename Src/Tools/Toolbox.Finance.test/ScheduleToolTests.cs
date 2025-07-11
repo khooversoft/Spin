@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Finance.Finance;
+﻿using Toolbox.Finance.Finance;
+using Toolbox.Tools;
 
 namespace Toolbox.Finance.test;
 
@@ -13,8 +13,8 @@ public class ScheduleToolTests
         int numberOfPayments = 36;
 
         IReadOnlyList<DateTime> dates = ScheduleTool.CalculatePaymentSchedule(startDate, numberOfPayments, paymentsPerYear);
-        dates.Should().NotBeNull();
-        dates.Count.Should().Be(numberOfPayments);
+        dates.NotNull();
+        dates.Count.Be(numberOfPayments);
 
         var shouldMatch = new[]
         {
@@ -29,8 +29,8 @@ public class ScheduleToolTests
             new DateTime(2002, 9, 1), new DateTime(2002, 10, 1), new DateTime(2002, 11, 1), new DateTime(2002, 12, 1),
         };
 
-        Enumerable.SequenceEqual(dates, shouldMatch).Should().BeTrue();
-        dates.Count.Should().Be(shouldMatch.Length);
+        Enumerable.SequenceEqual(dates, shouldMatch).BeTrue();
+        dates.Count.Be(shouldMatch.Length);
     }
 
     [Fact]
@@ -41,8 +41,8 @@ public class ScheduleToolTests
         int numberOfPayments = 5;
 
         IReadOnlyList<DateTime> dates = ScheduleTool.CalculatePaymentSchedule(startDate, numberOfPayments, paymentsPerYear);
-        dates.Should().NotBeNull();
-        dates.Count.Should().Be(numberOfPayments);
+        dates.NotNull();
+        dates.Count.Be(numberOfPayments);
 
         var shouldMatch = new[]
         {
@@ -50,8 +50,8 @@ public class ScheduleToolTests
             new DateTime(2004, 1, 1),
         };
 
-        Enumerable.SequenceEqual(dates, shouldMatch).Should().BeTrue();
-        dates.Count.Should().Be(shouldMatch.Length);
+        Enumerable.SequenceEqual(dates, shouldMatch).BeTrue();
+        dates.Count.Be(shouldMatch.Length);
     }
 
     [Fact]
@@ -62,8 +62,8 @@ public class ScheduleToolTests
         int numberOfPayments = (2 * paymentsPerYear);
 
         IReadOnlyList<DateTime> dates = ScheduleTool.CalculatePaymentSchedule(startDate, numberOfPayments, paymentsPerYear);
-        dates.Should().NotBeNull();
-        dates.Count.Should().Be(numberOfPayments);
+        dates.NotNull();
+        dates.Count.Be(numberOfPayments);
 
         var shouldMatch = new[]
         {
@@ -71,8 +71,8 @@ public class ScheduleToolTests
             new DateTime(2001, 1, 1), new DateTime(2001, 4, 1), new DateTime(2001, 7, 1), new DateTime(2001, 10, 1),
         };
 
-        Enumerable.SequenceEqual(dates, shouldMatch).Should().BeTrue();
-        dates.Count.Should().Be(shouldMatch.Length);
+        Enumerable.SequenceEqual(dates, shouldMatch).BeTrue();
+        dates.Count.Be(shouldMatch.Length);
     }
 
     [Fact]
@@ -83,8 +83,8 @@ public class ScheduleToolTests
         int numberOfPayments = (2 * paymentsPerYear);
 
         IReadOnlyList<DateTime> dates = ScheduleTool.CalculatePaymentSchedule(startDate, numberOfPayments, paymentsPerYear);
-        dates.Should().NotBeNull();
-        dates.Count.Should().Be(numberOfPayments);
+        dates.NotNull();
+        dates.Count.Be(numberOfPayments);
 
         var shouldMatch = new[]
         {
@@ -103,8 +103,8 @@ public class ScheduleToolTests
             new DateTime(2001, 11, 3), new DateTime(2001, 11, 17), new DateTime(2001, 12, 1), new DateTime(2001, 12, 15),
         };
 
-        Enumerable.SequenceEqual(dates, shouldMatch).Should().BeTrue();
-        dates.Count.Should().Be(shouldMatch.Length);
+        Enumerable.SequenceEqual(dates, shouldMatch).BeTrue();
+        dates.Count.Be(shouldMatch.Length);
     }
 
     [Fact]
@@ -115,8 +115,8 @@ public class ScheduleToolTests
         int numberOfPayments = (2 * paymentsPerYear);
 
         IReadOnlyList<DateTime> dates = ScheduleTool.CalculatePaymentSchedule(startDate, numberOfPayments, paymentsPerYear);
-        dates.Should().NotBeNull();
-        dates.Count.Should().Be(numberOfPayments);
+        dates.NotNull();
+        dates.Count.Be(numberOfPayments);
 
         var shouldMatch = new[]
         {
@@ -148,7 +148,7 @@ public class ScheduleToolTests
             new DateTime(2001, 12, 1), new DateTime(2001, 12, 8), new DateTime(2001, 12, 15), new DateTime(2001, 12, 22),
         };
 
-        Enumerable.SequenceEqual(dates, shouldMatch).Should().BeTrue();
-        dates.Count.Should().Be(shouldMatch.Length);
+        Enumerable.SequenceEqual(dates, shouldMatch).BeTrue();
+        dates.Count.Be(shouldMatch.Length);
     }
 }

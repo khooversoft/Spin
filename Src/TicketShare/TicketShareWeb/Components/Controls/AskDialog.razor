@@ -1,0 +1,15 @@
+﻿@implements IDialogContentComponent<string>
+
+<FluentDialogBody>
+    <Ask OnYes="OnYes" OnNo="OnNo">
+        <FluentLabel>@Content</FluentLabel>
+    </Ask>
+</FluentDialogBody>
+
+@code {
+    [Parameter] public string Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+
+    private async Task OnYes() => await Dialog.CloseAsync();
+    private async Task OnNo() => await Dialog.CancelAsync();
+}

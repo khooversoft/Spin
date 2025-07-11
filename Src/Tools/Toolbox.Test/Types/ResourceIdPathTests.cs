@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -17,6 +17,6 @@ public class ResourceIdPathTests
     {
         ResourceId id = resourceId;
         string filePath = id.BuildPathWithExtension();
-        filePath.Should().Be(shouldBePath, resourceId);
+        filePath.Be(shouldBePath, resourceId);
     }
 }

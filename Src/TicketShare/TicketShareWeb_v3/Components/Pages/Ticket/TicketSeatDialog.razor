@@ -1,0 +1,38 @@
+﻿@using TicketShare.sdk
+
+@implements IDialogContentComponent<PanelParameters<SeatModel>>
+
+<FluentDialogBody>
+    <DialogFrame OnClose="OnCloseButton" OnSet="OnSetButton" OnDelete="OnDeleteButton" ShowDelete="Content.IsEdit" DisableSave="_disableSave">
+
+        <FluentTextField Label="Seat Id:" Class="dialog-editbox" @bind-Value="@Content.Value.SeatId" @oninput="OnSeat" />
+        <FluentDatePicker Label="Days view" AriaLabel="To" @bind-Value="@Content.Value.Date" oninput="OnDate" />
+        <FluentTextField Label="Assign To:" Class="dialog-editbox" @bind-Value="@Content.Value.AssignedToPrincipalId" @oninput="OnAssignedTo" />
+
+    </DialogFrame>
+
+</FluentDialogBody>
+
+@code {
+    [Parameter] public PanelParameters<SeatModel> Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = null!;
+
+    private SeatModel _current = default!;
+    private bool _disableSave = true;
+
+    protected override void OnParametersSet() => _current = Content.Value.Clone();
+
+    private async Task OnSetButton() => await Dialog.CloseAsync(PanelResult<SeatModel>.Set(Content.Value));
+    private async Task OnDeleteButton() => await Dialog.CloseAsync(PanelResult<SeatModel>.Delete());
+    private async Task OnCloseButton() => await Dialog.CancelAsync();
+
+    private void OnSeat(ChangeEventArgs e) => UpdateState(() => Content.Value.SeatId = e.Value?.ToString() ?? Content.Value.SeatId);
+    private void OnDate(ChangeEventArgs e) => UpdateState(() => Content.Value.Date = e.Value != null ? (DateTime)e.Value : Content.Value.Date);
+    private void OnAssignedTo(ChangeEventArgs e) => UpdateState(() => Content.Value.AssignedToPrincipalId = e.Value?.ToString() ?? Content.Value.AssignedToPrincipalId);
+
+    private void UpdateState(Action update)
+    {
+        update();
+        _disableSave = Content.Value == _current;
+    }
+}

@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Finance.Finance;
+﻿using Toolbox.Finance.Finance;
+using Toolbox.Tools;
 
 namespace Toolbox.Finance.test;
 
@@ -17,7 +17,7 @@ public class CalculatePaymentTests
         };
 
         decimal payment = AmortizedLoanTool.CalculatePayment(terms);
-        payment.Should().Be(536.82m);
+        payment.Be(536.82m);
     }
 
     [Fact]
@@ -32,6 +32,6 @@ public class CalculatePaymentTests
         };
 
         decimal payment = AmortizedLoanTool.CalculatePayment(terms);
-        payment.Should().Be(8606.64m);
+        payment.Be(8606.64m);
     }
 }

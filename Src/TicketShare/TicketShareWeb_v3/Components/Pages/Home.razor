@@ -1,0 +1,38 @@
+﻿@page "/"
+@using System.Security.Claims
+@using TicketShareWeb.Components.Account.Shared;
+
+<PageTitle>Ticket Share</PageTitle>
+
+<FluentGrid Style="margin-top: 20px">
+    <FluentGridItem xs="12" sm="8">
+
+@*         <AuthorizeView>
+            <Authorized>
+ *@                <p>Welcome user, @_userName!</p>
+
+            @* </Authorized> *@
+
+@*             <NotAuthorized>
+                <Welcome />
+            </NotAuthorized> *@
+
+        @* </AuthorizeView> *@
+
+    </FluentGridItem>
+</FluentGrid>
+
+@code {
+    [Inject] public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+
+    private ClaimsPrincipal _user = null!;
+    private string? _userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        _user = authState.User;
+
+        _userName = _user.Identity?.IsAuthenticated == true ? _user.Identity.Name : null;
+    }
+}

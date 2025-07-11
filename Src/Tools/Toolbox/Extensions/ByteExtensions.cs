@@ -14,7 +14,6 @@ public static class ByteExtensions
     public static byte[] ToBytes(this string? subject)
     {
         if (subject == null) return new byte[0];
-
         return Encoding.UTF8.GetBytes(subject);
     }
 
@@ -26,8 +25,18 @@ public static class ByteExtensions
     public static string BytesToString(this IEnumerable<byte> bytes)
     {
         if (bytes == null || bytes.Count() == 0) return string.Empty;
-
         return Encoding.UTF8.GetString(bytes.ToArray());
+    }
+
+    /// <summary>
+    /// COnvert bytes to string
+    /// </summary>
+    /// <param name="span"></param>
+    /// <returns></returns>
+    public static string BytesToString(this ReadOnlySpan<byte> span)
+    {
+        if (span == Span<byte>.Empty || span.Length == 0) return string.Empty;
+        return Encoding.UTF8.GetString(span);
     }
 
     /// <summary>
@@ -65,10 +74,21 @@ public static class ByteExtensions
     /// <returns></returns>
     public static T? ToObject<T>(this byte[] subject)
     {
-        subject
-            .NotNull()
-            .Assert(x => x.Length > 0, nameof(subject));
+        subject.NotNull().Assert(x => x.Length > 0, nameof(subject));
 
+        string json = subject.BytesToString();
+        return Json.Default.Deserialize<T>(json);
+    }
+
+    /// <summary>
+    /// Covert bytes to object (deserialize)
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="subject"></param>
+    /// <returns></returns>
+    public static T? ToObject<T>(this ReadOnlySpan<byte> subject)
+    {
+        subject.Length.Assert(x => x > 0, nameof(subject));
         string json = subject.BytesToString();
         return Json.Default.Deserialize<T>(json);
     }
@@ -96,7 +116,19 @@ public static class ByteExtensions
     /// </summary>
     /// <param name="bytes"></param>
     /// <returns></returns>
-    public static byte[] ToHash(this IEnumerable<byte> bytes) => SHA256.Create().ComputeHash(bytes.NotNull().ToArray());
+    public static byte[] ToHash(this IEnumerable<byte> bytes)
+    {
+        using var scope = SHA256.Create();
+        var data = scope.ComputeHash(bytes.NotNull().ToArray());
+        return data;
+    }
+
+    public static byte[] ToMD5Hash(this IEnumerable<byte> bytes)
+    {
+        using var scope = MD5.Create();
+        var data = scope.ComputeHash(bytes.NotNull().ToArray());
+        return data;
+    }
 
     /// <summary>
     /// Calculate hash of bytes and return string of hex values

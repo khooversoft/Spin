@@ -82,7 +82,7 @@ public class UserConnector
 
     public async Task<IResult> Sign(SignRequest model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
+        if (model.Validate().IsError(out Option v)) return Results.BadRequest(v.Error);
 
         string id = $"{SpinConstants.Schema.User}:{model.PrincipalId}";
         var response = await _client.GetResourceGrain<IUserActor>(id).SignDigest(model.MessageDigest, traceId);

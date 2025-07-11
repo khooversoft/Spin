@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Toolbox.Data;
+﻿using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Data.Serialization;
@@ -13,8 +13,8 @@ public class DataObjectTests
     {
         DataObjectSet model = new DataObjectSet();
 
-        Option v = model.Validate();
-        v.IsOk().Should().BeTrue();
+        Option v = model.Validate().ToOptionStatus();
+        v.IsOk().BeTrue();
     }
 
     [Fact]
@@ -27,17 +27,17 @@ public class DataObjectTests
         };
 
         DataObject d = DataObject.Create(t);
-        d.Should().NotBeNull();
-        d.Key.Should().Be("TestClass");
-        d.TypeName.Should().Be("TestClass");
-        d.JsonData.Should().NotBeNullOrEmpty();
+        d.NotNull();
+        d.Key.Be("TestClass");
+        d.TypeName.Be("TestClass");
+        d.JsonData.NotEmpty();
 
         TestClass rt = d.ToObject<TestClass>();
-        rt.Should().NotBeNull();
-        rt.Name.Should().Be("test");
-        rt.Value.Should().Be("value");
+        rt.NotNull();
+        rt.Name.Be("test");
+        rt.Value.Be("value");
 
-        (t == rt).Should().BeTrue();
+        (t == rt).BeTrue();
     }
 
     [Fact]
@@ -57,33 +57,33 @@ public class DataObjectTests
 
         DataObjectSet set = new DataObjectSet().Set(t1).Set(t2);
 
-        set.Count.Should().Be(2);
+        set.Count.Be(2);
 
         Option<TestClass> rt1 = set.GetObject<TestClass>();
-        rt1.IsOk().Should().BeTrue();
-        rt1.Return().Name.Should().Be("test");
-        rt1.Return().Value.Should().Be("value");
+        rt1.IsOk().BeTrue();
+        rt1.Return().Name.Be("test");
+        rt1.Return().Value.Be("value");
 
         Option<TestClass2> rt2 = set.GetObject<TestClass2>();
-        rt2.IsOk().Should().BeTrue();
-        rt2.Return().Id.Should().Be("id");
-        rt2.Return().Description.Should().Be("description");
+        rt2.IsOk().BeTrue();
+        rt2.Return().Id.Be("id");
+        rt2.Return().Description.Be("description");
 
         string json = set.ToJson();
 
         DataObjectSet? read = json.ToObject<DataObjectSet>();
-        read.Should().NotBeNull();
-        read!.Count.Should().Be(2);
+        read.NotNull();
+        read!.Count.Be(2);
 
         Option<TestClass> r_rt1 = read.GetObject<TestClass>();
-        r_rt1.IsOk().Should().BeTrue();
-        r_rt1.Return().Name.Should().Be("test");
-        r_rt1.Return().Value.Should().Be("value");
+        r_rt1.IsOk().BeTrue();
+        r_rt1.Return().Name.Be("test");
+        r_rt1.Return().Value.Be("value");
 
         Option<TestClass2> r_rt2 = read.GetObject<TestClass2>();
-        r_rt2.IsOk().Should().BeTrue();
-        r_rt2.Return().Id.Should().Be("id");
-        r_rt2.Return().Description.Should().Be("description");
+        r_rt2.IsOk().BeTrue();
+        r_rt2.Return().Id.Be("id");
+        r_rt2.Return().Description.Be("description");
     }
 
     private record TestClass

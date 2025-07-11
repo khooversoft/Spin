@@ -1,0 +1,145 @@
+﻿@* @using TicketShareWeb.Components.Account.Shared *@
+
+<div class="background-gradient">
+    <div class="content-block">
+        <h2>Welcome to Ticket Share</h2>
+
+        <div class="row">S
+            <div class="column-dialog">
+                <div class="icon-container">
+                    <img class="icon-image" src="/images/TicketShare.icon2.webp" alt="Ticket Share" />
+                    <div>Ticket Share</div>
+                </div>
+                @*                 <div class="dialog-title">
+                Enter your email to log on or to create a new account.
+                </div>
+                <FluentTextField @bind-Value=value2 Placeholder="Email" class="email-input"></FluentTextField>
+                <FluentButton BackgroundColor="#CCF4DD" class="x-btn agree-button">Submit</FluentButton>
+                *@
+                @* <FluentDivider Style="width: 100%;margin: 20px 0 10px 0;" Role="DividerRole.Presentation"></FluentDivider> *@
+                <p style="margin-top: 20px">Log on with one of the following providers...</p>
+                <ExternalLoginPicker />
+                <div class="agree-text">
+                    By selecting a logon provider, you agree to these <a href="/">terms and conditions</a> and
+                    allow Ticket-Share to get your user and tenant details. <a href="/">Ticket-Share Privacy Statement</a>
+                </div>
+                @*                 <div class="row-provider">
+                <FluentButton Appearance="Appearance.Accent" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                <FluentButton Appearance="Appearance.Lightweight" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                <FluentButton Appearance="Appearance.Outline" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                <FluentButton Appearance="Appearance.Stealth" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                <FluentButton BackgroundColor="var(--highlight-bg)" class="x-btn use-microsoft-logon">Log on with Microsoft</FluentButton>
+                <FluentButton BackgroundColor="#CCF4DD" class="x-btn use-google-logon">Log on with Google</FluentButton>
+                </div> *@
+            </div>
+
+            <div class="card">
+                <div class="card-header">Your go-to platform for connecting</div>
+                <img class="card-image" src="/images/SharringTickets.webp" alt="Ticket Sharring">
+                <div class="card-description">
+                    Introducing <b>Ticket Share</b>, your go-to platform for connecting with fellow event enthusiasts
+                    to share the joy of live events! At Ticket Share, we believe in the power of community and
+                    the unforgettable experiences that come from attending live events, whether it's a concert,
+                    sports game, theater production, or any other gathering that brings people together.
+                    Our platform is designed to make ticket sharing seamless, secure, and social.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="background-style2">
+    <div class="content-block content-row">
+        <div class="row">
+            <div class="card">
+                <div class="card-header">Community</div>
+                <img class="card-image" src="/images/Fans.webp" alt="Fans">
+            </div>
+            <div class="column-text">
+                <h3>Connections</h3>
+                <p>
+                    Stay ahead of the game with real-time
+                    alerts across multiple channels, including email, SMS, and in-app notifications. Our tailored
+                    notification system ensures you never miss an opportunity to attend the events you love.
+                    Whether tickets become available through sales, trades, or generous shares, you'll be the
+                    first to know.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="background-style3">
+    <div class="content-block content-row">
+        <div class="row">
+            <div class="column-text">
+                <h3>Marketplace</h3>
+                <p>
+                    Our platform goes beyond ticket sharing. Subscribers gain
+                    access to exclusive features that streamline the process of trading, selling, and purchasing
+                    tickets. With enhanced visibility and priority listing options, your offers stand out, making
+                    it easier than ever to find the perfect match for your ticket needs.
+                </p>
+            </div>
+            <div class="card">
+                <div class="card-header">Trade</div>
+                <img class="card-image" src="/images/FansTrading.webp" alt="Fans Tradding">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="background-style4">
+    <div class="content-block content-row">
+        <div class="row">
+            <div class="card">
+                <div class="card-header">First Opportunity</div>
+                <img class="card-image" src="/images/FanHappy.webp" alt="Fans Happy">
+            </div>
+            <div class="column-text">
+                <h3>Don't Miss Out</h3>
+                <p>
+                    Gain privileged access to "first opportunity" tickets
+                    for select events. Our subscription service partners with event organizers and venues to
+                    offer exclusive early ticket releases, special discounts, and VIP packages to our subscribers.
+                    This means you get the first pick on seats at highly anticipated events, often before tickets
+                    are available to the general public.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="background-style5">
+    <div class="content-block content-row">
+        <div class="card-container card-2column">
+            <div class="card card-small">
+                <div class="card-header">Free</div>
+                <div class="card-price">$ 0.00 / No cost</div>
+                <div class="card-description">
+                    <h2>Free for life</h2>
+                    <ul>
+                        <li>Account, profile, calendar</li>
+                        <li>Ticket Share / Swap</li>
+                        <li>Team / Game Tracking</li>
+                        <li>100 Active Ticket</li>
+                        <li>Channels</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card card-small">
+                <div class="card-header">Premium</div>
+                <div class="card-price">$ 4.95 per Month</div>
+                <div class="card-description">
+                    <h2>Community, Marketplace, & Rules</h2>
+                    <ul>
+                        <li>Alert Notification</li>
+                        <li>Partnership Owners</li>
+                        <li>Sell, Trade, buy</li>
+                        <li>Fast channels for opportunities</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

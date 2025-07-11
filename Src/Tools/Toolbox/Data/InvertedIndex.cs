@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Immutable;
 using Toolbox.Tools;
 
 namespace Toolbox.Data;
@@ -12,8 +13,8 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
 
     public InvertedIndex(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TReferenceKey>? referenceComparer = null)
     {
-        KeyComparer = keyComparer.ComparerFor();
-        ReferenceComparer = referenceComparer.ComparerFor();
+        KeyComparer = keyComparer.EqualityComparerFor();
+        ReferenceComparer = referenceComparer.EqualityComparerFor();
 
         _index = new Dictionary<TKey, HashSet<TReferenceKey>>(KeyComparer);
     }
@@ -37,7 +38,7 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
         {
             return _index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys) switch
             {
-                true => pkeys.ToArray(),
+                true => pkeys.ToImmutableArray(),
                 false => Array.Empty<TReferenceKey>(),
             };
         }
@@ -51,7 +52,7 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
         {
             if (_index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys))
             {
-                value = pkeys.ToArray();
+                value = pkeys.ToImmutableArray();
                 return true;
             }
 
@@ -81,7 +82,7 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
             if (!_index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys)) return Array.Empty<TReferenceKey>();
 
             _index.Remove(key);
-            return pkeys.ToArray();
+            return pkeys.ToImmutableArray();
         }
     }
 

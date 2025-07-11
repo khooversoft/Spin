@@ -21,7 +21,7 @@ public class CommandGrammarParserTests
             x.Attributes.Count.Should().Be(0);
 
             x.FileId.Should().Be("spin/tools/SpinClusterCommandSyntaxSummary/summary");
-            x.LocalFilePath.Should().Be("SpinClusterCommandSyntaxSummary.md");
+            x.FileIdValue.Should().Be("SpinClusterCommandSyntaxSummary.md");
         });
     }
 
@@ -41,7 +41,7 @@ public class CommandGrammarParserTests
             x.Attributes[0].Should().Be("summary");
 
             x.FileId.Should().Be("spin/tools/SpinClusterCommandSyntaxSummary/summary");
-            x.LocalFilePath.Should().Be("SpinClusterCommandSyntaxSummary.md");
+            x.FileIdValue.Should().Be("SpinClusterCommandSyntaxSummary.md");
         });
     }
 
@@ -62,7 +62,27 @@ public class CommandGrammarParserTests
             x.Attributes[1].Should().Be("main");
 
             x.FileId.Should().Be("spin/tools/SpinClusterCommandSyntaxSummary/summary");
-            x.LocalFilePath.Should().Be("SpinClusterCommandSyntaxSummary.md");
+            x.FileIdValue.Should().Be("SpinClusterCommandSyntaxSummary.md");
+        });
+    }
+
+    [Fact]
+    public void QuoteValue()
+    {
+        Option<IReadOnlyList<CommandNode>> commandNodeListOption = CommandGrammarParser.Parse("[index] topic/CommandSyntaxSummary/summary = 'This is text value'");
+        commandNodeListOption.IsOk().Should().BeTrue();
+
+        IReadOnlyList<CommandNode> commandNodeList = commandNodeListOption.Return();
+        commandNodeList.Count.Should().Be(1);
+
+        commandNodeList[0].Action(x =>
+        {
+            x.Attributes.Should().NotBeNull();
+            x.Attributes.Count.Should().Be(1);
+            x.Attributes[0].Should().Be("index");
+
+            x.FileId.Should().Be("topic/CommandSyntaxSummary/summary");
+            x.FileIdValue.Should().Be("This is text value");
         });
     }
 }

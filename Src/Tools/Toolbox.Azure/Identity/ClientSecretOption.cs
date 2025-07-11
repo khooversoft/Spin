@@ -22,7 +22,7 @@ public record ClientSecretOption
 }
 
 
-public static class ClientSecretOptionExtensions
+public static class ClientSecretOptionTool
 {
     public static Option Validate(this ClientSecretOption subject) => ClientSecretOption.Validator.Validate(subject).ToOptionStatus();
 

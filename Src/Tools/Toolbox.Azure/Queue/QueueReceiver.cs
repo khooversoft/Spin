@@ -54,14 +54,14 @@ public class QueueReceiver<T> : IQueueReceiver, IAsyncDisposable where T : class
             ServiceBusProcessor? processor = Interlocked.Exchange(ref _serviceBusProcessor, null!);
             if (processor != null)
             {
-                _logger.LogTrace("Stopping receiver processor");
+                _logger.LogDebug("Stopping receiver processor");
                 await processor.CloseAsync();
             }
 
             ServiceBusClient? client = Interlocked.Exchange(ref _serviceBusClient, null!);
             if (client != null)
             {
-                _logger.LogTrace("Closing queue client");
+                _logger.LogDebug("Closing queue client");
                 await client.DisposeAsync();
             }
         }
@@ -78,7 +78,7 @@ public class QueueReceiver<T> : IQueueReceiver, IAsyncDisposable where T : class
         // Process the message
         try
         {
-            _logger.LogTrace($"Starting processing message {args.Message.MessageId}");
+            _logger.LogDebug("Starting processing messageId={messageId}", args.Message.MessageId);
 
             string json = Encoding.UTF8.GetString(args.Message.Body.ToArray());
             value = Json.Default.Deserialize<T>(json);
@@ -101,17 +101,17 @@ public class QueueReceiver<T> : IQueueReceiver, IAsyncDisposable where T : class
             {
                 if (!_queueReceiver.AutoComplete)
                 {
-                    _logger.LogTrace("Complete queued message {args.Message.MessageId}", args.Message.MessageId);
+                    _logger.LogDebug("Complete queued message {args.Message.MessageId}", args.Message.MessageId);
                     await args.CompleteMessageAsync(args.Message);
                 }
             }
             else
             {
-                _logger.LogTrace("Receiver return false, message is sent to the dead letter queue {args.Message.MessageId}", args.Message.MessageId);
+                _logger.LogDebug("Receiver return false, message is sent to the dead letter queue {args.Message.MessageId}", args.Message.MessageId);
                 await args.DeadLetterMessageAsync(args.Message);
             }
 
-            _logger.LogTrace("Completed message {args.Message.MessageId}", args.Message.MessageId);
+            _logger.LogDebug("Completed message {args.Message.MessageId}", args.Message.MessageId);
         }
         catch (Exception ex)
         {

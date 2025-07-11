@@ -1,0 +1,11 @@
+﻿<div style="@(Loading ? "display:block;" : "display:none;")">
+    <div style="min-width:300px; width: 100%">
+        <p>@Text</p>
+        <FluentProgress />
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public string Text { get; set; } = "Please wait...";
+}

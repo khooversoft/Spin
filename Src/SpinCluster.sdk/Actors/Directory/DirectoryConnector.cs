@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using SpinCluster.abstraction;
-using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -33,7 +33,7 @@ public class DirectoryConnector
 
     private async Task<IResult> Command(DirectoryCommand search, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        Option<GraphCommandResults> result = await _client.GetDirectoryActor().Execute(search.Command, traceId);
+        Option<QueryBatchResult> result = await _client.GetDirectoryActor().Execute(search.Command, traceId);
         var response = result.ToResult();
         return response;
     }

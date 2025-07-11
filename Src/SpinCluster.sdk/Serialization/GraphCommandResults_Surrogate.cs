@@ -1,5 +1,6 @@
 ﻿using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Graph;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -12,11 +13,11 @@ public struct GraphCommandResults_Surrogate
 }
 
 [RegisterConverter]
-public sealed class GraphCommandResults_SurrogateConverter : IConverter<GraphCommandResults, GraphCommandResults_Surrogate>
+public sealed class GraphCommandResults_SurrogateConverter : IConverter<QueryBatchResult, GraphCommandResults_Surrogate>
 {
-    public GraphCommandResults ConvertFromSurrogate(in GraphCommandResults_Surrogate surrogate) => surrogate.Json.ToObject<GraphCommandResults>().NotNull();
+    public QueryBatchResult ConvertFromSurrogate(in GraphCommandResults_Surrogate surrogate) => surrogate.Json.ToObject<QueryBatchResult>().NotNull();
 
-    public GraphCommandResults_Surrogate ConvertToSurrogate(in GraphCommandResults value) => new GraphCommandResults_Surrogate
+    public GraphCommandResults_Surrogate ConvertToSurrogate(in QueryBatchResult value) => new GraphCommandResults_Surrogate
     {
         Json = value.ToJson(),
     };

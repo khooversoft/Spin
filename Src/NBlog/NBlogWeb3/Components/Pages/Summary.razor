@@ -1,6 +1,7 @@
 ﻿@page "/summary/{dbName}/{*index}"
 @using NBlog.sdk
 @using NBlogWeb3.Components.Controls
+@using NBlogWeb3.Services
 @using Toolbox.Extensions
 @using Toolbox.Tools
 @using Toolbox.Types
@@ -52,6 +53,7 @@ else
     [CascadingParameter] public NBlogConfiguration NBlogConfiguration { get; set; } = null!;
 
     [Inject] private ArticleService _articleService { get; init; } = null!;
+    [Inject] private ArticleMenuService _articleMenuService { get; init; } = null!;
     [Inject] private ILogger<Home> _logger { get; init; } = null!;
 
     private SequentialState _flow = new SequentialState();
@@ -121,6 +123,11 @@ else
             }
 
             _attribute = _articleIds?.Count == 1 ? NBlogConstants.MainAttribute : null;
+
+            if (_articleIds?.Count > 0)
+                _articleMenuService.Set(_articleIds.First());
+            else
+                _articleMenuService.Clear();
         }
         finally
         {

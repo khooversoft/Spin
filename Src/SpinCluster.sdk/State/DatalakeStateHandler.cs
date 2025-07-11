@@ -1,7 +1,7 @@
 ﻿using Azure;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -61,7 +61,7 @@ public class DatalakeStateHandler
         }
 
         grainState.RecordExists = true;
-        grainState.ETag = result.Return().ETag.ToString();
+        grainState.ETag = result.Return().ETag.NotEmpty().ToString();
         context.Location().LogInformation("File has been read, filePath={filePath}, ETag={etag}", filePath, grainState.ETag);
     }
 
@@ -74,8 +74,7 @@ public class DatalakeStateHandler
             .ToJsonSafe(context.Location())
             .ToBytes();
 
-        ETag etag = new ETag(grainState.ETag);
-        var dataEtag = new DataETag(data, etag);
+        var dataEtag = new DataETag(data, grainState.ETag);
 
         var result = await _datalakeStore.Write(filePath, dataEtag, true, context);
         if (result.IsError())

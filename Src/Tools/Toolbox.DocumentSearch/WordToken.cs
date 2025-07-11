@@ -22,12 +22,6 @@ public record WordToken
 public static class WordTokenExtensions
 {
     public static Option Validate(this WordToken subject) => WordToken.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this WordToken subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }
 
 
@@ -37,6 +31,8 @@ public class WordTokenComparer : IEqualityComparer<WordToken>
 
     public bool Equals(WordToken? x, WordToken? y)
     {
+        if (ReferenceEquals(x, y)) return true;
+
         if (x == null || y == null) return false;
 
         return x.Word.EqualsIgnoreCase(y.Word) &&

@@ -1,8 +1,10 @@
 ﻿using System.Text.Json.Serialization;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 
 namespace Toolbox.Types;
+
 
 public readonly record struct ScopeContext : ILoggingContext
 {
@@ -12,7 +14,7 @@ public readonly record struct ScopeContext : ILoggingContext
     public ScopeContext(ILogger logger, CancellationToken token = default)
     {
         Logger = logger.NotNull();
-        Token = token;
+        CancellationToken = token;
 
         TraceId = Guid.NewGuid().ToString();
     }
@@ -21,24 +23,35 @@ public readonly record struct ScopeContext : ILoggingContext
     {
         TraceId = traceId.NotEmpty();
         Logger = logger.NotNull();
-        Token = token;
+        CancellationToken = token;
     }
 
     public string TraceId { get; }
 
-    [JsonIgnore] public bool IsCancellationRequested => Token.IsCancellationRequested;
-    [JsonIgnore] public CancellationToken Token { get; init; }
+    [JsonIgnore] public bool IsCancellationRequested => CancellationToken.IsCancellationRequested;
+    [JsonIgnore] public CancellationToken CancellationToken { get; init; }
     [JsonIgnore] public ILogger Logger { get; }
     [JsonIgnore] public ScopeContext Context => this;
 
     public override string ToString() => "TraceId=" + TraceId;
 
-    public (string? message, object?[] args) AppendContext(string? message, object?[] args)
+    public ScopeContext With(ILogger logger) => new(TraceId, logger, CancellationToken);
+    public ScopeContext With(CancellationToken token) => new(TraceId, Logger, token);
+    public ScopeContext WithNewTraceId() => new(Logger, CancellationToken);
+
+    internal ScopeContext With(object logger)
     {
-        return (ScopeContextTools.AppendMessage(message, "traceId={traceId}"), ScopeContextTools.AppendArgs(args, TraceId));
+        throw new NotImplementedException();
     }
 
-    public ScopeContext With(ILogger logger) => new ScopeContext(TraceId, logger.NotNull(), Token);
+    public static implicit operator CancellationToken(ScopeContext context) => context.CancellationToken;
+}
 
-    public static implicit operator CancellationToken(ScopeContext context) => context.Token;
+
+public static class ScopeContextTool
+{
+    public static ScopeContext CreateContext<T>(this IServiceProvider service) => service.NotNull()
+        .GetRequiredService<ILogger<T>>()
+        .ToScopeContext();
+
 }

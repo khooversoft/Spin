@@ -239,6 +239,8 @@
     {
         ".png" => $"data:image/png;base64,{imageBase64}",
         ".webp" => $"data:image/webp;base64,{imageBase64}",
-        _ => throw new ArgumentException($"Unknown imageFileId={imageFileId}"),
+        ".jpeg" => $"data:image/jpeg;charset=utf-8;base64,{imageBase64}",
+        ".jpg" => $"data:image/jpg;charset=utf-8;base64,{imageBase64}",
+        var v => throw new ArgumentException($"Unknown extension={v}, imageFileId={imageFileId}"),
     };
 }

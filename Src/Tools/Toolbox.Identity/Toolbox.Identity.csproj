@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Orleans.Core.Abstractions" Version="9.0.1" />
+    <PackageReference Include="System.Text.Json" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Toolbox.Graph\Toolbox.Graph.csproj" />
+    <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Orleans.Serialization.Abstractions">
+      <HintPath>..\..\..\..\..\.nuget\microsoft.orleans.serialization.abstractions\8.2.0\lib\net8.0\Orleans.Serialization.Abstractions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

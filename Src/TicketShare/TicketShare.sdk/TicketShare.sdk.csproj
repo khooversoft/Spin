@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>474c100e-ddd9-4555-ae62-1f97fd04055f</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Applications\Email\Templates\VerifyEmail.Txt" />
+    <None Remove="Data\FanHappy.webp" />
+    <None Remove="Data\Fans.webp" />
+    <None Remove="Data\FansTrading.webp" />
+    <None Remove="Data\Intro.html" />
+    <None Remove="Data\Intro.md" />
+    <None Remove="Data\SharringTickets.webp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Applications\Email\Templates\CreatedTicketGroup.txt" />
+    <EmbeddedResource Include="Applications\Email\Templates\VerifyEmail.html" />
+    <EmbeddedResource Include="Applications\Email\Templates\VerifyEmail.txt" />
+    <EmbeddedResource Include="Applications\Email\Templates\Welcome.html" />
+    <EmbeddedResource Include="Data\Intro.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Markdig" Version="0.41.2" />
+    <PackageReference Include="Markdown.ColorCode" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="8.2.0" />
+    <PackageReference Include="Microsoft.Orleans.Client" Version="9.1.2" />
+    <PackageReference Include="Microsoft.Orleans.Sdk" Version="9.1.2" />
+    <PackageReference Include="Microsoft.Orleans.Server" Version="9.1.2" />
+    <PackageReference Include="System.Text.Json" Version="9.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Toolbox.Email\Toolbox.Email.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.Graph.Extensions\Toolbox.Graph.Extensions.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox.Graph\Toolbox.Graph.csproj" />
+    <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+    <ProjectReference Include="..\TicketApi.sdk\TicketApi.sdk.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,21 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.37.0" />
-    <PackageReference Include="Azure.Identity" Version="1.10.4" />
-    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.17.2" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
-    <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.17.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.22.0" />
+    <PackageReference Include="Azure.Core" Version="1.46.2" />
+    <PackageReference Include="Azure.Identity" Version="1.14.0" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.24.1" />
+    <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.22.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.23.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Toolbox.Graph\Toolbox.Graph.csproj" />
     <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
   </ItemGroup>
 

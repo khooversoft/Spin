@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.DocumentSearch.test;
@@ -25,11 +24,11 @@ public class DocumentReferenceTests
         var docRef = new DocumentReference("dbName", "doc1", words, tags);
 
         string json = docRef.ToJson();
-        json.Should().NotBeEmpty();
+        json.NotEmpty();
 
         DocumentReference newDocRef = json.ToObject<DocumentReference>().NotNull();
-        newDocRef.DocumentId.Should().Be("doc1");
-        Enumerable.SequenceEqual(words, newDocRef.Words).Should().BeTrue();
-        Enumerable.SequenceEqual(tags, newDocRef.Tags).Should().BeTrue();
+        newDocRef.DocumentId.Be("doc1");
+        Enumerable.SequenceEqual(words, newDocRef.Words).BeTrue();
+        Enumerable.SequenceEqual(tags, newDocRef.Tags).BeTrue();
     }
 }

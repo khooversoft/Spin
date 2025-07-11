@@ -1,0 +1,34 @@
+﻿@rendermode InteractiveServer
+
+<FeedBlock Title="Select Seats" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.SubGenre == null)" Disabled="@(_scheduleContext.Genre == null)">
+    <div style="margin: 10px">
+
+        @foreach (var item in _scheduleContext.GetTeamSelect())
+        {
+            Appearance appearance = _scheduleContext.Team?.Id == item.Id ? Appearance.Accent : Appearance.Outline;
+
+            <FluentButton Appearance="appearance" OnClick="@(() => SwitchButton(item.Id))">@item.Name</FluentButton>
+        }
+
+    </div>
+</FeedBlock>
+
+@code {
+    [CascadingParameter] public TicketScheduleContext _scheduleContext { get; set; } = null!;
+    [Parameter] public EventCallback OnRefresh { get; set; }
+    @inject ILogger<SelectTeam> _logger;
+
+    private async Task Refresh() => await OnRefresh.InvokeAsync();
+
+    private async Task OnEdit()
+    {
+        _scheduleContext.SetTeam(null);
+        await Refresh();
+    }
+
+    private async Task SwitchButton(string id)
+    {
+        _scheduleContext.SetTeam(id);
+        await Refresh();
+    }
+}

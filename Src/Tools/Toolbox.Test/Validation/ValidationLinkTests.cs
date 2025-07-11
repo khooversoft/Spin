@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -34,8 +34,8 @@ public class ValidationLinkTests
         };
 
         var result = validator.Validate(model);
-        result.IsOk().Should().BeFalse();
-        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(2);
+        result.IsOk().BeFalse();
+        result.Return().Cast<ValidatorResult>().Errors.Count().Be(2);
 
         model = new PrimaryClass
         {
@@ -44,8 +44,8 @@ public class ValidationLinkTests
         };
 
         result = validator.Validate(model);
-        result.IsOk().Should().BeFalse();
-        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
+        result.IsOk().BeFalse();
+        result.Return().Cast<ValidatorResult>().Errors.Count().Be(1);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class ValidationLinkTests
         };
 
         var result = validator.Validate(model);
-        result.IsOk().Should().BeTrue();
-        result.Return().As<ValidatorResult>().Errors.Count.Should().Be(0);
+        result.IsOk().BeTrue();
+        result.Return().Cast<ValidatorResult>().Errors.Count.Be(0);
     }
 }

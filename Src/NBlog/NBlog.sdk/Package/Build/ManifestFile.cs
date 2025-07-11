@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Diagnostics;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -27,7 +28,7 @@ public static class ManifestFileTool
         if (articleManifestOption.IsError()) return articleManifestOption.ToOptionStatus<ManifestFile>();
         ArticleManifest articleManifest = articleManifestOption.Return();
 
-        var commandOptions = ProcessCommands(file, articleManifest, context);
+        var commandOptions = ProcessCommands(file, articleManifest, basePath, context);
         if (commandOptions.IsError()) return commandOptions.ToOptionStatus<ManifestFile>();
         var commands = commandOptions.Return();
 
@@ -74,14 +75,18 @@ public static class ManifestFileTool
             .Replace("{path}", pathFileId);
     }
 
-    private static Option<IReadOnlyList<CommandNode>> ProcessCommands(string file, ArticleManifest articleManifest, ScopeContext context)
+    private static Option<IReadOnlyList<CommandNode>> ProcessCommands(string file, ArticleManifest articleManifest, string basePath, ScopeContext context)
     {
         string folder = Path.GetFullPath(file)
-            .Func(x => Path.GetDirectoryName(x))
+            .Func(Path.GetDirectoryName)
             .NotNull($"File={file} does not have directory name");
 
         var commands = articleManifest.GetCommands()
-            .Select(x => x with { LocalFilePath = Path.Combine(folder, x.LocalFilePath) })
+            .Select(x => x.IsFileReference switch
+            {
+                true => x with { FileIdValue = Path.Combine(folder, x.FileIdValue) },
+                false => x,
+            })
             .ToArray();
 
         if (commands.Length == 0)
@@ -90,16 +95,20 @@ public static class ManifestFileTool
             return StatusCode.BadRequest;
         }
 
+        var fileReferenceOption = VerifyFileReference(commands, file, context);
+        if (fileReferenceOption.IsError()) return fileReferenceOption.ToOptionStatus<IReadOnlyList<CommandNode>>();
+
+        var indexReferenceOption = VerifyIndexReference(commands, file, basePath, context);
+        if (indexReferenceOption.IsError()) return indexReferenceOption.ToOptionStatus<IReadOnlyList<CommandNode>>();
+
+        return commands;
+    }
+
+    private static Option VerifyFileReference(CommandNode[] commands, string file, ScopeContext context)
+    {
         var findResult = commands
-            .Select(x => File.Exists(x.LocalFilePath) switch
-            {
-                false => $"File={x.LocalFilePath} does not exist, local file for manifest={file}",
-                true => new FileInfo(x.LocalFilePath) switch
-                {
-                    { Length: 0 } => $"File={x.LocalFilePath} is empty, local file for manifest={file}",
-                    _ => null,
-                }
-            })
+            .Where(x => x.IsFileReference)
+            .Select(x => VerifyFile(x.FileIdValue, file))
             .OfType<string>()
             .ToArray();
 
@@ -110,6 +119,45 @@ public static class ManifestFileTool
             return StatusCode.BadRequest;
         }
 
-        return commands;
+        return StatusCode.OK;
+    }
+
+    private static Option VerifyIndexReference(CommandNode[] commands, string file, string basePath, ScopeContext context)
+    {
+        var findResult = commands
+            .Where(x => x.IsIndexReference)
+            .Select(check)
+            .OfType<string>()
+            .ToArray();
+
+        if (findResult.Length != 0)
+        {
+            string msg = findResult.Aggregate("Errors in index files references" + Environment.NewLine, (a, x) => a += x + Environment.NewLine);
+            context.LogError(msg);
+            return StatusCode.BadRequest;
+        }
+
+        return StatusCode.OK;
+
+        string? check(CommandNode commandNode)
+        {
+            string fullPath = Path.Combine(basePath, commandNode.FileId);
+            return VerifyFile(fullPath, file);
+        }
+    }
+
+    private static string? VerifyFile(string localFile, string file)
+    {
+        string? error = File.Exists(localFile) switch
+        {
+            false => $"File={localFile} does not exist, local file for manifest={file}",
+            true => new FileInfo(localFile) switch
+            {
+                { Length: 0 } => $"File={localFile} is empty, local file for manifest={file}",
+                _ => null,
+            }
+        };
+
+        return error;
     }
 }

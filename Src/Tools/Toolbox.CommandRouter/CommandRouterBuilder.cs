@@ -1,81 +1,71 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Toolbox.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Tools;
 
 namespace Toolbox.CommandRouter;
 
-public class CommandRouterBuilder
+public static class CommandRouterBuilder
 {
-    private IConfigurationBuilder _configBuilder;
-    private IServiceCollection _serviceCollection;
-    private string[]? _args;
-    private bool _captureOutput = false;
-
-    public CommandRouterBuilder()
+    public static IServiceCollection AddCommand<T>(this IServiceCollection services, string commandId) where T : class, ICommandRoute
     {
-        _configBuilder = new ConfigurationBuilder();
+        services.NotNull();
+        commandId.NotEmpty("Required");
 
-        _serviceCollection = new ServiceCollection()
-            .AddLogging(config =>
-            {
-                config.SimpleConsole();
-                config.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
-            })
-            .AddSingleton<AbortSignal>();
+        services.NotNull().AddKeyedScoped<ICommandRoute, T>(commandId.NotEmpty("Required"));
+        return services;
     }
 
-    public CommandRouterBuilder SetCaptureOutput(bool captureOutput)
+    public static IServiceCollection AddCommandHost(this IServiceCollection services, string commandId)
     {
-        _captureOutput = captureOutput;
+        services.NotNull();
+        commandId.NotEmpty("Required");
+
+        services.AddKeyedScoped<ICommandRouterHost, CommandRouterHost>(commandId, (s, _) => ActivatorUtilities.CreateInstance<CommandRouterHost>(s, commandId));
+        return services;
+    }
+
+    public static CommandCollectionContext AddCommandCollection(this IServiceCollection services, string commandId)
+    {
+        services.NotNull();
+        commandId.NotEmpty("Required");
+
+        services.AddCommandHost(commandId);
+        services.AddKeyedScoped<ICommandRouterHost, CommandRouterHost>(commandId, (s, _) => ActivatorUtilities.CreateInstance<CommandRouterHost>(s, commandId));
+
+        return new CommandCollectionContext(services, commandId);
+    }
+
+    public static ICommandRouterHost GetCommandRouterHost(this IServiceProvider serviceProvider, string commandId)
+    {
+        serviceProvider.NotNull();
+        commandId.NotEmpty("Required");
+
+        serviceProvider.NotNull().NotNull(commandId, nameof(commandId));
+        return serviceProvider.GetRequiredKeyedService<ICommandRouterHost>(commandId);
+    }
+}
+
+public readonly struct CommandCollectionContext
+{
+    private readonly IServiceCollection _serviceCollection;
+    private readonly string _commandId;
+
+    public CommandCollectionContext(IServiceCollection serviceCollection, string commandId)
+    {
+        _serviceCollection = serviceCollection.NotNull();
+        _commandId = commandId.NotEmpty(); ;
+    }
+
+    public CommandCollectionContext AddCommand<T>() where T : class, ICommandRoute
+    {
+        _serviceCollection.AddKeyedScoped<ICommandRoute, T>(_commandId);
         return this;
     }
 
-    public CommandRouterBuilder AddCommand<T>() where T : class, ICommandRoute
+    public CommandCollectionContext AddCommand<T>(Func<IServiceProvider, string, T> value) where T : class, ICommandRoute
     {
-        _serviceCollection.AddSingleton<ICommandRoute, T>();
+        _serviceCollection.AddKeyedScoped<ICommandRoute, T>(_commandId, (s, k) => value(s, (string)k));
         return this;
     }
 
-    public CommandRouterBuilder ConfigureAppConfiguration(Action<IConfigurationBuilder> builder)
-    {
-        builder(_configBuilder);
-        return this;
-    }
-
-    public CommandRouterBuilder ConfigureAppConfiguration(Action<IConfigurationBuilder, IServiceCollection> builder)
-    {
-        builder(_configBuilder, _serviceCollection);
-        return this;
-    }
-
-    public CommandRouterBuilder ConfigureLogging(Action<ILoggingBuilder> configureLogging)
-    {
-        _serviceCollection.AddLogging(configureLogging);
-        return this;
-    }
-
-    public CommandRouterBuilder ConfigureService(Action<IServiceCollection> setup)
-    {
-        setup(_serviceCollection);
-        return this;
-    }
-
-    public CommandRouterBuilder SetArgs(params string[] args)
-    {
-        (string[] ConfigArgs, string[] CommandLineArgs) = ArgumentTool.Split(args);
-
-        _configBuilder.AddCommandLine(ConfigArgs);
-        _args = CommandLineArgs;
-        return this;
-    }
-
-    public ICommandRouterHost Build()
-    {
-        IConfiguration config = _configBuilder.Build();
-        _serviceCollection.AddSingleton(config);
-
-        return new CommandRouterHost(_args ?? Array.Empty<string>(), _serviceCollection, _captureOutput);
-    }
+    public IServiceCollection Return() => _serviceCollection;
 }

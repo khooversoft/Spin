@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -24,8 +24,8 @@ public class ValidatorEmptyTests
         };
 
         Option<IValidatorResult> result = validator.Validate(model);
-        result.IsError().Should().BeTrue();
-        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
+        result.IsError().BeTrue();
+        result.Return().Cast<ValidatorResult>().Errors.Count().Be(1);
     }
 
 
@@ -42,8 +42,8 @@ public class ValidatorEmptyTests
         };
 
         var result = validator.Validate(model);
-        result.IsError().Should().BeTrue();
-        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(1);
+        result.IsError().BeTrue();
+        result.Return().Cast<ValidatorResult>().Errors.Count().Be(1);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class ValidatorEmptyTests
         };
 
         var result = validator.Validate(model);
-        result.IsOk().Should().BeTrue();
-        result.Return().As<ValidatorResult>().Errors.Count().Should().Be(0);
+        result.IsOk().BeTrue();
+        result.Return().Cast<ValidatorResult>().Errors.Count().Be(0);
     }
 }

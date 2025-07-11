@@ -48,7 +48,7 @@ internal class ResourceIdTool
             TenantTest,
             PrincipalTest,
             OwnedTest,
-            AccountTest
+            DomainOwned
         };
 
         foreach (var test in tests)
@@ -94,6 +94,7 @@ internal class ResourceIdTool
         },
     };
 
+    // TODO: Do we really need this?
     // {schema}:{domain}
     private static Test TenantTest = new Test
     {
@@ -163,7 +164,7 @@ internal class ResourceIdTool
     };
 
     // {schema}:{domain}/{path}[/{path}...}]
-    private static Test AccountTest = new Test
+    private static Test DomainOwned = new Test
     {
         Pattern = new Func<IToken, TokenResult>[]
         {

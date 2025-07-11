@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SoftBank.sdk.SoftBank;
+using Toolbox.Logging;
 using Toolbox.Types;
 
 namespace SpinTestTools.sdk.ObjectBuilder.Builders;
@@ -16,7 +17,7 @@ public class SbAccountBuilder : IObjectBuilder
         {
             var createOption = await client.Value.Create(account, context);
 
-            createOption.LogStatus(context, "Creating Account accountId={accountId}", account.AccountId);
+            createOption.LogStatus(context, "Creating Account accountId={accountId}", [account.AccountId]);
             test.Test(() => createOption);
         }
 

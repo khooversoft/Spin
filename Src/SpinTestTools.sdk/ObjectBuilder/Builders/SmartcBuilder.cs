@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpinClient.sdk;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -18,7 +19,7 @@ public class SmartcBuilder : IObjectBuilder
             Option setOption = await client.Value.Set(model, context);
             setOption.Assert(x => x.IsOk(), x => $"Set failed for {x}");
 
-            setOption.LogStatus(context, "Creating Tenant smartcId={smartcId}", model.SmartcId);
+            setOption.LogStatus(context, "Creating Tenant smartcId={smartcId}", [model.SmartcId]);
             test.Test(() => setOption);
         }
 

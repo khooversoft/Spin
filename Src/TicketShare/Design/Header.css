@@ -1,0 +1,65 @@
+.background-gradient {
+    /* position: fixed; */
+    /* top: 50px; */
+    /* left: 255px; */
+    /* height: 60px; */
+    width: 100%;
+    border: 01px solid transparent;
+    /* background: linear-gradient(130deg, #ff7e00, #ffffff, #5cff00); */
+    background: linear-gradient(130deg, rgba(255, 126, 0, .3), rgba(255, 255, 255, .5), rgba(92, 255, 0, .5));
+    background-size: 200% 200%;
+    -webkit-animation: Animation 20s ease infinite;
+    -moz-animation: Animation 20s ease infinite;
+    animation: Animation 20s ease infinite;
+    /* clip-path: polygon(0 0, 100% 0, 100% 30px, 0 100%); */
+    /* border-radius: 5px; */
+    /* z-index: -1; */
+}
+
+@media(width < 600px) {
+    .background-gradient {
+        left: 0;
+    }
+}
+
+@-webkit-keyframes Animation {
+    0% {
+        background-position: 10% 0%
+    }
+
+    50% {
+        background-position: 91% 100%
+    }
+
+    100% {
+        background-position: 10% 0%
+    }
+}
+
+@-moz-keyframes Animation {
+    0% {
+        background-position: 10% 0%
+    }
+
+    50% {
+        background-position: 91% 100%
+    }
+
+    100% {
+        background-position: 10% 0%
+    }
+}
+
+@keyframes Animation {
+    0% {
+        background-position: 10% 0%
+    }
+
+    50% {
+        background-position: 91% 100%
+    }
+
+    100% {
+        background-position: 10% 0%
+    }
+}

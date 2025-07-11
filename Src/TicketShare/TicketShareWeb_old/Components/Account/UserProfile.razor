@@ -1,0 +1,76 @@
+﻿@page "/Account/UserProfile"
+
+@* @using System.ComponentModel.DataAnnotations
+@using TicketShare.sdk
+@using TicketShareWeb.Application
+@using TicketShareWeb.Components.Shared;
+@using Toolbox.Orleans
+@using Toolbox.Tools
+@using Toolbox.Types *@
+
+
+@* <PageTitle>User</PageTitle>
+
+<div style="margin: 10px;max-width: 900px;">
+    <h3>User Profile</h3>
+
+    <StatusMessage Message="@errorMessage" />
+
+    <div style="margin-top:20px;">
+        <FluentGrid>
+            <FluentGridItem xs="12" sm="12" Style="min-width:300px">
+                <EditForm Model="Input" OnValidSubmit="SetUser" FormName="confirmation" method="post">
+                    <input type="hidden" name="ReturnUrl" value="@PrincipalId" />
+                    <DataAnnotationsValidator />
+                    <FluentValidationSummary class="text-danger" role="alert" />
+
+                    <div style="margin-top:10px;">
+                        <FluentTextField Name="Input.Name" @bind-Value="Input.Name" AutoComplete="name" Placeholder="Please enter your name." Label="Name" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.Name" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.Email" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.PhoneNumber" @bind-Value="Input.PhoneNumber" AutoComplete="PhoneNumber" Placeholder="Please enter your phone number." Label="Phone Number" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.PhoneNumber" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.Address1" @bind-Value="Input.Address1" AutoComplete="Address1" Placeholder="Please enter your address." Label="Address" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.Address1" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.Address2" @bind-Value="Input.Address2" AutoComplete="Address2" Placeholder="Please enter your address." Label="Address" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.Address2" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.City" @bind-Value="Input.City" AutoComplete="City" Placeholder="Please enter your city." Label="City" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.City" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.State" @bind-Value="Input.State" AutoComplete="State" Placeholder="Please enter your state." Label="State" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.State" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentTextField Name="Input.ZipCode" @bind-Value="Input.ZipCode" AutoComplete="ZipCode" Placeholder="Please enter your zip code." Label="Zip Code" Style="width: 100%;" />
+                        <FluentValidationMessage For="() => Input.ZipCode" />
+                    </div>
+
+                    <div style="margin-top:10px">
+                        <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 80px;">Update</FluentButton>
+                    </div>
+                </EditForm>
+            </FluentGridItem>
+        </FluentGrid>
+    </div>
+</div>
+
+ *@

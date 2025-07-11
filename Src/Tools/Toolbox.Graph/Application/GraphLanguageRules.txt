@@ -1,0 +1,69 @@
+delimiters              = , ';' = '->' '<-' '<->' ( ) [ ] { } ;
+reserve-words           = select, set, delete, return, ifexist, index, foreignkey ;
+
+symbol                  = regex '^[a-zA-Z\*][a-zA-Z0-9\/\-\*]*$' ;
+name                    = regex '^[a-zA-Z][a-zA-Z0-9\/\-\:\@\.]*$' ;
+open-param              = '(' #group-start #node ;
+close-param             = ')' #group-end #node ;
+open-brace              = '{' #group-start #data ;
+close-brace             = '}' #group-end #data ;
+open-bracket            = '[' #group-start #edge ;
+close-bracket           = ']' #group-end #edge ;
+
+tagKey                  = regex '^[a-zA-Z\*\-][a-zA-Z0-9\-\.\*]*$' ;
+tagValue                = string ;
+dataName                = name ;
+base64                  = string ;
+alias                   = name ;
+
+comma                   = ',' ;
+term                    = ';' ;
+equal                   = '=' ;
+left-join               = '->' ;
+right-join              = '<-' ;
+full-join               = '<->' ;
+
+set-sym                 = 'set' ;
+add-sym                 = 'add' ;
+select-sym              = 'select' ;
+delete-sym              = 'delete' ;
+return-sym              = 'return' ;
+node-sym                = 'node' ;
+edge-sym                = 'edge' ;
+ifexist                 = 'ifexist' ;
+
+key-sym                 = 'key' ;
+key-value               = name ;
+fromKey-sym             = 'from' ;
+fromKey-value           = name ;
+toKey-sym               = 'to' ;
+toKey-value             = name ;
+edgeType-sym            = 'type' ;
+edgeType-value          = name ;
+
+index-sym               = 'index' ;
+indexKey                = regex '^[a-zA-Z\-][a-zA-Z0-9\-\.]*$' ;
+indexes                 = [ index-sym, indexKey, { comma, indexKey } ];
+foreignkey-sym          = 'foreignkey' ;
+
+entity-data             = dataName, open-brace, base64, close-brace ;
+tag                     = tagKey, [ '=', tagValue ] ;
+fk                      = [ foreignkey-sym, tag, { comma, tag } ];
+set-data                = [ set-sym, ( entity-data | tag ), { comma, ( entity-data | tag ) } ] ;
+set-tags                = [ set-sym, tag, { comma, tag } ] ;
+return-data             = return-sym, dataName, { comma, dataName } ;
+tokey-data              = toKey-sym, equal, toKey-value ;
+fromkey-data            = fromKey-sym, equal, fromKey-value ;
+edgetype-data           = edgeType-sym, equal, edgeType-value ;
+
+command                 = ( add-sym | set-sym ) ;
+select-node             = open-param, tag, { comma, tag }, close-param, [ alias ] ;
+select-edge             = open-bracket, tag, { comma, tag }, close-bracket, [ alias ] ;
+
+node-add-command        = command, node-sym, key-sym, equal, key-value, set-data, indexes, fk, term ;
+node-delete-command     = delete-sym, node-sym, [ ifexist ], key-sym, equal, key-value, term ;
+edge-add-command        = command, edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
+edge-delete-command     = delete-sym, edge-sym, [ ifexist ], fromkey-data, comma, tokey-data, comma, edgetype-data, term ;
+
+select-command          = select-sym, ( select-node | select-edge ), { ( left-join | full-join | right-join ), ( select-node | select-edge ) }, [ return-data ], term ;
+delete-command          = delete-sym, ( select-node | select-edge ), { ( left-join | full-join | right-join ), ( select-node | select-edge ) }, term ;

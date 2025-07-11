@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using LoanContract.sdk.Contract;
+﻿using LoanContract.sdk.Contract;
 using LoanContract.sdk.Models;
 using LoanContract.sdk.test.Application;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,10 +10,10 @@ using SpinClient.sdk;
 using SpinCluster.abstraction;
 using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.CommandRouter;
-using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Finance.Finance;
 using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace LoanContract.sdk.test;
@@ -141,7 +140,7 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
             reportOption.IsOk().Should().BeTrue();
 
             LoanReportModel loanReportModel = reportOption.Return();
-            loanReportModel.LedgerItems.Should().NotBeNull();
+            loanReportModel.LedgerItems.NotNull();
             loanReportModel.LedgerItems.Count.Should().Be((i + 1) * 2);
         }
 
@@ -328,7 +327,7 @@ public class LoanContractActivityTests : IClassFixture<ClusterApiFixture>
         ScheduleWorkModel workSchedule = workScheduleOption.Return();
         workSchedule.Assigned.NotNull().AssignedCompleted.NotNull().StatusCode.Should().Be(StatusCode.OK);
 
-        workSchedule.RunResults.Count.Should().BeGreaterThan(0);
+        workSchedule.RunResults.Count.Assert(x => x > 0, x => $"{x} > 0");
         workSchedule.RunResults.All(x => x.StatusCode.IsOk()).Should().BeTrue();
     }
 }

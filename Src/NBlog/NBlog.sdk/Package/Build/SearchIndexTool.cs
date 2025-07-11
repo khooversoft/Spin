@@ -31,8 +31,8 @@ public static class SearchIndexTool
         return buildContext;
 
         IEnumerable<string> filterOnAttribute(IEnumerable<CommandNode> list) => list
-            .Where(x => x.Attributes.Any(y => NBlogConstants.CanIndexFilesAttributes.Contains(y)))
-            .Select(x => x.LocalFilePath);
+            .Where(x => x.Attributes.Any(y => NBlogConstants.FileAttributes.Contains(y)))
+            .Select(x => x.FileIdValue);
     }
 
     private static async Task<IReadOnlyList<DocumentReference>> ScrapFiles(DocumentTokenizer tokenizer, IReadOnlyList<(ArticleManifest manifest, string file)> list)
@@ -42,7 +42,11 @@ public static class SearchIndexTool
             string line = await File.ReadAllTextAsync(x.file);
             var tokens = tokenizer.Parse(line);
 
-            string dbName = TagsTool.TryGetValue(x.manifest.Tags, NBlogConstants.DbTag, out var v1) ? v1.NotEmpty() : throw new UnreachableException();
+            var dbName = TagsTool.Parse(x.manifest.Tags)
+                .ThrowOnError()
+                .Return()
+                .TryGetValue(NBlogConstants.DbTag, out var v1) ? v1.NotEmpty() : throw new UnreachableException();
+
             var tags = new Tags(x.manifest.Tags);
             return new DocumentReference(dbName, x.manifest.ArticleId, tokens, tags.Keys).ToOption();
         });

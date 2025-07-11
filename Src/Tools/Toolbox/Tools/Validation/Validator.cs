@@ -10,7 +10,7 @@ public interface IValidator<T>
 
 public class Validator<T> : IValidator<T>
 {
-    private readonly IList<IPropertyRuleBase<T>> _rules = new List<IPropertyRuleBase<T>>();
+    private readonly List<IPropertyRuleBase<T>> _rules = new List<IPropertyRuleBase<T>>();
 
     public Rule<T, T> RuleForObject(Func<T, T> func)
     {
@@ -74,20 +74,20 @@ public class Validator<T> : IValidator<T>
         var result = new ValidatorResult
         {
             Errors = _rules
-            .SelectMany(x => x.Validate(subject) switch
-            {
-                var o when o.HasValue => o.Return() switch
+                .SelectMany(x => x.Validate(subject) switch
                 {
-                    ValidatorError v => new[] { v },
-                    ValidatorResult v => v.GetErrors(),
+                    var o when o.HasValue => o.Return() switch
+                    {
+                        ValidatorError v => new[] { v },
+                        ValidatorResult v => v.GetErrors(),
 
-                    var v => throw new InvalidOperationException($"Invalid IValidateResult class, type={v.GetType().FullName}"),
-                },
+                        var v => throw new InvalidOperationException($"Invalid IValidateResult class, type={v.GetType().FullName}"),
+                    },
 
-                _ => Array.Empty<ValidatorError>(),
+                    _ => Array.Empty<ValidatorError>(),
 
-            })
-            .ToArray()
+                })
+                .ToArray()
         };
 
         return result.Errors switch
@@ -95,26 +95,5 @@ public class Validator<T> : IValidator<T>
             { Count: 0 } => new Option<IValidatorResult>(result, StatusCode.OK, result.ToString()),
             var v => new Option<IValidatorResult>(result, StatusCode.BadRequest, result.ToString())
         };
-    }
-}
-
-
-public static class ValidatorExtensions
-{
-    public static Validator<T> Build<T, TProperty>(this Rule<T, TProperty> rule) => rule.Validator;
-
-    public static Rule<T, T> RuleForObject<T, TInput>(this Rule<T, TInput> rule, Func<T, T> func)
-    {
-        return rule.Validator.RuleForObject(func);
-    }
-
-    public static Rule<T, TProperty> RuleFor<T, TInput, TProperty>(this Rule<T, TInput> rule, Expression<Func<T, TProperty>> expression)
-    {
-        return rule.Validator.RuleFor(expression);
-    }
-
-    public static Rule<T, TProperty> RuleForEach<T, TInput, TProperty>(this Rule<T, TInput> rule, Expression<Func<T, IEnumerable<TProperty>>> expression)
-    {
-        return rule.Validator.RuleForEach(expression);
     }
 }

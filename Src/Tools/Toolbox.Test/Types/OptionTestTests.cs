@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -11,20 +11,20 @@ public class OptionTestTests
         var optionTest = new OptionTest();
 
         optionTest.Test(() => StatusCode.OK);
-        optionTest.IsOk().Should().BeTrue();
-        optionTest.Option.StatusCode.Should().Be(StatusCode.OK);
+        optionTest.IsOk().BeTrue();
+        optionTest.Option.StatusCode.Be(StatusCode.OK);
 
         optionTest.Test(() => StatusCode.OK);
-        optionTest.IsOk().Should().BeTrue();
-        optionTest.Option.StatusCode.Should().Be(StatusCode.OK);
+        optionTest.IsOk().BeTrue();
+        optionTest.Option.StatusCode.Be(StatusCode.OK);
 
         optionTest.Test(() => StatusCode.BadRequest);
-        optionTest.IsError().Should().BeTrue();
-        optionTest.Option.StatusCode.Should().Be(StatusCode.BadRequest);
+        optionTest.IsError().BeTrue();
+        optionTest.Option.StatusCode.Be(StatusCode.BadRequest);
 
         optionTest.Test(() => StatusCode.OK);
-        optionTest.IsError().Should().BeTrue();
-        optionTest.Option.StatusCode.Should().Be(StatusCode.BadRequest);
+        optionTest.IsError().BeTrue();
+        optionTest.Option.StatusCode.Be(StatusCode.BadRequest);
     }
 
     [Fact]
@@ -34,8 +34,8 @@ public class OptionTestTests
             .Test(() => StatusCode.OK)
             .Test(() => StatusCode.OK);
 
-        test.IsOk().Should().BeTrue();
-        test.IsError().Should().BeFalse();
+        test.IsOk().BeTrue();
+        test.IsError().BeFalse();
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class OptionTestTests
             .Test(() => StatusCode.BadRequest)
             .Test(() => StatusCode.OK);
 
-        test.IsOk().Should().BeFalse();
-        test.IsError().Should().BeTrue();
+        test.IsOk().BeFalse();
+        test.IsError().BeTrue();
     }
 }

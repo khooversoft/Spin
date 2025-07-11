@@ -1,0 +1,74 @@
+﻿@using Microsoft.FluentUI.AspNetCore.Components.DesignTokens
+
+<FluentDesignTheme @bind-Mode="@Mode"
+                   OnLoaded="@OnLoaded"
+                   StorageName="theme"
+                   OnLuminanceChanged="@OnLoaded" />
+
+<div class="@_frameClass">
+    @if (_isMenuBar)
+    {
+        <FluentToolbar Class="feed-block-toolbar">
+            @if (Title.IsNotEmpty())
+            {
+                <FluentLabel style="min-height:31px" Typo="Typography.H6" Disabled="Disabled">@Title</FluentLabel>
+            }
+
+            <FluentSpacer />
+
+            @if (OnAdd.HasDelegate)
+            {
+                <FluentButton IconStart="@(new Icons.Regular.Size20.Add())"
+                              Appearance="Appearance.Outline"
+                              OnClick="GotoAdd" />
+            }
+
+            @if (OnEdit.HasDelegate)
+            {
+                <FluentButton IconStart="@(new Icons.Regular.Size20.Edit())"
+                              Appearance="Appearance.Outline"
+                              OnClick="GotoEdit"
+                              Disabled="DisableEdit"
+                              />
+            }
+        </FluentToolbar>
+    }
+
+    <div class=@_contentClass>
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback OnAdd { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public bool DisableEdit { get; set; } = false;
+
+    private DesignThemeModes Mode { get; set; }
+
+    private bool _isMenuBar;
+    private string _contentClass = null!;
+    private string _frameClass = _frameClassLight;
+
+    private const string _frameClassLight = "feed-block-container feed-block-background-light";
+    private const string _frameClassDark = "feed-block-container feed-block-background-dark";
+
+    protected override void OnParametersSet()
+    {
+        _isMenuBar = Title.IsNotEmpty() || OnAdd.HasDelegate || OnEdit.HasDelegate;
+        _contentClass = Class.IsNotEmpty() ? Class : "feed-block-content";
+    }
+
+    private Task GotoAdd() => OnAdd.InvokeAsync();
+    private Task GotoEdit() => OnEdit.InvokeAsync();
+
+    protected void OnLoaded()
+    {
+        _frameClass = Mode == DesignThemeModes.Dark ? _frameClassDark : _frameClassLight;
+        StateHasChanged();
+    }
+}

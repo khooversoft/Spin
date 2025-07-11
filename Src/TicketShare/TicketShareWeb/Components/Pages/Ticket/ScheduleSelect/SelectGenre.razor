@@ -1,0 +1,46 @@
+﻿@rendermode InteractiveServer
+
+<FeedBlock Title="@_title" Class="feed-block-datagrid" OnEdit="OnEdit" DisableEdit="@(_scheduleContext.Genre == null)" Disabled="@(_scheduleContext.Segment == null)">
+    <div style="margin: 10px">
+        <FluentStack Orientation="Orientation.Horizontal" Wrap=true>
+
+            @foreach (var item in _scheduleContext.GetGenreSelect())
+            {
+                bool isSelected = _scheduleContext.Genre?.Id == item.Id;
+                <SelectButton IsSelected="@isSelected" Id="@item.Id" Name="@item.Name" OnSwitch="SwitchButton" />
+            }
+
+        </FluentStack>
+    </div>
+</FeedBlock>
+
+@code {
+    [CascadingParameter] public TicketScheduleContext _scheduleContext { get; set; } = null!;
+    [Parameter] public EventCallback OnRefresh { get; set; }
+    @inject ILogger<SelectGenre> _logger;
+
+    private string _title = "What type?";
+
+    // TODO: Need to update based on segment being selected
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _title = _scheduleContext.Segment?.Name != null ? $"What type of {_scheduleContext.Segment.Name}?" : "What type?";
+        }
+    }
+
+    private async Task Refresh() => await OnRefresh.InvokeAsync();
+
+    private async Task OnEdit()
+    {
+        _scheduleContext.SetGenre(null);
+        await Refresh();
+    }
+
+    private async Task SwitchButton(string id)
+    {
+        _scheduleContext.SetGenre(id);
+        await Refresh();
+    }
+}

@@ -28,9 +28,9 @@ public class TokenSyntax : ITokenSyntax
         return null;
     }
 
-    public IToken CreateToken(ReadOnlySpan<char> span)
+    public IToken CreateToken(ReadOnlySpan<char> span, int index)
     {
         string value = span.ToString();
-        return new TokenValue(value) { IsSyntaxToken = true };
+        return new TokenValue(value, index) { IsSyntaxToken = true };
     }
 }

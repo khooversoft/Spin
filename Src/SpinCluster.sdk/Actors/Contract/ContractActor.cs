@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Orleans.Runtime;
 using SpinCluster.abstraction;
 using SpinCluster.sdk.Actors.Signature;
 using SpinCluster.sdk.Application;
@@ -44,7 +43,7 @@ public class ContractActor : Grain, IContractActor
             );
 
         if (!_state.RecordExists) return StatusCode.NotFound;
-        if (!block.Validate(out var mv)) return mv;
+        if (block.Validate().IsError(out var mv)) return mv;
         if (!_state.State.HasAccess(block.PrincipleId, BlockGrant.Write, block.BlockType, out var av)) return av;
 
         await VerifyBlock();

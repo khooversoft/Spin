@@ -1,0 +1,72 @@
+﻿@page "/TicketGroup/{TicketGroupId}"
+@attribute [Authorize]
+
+@using Microsoft.AspNetCore.Authorization
+@using TicketShare.sdk
+
+<LoadingBlock Loading=@_loading />
+
+@if (_ticketGroupContext != null && _ticketGroupContext.IsLoaded())
+{
+    <FeedColumn>
+
+        <DialogControls OnClose="OnClose" OnDelete="OnDelete" ShowDelete="true" />
+
+        <CascadingValue Value="_ticketGroupContext">
+            <TicketHeader />
+            <TicketRoles />
+            <TicketSeats />
+        </CascadingValue>
+    </FeedColumn>
+}
+
+@code {
+    [Parameter] public string TicketGroupId { get; set; } = null!;
+    @inject ApplicationNavigation _appNavigation;
+    @inject TicketGroupManager _ticketGroupManager;
+    @inject AskPanel AskPanel;
+    @inject ILogger<TicketGroupPage> _logger;
+
+    private TicketGroupContext? _ticketGroupContext = null!;
+    private bool _loading = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var context = _ticketGroupManager.GetContext(TicketGroupId);
+        var option = await context.Get(new ScopeContext(_logger));
+        if (option.IsError())
+        {
+            _logger.LogError("Failed to get ticketGroupId={ticketGroupId}", TicketGroupId);
+            OnClose();
+            return;
+        }
+
+        _ticketGroupContext = context;
+        _loading = false;
+    }
+
+    private void OnClose() => _appNavigation.GotoTicketGroups();
+
+    private async Task OnDelete()
+    {
+        bool confirmDelete = await AskPanel.Show("Confirm delete", $"Do you want to delete this ticket group {_ticketGroupContext.NotNull().Input.Name}?");
+        if (!confirmDelete) return;
+
+        await SetLoading(true);
+
+        var result = await _ticketGroupContext.Delete(new ScopeContext(_logger));
+        if (result.IsError())
+        {
+            _logger.LogError("Failed to delete ticketGroupId={ticketGroupId}", TicketGroupId);
+        }
+
+        _ticketGroupContext = null;
+        OnClose();
+    }
+
+    private async Task SetLoading(bool visible)
+    {
+        _loading = visible;
+        await InvokeAsync(StateHasChanged);
+    }
+}

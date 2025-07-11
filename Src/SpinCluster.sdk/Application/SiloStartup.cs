@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Services;
 using SpinCluster.sdk.State;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -72,7 +72,7 @@ public static class SiloStartup
             throw new InvalidOperationException("Startup failed");
         }
 
-        context.Location().LogWarning("Startup has completed");
+        context.Location().LogInformation("Startup has completed");
     }
 
     private static async Task<Option> SetupDatalakeSchemaResources(PlanContext planContext, ScopeContext context)

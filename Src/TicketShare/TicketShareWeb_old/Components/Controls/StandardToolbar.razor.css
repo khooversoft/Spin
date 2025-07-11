@@ -1,0 +1,9 @@
+﻿.toolbar-panel {
+    /*background: var(--fill-color);*/
+}
+
+.border {
+    height: 1px;
+    margin: 4px 0 4px 0;
+    padding: 0;
+}

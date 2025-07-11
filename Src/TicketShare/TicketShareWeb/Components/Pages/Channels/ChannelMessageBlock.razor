@@ -1,0 +1,45 @@
+﻿@using Toolbox.Graph.Extensions;
+@rendermode InteractiveServer
+
+@if (_expand != null)
+{
+    <FeedBlock>
+        <FluentCard Class="card-container" @onclick="CardSelected">
+            <FluentStack Orientation="Orientation.Horizontal">
+                <FluentLabel Style="min-height:31px" Typo="Typography.Body">@_expand.DateAsString</FluentLabel>
+                <FluentLabel Style="min-height:31px" Typo="Typography.Body">@_expand.UserName</FluentLabel>
+            </FluentStack>
+            <FluentLabel Typo="Typography.Body">@((MarkupString)_expand.Message)</FluentLabel>
+        </FluentCard>
+    </FeedBlock>
+}
+
+@code {
+    [Parameter] public ChannelMessage Content { get; set; } = null!;
+    [Parameter] public bool Summary { get; set; } = false;
+
+    @inject IdentityClient _identityClient;
+    @inject ILogger<ChannelMessageBlock> _logger;
+    @inject IDialogService _dialogService;
+
+    private ScopeContext _context;
+    private ChannelMessageExpanded _expand = null!;
+    private RightPanelDialog<ChannelMessageExpanded, ChannelMessageDialog> _rightPanelDialog = null!;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _context = new ScopeContext(_logger);
+        _expand = await Content.Expand(_identityClient, _context);
+
+        _rightPanelDialog = new RightPanelDialog<ChannelMessageExpanded, ChannelMessageDialog>(
+            _dialogService,
+            x => NoOpSetChannel(x),
+            null
+        );
+    }
+
+    private Task NoOpSetChannel(ChannelMessageExpanded _) => Task.CompletedTask;
+
+    private async Task CardSelected() => await _rightPanelDialog.Edit(_expand, "Message");
+}

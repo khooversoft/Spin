@@ -71,7 +71,7 @@ public class MessageBrokerEmulator : IMessageBroker
 
         context.Location().LogInformation("Sending to path={path}, message={message}", path, message.ToJsonPascal());
 
-        return (TReturn)await route.ForwardTo(message, context with { Token = default });
+        return (TReturn)await route.ForwardTo(message, context with { CancellationToken = default });
     }
 
     private record Register

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpinClient.sdk;
 using SpinCluster.abstraction;
+using Toolbox.Logging;
 using Toolbox.Types;
 
 namespace SpinTestTools.sdk.ObjectBuilder.Builders;
@@ -17,7 +18,7 @@ public class TenantBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Set((TenantModel)tenant, context);
 
-            setOption.LogStatus(context, "Creating Tenant domain={domain}", tenant.Domain);
+            setOption.LogStatus(context, "Creating Tenant domain={domain}", [tenant.Domain]);
             test.Test(() => setOption);
         }
 

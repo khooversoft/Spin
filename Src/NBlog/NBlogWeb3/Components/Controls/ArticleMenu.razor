@@ -1,0 +1,87 @@
+﻿@using NBlog.sdk
+@using NBlogWeb3.Services
+@using System.Diagnostics
+@using Toolbox.Extensions
+@using Toolbox.Tools
+@using Toolbox.Types
+
+@if (_flow.State == 2 && _indexMap.Count > 0)
+{
+    <nav class="x-container nav">
+        <div class="title">@_title</div>
+        @foreach (var item in _indexMap)
+        {
+            <a class="x-btn underline-from-left" href="@item.HRef">@item.Title</a>
+        }
+    </nav>
+
+    <hr/>
+}
+
+@code {
+    [CascadingParameter] public NBlogConfiguration Configuration { get; set; } = null!;
+    [Inject] private ArticleMenuService _articleMenuService { get; init; } = null!;
+    [Inject] private ManifestService _manifestService { get; init; } = null!;
+    [Inject] private ILogger<ArticleMenu> _logger { get; init; } = null!;
+
+    private SequentialState _flow = new SequentialState();
+    private string? _articleId;
+    private ArticleManifest? _articleManifest;
+    private string _title = "default";
+    private IReadOnlyList<IndexMap> _indexMap = Array.Empty<IndexMap>();
+
+    protected override void OnInitialized()
+    {
+        _articleMenuService.OnChange += OnStateChange;
+        base.OnInitialized();
+    }
+
+    public void Dispose() => _articleMenuService.OnChange -= OnStateChange;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        bool changedState = _flow.MoveState(1);
+        if (firstRender || changedState)
+        {
+            _articleId = _articleMenuService.Get();
+            await Load();
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async void OnStateChange()
+    {
+        _flow.Reset();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Load()
+    {
+        _articleManifest = null;
+        _articleId = _articleMenuService.Get();
+
+        if (_articleId.IsEmpty()) return;
+
+        var context = new ScopeContext(_logger);
+        var articleManifestOption = await _manifestService.GetManifest(_articleId, context);
+        if (articleManifestOption.IsError()) return;
+
+        _articleManifest = articleManifestOption.Return();
+        _title = _articleManifest.Title;
+
+        _indexMap = _articleManifest.GetCommands()
+            .Where(x => x.IsIndexReference)
+            .Select(x => new IndexMap { Title = x.FileIdValue, HRef = x.FileId })
+            .ToArray();
+
+        _flow.MoveState(2).Assert(x => x == true, x => $"{x} state is not valid");
+    }
+
+    private record IndexMap
+    {
+        public required string Title { get; init; }
+        public required string HRef { get; init; }
+    }
+}

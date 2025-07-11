@@ -1,6 +1,7 @@
-﻿using System.Security.Cryptography;
+﻿using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Security.Cryptography;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Extensions;
 
@@ -12,6 +13,7 @@ public static class EnumerableExtensions
     /// <typeparam name="T">type</typeparam>
     /// <param name="self">object to convert</param>
     /// <returns>enumerator</returns>
+    [DebuggerStepThrough]
     public static IEnumerable<T> ToEnumerable<T>(this T self)
     {
         yield return self;
@@ -23,7 +25,8 @@ public static class EnumerableExtensions
     /// <typeparam name="T">type</typeparam>
     /// <param name="subjects">types to process</param>
     /// <param name="action">action to execute</param>
-    public static void ForEach<T>(this IEnumerable<T> subjects, Action<T> action)
+    [DebuggerStepThrough]
+    public static IEnumerable<T> ForEach<T>(this IEnumerable<T> subjects, Action<T> action)
     {
         subjects.NotNull();
         action.NotNull();
@@ -32,6 +35,8 @@ public static class EnumerableExtensions
         {
             action(item);
         }
+
+        return subjects;
     }
 
     /// <summary>
@@ -40,6 +45,7 @@ public static class EnumerableExtensions
     /// <typeparam name="T">type</typeparam>
     /// <param name="subjects">list to operate on</param>
     /// <param name="action">action to execute</param>
+    [DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> subjects, Action<T, int> action)
     {
         subjects.NotNull();
@@ -58,6 +64,7 @@ public static class EnumerableExtensions
     /// <typeparam name="T"></typeparam>
     /// <param name="subjects"></param>
     /// <returns>Stack<typeparamref name="T"/></returns>
+    [DebuggerStepThrough]
     public static Stack<T> ToStack<T>(this IEnumerable<T>? subjects) => new Stack<T>(subjects ?? Array.Empty<T>());
 
     /// <summary>
@@ -66,35 +73,17 @@ public static class EnumerableExtensions
     /// <typeparam name="T">type in list</typeparam>
     /// <param name="self">list to shuffle</param>
     /// <returns>shuffled list</returns>
+    [DebuggerStepThrough]
     public static IReadOnlyList<T> Shuffle<T>(this IEnumerable<T> self)
     {
         self.NotNull();
 
-        var list = self.ToList();
-
-        var provider = RandomNumberGenerator.Create();
-        int n = list.Count;
-
-        while (n > 1)
-        {
-            var box = new byte[1];
-            do
-            {
-                provider.GetBytes(box);
-            }
-            while (!(box[0] < n * (Byte.MaxValue / n)));
-
-            var k = (box[0] % n);
-            n--;
-
-            var value = list[k];
-            list[k] = list[n];
-            list[n] = value;
-        }
-
+        var list = self.ToArray();
+        RandomNumberGenerator.Shuffle(list.AsSpan());
         return list;
     }
 
+    [DebuggerStepThrough]
     public static IEnumerable<T> ToSafe<T>(this IEnumerable<T>? list) => (list ?? Array.Empty<T>());
 
 
@@ -105,6 +94,7 @@ public static class EnumerableExtensions
     /// <param name="values"></param>
     /// <param name="separator"></param>
     /// <returns></returns>
+    [DebuggerStepThrough]
     public static IEnumerable<T> SequenceJoin<T>(this IEnumerable<T> values, T separator)
     {
         bool run = false;
@@ -125,6 +115,7 @@ public static class EnumerableExtensions
     /// <param name="values"></param>
     /// <param name="separatorSelect"></param>
     /// <returns></returns>
+    [DebuggerStepThrough]
     public static IEnumerable<T> SequenceJoin<T>(this IEnumerable<T> values, Func<T, T> separatorSelect)
     {
         bool hasValue = false;
@@ -151,40 +142,24 @@ public static class EnumerableExtensions
         .NotNull()
         .Select((item, index) => (item, index));
 
-
-    public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source, bool returnNotFound = false)
+    /// <summary>
+    /// Partition data into n number of partitions, last partition may not
+    /// be full.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="size"></param>
+    /// <returns></returns>
+    public static IReadOnlyList<IReadOnlyList<T>> Partition<T>(this IEnumerable<T> source, int size)
     {
-        foreach (T element in source) return element;
-        return returnNotFound ? StatusCode.NotFound : Option<T>.None;
-    }
+        source.NotNull();
 
-    public static Option<T> FirstOrDefaultOption<T>(this IEnumerable<T> source, Func<T, bool> predicate, bool returnNotFound = false)
-    {
-        foreach (T element in source)
-        {
-            if (predicate(element)) return element;
-        }
+        IReadOnlyList<IReadOnlyList<T>> result = source
+            .Select((x, i) => (index: i, value: x))
+            .GroupBy(x => x.index / size)
+            .Select(x => (IReadOnlyList<T>)x.Select(v => v.value).ToImmutableArray())
+            .ToImmutableArray();
 
-        return returnNotFound ? StatusCode.NotFound : Option<T>.None;
-    }
-
-    public static Option<T> LastOrDefaultOption<T>(this IEnumerable<T> source)
-    {
-        using (IEnumerator<T> e = source.GetEnumerator())
-        {
-            if (e.MoveNext())
-            {
-                T result;
-                do
-                {
-                    result = e.Current;
-                }
-                while (e.MoveNext());
-
-                return new Option<T>(true, result);
-            }
-        }
-
-        return Option<T>.None;
+        return result;
     }
 }

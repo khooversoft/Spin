@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using SpinCluster.abstraction;
+﻿using SpinCluster.abstraction;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace SpinClusterApi.test.Models;

@@ -22,6 +22,9 @@ public record ArticleManifest
     [Id(11)] public IReadOnlyList<string> Commands { get; init; } = Array.Empty<string>();
     [Id(12)] public string Tags { get; init; } = null!;
 
+    public string GetArticleIdHash() => ArticleId.NotNull().ToBytes().ToHexHash();
+    public static string CalculateArticleIdHash(string articleId) => articleId.NotNull().ToLower().ToBytes().ToHexHash();
+
     public static IValidator<ArticleManifest> Validator { get; } = new Validator<ArticleManifest>()
         .RuleFor(x => x.ArticleId).Must(x => FileId.Create(x).IsOk(), _ => "Invalid artical Id")
         .RuleFor(x => x.Title).NotEmpty()
@@ -66,7 +69,7 @@ public static class ArticleManifestValidations
         int fileIdDistinctCount = commands.Select(x => x.FileId).Distinct(StringComparer.OrdinalIgnoreCase).Count();
         if (fileIdDistinctCount != commands.Count) return (StatusCode.BadRequest, "Duplicate FileIds");
 
-        int localFilePathCount = commands.Select(x => x.LocalFilePath).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+        int localFilePathCount = commands.Select(x => x.FileIdValue).Distinct(StringComparer.OrdinalIgnoreCase).Count();
         if (localFilePathCount != commands.Count) return (StatusCode.BadRequest, "Duplicate LocalFilePath");
 
         return StatusCode.OK;
@@ -78,7 +81,7 @@ public static class ArticleManifestValidations
         IReadOnlyList<CommandNode> commands = commandsOption.Return();
         IReadOnlyList<string> shouldHave = [NBlogConstants.MainAttribute, NBlogConstants.SummaryAttribute];
 
-        var attributes = commands.SelectMany(x => x.Attributes).ToArray();
+        var attributes = commands.SelectMany(x => x.Attributes).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         var contains = shouldHave.Where(x => attributes.Contains(x)).ToArray();
 
         return contains.Length != 0 ? StatusCode.OK : (StatusCode.Conflict, $"Missing one of the required attributes={shouldHave.Join(';')}");
@@ -86,8 +89,13 @@ public static class ArticleManifestValidations
 
     public static Option RequiredTags(string tags)
     {
+        var tokensOption = TagsTool.Parse(tags);
+        if (tokensOption.IsError()) return tokensOption.ToOptionStatus();
+
+        IReadOnlyList<KeyValuePair<string, string?>>? tokens = tokensOption.Return();
+
         var matched = NBlogConstants.RequiredTags
-            .Select(x => TagsTool.TryGetValue(tags, x, out var _) ? x : null)
+            .Select(x => tokens.TryGetValue(x, out var _) ? x : null)
             .OfType<string>();
 
         var except = NBlogConstants.RequiredTags.Except(matched).ToArray();

@@ -1,0 +1,117 @@
+﻿@using System.Collections.Immutable
+@using Microsoft.AspNetCore.Identity
+@using TicketShareWeb.Components.Pages.Channels
+@using Toolbox.Graph.Extensions
+
+<LoadingBlock Loading=@_loading />
+
+@if (!_loading)
+{
+    <FeedColumn>
+        @foreach (var item in _componentList)
+        {
+            switch (item.Type)
+            {
+                case HomeComponentType.Wellcome:
+                    <WellcomeCard />
+                    break;
+
+                case HomeComponentType.Message:
+                    <ChannelMessageBlock Content=item.ChannelMessage />
+                    break;
+            }
+        }
+    </FeedColumn>
+}
+
+@code {
+    @inject UserAccountContext _userAccountContext;
+    @inject ChannelManager _channelManager;
+    @inject UserAccountContext _userAccountManager;
+    @inject SignInManager<PrincipalIdentity> signInManager;
+    @inject ApplicationNavigation _applicationNavigation;
+    @inject ILogger<HomeFeedPage> _logger;
+
+    private bool _loading = true;
+    private string? _principalId = null!;
+    private IReadOnlyList<HomeComponent> _componentList = [];
+    private string _instanceId = Guid.NewGuid().ToString();
+
+    protected override void OnInitialized()
+    {
+        _loading = true;
+        _componentList = [];
+        base.OnInitialized();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var scopeContext = _logger.ToScopeContext();
+        scopeContext.LogDebug("HomeFeedPage: OnParametersSetAsync, instanceId={instanceId}", _instanceId);
+
+        if (_principalId.IsEmpty())
+        {
+            scopeContext.LogDebug("HomeFeedPage: GetPrincipalIdentity, instanceId={instanceId}", _instanceId);
+            var principalOption = await _userAccountContext.GetPrincipalIdentity(scopeContext).ConfigureAwait(false);
+            if (principalOption.IsError())
+            {
+                await signInManager.SignOutAsync();
+                _applicationNavigation.GotoHome();
+                return;
+            }
+
+            _principalId = principalOption switch
+            {
+                { StatusCode: StatusCode.OK } => principalOption.Return().PrincipalId,
+                _ => null,
+            };
+        }
+
+        scopeContext.LogDebug("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
+        await Refresh();
+        await base.OnParametersSetAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var scopeContext = _logger.ToScopeContext();
+            scopeContext.LogDebug("HomeFeedPage: OnAfterRender, instanceId={instanceId}", _instanceId);
+            _loading = false;
+        }
+
+        base.OnAfterRender(firstRender);
+    }
+
+    private async Task Refresh()
+    {
+        var scopeContext = _logger.ToScopeContext();
+
+        if (_principalId == null)
+        {
+            scopeContext.LogDebug("HomeFeedPage: Refresh, NoPrincipalId, instanceId={instanceId}", _instanceId);
+            _loading = false;
+            _componentList = [];
+            return;
+        }
+
+        scopeContext.LogDebug("HomeFeedPage: Refresh, instanceId={instanceId}", _instanceId);
+        var channelsOption = await _channelManager.GetMessages(_principalId, scopeContext);
+        var accountActive = await _userAccountManager.IsAccountEnabled(scopeContext);
+
+        var messageList = channelsOption.IsOk() switch
+        {
+            true => channelsOption.Return().Select(x => new HomeComponent(HomeComponentType.Message, x)).ToArray(),
+            false => [],
+        };
+
+        _componentList = messageList
+            .Where(x => x.Cleared == null)
+            .OrderByDescending(x => x.Date)
+            .Func(x => accountActive && messageList.Length > 0 ? x : x.Prepend(new HomeComponent(HomeComponentType.Wellcome)))
+            .ToImmutableArray();
+
+        _loading = false;
+    }
+}

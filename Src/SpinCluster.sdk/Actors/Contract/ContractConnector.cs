@@ -77,7 +77,7 @@ public class ContractConnector
     {
         documentId = Uri.UnescapeDataString(documentId);
         if (!IdPatterns.IsContractId(documentId)) return Results.BadRequest();
-        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
+        if (model.Validate().IsError(out Option v)) return Results.BadRequest(v.Error);
 
         Option response = await _client.GetResourceGrain<IContractActor>(documentId).Append(model, traceId);
         return response.ToResult();

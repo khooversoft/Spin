@@ -1,0 +1,14 @@
+﻿@using System.Collections.Concurrent
+@using TicketShareWeb.Application
+
+@if (Errors.TryGetValue(FieldName, out var errorMessage))
+{
+    <FluentLabel Class="message-box-container validation-error" Typo="Typography.Body">
+        @errorMessage
+    </FluentLabel>
+}
+
+@code {
+    [Parameter] public FormValidation Errors { get; set; } = null!;
+    [Parameter] public string FieldName { get; set; } = null!;
+}

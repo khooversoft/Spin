@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SpinCluster.sdk.Application;
-using Toolbox.Azure.DataLake;
+using Toolbox.Azure;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -84,8 +84,8 @@ public class DatalakeSchemaResources
 
     private async Task<bool> VerifyConnection(IDatalakeStore store, SchemaOption schemaOption, ScopeContext context)
     {
-        bool exist = await store.TestConnection(context);
-        if (!exist)
+        Option exist = await store.TestConnection(context);
+        if (exist.IsError())
         {
             context.Location().LogCritical("Failed to connect to datalake store schemaOption={schemaOption}, credentials={credentials}",
                 schemaOption, _clusterOption.Credentials);

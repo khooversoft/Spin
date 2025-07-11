@@ -1,4 +1,4 @@
-﻿//using FluentAssertions;
+﻿//using Toolbox.Tools.Should;
 //using Microsoft.Extensions.Logging.Abstractions;
 //using Toolbox.Data;
 //using Toolbox.Types;
@@ -31,29 +31,29 @@
 //            .Build()
 //            .Verify();
 
-//        document.IsHashVerify().Should().BeTrue();
+//        document.IsHashVerify().BeTrue();
 
 //        var lookupOption = await store.Get(document.ObjectId);
-//        lookupOption.HasValue.Should().BeFalse();
-//        lookupOption.StatusCode.Should().Be(StatusCode.NotFound);
+//        lookupOption.HasValue.BeFalse();
+//        lookupOption.StatusCode.Be(StatusCode.NotFound);
 
 //        StatusCode putResult = await store.Set(document, context);
-//        putResult.Should().Be(StatusCode.OK);
+//        putResult.Be(StatusCode.OK);
 
 //        var readOption = await store.Get(document.ObjectId, document.ETag);
-//        readOption.HasValue.Should().BeTrue();
-//        readOption.StatusCode.Should().Be(StatusCode.OK);
+//        readOption.HasValue.BeTrue();
+//        readOption.StatusCode.Be(StatusCode.OK);
 
 //        Document readDocument = readOption.Return();
-//        readDocument.IsHashVerify().Should().BeTrue();
+//        readDocument.IsHashVerify().BeTrue();
 
-//        (document == readDocument).Should().BeTrue();
+//        (document == readDocument).BeTrue();
 //        Payload readPayload = readOption.Return().ToObject<Payload>();
 
-//        (payload == readPayload).Should().BeTrue();
+//        (payload == readPayload).BeTrue();
 
 //        var deleteResult = await store.Delete(document.ObjectId, context, eTag: document.ETag);
-//        deleteResult.Should().Be(StatusCode.OK);
+//        deleteResult.Be(StatusCode.OK);
 //    }
 
 //    [Fact]
@@ -86,14 +86,14 @@
 //        foreach (var doc in documents)
 //        {
 //            var status = await store.Set(doc, context);
-//            status.Should().Be(StatusCode.OK);
+//            status.Be(StatusCode.OK);
 //        }
 
 //        foreach (var doc in documents)
 //        {
 //            Option<Document> result = await store.Get(doc.ObjectId, doc.ETag);
-//            result.StatusCode.Should().Be(StatusCode.OK);
-//            (result.Return() == doc).Should().BeTrue();
+//            result.StatusCode.Be(StatusCode.OK);
+//            (result.Return() == doc).BeTrue();
 //        }
 //    }
 
@@ -121,20 +121,20 @@
 //            .Build()
 //            .Verify();
 
-//        document.IsHashVerify().Should().BeTrue();
+//        document.IsHashVerify().BeTrue();
 
 //        StatusCode putResult = await store.Set(document, context);
-//        putResult.Should().Be(StatusCode.OK);
+//        putResult.Be(StatusCode.OK);
 
 //        var readOption = await store.Get(document.ObjectId, "bad");
-//        readOption.HasValue.Should().BeFalse();
-//        readOption.StatusCode.Should().Be(StatusCode.Conflict);
+//        readOption.HasValue.BeFalse();
+//        readOption.StatusCode.Be(StatusCode.Conflict);
 
 //        StatusCode putResult2 = await store.Set(document, context, eTag: "bad");
-//        putResult2.Should().Be(StatusCode.Conflict);
+//        putResult2.Be(StatusCode.Conflict);
 
 //        StatusCode deleteResult = await store.Delete(document.ObjectId, context, eTag: "bad");
-//        deleteResult.Should().Be(StatusCode.Conflict);
+//        deleteResult.Be(StatusCode.Conflict);
 //    }
 
 

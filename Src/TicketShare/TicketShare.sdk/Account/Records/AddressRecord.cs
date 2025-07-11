@@ -1,0 +1,25 @@
+﻿using Toolbox.Tools;
+using Toolbox.Types;
+
+namespace TicketShare.sdk;
+
+public record AddressRecord
+{
+    public string Id { get; init; } = Guid.NewGuid().ToString();
+    public string Label { get; init; } = null!;
+    public string? Address1 { get; init; } = null!;
+    public string? Address2 { get; init; }
+    public string? City { get; init; } = null!;
+    public string? State { get; init; } = null!;
+    public string? ZipCode { get; init; } = null!;
+
+    public static IValidator<AddressRecord> Validator { get; } = new Validator<AddressRecord>()
+        .RuleFor(x => x.Id).NotEmpty()
+        .RuleFor(x => x.Label).NotEmpty()
+        .Build();
+}
+
+public static class AddressRecordExtensions
+{
+    public static Option Validate(this AddressRecord subject) => AddressRecord.Validator.Validate(subject).ToOptionStatus();
+}

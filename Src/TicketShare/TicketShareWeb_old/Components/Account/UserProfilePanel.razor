@@ -1,0 +1,41 @@
+﻿@implements IDialogContentComponent<UserProfileModel>
+
+<FluentDialogBody>
+    <div style="margin-top:10px;">
+        <FluentTextField Name="Content.Name" @bind-Value="Content.Name" AutoComplete="name" Placeholder="Please enter your name." Label="Name" Style="width: 100%;" />
+    </div>
+
+    <div style="margin-top:10px">
+        <FluentTextField Name="Input.Email" @bind-Value="Content.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
+    </div>
+
+    <div style="margin-top:10px">
+        <FluentTextField Name="Input.PhoneNumber" @bind-Value="Content.PhoneNumber" AutoComplete="PhoneNumber" Placeholder="Please enter your phone number." Label="Phone Number" Style="width: 100%;" />
+    </div>
+
+    <div style="margin-top:10px">
+        <FluentTextField Name="Input.Address1" @bind-Value="Content.Address1" AutoComplete="Address1" Placeholder="Please enter your address." Label="Address" Style="width: 100%;" />
+    </div>
+
+    <div style="margin-top:10px">
+        <FluentTextField Name="Input.Address2" @bind-Value="Content.Address2" AutoComplete="Address2" Placeholder="Please enter your address." Label="Address" Style="width: 100%;" />
+    </div>
+
+    <div style="margin-top:10px">
+        <FluentTextField Name="Input.City" @bind-Value="Content.City" AutoComplete="City" Placeholder="Please enter your city." Label="City" Style="width: 100%;" />
+    </div>
+
+    <div style="margin-top:10px">
+        <FluentTextField Name="Input.State" @bind-Value="Content.State" AutoComplete="State" Placeholder="Please enter your state." Label="State" Style="width: 100%;" />
+    </div>
+
+    <div style="margin-top:10px">
+        <FluentTextField Name="Input.ZipCode" @bind-Value="Content.ZipCode" AutoComplete="ZipCode" Placeholder="Please enter your zip code." Label="Zip Code" Style="width: 100%;" />
+    </div>
+
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public UserProfileModel Content { get; set; } = new();
+}

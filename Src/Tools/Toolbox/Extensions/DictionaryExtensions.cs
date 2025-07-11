@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -37,11 +38,12 @@ public static class DictionaryExtensions
         };
     }
 
-    public static IReadOnlyList<KeyValuePair<string, string>> ToDictionary<T>(this T subject) where T : class
+    public static IReadOnlyList<KeyValuePair<string, string?>> ToKeyValuePairs<T>(this T subject)
     {
         subject.NotNull();
 
-        string json = JsonSerializer.Serialize(subject).NotEmpty(name: "Serialization failed");
+        var options = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+        string json = JsonSerializer.Serialize(subject, options).NotEmpty(name: "Serialization failed");
 
         byte[] byteArray = Encoding.UTF8.GetBytes(json);
         using MemoryStream stream = new MemoryStream(byteArray);
@@ -52,19 +54,19 @@ public static class DictionaryExtensions
 
         return config
             .AsEnumerable()
+            .Append(new KeyValuePair<string, string?>("$type", subject.GetType().Name))
             .Where(x => x.Value != null)
-            .OfType<KeyValuePair<string, string>>()
             .OrderBy(x => x.Key)
             .ToArray();
     }
 
     /// <summary>
-    /// 
+    /// To object based on type
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="values"></param>
     /// <returns></returns>
-    public static T ToObject<T>(this IEnumerable<KeyValuePair<string, string>> values) where T : new()
+    public static T ToObject<T>(this IEnumerable<KeyValuePair<string, string?>> values) where T : new()
     {
         values.NotNull();
         var dict = values.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
@@ -72,8 +74,58 @@ public static class DictionaryExtensions
         T result = new ConfigurationBuilder()
             .AddInMemoryCollection(values!)
             .Build()
-            .Bind<T>();
+            .Get<T>().NotNull();
 
         return result;
+    }
+
+    /// <summary>
+    /// Dictionary equals
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
+    /// <param name="source"></param>
+    /// <param name="target"></param>
+    /// <returns></returns>
+    public static bool DeepEquals<TKey, TValue>(this IEnumerable<KeyValuePair<TKey, TValue>>? source, IEnumerable<KeyValuePair<TKey, TValue>>? target)
+    {
+        if (source == null && target == null) return true;
+        if (source == null || target == null) return false;
+
+        var keyResult = source.Select(x => x.Key).SequenceEqual(target.Select(x => x.Key));
+        var valueResult = source.OrderBy(x => x.Key).SequenceEqual(target.OrderBy(x => x.Key));
+
+        return keyResult && valueResult;
+    }
+
+    public static bool DeepEqualsComparer<TKey, TValue>(
+        this IEnumerable<KeyValuePair<TKey, TValue>>? source,
+        IEnumerable<KeyValuePair<TKey, TValue>>? target,
+        IComparer<TKey>? keyComparer = null,
+        IComparer<TValue>? valueComparer = null
+        )
+    {
+        if (source == null && target == null) return true;
+        if (source == null || target == null) return false;
+
+        keyComparer = keyComparer.ComparerFor();
+        valueComparer = valueComparer.ComparerFor();
+
+        var sourceList = source.OrderBy(x => x.Key, keyComparer).ToArray();
+        var targetList = target.OrderBy(x => x.Key, keyComparer).ToArray();
+        if (sourceList.Length != targetList.Length) return false;
+
+        var zip = sourceList.Zip(targetList, (x, y) => (source: x, target: y));
+        var isEqual = zip.All(x => keyComparer.Compare(x.source.Key, x.target.Key) switch
+        {
+            0 => valueComparer.Compare(x.source.Value, x.target.Value) switch
+            {
+                0 => true,
+                _ => false,
+            },
+            _ => false,
+        });
+
+        return isEqual;
     }
 }

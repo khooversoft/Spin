@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -11,13 +10,11 @@ public class ScopeContextTests
     public void LoggingLocationTest()
     {
         var context = new ScopeContext(NullLogger.Instance);
-        context.TraceId.Should().NotBeNullOrEmpty();
-
-        Action testLogger = () => context.Logger.NotNull();
-        testLogger.Should().NotThrow();
+        context.TraceId.NotEmpty();
+        context.Logger.NotNull();
 
         ScopeContextLocation location = context.Location();
-        location.Should().NotBeNull();
-        location.Context.TraceId.Should().Be(context.TraceId);
+        location.NotNull();
+        location.Context.TraceId.Be(context.TraceId);
     }
 }

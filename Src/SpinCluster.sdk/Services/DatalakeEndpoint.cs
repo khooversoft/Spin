@@ -15,7 +15,7 @@ public record DatalakeEndpoint
         var values = connectionString.NotEmpty()
             .Split(';', StringSplitOptions.RemoveEmptyEntries)
             .Select(x => parseProperty(x))
-            .OfType<KeyValuePair<string, string>>()
+            .OfType<KeyValuePair<string, string?>>()
             .ToArray();
 
         var result = values.ToObject<DatalakeEndpoint>();

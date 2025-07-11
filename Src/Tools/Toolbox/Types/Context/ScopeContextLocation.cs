@@ -1,4 +1,6 @@
-﻿namespace Toolbox.Types;
+﻿using System.Runtime.CompilerServices;
+
+namespace Toolbox.Types;
 
 public readonly record struct ScopeContextLocation : ILoggingContext
 {
@@ -10,14 +12,18 @@ public readonly record struct ScopeContextLocation : ILoggingContext
 
     public ScopeContext Context { get; init; }
     public CodeLocation Location { get; }
+}
 
-    public (string? message, object?[] args) AppendContext(string? message, object?[] args)
+
+public static class ScopeContextLocationExtensions
+{
+    public static ScopeContextLocation Location(
+        this ScopeContext context,
+        [CallerMemberName] string function = "",
+        [CallerFilePath] string path = "",
+        [CallerLineNumber] int lineNumber = 0
+        )
     {
-        string addMessage = "traceId={traceId}, callerFunction={callerFunction}, callerFilePath={callerFilePath}, callerLineNumber={callerLineNumber}";
-
-        return (
-            ScopeContextTools.AppendMessage(message, addMessage),
-            ScopeContextTools.AppendArgs(args, Context.TraceId, Location.CallerFunction, Location.CallerFilePath, Location.CallerLineNumber)
-            );
+        return new ScopeContextLocation(context, new CodeLocation(function, path, lineNumber));
     }
 }

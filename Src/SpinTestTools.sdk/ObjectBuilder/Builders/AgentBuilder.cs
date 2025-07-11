@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpinClient.sdk;
+using Toolbox.Logging;
 using Toolbox.Types;
 
 namespace SpinTestTools.sdk.ObjectBuilder.Builders;
@@ -16,7 +17,7 @@ public class AgentBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Set(model, context);
 
-            setOption.LogStatus(context, "Creating Agent agentId={agentId}", model.AgentId);
+            setOption.LogStatus(context, "Creating Agent agentId={agentId}", [model.AgentId]);
             test.Test(() => setOption);
         }
 

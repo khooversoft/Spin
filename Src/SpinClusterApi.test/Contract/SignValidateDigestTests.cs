@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SpinClient.sdk;
 using SpinCluster.abstraction;
@@ -8,6 +7,7 @@ using SpinClusterApi.test.Application;
 using SpinTestTools.sdk.ObjectBuilder;
 using Toolbox.Extensions;
 using Toolbox.Security;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace SpinClusterApi.test.Contract;
@@ -90,7 +90,7 @@ public class SignValidateDigestTests : IClassFixture<ClusterApiFixture>
         SignResponse response = jwtOption.Return();
         response.Kid.Should().Be(IdTool.CreateKid(principalId, "sign"));
         response.MessageDigest.Should().Be(messageDigest);
-        response.JwtSignature.Should().NotBeNullOrEmpty();
+        response.JwtSignature.Should().NotBeEmpty();
 
         SignatureClient signatureClient = _cluster.ServiceProvider.GetRequiredService<SignatureClient>();
 

@@ -25,7 +25,7 @@ public static class IdPatterns
     public static bool IsPath(string? subject) =>
         subject.IsNotEmpty() &&
         TestStart(subject, char.IsLetter) &&
-        TestMiddle(subject, x => StandardCharacterTest(x) || x == '@' || x == '/') &&
+        TestMiddle(subject, x => StandardCharacterTest(x) || x == '@' || x == '/' || x == '_') &&
         TestEnd(subject, char.IsLetterOrDigit);
 
     public static bool IsPrincipalId(string? subject) =>

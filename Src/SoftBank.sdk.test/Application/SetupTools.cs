@@ -1,10 +1,11 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using SoftBank.sdk.Models;
 using SoftBank.sdk.SoftBank;
 using SpinClient.sdk;
 using SpinCluster.abstraction;
 using Toolbox.Block;
+using Toolbox.Tools;
+using Toolbox.Tools.Should;
 using Toolbox.Types;
 
 namespace SoftBank.sdk.test.Application;
@@ -138,7 +139,7 @@ public class SetupTools
         readAccountDetailOption.IsOk().Should().BeTrue();
 
         var readAccountDetail = readAccountDetailOption.Return();
-        (createRequest = readAccountDetail).Should().NotBeNull();
+        (createRequest = readAccountDetail).NotNull();
     }
 
     private async Task DeleteBankAccount(string accountId)

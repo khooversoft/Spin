@@ -3,6 +3,7 @@ using SpinClient.sdk;
 using SpinCluster.abstraction;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Types;
 
 namespace SpinClusterCmd.Activities;
@@ -77,7 +78,7 @@ internal class Lease : ICommandRoute
         var context = new ScopeContext(_logger);
         context.LogInformation("Listing valid leases");
 
-        Option<IReadOnlyList<LeaseData>> response = await _client.List(QueryParameter.Default, context);
+        Option<IReadOnlyList<LeaseData>> response = await _client.List(QueryParameter.Parse("**/*"), context);
         if (response.IsError())
         {
             context.LogError("Failed to get lease details");

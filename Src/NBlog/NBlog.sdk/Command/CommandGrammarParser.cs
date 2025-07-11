@@ -16,7 +16,7 @@ public static class CommandGrammarParser
         Stack<LangNode> stack = langResult.LangNodes.NotNull().Reverse().ToStack();
 
         string? fileId = null;
-        string? localFilePath = null;
+        string? fileIdValue = null;
         List<string>? attributes = null;
 
         while (stack.TryPop(out var langNode))
@@ -34,8 +34,8 @@ public static class CommandGrammarParser
                 case { SyntaxNode.Name: "equal" }:
                     break;
 
-                case { SyntaxNode.Name: "localFilePath" }:
-                    localFilePath = langNode.Value;
+                case { SyntaxNode.Name: "fileIdValue" }:
+                    fileIdValue = langNode.Value;
 
                     if (fileId.IsEmpty()) return (StatusCode.BadRequest, "No fileId");
 
@@ -43,7 +43,7 @@ public static class CommandGrammarParser
                     {
                         Attributes = attributes?.ToArray() ?? Array.Empty<string>(),
                         FileId = fileId,
-                        LocalFilePath = localFilePath,
+                        FileIdValue = fileIdValue,
                     };
 
                     if (!commandNode.Validate(out Option v)) return v.ToOptionStatus<IReadOnlyList<CommandNode>>();

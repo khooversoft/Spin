@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using Toolbox.Security;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Security;
 
@@ -22,15 +22,15 @@ public class JwtKeyTests
             .SetPrincipleSignature(principle)
             .Build();
 
-        token.Should().NotBeNullOrEmpty();
+        token.NotEmpty();
 
         JwtTokenDetails tokenDetails = new JwtTokenParserBuilder()
             .SetPrincipleSignature(principle)
             .Build()
             .Parse(token);
 
-        tokenDetails.JwtSecurityToken.Header.Kid.Should().Be(kid);
-        tokenDetails.JwtSecurityToken.Subject.Should().Be(subject);
+        tokenDetails.JwtSecurityToken.Header.Kid.Be(kid);
+        tokenDetails.JwtSecurityToken.Subject.Be(subject);
     }
 
     [Fact]
@@ -51,13 +51,14 @@ public class JwtKeyTests
             .SetPrincipleSignature(principle)
             .Build();
 
-        token.Should().NotBeNullOrEmpty();
+        token.NotEmpty();
 
-        Action test = () => new JwtTokenParserBuilder()
+        Verify.Throw<SecurityTokenValidationException>(() =>
+        {
+            new JwtTokenParserBuilder()
             .SetPrincipleSignature(principle2)
             .Build()
             .Parse(token);
-
-        test.Should().Throw<SecurityTokenValidationException>();
+        });
     }
 }

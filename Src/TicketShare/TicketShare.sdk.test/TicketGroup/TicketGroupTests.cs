@@ -1,0 +1,189 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+using TicketShare.sdk.Applications;
+using Toolbox.Extensions;
+using Toolbox.Graph;
+using Toolbox.Graph.Extensions;
+using Toolbox.Tools;
+using Toolbox.Types;
+
+namespace TicketShare.sdk.test.TicketGroup;
+
+public class TicketGroupTests
+{
+    [Fact]
+    public async Task FullLifeCycle()
+    {
+        var testHost = await GraphTestStartup.CreateGraphService();
+        var identityClient = testHost.Services.GetRequiredService<IdentityClient>();
+        var ticketGroupClient = testHost.Services.GetRequiredService<TicketGroupClient>();
+        var context = testHost.CreateScopeContext<TicketGroupTests>();
+
+        const string principalId = "user1@domain.com";
+        const string friendPrincipalId = "friend@domain.com";
+
+        var accountRecord = TestTool.CreateAccountModel(principalId);
+        await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1", testHost, context);
+        await TestTool.AddIdentityUser(friendPrincipalId, "friend", testHost, context);
+        await TestTool.AddAccount(accountRecord, testHost, context);
+
+        var ticketGroup = CreateTicketGroupModel("sam/2020/hockey", principalId, null);
+        var result = await ticketGroupClient.Add(ticketGroup, context);
+        result.IsOk().BeTrue(result.ToString());
+
+        var readTicketGroupOption = await ticketGroupClient.Get(ticketGroup.TicketGroupId, context);
+        readTicketGroupOption.IsOk().BeTrue();
+        var readTicketGroup = readTicketGroupOption.Return();
+
+        ticketGroup = ticketGroup with { ChannelId = readTicketGroup.ChannelId };
+        (ticketGroup == readTicketGroup).BeTrue();
+
+        ticketGroup = ticketGroup with
+        {
+            Roles = ticketGroup.Roles
+                .Append(new RoleRecord { PrincipalId = friendPrincipalId, MemberRole = RoleType.Contributor })
+                .ToArray(),
+        };
+
+        result = await ticketGroupClient.Set(ticketGroup, context);
+        result.IsOk().BeTrue(result.ToString());
+
+        readTicketGroupOption = await ticketGroupClient.Get(ticketGroup.TicketGroupId, context);
+        readTicketGroupOption.IsOk().BeTrue();
+
+        (await ticketGroupClient.Search(principalId, context)).Action(x =>
+        {
+            x.IsOk().BeTrue();
+            x.Return().Action(y =>
+            {
+                y.Count.Be(1);
+                (y[0] == ticketGroup).BeTrue();
+            });
+        });
+
+        (await ticketGroupClient.Search(friendPrincipalId, context)).Action(x =>
+        {
+            x.IsOk().BeTrue();
+            x.Return().Action(y =>
+            {
+                y.Count.Be(1);
+                (y[0] == ticketGroup).BeTrue();
+            });
+        });
+
+        var delete = await ticketGroupClient.Delete(ticketGroup.TicketGroupId, context);
+        delete.IsOk().BeTrue();
+
+        readTicketGroupOption = await ticketGroupClient.Get(ticketGroup.TicketGroupId, context);
+        readTicketGroupOption.IsError().BeTrue();
+    }
+
+    [Fact]
+    public async Task TwoTicketGroupsFullLifeCycle()
+    {
+        var testHost = await GraphTestStartup.CreateGraphService();
+        var client = testHost.Services.GetRequiredService<TicketGroupClient>();
+        var context = testHost.CreateScopeContext<TicketGroupTests>();
+
+        const string principalIdOne = "user1@domain.com";
+        const string ticketGroupIdOne = "sam/2020/hockey1";
+        const string friend1 = "friend1@domain.com";
+        const string friend2 = "friend2@domain.com";
+        const string principalIdTwo = "user2@domain.com";
+        const string ticketGroupIdTwo = "sam/2020/hockey2";
+
+        await CreateAccountAndTicketGroup(ticketGroupIdOne, principalIdOne, friend1, testHost, context);
+        await CreateAccountAndTicketGroup(ticketGroupIdTwo, principalIdTwo, friend2, testHost, context);
+
+        await getAndTest(ticketGroupIdOne, async () => await client.Search(principalIdOne, context));
+        await getAndTest(ticketGroupIdOne, async () => await client.Search(friend1, context));
+
+        await getAndTest(ticketGroupIdTwo, async () => await client.Search(principalIdTwo, context));
+        await getAndTest(ticketGroupIdTwo, async () => await client.Search(friend2, context));
+
+        async Task<IReadOnlyList<TicketGroupRecord>> getAndTest(string ticketGroupId, Func<Task<Option<IReadOnlyList<TicketGroupRecord>>>> getFunc)
+        {
+            var result = await getFunc();
+            result.IsOk().BeTrue();
+            var subject = result.Return();
+            subject.Count.Be(1);
+            subject[0].TicketGroupId.Be(ticketGroupId);
+
+            return subject;
+        }
+    }
+
+    private async Task CreateAccountAndTicketGroup(string ticketGroupId, string principalId, string friendPrincipalId, GraphHostService testHost, ScopeContext context)
+    {
+        var client = testHost.Services.GetRequiredService<TicketGroupClient>();
+
+        var accountRecord = TestTool.CreateAccountModel(principalId);
+        await TestTool.AddIdentityUser(accountRecord.PrincipalId, "user1" + principalId, testHost, context);
+        await TestTool.AddIdentityUser(friendPrincipalId, "friend" + friendPrincipalId, testHost, context);
+        await TestTool.AddAccount(accountRecord, testHost, context);
+
+        var ticketGroup = CreateTicketGroupModel(ticketGroupId, principalId, friendPrincipalId);
+        (await client.Add(ticketGroup, context)).IsOk().BeTrue();
+
+        var readTicketGroupOption = await client.Get(ticketGroup.TicketGroupId, context);
+        readTicketGroupOption.IsOk().BeTrue();
+
+        var readTicketGroup = readTicketGroupOption.Return();
+        ticketGroup = ticketGroup with { ChannelId = readTicketGroup.ChannelId };
+        (ticketGroup == readTicketGroup).BeTrue();
+
+        readTicketGroupOption = await client.Get(ticketGroup.TicketGroupId, context);
+        readTicketGroupOption.IsOk().BeTrue();
+        (ticketGroup == readTicketGroupOption.Return()).BeTrue();
+
+        (await client.Search(principalId, context)).Action(x =>
+        {
+            x.IsOk().BeTrue();
+            x.Return().Action(y =>
+            {
+                y.Count.Be(1);
+                (y[0] == ticketGroup).BeTrue();
+            });
+        });
+
+        (await client.Search(friendPrincipalId, context)).Action(x =>
+        {
+            x.IsOk().BeTrue();
+            x.Return().Action(y =>
+            {
+                y.Count.Be(1);
+                (y[0] == ticketGroup).BeTrue();
+            });
+        });
+    }
+
+    private TicketGroupRecord CreateTicketGroupModel(string ticketGroupId, string principalId, string? contributorPrincipalId)
+    {
+        var ticketGroup = new TicketGroupRecord
+        {
+            TicketGroupId = ticketGroupId,
+            Name = "name",
+            Description = "Sam's 2020 hockey tickets",
+
+            Roles = [
+                new RoleRecord { PrincipalId = principalId, MemberRole = RoleType.Owner },
+                ],
+
+            Seats = [
+                new SeatRecord { Section = "1", Row = "10", Seat = "Sec-5-Row-7-Seat-8", AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
+                new SeatRecord { Section = "1", Row = "10", Seat = "Sec-5-Row-7-Seat-9", AssignedToPrincipalId = principalId, Date = new DateTime(2024,1,10) },
+                ],
+        };
+
+        if (contributorPrincipalId != null)
+        {
+            ticketGroup = ticketGroup with
+            {
+                Roles = ticketGroup.Roles
+                    .Append(new RoleRecord { PrincipalId = contributorPrincipalId, MemberRole = RoleType.Contributor })
+                    .ToArray(),
+            };
+        }
+
+        return ticketGroup;
+    }
+}

@@ -1,6 +1,4 @@
-﻿using Toolbox.Azure.DataLake;
-
-namespace Toolbox.Azure.test.Application;
+﻿namespace Toolbox.Azure.test.Application;
 
 internal record AzureTestOption
 {

@@ -8,6 +8,7 @@ using SpinCluster.abstraction;
 using Toolbox.Block;
 using Toolbox.Extensions;
 using Toolbox.Finance.Finance;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -114,7 +115,7 @@ public class LoanContractManager
         Option<TrxResponse> trxResponse = await _softBankTrxClient.Request(trxRequest, context);
         if (trxResponse.IsError())
         {
-            trxResponse.LogStatus(context, "Failed to make payment, model={model}", model);
+            trxResponse.LogStatus(context, "Failed to make payment");
             return trxResponse.ToOptionStatus();
         }
 
@@ -155,7 +156,6 @@ public class LoanContractManager
         };
 
         ledgerItem.Validate().ThrowOnError("Invalid loan ledger");
-
         return await AddLedgerItem(ledgerItem, context);
     }
 
@@ -181,13 +181,17 @@ public class LoanContractManager
         var addOption = await AddLedgerItem(ledgerItem, context);
         if (addOption.IsError())
         {
-            context.Location().LogError("Failed to post payment, contractId={contractId}, postedDate={postedDate}",
-                model.ContractId, model.PostedDate);
+            context.Location().LogError(
+                "Failed to post payment, contractId={contractId}, postedDate={postedDate}",
+                model.ContractId, model.PostedDate
+                );
             return addOption;
         }
 
-        context.Location().LogInformation("Posted payment, contractId={contractId}, postedDate={postedDate}",
-            model.ContractId, model.PostedDate);
+        context.Location().LogInformation(
+            "Posted payment, contractId={contractId}, postedDate={postedDate}",
+            model.ContractId, model.PostedDate
+            );
         return StatusCode.OK;
     }
 

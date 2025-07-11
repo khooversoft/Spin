@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "KGraphCmd": {
+      "commandName": "Project",
+      "commandLineArgs": "command run --config E:\\Sources\\Spin\\Src\\KGraph\\KGraphCmd\\TicketShareConfig-dev.json"
+    }
+  }
+}

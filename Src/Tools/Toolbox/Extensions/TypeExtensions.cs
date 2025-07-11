@@ -6,7 +6,7 @@ public static class TypeExtensions
     {
         return type switch
         {
-            Type t when t.IsGenericType => t.Name + ":" + t.GetGenericArguments().Select(x => x.Name).Join(","),
+            Type t when t.IsGenericType => t.Name + "_" + t.GetGenericArguments().Select(x => x.Name).Join("_"),
             _ => type.Name,
         };
     }

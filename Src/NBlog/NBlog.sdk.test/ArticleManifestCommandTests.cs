@@ -32,9 +32,9 @@ public class ArticleManifestCommandTests
         commands.Count.Should().Be(3);
 
         CommandNode[] matchTo = [
-            new CommandNode { Attributes = (string[])["summary"], FileId = "spin/tools/SpinClusterCommandSyntaxSummary/summary", LocalFilePath = "SpinClusterCommandSyntaxSummary.md" },
-            new CommandNode { Attributes = (string[])["main"], FileId = "spin/tools/SpinClusterCommandSyntaxSummary/doc", LocalFilePath = "SpinClusterCommandSyntax.md" },
-            new CommandNode { FileId = "spin/tools/SpinClusterCommandSyntaxSummary/support", LocalFilePath = "SpinClusterCommandSyntaxSupport.md" },
+            new CommandNode { Attributes = (string[])["summary"], FileId = "spin/tools/SpinClusterCommandSyntaxSummary/summary", FileIdValue = "SpinClusterCommandSyntaxSummary.md" },
+            new CommandNode { Attributes = (string[])["main"], FileId = "spin/tools/SpinClusterCommandSyntaxSummary/doc", FileIdValue = "SpinClusterCommandSyntax.md" },
+            new CommandNode { FileId = "spin/tools/SpinClusterCommandSyntaxSummary/support", FileIdValue = "SpinClusterCommandSyntaxSupport.md" },
         ];
 
         commands.Count.Should().Be(matchTo.Length);

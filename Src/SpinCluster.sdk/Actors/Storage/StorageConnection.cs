@@ -70,7 +70,7 @@ public class StorageConnection
 
     public async Task<IResult> Set(StorageBlob model, [FromHeader(Name = SpinConstants.Headers.TraceId)] string traceId)
     {
-        if (!model.Validate(out Option v)) return Results.BadRequest(v.Error);
+        if (model.Validate().IsError(out Option v)) return Results.BadRequest(v.Error);
 
         var response = await _client
             .GetResourceGrain<IStorageActor>(model.StorageId)

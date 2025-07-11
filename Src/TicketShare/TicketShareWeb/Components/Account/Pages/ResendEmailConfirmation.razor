@@ -1,0 +1,82 @@
+﻿@page "/Account/ResendEmailConfirmation"
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Toolbox.Graph.Extensions
+
+@if (_initialized)
+{
+    <PageTitle>Resend Email Confirmation</PageTitle>
+
+    <div class="feed-block-container">
+        <FluentStack Orientation="Orientation.Vertical" VerticalGap="20">
+            <FluentLabel Style="margin-top: 20px" Typo="Typography.Header">Resend Conformation Email</FluentLabel>
+
+            @if (_message is not null)
+            {
+                <FluentLabel Typo="Typography.Subject" Color="@Color.Error">@_message</FluentLabel>
+            }
+            else
+            {
+                <FluentLabel>
+                    To validate your account, we send a verification email when you create your account.
+                    Open the email and click on the link. If you don't see it, please check your spam folder.
+                </FluentLabel>
+
+                <FluentLabel>
+                    Press send to send another verification email.
+                </FluentLabel>
+
+                <FluentButton IconStart="@(new Icons.Regular.Size16.Send())"
+                Appearance="Appearance.Accent"
+                OnClick=SendEmail>
+                    Send
+                </FluentButton>
+            }
+        </FluentStack>
+    </div>
+}
+
+@code {
+    [Inject] public ApplicationNavigation _applicationNavigation { get; set; } = null!;
+    [Inject] public VerifyEmail _verifyEmail { get; set; } = null!;
+    [Inject] public UserAccountContext _userAccountManager { get; set; } = null!;
+    [Inject] public ILogger<ResendEmailConfirmation> _logger { get; set; } = null!;
+
+    private ScopeContext _context;
+    private PrincipalIdentity _user = null!;
+    private string? _message;
+    private bool _initialized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _context = new ScopeContext(_logger);
+
+        var principalIdentity = await _userAccountManager.GetPrincipalIdentity(_context);
+        if (principalIdentity.IsError())
+        {
+            _message = principalIdentity.Error.NotEmpty();
+            return;
+        }
+
+        if (principalIdentity.Value.EmailConfirmed)
+        {
+            _message = "Email has already been confirmed, thanks!";
+            return;
+        }
+
+        _user = principalIdentity.Return();
+    }
+
+    protected override void OnParametersSet() => _initialized = true;
+
+    private async Task SendEmail()
+    {
+        await _verifyEmail.Send(_user, "Account/ConfirmEmail", _context);
+        _applicationNavigation.GotoHome();
+    }
+}

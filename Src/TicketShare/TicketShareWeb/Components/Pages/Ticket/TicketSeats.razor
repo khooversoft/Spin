@@ -1,0 +1,84 @@
+﻿@rendermode InteractiveServer
+
+@using Microsoft.FluentUI.AspNetCore.Components;
+@using TicketShare.sdk
+@using TicketShareWeb.Application
+
+<FeedBlock Title="Seats" Class="feed-block-datagrid" OnAdd="Add">
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())"
+                  Appearance="Appearance.Outline"
+                  OnClick="SearchByLeague">
+        Search by League
+    </FluentButton>
+
+    <FluentDataGrid Class="feed-block-datagrid"
+                    Items="@_roles"
+                    ShowHover="true"
+                    GenerateHeader=GenerateHeaderOption.None
+                    TGridItem="SeatModel"
+                    AutoFit="true"
+                    OnRowClick="HandleRowFocus">
+
+        <PropertyColumn Property="@(p => p.Date)" Sortable="true" Format="d" />
+        <PropertyColumn Property="@(p => p.ToString())" Sortable="true" />
+        <PropertyColumn Property="@(p => p.AssignedToPrincipalId)" Sortable="true" />
+    </FluentDataGrid>
+</FeedBlock>
+
+
+@code {
+    [CascadingParameter] public TicketGroupContext _ticketGroupContext { get; set; } = null!;
+    @inject IDialogService _dialogService;
+    @inject ApplicationNavigation _appNavigation;
+    @inject ILogger<TicketSeats> _logger;
+
+    private IQueryable<SeatModel> _roles = null!;
+    private RightPanelDialog<SeatModel, TicketSeatDialog> _rightPanelDialog = null!;
+
+    protected override void OnParametersSet()
+    {
+        var context = new ScopeContext(_logger);
+
+        _rightPanelDialog = new RightPanelDialog<SeatModel, TicketSeatDialog>(
+            _dialogService,
+            x => _ticketGroupContext.Seats.Set(x, context),
+            x => _ticketGroupContext.Seats.Delete(x, context)
+        );
+
+        Refresh();
+    }
+
+    private async Task HandleRowFocus(FluentDataGridRow<SeatModel> row)
+    {
+        var result = await _rightPanelDialog.Edit(row.Item.NotNull(), "Edit Seat");
+        if (result == RightPanelDialog.Canceled) return;
+
+        Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Add()
+    {
+        var model = new SeatModel();
+
+        var result = await _rightPanelDialog.Add(model, "Add Seat");
+        if (result == RightPanelDialog.Canceled) return;
+
+        Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void Refresh()
+    {
+        _roles = _ticketGroupContext.Input.Seats.Values
+            .OrderBy(x => x.Date)
+            .ThenBy(x => x.ToString())
+            .AsQueryable();
+    }
+
+    private void SearchByLeague()
+    {
+        _appNavigation.GotoSearchByLeague(_ticketGroupContext.TicketGroupId);
+    }
+}
+

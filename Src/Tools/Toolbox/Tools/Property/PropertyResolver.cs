@@ -28,7 +28,7 @@ public class PropertyResolver : IPropertyResolver
 
         while (HasProperty(subject))
         {
-            if (!index.TryNextValue(out KeyValuePair<string, string> result))
+            if (!index.TryGetValue(out KeyValuePair<string, string> result))
             {
                 index.Reset();
                 continue;

@@ -1,0 +1,129 @@
+﻿using Toolbox.Extensions;
+using Toolbox.LangTools;
+using Toolbox.Test.Application;
+using Toolbox.Tools;
+using Toolbox.Types;
+using Xunit.Abstractions;
+
+namespace Toolbox.Test.LangTools.MetaSyntax;
+
+public class OrRuleTests : TestBase
+{
+    private readonly MetaSyntaxRoot _schema;
+
+    public OrRuleTests(ITestOutputHelper output) : base(output)
+    {
+        string schemaText = new[]
+        {
+            "delimiters = ( ) ;",
+            "node-sym = 'node' ;",
+            "edge-sym = 'edge' ;",
+            "addCommand = ( node-sym | edge-sym ) ;"
+        }.Join(Environment.NewLine);
+
+        _schema = MetaParser.ParseRules(schemaText);
+        _schema.StatusCode.IsOk().BeTrue();
+    }
+
+    [Fact]
+    public void SimpleOrSymbol()
+    {
+        var parser = new SyntaxParser(_schema);
+        var logger = GetScopeContext<OrRuleTests>();
+
+        var parse = parser.Parse("node", logger);
+        parse.Status.IsOk().BeTrue();
+
+        var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
+
+        var expectedTree = new SyntaxTree
+        {
+            Children = new ISyntaxTree[]
+            {
+                new SyntaxTree
+                {
+                    MetaSyntaxName = "addCommand",
+                    Children = new ISyntaxTree[]
+                    {
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_addCommand-1-OrGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        (parse.SyntaxTree == expectedTree).BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
+        };
+
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
+    }
+
+    [Fact]
+    public void SimpleOrSymbolSecond()
+    {
+        var parser = new SyntaxParser(_schema);
+        var logger = GetScopeContext<OrRuleTests>();
+
+        var parse = parser.Parse("edge", logger);
+        parse.Status.IsOk().BeTrue();
+
+        var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
+
+        var expectedTree = new SyntaxTree
+        {
+            Children = new ISyntaxTree[]
+            {
+                new SyntaxTree
+                {
+                    MetaSyntaxName = "addCommand",
+                    Children = new ISyntaxTree[]
+                    {
+                        new SyntaxTree
+                        {
+                            MetaSyntaxName = "_addCommand-1-OrGroup",
+                            Children = new ISyntaxTree[]
+                            {
+                                new SyntaxPair { Token = new TokenValue("edge"), MetaSyntaxName = "edge-sym" },
+                            },
+                        },
+                    },
+                },
+            },
+        };
+
+        (parse.SyntaxTree == expectedTree).BeTrue();
+
+        var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
+        var syntaxLines = SyntaxTestTool.GenerateSyntaxPairs(syntaxPairs).Join(Environment.NewLine);
+
+        var expectedPairs = new[]
+        {
+            new SyntaxPair { Token = new TokenValue("edge"), MetaSyntaxName = "edge-sym" },
+        };
+
+        Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
+    }
+
+    [Fact]
+    public void SimpleOrSymbolFail()
+    {
+        var parser = new SyntaxParser(_schema);
+        var logger = GetScopeContext<OrRuleTests>();
+
+        var parse = parser.Parse("edxxxge", logger);
+        parse.Status.IsError().BeTrue();
+    }
+}

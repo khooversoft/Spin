@@ -26,7 +26,7 @@ namespace Toolbox.Azure.Queue
             queueName.NotEmpty();
 
             bool exist = await _managementClient.QueueExistsAsync(queueName, token);
-            _logging.LogTrace($"{nameof(Exist)}: Queue={queueName}, return={exist}");
+            _logging.LogDebug("queueName={queueName}, return={exist}", queueName, exist);
             return exist;
         }
 
@@ -35,7 +35,7 @@ namespace Toolbox.Azure.Queue
             queueDefinition.NotNull();
 
             QueueProperties createdDescription = await _managementClient.CreateQueueAsync(queueDefinition.ToCreateQueue(), token);
-            _logging.LogTrace($"{nameof(Create)}: QueueName={queueDefinition.QueueName}");
+            _logging.LogDebug("queueName={queueName}", queueDefinition.QueueName);
 
             return createdDescription.ConvertTo();
         }
@@ -45,7 +45,7 @@ namespace Toolbox.Azure.Queue
             queueName.NotEmpty();
 
             QueueProperties queueDescription = await _managementClient.GetQueueAsync(queueName, token);
-            _logging.LogTrace($"{nameof(GetDefinition)}: QueueName={queueName}");
+            _logging.LogDebug("queueName={queueName}", queueName);
             return queueDescription.ConvertTo();
         }
 
@@ -53,7 +53,7 @@ namespace Toolbox.Azure.Queue
         {
             queueName.NotEmpty();
 
-            _logging.LogTrace($"{nameof(Delete)}: QueueName={queueName}");
+            _logging.LogDebug("queueName={queueName}", queueName);
             await _managementClient.DeleteQueueAsync(queueName, token);
         }
 

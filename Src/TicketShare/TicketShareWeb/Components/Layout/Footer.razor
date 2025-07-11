@@ -1,0 +1,23 @@
+﻿
+<FluentButton Appearance="Appearance.Outline"
+              IconStart="@(new Icons.Regular.Size20.DarkTheme())"
+              OnClick="SwitchMode"
+              Style="margin: 0px;padding: 0px">
+</FluentButton>
+
+<FluentStack Orientation="Orientation.Horizontal">
+
+    <FluentLabel Style="font-size: 0.7rem">Copyright (c) 2024 - Kelvin Hoover</FluentLabel>
+
+    @if (_env.EnvironmentName == "Development")
+    {
+        <FluentLabel Style="font-size: 0.7rem">Development Environment</FluentLabel>
+    }
+
+</FluentStack>
+
+
+@code {
+    [Parameter] public EventCallback SwitchMode { get; set; }
+    [Inject] Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env { get; set; } = null!;
+    }

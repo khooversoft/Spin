@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Extensions;
 
@@ -17,7 +17,7 @@ public class StringExtensionsTests
     public void TestRemoveTrailing(string? subject, char ch, string? expected)
     {
         string? result = subject.RemoveTrailing(ch);
-        result.Should().Be(expected);
+        result.Be(expected);
     }
 
     [Theory]
@@ -33,7 +33,7 @@ public class StringExtensionsTests
     [InlineData("test:value", "*:value", true)]
     public void TestWildcardTest(string? input, string? pattern, bool expected)
     {
-        bool result = input.IsMatch(pattern);
-        result.Should().Be(expected);
+        bool result = input.Like(pattern);
+        result.Be(expected);
     }
 }

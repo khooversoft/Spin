@@ -45,11 +45,5 @@ public static class DocumentReferenceExtensions
 {
     public static Option Validate(this DocumentReference subject) => DocumentReference.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this DocumentReference subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static DocumentReference Verify(this DocumentReference subject) => subject.Action(x => x.Validate().ThrowOnError());
 }

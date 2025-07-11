@@ -1,0 +1,85 @@
+﻿@page "/UserAccount"
+@attribute [Authorize]
+
+@using TicketShareWeb.Application
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using TicketShare.sdk
+@using TicketShareWeb.Components.Settings
+@using Toolbox.Identity
+
+@rendermode InteractiveServer
+
+<PageTitle>Account</PageTitle>
+
+<LoadingBlock Visible=@Visible />
+
+@if (_userAccountContext?.IsLoaded() == true)
+{
+    <FeedColumn>
+        <LoginUserControl />
+
+        <FeedBlock Title="User" OnEdit="OnEditInfo">
+            <EditInfo Content="@_userAccountContext.UserProfile" ReadOnly="true" />
+        </FeedBlock>
+
+        <CascadingValue Value="_userAccountContext">
+            <UserContacts />
+            <UserAddresses />
+            <UserCalendars />
+        </CascadingValue>
+    </FeedColumn>
+}
+
+@code {
+    [Inject] public ILogger<UserAccountPage> _logger { get; set; } = null!;
+    [Inject] public UserAccountManager _userAccountManager { get; set; } = null!;
+    [Inject] public IDialogService _dialogService { get; set; } = null!;
+
+    private UserAccountContext _userAccountContext = null!;
+    private bool Visible { get; set; } = true;
+
+    protected override void OnInitialized()
+    {
+        _userAccountContext = new UserAccountContext(_userAccountManager, _logger);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _userAccountContext.Get();
+            Visible = false;
+            StateHasChanged();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task OnEditInfo()
+    {
+        var userProfile = new UserProfileEditModel { Name = _userAccountContext.Input.Name };
+
+        var parameters = new DialogParameters()
+            {
+                Alignment = HorizontalAlignment.Right,
+                ShowDismiss = true,
+                Title = "User",
+                PrimaryAction = null,
+                SecondaryAction = null,
+            };
+
+        var dialog = await _dialogService.ShowPanelAsync<EditInfoDialog>(userProfile, parameters);
+        var result = await dialog.Result;
+        if (result.Cancelled || result.Data is null) return;
+
+        if (result.Data is not UserProfileEditModel userProfileModel) return;
+
+        await _userAccountContext.SetName(userProfileModel.Name);
+        StateHasChanged();
+    }
+}

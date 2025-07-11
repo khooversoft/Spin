@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -8,264 +6,110 @@ namespace Toolbox.Test.Types;
 
 public class TagsTests
 {
-    [Fact]
-    public void ImplicitConversion()
+    [Theory]
+    [InlineData("a=v;b=v", false)]
+    [InlineData("a=v/b=v", false)]
+    [InlineData("a=v-b=v", false)]
+    [InlineData("*", true)]
+    [InlineData("a", true)]
+    [InlineData("a=v", true)]
+    [InlineData("a,b", true)]
+    [InlineData("a=v,b", true)]
+    [InlineData("a,b=v", true)]
+    [InlineData("a=v,b=v", true)]
+    [InlineData("a,b,c", true)]
+    [InlineData("a=v,b,c", true)]
+    [InlineData("a=v,b=v,c", true)]
+    [InlineData("a=v,b=v,c=v", true)]
+    [InlineData("a,b=v,c=v", true)]
+    [InlineData("a,b,c=v", true)]
+    [InlineData("  a=v   ,b  =  v  ,c =   v   ", true)]
+    public void IsSetValid(string? key, bool expected)
     {
-        Tags t = "hello";
-        t.Should().NotBeNull();
-        t.ToString().Should().Be("hello");
+        var result = TagsTool.Parse(key);
+        result.IsOk().Be(expected);
     }
 
-    [Fact]
-    public void TagsEmpty()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("k")]
+    [InlineData("key=node1")]
+    [InlineData("key=node1, t1, t2=v2")]
+    [InlineData("key=node1, t1, t2=v2, i:logonProvider={LoginProvider}/{ProviderKey}")]
+    [InlineData("key=node1, t1, t2=v2, unique:logonProvider={LoginProvider}/{ProviderKey}")]
+    [InlineData("key=node1, t1, t2=v2, unique:logonProvider=microsoft/user001-microsoft-id")]
+    [InlineData("key=node1, t1, t2=v2, unique:logonProvider='microsoft user001-microsoft-id'")]
+    public void EqualPatterns(string? line)
     {
-        var tags = new Tags();
-        tags.Count.Should().Be(0);
+        var t1 = line.ToTags();
+        var t2 = line.ToTags();
 
-        var tags2 = new Tags();
-        tags2.Count.Should().Be(0);
-
-        (tags == tags2).Should().BeTrue();
-        (tags.ToString() == tags2.ToString()).Should().BeTrue();
-
-        var tags3 = new Tags("");
-        (tags == tags3).Should().BeTrue();
-
-        var tags4 = new Tags((string)null!);
-        (tags == tags4).Should().BeTrue();
+        t1.DeepEqualsComparer(t2).BeTrue();
     }
 
     [Fact]
     public void TagsSingleAndNotEqual()
     {
-        var tags = new Tags().Set("key1");
-        tags.Count.Should().Be(1);
-        tags.ContainsKey("key1").Should().BeTrue();
-        tags["key1"].Should().BeNull();
-        tags.Has("key1").Should().BeTrue();
-        tags.Has("key1", "value").Should().BeFalse();
-        tags.Has("fake").Should().BeFalse();
-        tags.Has("key1", "fake1").Should().BeFalse();
-        tags.Has(null).Should().BeFalse();
+        var tags = "key1".ToTags().Action(x =>
+        {
+            x.Count.Be(1);
+            x.ContainsKey("key1").BeTrue();
+            x["key1"].BeNull();
+            x.Has("key1").BeTrue();
+            x.Has("key1", "value").BeFalse();
+            x.Has("fake").BeFalse();
+            x.Has("key1", "fake1").BeFalse();
+            x.Has((string?)null).BeFalse();
+        });
 
-        var tags2 = new Tags().Set("key1=value1");
-        tags2.Count.Should().Be(1);
-        tags2.ContainsKey("key1").Should().BeTrue();
-        tags2["key1"].Should().Be("value1");
-        tags2.Has("key1").Should().BeTrue();
-        tags2.Has("key1", "value1").Should().BeTrue();
-        tags2.Has("fake").Should().BeFalse();
-        tags2.Has("key1", "fake1").Should().BeFalse();
+        var tags2 = "key1=value1".ToTags().Action(x =>
+        {
+            x.Count.Be(1);
+            x.ContainsKey("key1").BeTrue();
+            x["key1"].Be("value1");
+            x.Has("key1").BeTrue();
+            x.Has("key1", "value1").BeTrue();
+            x.Has("fake").BeFalse();
+            x.Has("key1", "fake1").BeFalse();
+        });
 
-        (tags != tags2).Should().BeTrue();
+        tags.DeepEqualsComparer(tags2).BeFalse();
     }
 
     [Fact]
     public void TagsKeyValue()
     {
-        var tags = new Tags();
-        tags["key2"] = "value2";
-        tags["key1"] = "value1";
-        tags.Count.Should().Be(2);
-        tags.ContainsKey("key1").Should().BeTrue();
+        var tags = new Dictionary<string, string?>
+        {
+            ["key1"] = "value1",
+            ["key2"] = "value2",
+        };
 
-        var tags2 = new Tags();
-        tags2["key1"] = "value1";
-        tags2["key2"] = "value2";
-        tags2.Count.Should().Be(2);
+        tags.Count.Be(2);
+        tags.ContainsKey("key1").BeTrue();
+        tags.ContainsKey("key2").BeTrue();
 
-        (tags == tags2).Should().BeTrue();
-        (tags.ToString() == tags2.ToString()).Should().BeTrue();
+        var tags2 = "key2=value2,key1=value1".ToTags();
 
-        var tags3 = new Tags("key2=value2;key1=value1");
-        (tags == tags3).Should().BeTrue();
-
-        var tags4 = new Tags("key2=value2");
-        (tags == tags4).Should().BeFalse();
+        tags.DeepEqualsComparer(tags2).BeTrue();
     }
-
 
     [Fact]
     public void RemoveTag()
     {
-        var tags = new Tags();
-        tags["key2"] = "value2";
-        tags["key1"] = "value1";
-        tags.Count.Should().Be(2);
-        tags.ContainsKey("key1").Should().BeTrue();
-
-        tags.Set("-key2");
-        tags.ToString().Should().Be("key1=value1");
-
-        tags.Set("key2=value3");
-        tags.ToString().Should().Be("key1=value1;key2=value3");
-
-        tags.Set("-key1=v");
-        tags.ToString().Should().Be("key2=value3");
-    }
-
-    [Fact]
-    public void TagsUsingSet()
-    {
-        var tags = new Tags();
-        tags.Set("key2=value2");
-        tags.Set("key1=value1");
-        tags.Count.Should().Be(2);
-
-        var tags2 = new Tags();
-        tags2["key1"] = "value1";
-        tags2["key2"] = "value2";
-        tags2.Count.Should().Be(2);
-        (tags == tags2).Should().BeTrue();
-        (tags.ToString() == tags2.ToString()).Should().BeTrue();
-
-        var tags3 = new Tags();
-        tags3.Set("key2=value2;key1=value1");
-        tags3.Count.Should().Be(2);
-        (tags == tags3).Should().BeTrue();
-        (tags.ToString() == tags3.ToString()).Should().BeTrue();
-
-        var tags4 = new Tags("key2=value2;key1=value1");
-        tags4.Count.Should().Be(2);
-        (tags == tags4).Should().BeTrue();
-        (tags.ToString() == tags4.ToString()).Should().BeTrue();
-    }
-
-    [Fact]
-    public void TagsUsingTags()
-    {
-        var tags = new Tags();
-        tags.Set("key2");
-        tags.Set("key1=value1");
-        tags.Count.Should().Be(2);
-        tags.ContainsKey("key2").Should().BeTrue();
-
-        var tags2 = new Tags();
-        tags2["key1"] = "value1";
-        tags2["key2"] = null;
-        tags2.Count.Should().Be(2);
-        (tags == tags2).Should().BeTrue();
-        (tags.ToString() == tags2.ToString()).Should().BeTrue();
-
-        var tags3 = new Tags();
-        tags3.Set("key2;key1=value1");
-        tags3.Count.Should().Be(2);
-        (tags == tags3).Should().BeTrue();
-        (tags.ToString() == tags3.ToString()).Should().BeTrue();
-
-        var tags4 = new Tags("key2;key1=value1");
-        tags4.Count.Should().Be(2);
-        (tags == tags4).Should().BeTrue();
-        (tags.ToString() == tags4.ToString()).Should().BeTrue();
-    }
-
-    [Fact]
-    public void TagSerialization()
-    {
-        var tags = new Tags()
-            .Set("key2")
-            .Set("key1=value1");
-
-        string json = tags.ToJson();
-
-        Tags readTags = json.ToObject<Tags>().NotNull();
-        readTags.Should().NotBeNull();
-
-        (tags == readTags).Should().BeTrue();
-
-        readTags.Has("key2").Should().BeTrue();
-        readTags.Has("key1", "value1").Should().BeTrue();
-        readTags.Has("key1", "fake").Should().BeFalse();
-        readTags.Has("fake").Should().BeFalse();
-
-        IReadOnlyDictionary<string, string?>? r2 = json.ToObject<IReadOnlyDictionary<string, string?>>();
-        r2.Should().NotBeNull();
-        r2!.ContainsKey("key2").Should().BeTrue();
-        r2.ContainsKey("key1").Should().BeTrue();
-        r2["key1"].Should().Be("value1");
-    }
-
-    internal enum ScheduleEdgeWorkState
-    {
-        None,
-        Active,
-        Completed,
-        Failed
-    }
-
-    internal sealed record SimpleWorkTag
-    {
-        public ScheduleEdgeWorkState State { get; init; }
-    }
-
-    [Fact]
-    public void TasSerializationWithStateObject()
-    {
-        var data = new SimpleWorkTag
+        var tags = new Dictionary<string, string?>
         {
-            State = ScheduleEdgeWorkState.Completed,
+            ["key1"] = "value1",
+            ["key2"] = "value2",
         };
 
-        Tags tags = new Tags().Set(data);
-        tags.Should().NotBeNull();
-        tags.ToString().Should().Be("State=2");
+        tags.ContainsKey("key1").BeTrue();
+        tags.ContainsKey("key2").BeTrue();
 
-        var readData = tags.ToObject<SimpleWorkTag>();
-        (data == readData).Should().BeTrue();
-    }
+        var tags2 = tags.ProcessTags([new KeyValuePair<string, string?>("-key2", null)]);
 
-
-    internal sealed record HiddenWorkTag
-    {
-        [JsonIgnore] public ScheduleEdgeWorkState StateValue { get; init; }
-
-        public string State
-        {
-            get => StateValue.ToString();
-            init => StateValue = (ScheduleEdgeWorkState)Enum.Parse(typeof(ScheduleEdgeWorkState), value);
-        }
-    }
-
-    [Fact]
-    public void TasSerializationWithHiddenObject()
-    {
-        var data = new HiddenWorkTag
-        {
-            StateValue = ScheduleEdgeWorkState.Completed,
-        };
-
-        Tags tags = new Tags().Set(data);
-        tags.Should().NotBeNull();
-        tags.ToString().Should().Be("State=Completed");
-
-        var readData = tags.ToObject<HiddenWorkTag>();
-        (data == readData).Should().BeTrue();
-    }
-
-    internal sealed record ScheduleWorkTags
-    {
-        public bool Running { get; init; }
-        public string Name { get; init; } = null!;
-        public string StateName { get => State.ToString(); init => State = (ScheduleEdgeWorkState)Enum.Parse(typeof(ScheduleEdgeWorkState), StateName); }
-        public ScheduleEdgeWorkState State { get; init; }
-    }
-
-
-    [Fact]
-    public void TasSerializationWithObject()
-    {
-        var data = new ScheduleWorkTags
-        {
-            Running = true,
-            Name = "name1",
-            State = ScheduleEdgeWorkState.Completed,
-        };
-
-        Tags tags = new Tags().Set(data);
-        tags.Should().NotBeNull();
-        tags.ToString().Should().Be("Name=name1;Running=True;State=2;StateName=Completed");
-
-        var readData = tags.ToObject<ScheduleWorkTags>();
-        (data == readData).Should().BeTrue();
+        tags2.ContainsKey("key1").BeTrue();
+        tags2.ContainsKey("key2").BeFalse();
     }
 }

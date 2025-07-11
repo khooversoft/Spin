@@ -1,4 +1,4 @@
-﻿//using FluentAssertions;
+﻿//using Toolbox.Tools.Should;
 //using Toolbox.Data;
 //using Toolbox.Extensions;
 //using Toolbox.Tools;
@@ -20,9 +20,9 @@
 //            .Build()
 //            .Verify();
 
-//        document.Should().NotBeNull();
-//        document.TypeName.Should().Be("String");
-//        document.ToObject<string>().Should().Be(payload);
+//        document.NotBeNull();
+//        document.TypeName.Be("String");
+//        document.ToObject<string>().Be(payload);
 //    }
 
 //    [Fact]
@@ -45,9 +45,9 @@
 //            .Build()
 //            .Verify();
 
-//        document.Should().NotBeNull();
-//        document.TypeName.Should().Be(typeof(Payload).Name);
-//        document.ToObject<Payload>().Should().Be(payload);
+//        document.NotBeNull();
+//        document.TypeName.Be(typeof(Payload).Name);
+//        document.ToObject<Payload>().Be(payload);
 //    }
 
 //    [Fact]
@@ -62,9 +62,9 @@
 //            .Build()
 //            .Verify();
 
-//        document.Should().NotBeNull();
-//        document.TypeName.Should().Be(typeof(byte[]).Name);
-//        document.ToObject<byte[]>().NotNull().Func(x => Enumerable.SequenceEqual(x, payload)).Should().BeTrue();
+//        document.NotBeNull();
+//        document.TypeName.Be(typeof(byte[]).Name);
+//        document.ToObject<byte[]>().NotNull().Func(x => Enumerable.SequenceEqual(x, payload)).BeTrue();
 //    }
 
 //    [Fact]
@@ -73,13 +73,13 @@
 //        var documentId = "test:pass".ToObjectId();
 
 //        Action act = () => new DocumentBuilder().SetContent("payload".ToBytes());
-//        act.Should().NotThrow<ArgumentException>();
+//        act.NotThrow<ArgumentException>();
 
 //        Action act2 = () => new DocumentBuilder().SetContent(new[] { 1, 2, 3, 4 });
-//        act2.Should().Throw<ArgumentException>();
+//        act2.Throw<ArgumentException>();
 
 //        Action act3 = () => new DocumentBuilder().SetContent(new[] { 1, 2, 3, 4 }.ToList());
-//        act3.Should().Throw<ArgumentException>();
+//        act3.Throw<ArgumentException>();
 //    }
 
 

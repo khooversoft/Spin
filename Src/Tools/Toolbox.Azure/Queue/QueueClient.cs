@@ -51,8 +51,7 @@ namespace Toolbox.Azure.Queue
 
             ServiceBusMessage message = payload.ToMessage();
 
-            _logger.LogTrace("Sending message: contentType={contentType}, MessageId={messageId}", message.ContentType, message.MessageId);
-
+            _logger.LogDebug("Sending message: contentType={contentType}, MessageId={messageId}", message.ContentType, message.MessageId);
             await _messageSender.SendMessageAsync(message, token);
         }
 
@@ -88,7 +87,7 @@ namespace Toolbox.Azure.Queue
             }
 
             messages
-                .ForEach(x => _logger.LogTrace("Sending message: contentType={contentType}, MessageId={messageId}", x.ContentType, x.MessageId));
+                .ForEach(x => _logger.LogDebug("Sending message: contentType={contentType}, MessageId={messageId}", x.ContentType, x.MessageId));
 
             await _messageSender.SendMessagesAsync(messageBatch, token);
         }

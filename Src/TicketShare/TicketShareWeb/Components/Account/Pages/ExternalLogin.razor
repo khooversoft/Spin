@@ -1,0 +1,193 @@
+﻿@page "/Account/ExternalLogin"
+@* @rendermode InteractiveServer *@
+
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+@using Toolbox.Graph.Extensions
+@using Microsoft.Extensions.Caching.Memory;
+
+
+@inject SignInManager<PrincipalIdentity> SignInManager
+@inject UserManager<PrincipalIdentity> UserManager
+@inject IUserStore<PrincipalIdentity> UserStore
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@inject VerifyEmail _verifyEmail;
+@inject ILogger<ExternalLogin> _logger
+
+<PageTitle>Register</PageTitle>
+
+@* <StatusMessage Message="@message" /> *@
+
+@* <FluentStack Orientation="Orientation.Vertical">
+    <FluentCard Class="card-container" Width="380px">
+        Welcome, please complete the registration.  You can make changes in your account page.
+    </FluentCard>
+
+    <div style="width:100%;margin: 10px 0px;">
+        <EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
+            <DataAnnotationsValidator />
+            <FluentValidationSummary class="text-danger" role="alert" />
+            <FluentTextField Name="Input.Email" @bind-Value="Input.Email" AutoComplete="email" Placeholder="Please enter your email." Label="Email" Style="width: 100%;" />
+            <FluentValidationMessage For="() => Input.Email" />
+            <FluentTextField Name="Input.Name" @bind-Value="Input.Name" AutoComplete="name" Placeholder="Please enter your name." Label="Name" Style="width: 100%;" />
+            <FluentValidationMessage For="() => Input.Name" />
+
+            <FluentButton Type="ButtonType.Submit" Appearance="Appearance.Accent" Style="width: 100%;margin: 10px 0px" Disabled=@_loading>Register</FluentButton>
+        </EditForm>
+    </div>
+
+</FluentStack>
+ *@
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+    // [SupplyParameterFromForm] private InputModel Input { get; set; } = new();
+    [SupplyParameterFromQuery] private string? RemoteError { get; set; }
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+    [SupplyParameterFromQuery] private string? Action { get; set; }
+    @inject ApplicationNavigation _navigationManager;
+    @inject IMemoryCache _memoryCache
+
+    public const string LoginCallbackAction = "LoginCallback";
+
+    // private string? message;
+    private ExternalLoginInfo externalLoginInfo = default!;
+    private ScopeContext _context;
+
+    private readonly MemoryCacheEntryOptions _memoryOptions = new MemoryCacheEntryOptions
+        {
+            SlidingExpiration = TimeSpan.FromMinutes(1)
+        };
+
+    // private string? ProviderDisplayName => externalLoginInfo.ProviderDisplayName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _context = new ScopeContext(_logger);
+
+        if (RemoteError is not null)
+        {
+            RedirectManager.RedirectToWithStatus("Account/Login", $"Error from external provider: {RemoteError}", HttpContext);
+        }
+
+        var info = await SignInManager.GetExternalLoginInfoAsync();
+        if (info is null)
+        {
+            RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
+        }
+
+        externalLoginInfo = info;
+
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            if (Action == LoginCallbackAction)
+            {
+                await OnLoginCallbackAsync();
+                await LoginUser();
+                return;
+            }
+
+            // We should only reach this page via the login callback, so redirect back to
+            // the login page if we get here some other way.
+            RedirectManager.RedirectTo("Account/Login");
+        }
+
+        _navigationManager.GotoHome();
+    }
+
+    private async Task OnLoginCallbackAsync()
+    {
+        // Sign in the user with this external login provider if the user already has a login.
+        var result = await SignInManager.ExternalLoginSignInAsync(
+            externalLoginInfo.LoginProvider,
+            externalLoginInfo.ProviderKey,
+            isPersistent: true,
+            bypassTwoFactor: true);
+
+        if (result.Succeeded)
+        {
+            _context.LogInformation(
+                "{Name} logged in with {LoginProvider} provider.",
+                externalLoginInfo.Principal.Identity?.Name,
+                externalLoginInfo.LoginProvider);
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.IsLockedOut)
+        {
+            _context.LogInformation("User account locked out.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+
+        // If the user does not have an account, then ask the user to create an account.
+        // if (externalLoginInfo.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+        // {
+        //     Input.Email = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
+        // }
+    }
+
+    private async Task LoginUser()
+    {
+        var _principalId = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "";
+        var _userName = externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Name) ?? "";
+
+        var user = new PrincipalIdentity
+            {
+                PrincipalId = _principalId,
+                Name = _userName,
+                Email = _principalId,
+                UserName = _principalId,
+                EmailConfirmed = false,
+                LoginProvider = externalLoginInfo.LoginProvider,
+                ProviderKey = externalLoginInfo.ProviderKey,
+                ProviderDisplayName = externalLoginInfo.ProviderDisplayName,
+            };
+
+        _context.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
+        await SignInManager.SignInAsync(user, isPersistent: true, externalLoginInfo.LoginProvider);
+
+        string memoryId = Guid.NewGuid().ToString();
+        _memoryCache.Set(memoryId, user, _memoryOptions);
+
+        _navigationManager.GotoRegisterExternalLogin(memoryId);
+    }
+
+    // private async Task OnValidSubmitAsync()
+    // {
+    //     // var context = new ScopeContext(_logger);
+
+    //     // await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+
+    //     // var result = await UserManager.CreateAsync(user);
+    //     // if (result.Succeeded)
+    //     // {
+    //     //     result = await UserManager.AddLoginAsync(user, externalLoginInfo);
+    //     //     if (result.Succeeded)
+    //     //     {
+    //     //         context.LogInformation("User created an account using {Name} provider.", externalLoginInfo.LoginProvider);
+
+    //     //         await SignInManager.SignInAsync(user, isPersistent: false, externalLoginInfo.LoginProvider);
+    //     //         (await _verifyEmail.Send(user, "Account/ConfirmEmail", context)).LogStatus(context, "Failed to send conformation email").ThrowOnError();
+
+    //     //         RedirectManager.RedirectTo(ReturnUrl);
+    //     //     }
+    //     // }
+
+    //     // message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
+    //     // _loading = false;
+    // }
+
+    // private sealed class InputModel
+    // {
+    //     [Required]
+    //     [EmailAddress]
+    //     public string Email { get; set; } = "";
+
+    //     [Required]
+    //     public string Name { get; set; } = "";
+    // }
+}

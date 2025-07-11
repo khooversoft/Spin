@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Types;
 
@@ -12,11 +12,11 @@ public class SequenceJoinTests
             .SequenceJoin(99)
             .ToList();
 
-        list.Count.Should().Be(19);
+        list.Count.Be(19);
 
         list
             .Where((x, i) => i % 2 == 0 ? x == i / 2 : x == 99)
-            .Count().Should().Be(19);
+            .Count().Be(19);
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class SequenceJoinTests
             .SequenceJoin(x => x + ",")
             .ToList();
 
-        list.Count.Should().Be(10);
+        list.Count.Be(10);
 
         var expected = Enumerable.Range(0, 10)
             .Select(x => $"Label_{x}")
@@ -36,6 +36,6 @@ public class SequenceJoinTests
             .ToList();
 
         expected
-            .All(x => x.First == x.Second).Should().BeTrue();
+            .All(x => x.First == x.Second).BeTrue();
     }
 }

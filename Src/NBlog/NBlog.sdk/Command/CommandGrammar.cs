@@ -14,7 +14,7 @@ public static class CommandGrammar
     public static ILangRoot ValueAssignment { get; } = new LsRoot(nameof(ValueAssignment))
         + new LsValue("fileId")
         + ("=", "equal")
-        + new LsValue("localFilePath");
+        + new LsValue("fileIdValue");
 
     public static ILangRoot Attributes { get; } = new LsRepeat(nameof(Attributes))
         + new LsValue("attributeName")

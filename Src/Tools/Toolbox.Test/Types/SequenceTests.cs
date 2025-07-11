@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Types;
@@ -21,7 +21,7 @@ public class SequenceTests
             "Second",
         };
 
-        (row == row2).Should().BeTrue();
+        (row == row2).BeTrue();
     }
 
     [Fact]
@@ -33,10 +33,10 @@ public class SequenceTests
         sequence += "second";
         sequence += "third";
 
-        sequence.Count.Should().Be(3);
-        sequence[0].Should().Be("first");
-        sequence[1].Should().Be("second");
-        sequence[2].Should().Be("third");
+        sequence.Count.Be(3);
+        sequence[0].Be("first");
+        sequence[1].Be("second");
+        sequence[2].Be("third");
     }
 
     [Fact]
@@ -47,10 +47,10 @@ public class SequenceTests
             + "second"
             + "third";
 
-        sequence.Count.Should().Be(3);
-        sequence[0].Should().Be("first");
-        sequence[1].Should().Be("second");
-        sequence[2].Should().Be("third");
+        sequence.Count.Be(3);
+        sequence[0].Be("first");
+        sequence[1].Be("second");
+        sequence[2].Be("third");
     }
 
     [Fact]
@@ -63,6 +63,6 @@ public class SequenceTests
             "third"
         }.Join();
 
-        result.Should().Be("firstsecondthird");
+        result.Be("firstsecondthird");
     }
 }

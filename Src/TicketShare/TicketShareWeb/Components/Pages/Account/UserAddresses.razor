@@ -1,0 +1,71 @@
+﻿@rendermode InteractiveServer
+
+@using Microsoft.FluentUI.AspNetCore.Components;
+@using TicketShareWeb.Application
+@using TicketShare.sdk
+
+@if (_addresses is not null)
+{
+    <FeedBlock Title="Address" Class="feed-block-datagrid" OnAdd="Add">
+        <FluentDataGrid Class="feed-block-datagrid"
+                        Items="@_addresses"
+                        ShowHover="true"
+                        TGridItem="AddressModel"
+                        OnRowClick="HandleRowFocus"
+                        GenerateHeader=GenerateHeaderOption.None>
+
+            <PropertyColumn Property="@(p => p.ToString())" Sortable="true" />
+
+        </FluentDataGrid>
+    </FeedBlock>
+}
+
+
+@code {
+    [Inject] public IDialogService _dialogService { get; set; } = null!;
+    [Inject] public ILogger<UserAddresses> _logger { get; set; } = null!;
+    [CascadingParameter] public UserAccountEditContext UserAccountContext { get; set; } = null!;
+
+    private IQueryable<AddressModel> _addresses = null!;
+    private RightPanelDialog<AddressModel, UserAddressDialog> _rightPanelDialog = null!;
+
+    protected override void OnParametersSet()
+    {
+        var context = new ScopeContext(_logger);
+
+        _rightPanelDialog = new RightPanelDialog<AddressModel, UserAddressDialog>(
+            _dialogService,
+            x => UserAccountContext.Address.Set(x, context),
+            x => UserAccountContext.Address.Delete(x, context)
+        );
+
+        Refresh();
+    }
+
+    private async Task HandleRowFocus(FluentDataGridRow<AddressModel> row)
+    {
+        var result = await _rightPanelDialog.Edit(row.Item.NotNull(), "Edit Address");
+        if (result == RightPanelDialog.Canceled) return;
+
+        Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Add()
+    {
+        var model = new AddressModel { Label = "default" };
+
+        var result = await _rightPanelDialog.Add(model, "Add Address");
+        if (result == RightPanelDialog.Canceled) return;
+
+        Refresh();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void Refresh()
+    {
+        _addresses = UserAccountContext.Input.AddressItems.Values
+            .OrderBy(x => x.ToString())
+            .AsQueryable();
+    }
+}

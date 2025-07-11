@@ -3,6 +3,7 @@ using SpinClient.sdk;
 using SpinCluster.abstraction;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -44,7 +45,7 @@ internal class SmartcRegistration : ICommandRoute
         };
 
         Option response = await _client.Set(model, context);
-        response.LogStatus(context, "Creating/Updating SmartC, smartcId={smartcId}", smartcId);
+        response.LogStatus(context, "Creating/Updating SmartC, smartcId={smartcId}", [smartcId]);
     }
 
     public async Task Remove(string smartcId)
@@ -52,6 +53,6 @@ internal class SmartcRegistration : ICommandRoute
         var context = new ScopeContext(_logger);
 
         Option response = await _client.Delete(smartcId, context);
-        response.LogStatus(context, "Deleted SmartC, smartcId={smartcId}", smartcId);
+        response.LogStatus(context, "Deleted SmartC, smartcId={smartcId}", [smartcId]);
     }
 }

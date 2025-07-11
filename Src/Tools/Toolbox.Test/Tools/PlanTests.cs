@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -17,11 +16,11 @@ public class PlanTests
         var service = new ServiceCollection().BuildServiceProvider();
 
         Option<PlanContext> plan = await new Plan(PlanMode.All).Run(service, _context);
-        plan.IsOk().Should().BeTrue();
+        plan.IsOk().BeTrue();
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(0);
-            x.States.Count.Should().Be(0);
+            x.History.Count.Be(0);
+            x.States.Count.Be(0);
         });
     }
 
@@ -31,11 +30,11 @@ public class PlanTests
         var service = new ServiceCollection().BuildServiceProvider();
 
         Option<PlanContext> plan = await new Plan(PlanMode.IgnoreError).Run(service, _context);
-        plan.IsOk().Should().BeTrue();
+        plan.IsOk().BeTrue();
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(0);
-            x.States.Count.Should().Be(0);
+            x.History.Count.Be(0);
+            x.States.Count.Be(0);
         });
     }
 
@@ -45,11 +44,11 @@ public class PlanTests
         var service = new ServiceCollection().BuildServiceProvider();
 
         Option<PlanContext> plan = await new Plan(PlanMode.First).Run(service, _context);
-        plan.IsError().Should().BeTrue();
+        plan.IsError().BeTrue();
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(0);
-            x.States.Count.Should().Be(0);
+            x.History.Count.Be(0);
+            x.States.Count.Be(0);
         });
     }
 
@@ -67,13 +66,13 @@ public class PlanTests
             })
             .Run(service, _context);
 
-        plan.IsOk().Should().BeTrue();
-        value.Should().Be(1);
+        plan.IsOk().BeTrue();
+        value.Be(1);
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(1);
-            x.History.First().StatusCode.Should().Be(StatusCode.OK);
-            x.States.Count.Should().Be(0);
+            x.History.Count.Be(1);
+            x.History.First().StatusCode.Be(StatusCode.OK);
+            x.States.Count.Be(0);
         });
     }
 
@@ -86,12 +85,12 @@ public class PlanTests
             .Add((planContext, context) => StatusCode.OK)
             .Run(service, _context);
 
-        plan.IsOk().Should().BeTrue();
+        plan.IsOk().BeTrue();
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(1);
-            x.History.First().StatusCode.Should().Be(StatusCode.OK);
-            x.States.Count.Should().Be(0);
+            x.History.Count.Be(1);
+            x.History.First().StatusCode.Be(StatusCode.OK);
+            x.States.Count.Be(0);
         });
     }
 
@@ -104,12 +103,12 @@ public class PlanTests
             .Add((planContext, context) => StatusCode.NotFound)
             .Run(service, _context);
 
-        plan.IsError().Should().BeTrue();
+        plan.IsError().BeTrue();
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(1);
-            x.History.First().StatusCode.Should().Be(StatusCode.NotFound);
-            x.States.Count.Should().Be(0);
+            x.History.Count.Be(1);
+            x.History.First().StatusCode.Be(StatusCode.NotFound);
+            x.States.Count.Be(0);
         });
     }
 
@@ -127,13 +126,13 @@ public class PlanTests
             })
             .Run(service, _context);
 
-        plan.IsOk().Should().BeTrue();
-        value.Should().Be(1);
+        plan.IsOk().BeTrue();
+        value.Be(1);
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(1);
-            x.History.First().StatusCode.Should().Be(StatusCode.OK);
-            x.States.Count.Should().Be(0);
+            x.History.Count.Be(1);
+            x.History.First().StatusCode.Be(StatusCode.OK);
+            x.States.Count.Be(0);
         });
     }
 
@@ -149,12 +148,12 @@ public class PlanTests
             })
             .Run(service, _context);
 
-        plan.IsError().Should().BeTrue();
+        plan.IsError().BeTrue();
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(1);
-            x.History.First().StatusCode.Should().Be(StatusCode.Conflict);
-            x.States.Count.Should().Be(0);
+            x.History.Count.Be(1);
+            x.History.First().StatusCode.Be(StatusCode.Conflict);
+            x.States.Count.Be(0);
         });
     }
 
@@ -170,17 +169,17 @@ public class PlanTests
             .Add<ObjectStep>()
             .Run(service, _context);
 
-        plan.IsOk().Should().BeTrue();
+        plan.IsOk().BeTrue();
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(1);
-            x.History.First().StatusCode.Should().Be(StatusCode.OK);
-            x.States.Count.Should().Be(0);
+            x.History.Count.Be(1);
+            x.History.First().StatusCode.Be(StatusCode.OK);
+            x.States.Count.Be(0);
         });
 
         var stepState = service.GetRequiredService<StepState>();
-        stepState.Should().NotBeNull();
-        stepState.Value.Should().Be(1);
+        stepState.NotNull();
+        stepState.Value.Be(1);
     }
 
     [Fact]
@@ -197,17 +196,17 @@ public class PlanTests
             .Add(objectStep)
             .Run(service, _context);
 
-        plan.IsOk().Should().BeTrue();
+        plan.IsOk().BeTrue();
         plan.Return().Action(x =>
         {
-            x.History.Count.Should().Be(1);
-            x.History.First().StatusCode.Should().Be(StatusCode.OK);
-            x.States.Count.Should().Be(0);
+            x.History.Count.Be(1);
+            x.History.First().StatusCode.Be(StatusCode.OK);
+            x.States.Count.Be(0);
         });
 
         var stepState = service.GetRequiredService<StepState>();
-        stepState.Should().NotBeNull();
-        stepState.Value.Should().Be(1);
+        stepState.NotNull();
+        stepState.Value.Be(1);
     }
 
     private record StepState

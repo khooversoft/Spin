@@ -4,6 +4,7 @@ using SpinCluster.abstraction;
 using SpinClusterCmd.Application;
 using Toolbox.CommandRouter;
 using Toolbox.Extensions;
+using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -78,7 +79,8 @@ internal class User : ICommandRoute
 
         UserCreateModel model = readResult.Return();
 
+        context.LogInformation("Creating/Updating Tenant, model={model}", model);
         Option response = await _client.Create(model, context);
-        response.LogStatus(context, "Creating/Updating Tenant, model={model}", model);
+        response.LogStatus(context, "Creating/Updating Tenant");
     }
 }

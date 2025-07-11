@@ -42,12 +42,6 @@ public static class DataObjectValidator
 {
     public static Option Validate(this DataObject subject) => DataObject.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this DataObject subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static T ToObject<T>(this DataObject dataObject)
     {
         return dataObject switch

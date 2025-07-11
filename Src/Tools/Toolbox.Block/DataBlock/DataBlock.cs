@@ -48,12 +48,6 @@ public static class DataBlockValidator
 
     public static Option Validate(this DataBlock subject) => DataBlock.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool Validate(this DataBlock subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
-
     public static async Task<Option> ValidateDigest(this DataBlock subject, ISignValidate signValidate, ScopeContext context)
     {
         var valResult = DataBlock.Validator.Validate(subject);

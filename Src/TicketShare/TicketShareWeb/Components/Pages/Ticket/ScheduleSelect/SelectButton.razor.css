@@ -1,0 +1,27 @@
+﻿.parent-wrapper ::deep ::part(control) {
+    justify-content: flex-start;
+}
+
+.control-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.image {
+    width: 25px;
+    height: 25px;
+    margin-right: 10px;
+}
+
+.text-content {
+    flex: 1;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

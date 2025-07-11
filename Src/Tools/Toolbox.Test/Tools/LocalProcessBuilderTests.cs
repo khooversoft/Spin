@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 
 namespace Toolbox.Test.Tools;
 
@@ -24,9 +23,9 @@ public class LocalProcessBuilderTests
     {
         var builder = new LocalProcessBuilder().SetCommandLine(cmdLine);
 
-        builder.ExecuteFile.Should().Be(exeFile);
-        builder.Arguments.Should().Be(args);
-        builder.WorkingDirectory.Should().Be(workingDirectory);
+        builder.ExecuteFile.Be(exeFile);
+        builder.Arguments.Be(args);
+        builder.WorkingDirectory.Be(workingDirectory);
     }
 
     [Theory]
@@ -35,7 +34,6 @@ public class LocalProcessBuilderTests
     [InlineData("  ")]
     public void TestCommandLineParserFailure2(string? cmdLine)
     {
-        Action act = () => new LocalProcessBuilder().SetCommandLine(cmdLine!);
-        act.Should().Throw<ArgumentException>();
+        Verify.Throw<ArgumentException>(() => new LocalProcessBuilder().SetCommandLine(cmdLine!));
     }
 }

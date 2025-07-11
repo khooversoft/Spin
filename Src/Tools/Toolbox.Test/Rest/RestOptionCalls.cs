@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Rest;
 using Toolbox.TestApi;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Rest;
@@ -22,10 +22,10 @@ public class RestOptionCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<Option>();
 
-        response.IsOk().Should().BeTrue();
-        response.Error.Should().BeNull();
-        response.Return().StatusCode.Should().Be(StatusCode.OK);
-        response.Return().Error.Should().BeNull();
+        response.IsOk().BeTrue();
+        response.Error.BeNull();
+        response.Return().StatusCode.Be(StatusCode.OK);
+        response.Return().Error.BeNull();
     }
 
     [Fact]
@@ -38,10 +38,10 @@ public class RestOptionCalls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<Option>();
 
-        response.IsOk().Should().BeTrue();
-        response.Error.Should().BeNull();
-        response.HasValue.Should().BeTrue();
-        response.Return().StatusCode.Should().Be(StatusCode.BadRequest);
-        response.Return().Error.Should().Be(ModelDefaults.BadRequestResponse);
+        response.IsOk().BeTrue();
+        response.Error.BeNull();
+        response.HasValue.BeTrue();
+        response.Return().StatusCode.Be(StatusCode.BadRequest);
+        response.Return().Error.Be(ModelDefaults.BadRequestResponse);
     }
 }

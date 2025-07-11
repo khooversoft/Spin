@@ -1,0 +1,31 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "System.Net.Http": "Trace",
+      "Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware": "Information"
+    }
+  },
+
+  "SecretName": "aspnet-TicketShareWeb-dev",
+  "DumpFolder": "E:\\Work\\TicketShareDev",
+
+  "Storage": {
+    "Account": "ticketsharestoredev",
+    "Container": "data",
+    "BasePath": "GraphV1",
+    "Credentials": {
+      "ClientId": "1d17baf4-fd8d-41fb-bf8f-949d09e67cb8",
+      "TenantId": "33470f72-2b3b-4a0b-837d-4ba9ba499d69",
+      "ClientSecret": ""
+    }
+  },
+
+  "GraphHost": {
+    "ReadOnly": false,
+    "ShareMode": true,
+    "DisableCache": true,
+    "BreakExclusiveLease": false
+  }
+}

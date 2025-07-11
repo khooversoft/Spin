@@ -1,5 +1,5 @@
-﻿using FluentAssertions;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 
 namespace Toolbox.Test.Extensions;
 
@@ -20,6 +20,6 @@ public class RemoveDuplicateSequencesTests
     public void TestRemoveDuplicate(string? source, char token, string? expected)
     {
         string? result = source.RemoveDuplicates(token);
-        result.Should().Be(expected);
+        result.Be(expected);
     }
 }

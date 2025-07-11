@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SpinClient.sdk;
+using Toolbox.Logging;
 using Toolbox.Types;
 
 namespace SpinTestTools.sdk.ObjectBuilder.Builders;
@@ -16,7 +17,7 @@ public class SubscriptionBuilder : IObjectBuilder
         {
             Option setOption = await client.Value.Set(subscription, context);
 
-            setOption.LogStatus(context, "Creating Subscription name={name}", subscription.Name);
+            setOption.LogStatus(context, "Creating Subscription name={name}", [subscription.Name]);
             test.Test(() => setOption);
         }
 

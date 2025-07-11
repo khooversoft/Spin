@@ -2,6 +2,7 @@
 using Orleans.Runtime;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Orleans;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -10,7 +11,7 @@ namespace NBlog.sdk;
 public interface IDirectoryActor : IGrainWithStringKey
 {
     Task<Option> Clear(string principalId, string traceId);
-    Task<Option<GraphCommandResults>> Execute(string command, string traceId);
+    Task<Option<GraphQueryResults>> Execute(string command, string traceId);
 }
 
 public class DirectoryActor : Grain, IDirectoryActor
@@ -50,7 +51,7 @@ public class DirectoryActor : Grain, IDirectoryActor
         return await _state.Clear();
     }
 
-    public async Task<Option<GraphCommandResults>> Execute(string command, string traceId)
+    public async Task<Option<GraphQueryResults>> Execute(string command, string traceId)
     {
         var context = new ScopeContext(traceId, _logger);
         if (command.IsEmpty()) return (StatusCode.BadRequest, "Command is empty");
@@ -58,17 +59,17 @@ public class DirectoryActor : Grain, IDirectoryActor
 
         GraphMap map = (await _state.GetState(context)).ThrowOnError("Failed to get state").Return();
 
-        var commandOption = map.Command().Execute(command);
-        if (commandOption.StatusCode.IsError()) return commandOption.ToOptionStatus<GraphCommandResults>();
+        var commandOption = map.Execute(command);
+        if (commandOption.StatusCode.IsError()) return commandOption;
 
-        GraphCommandExceuteResults commandResult = commandOption.Return();
+        GraphQueryResults commandResult = commandOption.Return();
 
         bool isMapModified = commandResult.Items.Any(x => x.CommandType != CommandType.Select);
-        if (!isMapModified) return commandResult.ConvertTo();
+        if (!isMapModified) return commandResult;
 
         context.Location().LogInformation("Directory command modified graph, writing changes");
         await _state.SetState(map, context);
 
-        return commandResult.ConvertTo();
+        return commandResult;
     }
 }

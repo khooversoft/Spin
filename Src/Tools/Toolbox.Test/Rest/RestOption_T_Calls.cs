@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Rest;
 using Toolbox.TestApi;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.Rest;
@@ -23,11 +23,11 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<TestModel>();
 
-        response.StatusCode.Should().Be(StatusCode.OK);
-        response.IsOk().Should().BeTrue();
-        response.Error.Should().BeNull();
-        response.HasValue.Should().BeTrue();
-        (response.Return() == ModelDefaults.TestModel).Should().BeTrue();
+        response.StatusCode.Be(StatusCode.OK);
+        response.IsOk().BeTrue();
+        response.Error.BeNull();
+        response.HasValue.BeTrue();
+        (response.Return() == ModelDefaults.TestModel).BeTrue();
     }
 
     [Fact]
@@ -40,9 +40,9 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<TestModel>();
 
-        response.StatusCode.Should().Be(StatusCode.BadRequest);
-        response.IsOk().Should().BeFalse();
-        response.Error.Should().Be(ModelDefaults.BadRequestResponse);
+        response.StatusCode.Be(StatusCode.BadRequest);
+        response.IsOk().BeFalse();
+        response.Error.Be(ModelDefaults.BadRequestResponse);
     }
 
     [Fact]
@@ -55,9 +55,9 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<TestModel>();
 
-        response.StatusCode.Should().Be(StatusCode.BadRequest);
-        response.IsOk().Should().BeFalse();
-        response.Error.Should().BeNull();
+        response.StatusCode.Be(StatusCode.BadRequest);
+        response.IsOk().BeFalse();
+        response.Error.BeNull();
     }
 
     [Fact]
@@ -70,12 +70,12 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
             .GetAsync(_context)
             .GetContent<Option<TestModel>>();
 
-        response.StatusCode.Should().Be(StatusCode.OK);
-        response.IsOk().Should().BeTrue();
-        response.Error.Should().BeNull();
-        response.HasValue.Should().BeTrue();
+        response.StatusCode.Be(StatusCode.OK);
+        response.IsOk().BeTrue();
+        response.Error.BeNull();
+        response.HasValue.BeTrue();
 
         Option<TestModel> result = response.Return();
-        (result == ModelDefaults.TestModel).Should().BeTrue();
+        (result == ModelDefaults.TestModel).BeTrue();
     }
 }

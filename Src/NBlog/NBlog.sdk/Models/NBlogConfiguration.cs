@@ -11,14 +11,14 @@ public record NBlogConfiguration
     [Id(2)] public string Theme { get; init; } = null!;
     [Id(3)] public string? HomeIndex { get; init; }
     [Id(4)] public OverviewPanel OverviewPanel { get; init; } = null!;
-    [Id(5)] public IndexPanel IndexPanel { get; init; } = null!;
+    //[Id(5)] public IndexPanel IndexPanel { get; init; } = null!;
     [Id(6)] public IReadOnlyList<IndexGroup> IndexGroups { get; init; } = Array.Empty<IndexGroup>();
 
     public static IValidator<NBlogConfiguration> Validator { get; } = new Validator<NBlogConfiguration>()
         .RuleFor(x => x.DbName).ValidName()
         .RuleFor(x => x.Theme).NotEmpty().Must(NBlogConstants.ValidThemes.Contains, x => $"{x} not a valid theme")
         .RuleFor(x => x.OverviewPanel).Validate(OverviewPanel.Validator)
-        .RuleFor(x => x.IndexPanel).Validate(IndexPanel.Validator)
+        //.RuleFor(x => x.IndexPanel).Validate(IndexPanel.Validator)
         .RuleForEach(x => x.IndexGroups).Validate(IndexGroup.Validator)
         .RuleForObject(x => x).Must(x =>
         {

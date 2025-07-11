@@ -4,10 +4,22 @@ namespace Toolbox.Tools;
 
 public static class PathTool
 {
+    //private static FrozenSet<(string chr, string replace)> _replaceMap = new[]
+    //{
+    //    ( "/", "___" ),
+    //    ( ":", "__" ),
+    //    ( "$", "_DLR_" ),
+    //}.ToFrozenSet();
+
+    //private static string ToEncoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.chr, y.replace));
+    //private static string ToDecoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.replace, y.chr));
+
     public static string ToExtension(string extension) => extension.NotEmpty().StartsWith(".") ? extension : "." + extension;
 
-    public static string SetExtension(string path, string extension)
+    public static string SetExtension(string path, string? extension)
     {
+        if (extension.IsEmpty()) return path;
+
         path.NotEmpty();
         extension = ToExtension(extension);
 
@@ -21,7 +33,7 @@ public static class PathTool
             .Take(dotCount)
             .ToArray();
 
-        if( indexInMessage.Length != dotCount)
+        if (indexInMessage.Length != dotCount)
         {
             return simpleForm();
         }
@@ -56,5 +68,25 @@ public static class PathTool
         }
 
         return path;
+    }
+
+    public static string ToValidFileName(string fileName)
+    {
+        fileName.NotEmpty();
+        // Replace invalid characters with an underscore
+        var invalidChars = System.IO.Path.GetInvalidFileNameChars();
+
+        foreach (var c in invalidChars)
+        {
+            fileName = fileName.Replace(c, '_');
+        }
+
+        // Trim to a maximum length if necessary (e.g., 255 characters for most filesystems)
+        if (fileName.Length > 255)
+        {
+            fileName = fileName.Substring(0, 255);
+        }
+
+        return fileName;
     }
 }

@@ -20,11 +20,5 @@ public sealed record SignRequest
 public static class SignRequestValidator
 {
     public static Option Validate(this SignRequest subject) => SignRequest.Validator.Validate(subject).ToOptionStatus();
-
-    public static bool Validate(this SignRequest subject, out Option result)
-    {
-        result = subject.Validate();
-        return result.IsOk();
-    }
 }
 

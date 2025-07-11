@@ -1,7 +1,7 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Extensions;
 using Toolbox.Security;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Block.Test;
@@ -37,24 +37,24 @@ public class BlockChainStreamTests
             .Return();
 
         Option result = await blockChain.ValidateBlockChain(_signCollection, _context);
-        result.StatusCode.IsOk().Should().BeTrue();
+        result.StatusCode.IsOk().BeTrue();
 
         IReadOnlyList<DataBlock> blocks = await payloads
             .Select(x => x.ToDataBlock(_owner, blockType).Sign(_signCollection, _context).Return())
             .Func(async x => await Task.WhenAll(x));
 
         blockChain.Add(blocks.ToArray());
-        blockChain.Count.Should().Be(4);
+        blockChain.Count.Be(4);
 
         await blockChain.ValidateBlockChain(_signCollection, _context).ThrowOnError();
 
         Option<IEnumerable<DataBlock>> listOption = blockChain.Filter(_owner, blockType);
-        listOption.IsOk().Should().BeTrue();
+        listOption.IsOk().BeTrue();
 
         IReadOnlyList<Payload> blockPayloads = listOption.Return().Select(x => x.ToObject<Payload>()).ToArray();
-        blockPayloads.Count.Should().Be(3);
+        blockPayloads.Count.Be(3);
 
-        payloads.SequenceEqual(blockPayloads).Should().BeTrue();
+        payloads.SequenceEqual(blockPayloads).BeTrue();
     }
 
     private record Payload

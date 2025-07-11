@@ -1,5 +1,4 @@
-﻿using FluentAssertions;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -22,9 +21,9 @@ public class MessageBrokerEmulatorTests
         };
 
         int status = await broker.Call<Message, int>("path", msg, context);
-        status.Should().Be(1);
+        status.Be(1);
 
-        queue.Count.Should().Be(1);
+        queue.Count.Be(1);
 
         Task<int> receiver(Message msg, ScopeContext context)
         {
@@ -54,7 +53,7 @@ public class MessageBrokerEmulatorTests
             bool status = await broker.Call<Message, bool>("path", msg, context);
         }
 
-        queue.Count.Should().Be(count);
+        queue.Count.Be(count);
 
         Task<bool> receiver(Message msg, ScopeContext context)
         {
