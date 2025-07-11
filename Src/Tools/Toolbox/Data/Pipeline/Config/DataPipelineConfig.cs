@@ -13,9 +13,7 @@ public interface IDataPipelineConfig
     TimeSpan? FileCacheDuration { get; }
     string BasePath { get; }
     IReadOnlyDictionary<string, string?>? Tags { get; }
-    Func<FilePartitionConfig, string> FilePartitionStrategy { get; set; }
-    Func<FilePartitionConfig, string> ListPartitionStrategy { get; set; }
-    Func<FilePartitionConfig, string> ListPartitionSearch { get; set; }
+    PartitionStrategy PartitionStrategy { get; set; }
 }
 
 public class DataPipelineConfig : IDataPipelineConfig
@@ -35,9 +33,7 @@ public class DataPipelineConfig : IDataPipelineConfig
     public string BasePath { get; set; } = null!;
     public DateTime? Date { get; init; }
     public IReadOnlyDictionary<string, string?>? Tags { get; set; }
-    public Func<FilePartitionConfig, string> FilePartitionStrategy { get; set; } = null!;
-    public Func<FilePartitionConfig, string> ListPartitionStrategy { get; set; } = null!;
-    public Func<FilePartitionConfig, string> ListPartitionSearch { get; set; } = null!;
+    public PartitionStrategy PartitionStrategy { get; set; } = new();
     public DataPipelineHandlerCollection Handlers { get; } = new();
 
     public static IValidator<DataPipelineConfig> Validator { get; } = new Validator<DataPipelineConfig>()
@@ -51,22 +47,15 @@ public class DataPipelineConfig : IDataPipelineConfig
         .Build();
 }
 
-public record FilePartitionConfig
-{
-    public IDataPipelineConfig PipelineConfig { get; init; } = null!;
-    public string TypeName { get; init; } = null!;
-    public string Key { get; init; } = null!;
-}
-
 public static class DataPipelineConfigTool
 {
     public static Option Validate(this DataPipelineConfig subject) => DataPipelineConfig.Validator.Validate(subject).ToOptionStatus();
 
-    public static FilePartitionConfig CreateConfig<T>(this IDataPipelineConfig pipelineConfig, string key) => new FilePartitionConfig
+    public static PathDetail CreateConfig<T>(this IDataPipelineConfig pipelineConfig, string key) => new PathDetail
     {
-        PipelineConfig = pipelineConfig,
+        PipelineName = pipelineConfig.PipelineName.NotEmpty(),
         TypeName = typeof(T).Name,
-        Key = key.NotEmpty()
+        Key = key.NotEmpty(),
     };
 
     public static string CreatePath<T>(this IDataPipelineConfig config, string filePath)

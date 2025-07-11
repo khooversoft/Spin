@@ -11,6 +11,7 @@ public class DataPipelineHandlerCollection
     public void Add(Func<IServiceProvider, IDataProvider> handler) => _handlers.Add(handler.NotNull());
     public void Add<T>() where T : class, IDataProvider => _handlers.Add(service => service.GetRequiredService<T>());
 
+    // TODO: Add<T>(Func<T, IDataProvider> factory) where T : class, IDataProvider
     internal Option<IDataProvider> BuildHandlers(IServiceProvider serviceProvider)
     {
         var result = _handlers

@@ -39,16 +39,21 @@ public class FileStoreLockHandler : IDataProvider, IAsyncDisposable
         dataContext.NotNull().Validate().ThrowOnError();
         context = context.With(_logger);
 
+        if (dataContext.PathDetail == null)
+        {
+            return await ((IDataProvider)this).NextExecute(dataContext, context).ConfigureAwait(false);
+        }
+
         switch (dataContext.Command)
         {
             case DataPipelineCommand.Append:
             case DataPipelineCommand.Set:
             case DataPipelineCommand.Get:
-                LockPathConfig? found = _lockConfig.Paths.Values.FirstOrDefault(x => x.Path.Like(dataContext.Path));
+                var found = _lockConfig.GetLockMode(dataContext.PathDetail, context);
 
-                if (found != null)
+                if (found.IsOk())
                 {
-                    var processLockedOption = await ProcessLock(dataContext, found.LockMode, context).ConfigureAwait(false);
+                    var processLockedOption = await ProcessLock(dataContext, found.Return(), context).ConfigureAwait(false);
                     if (processLockedOption.IsError()) return processLockedOption.ToOptionStatus<DataPipelineContext>();
                 }
                 break;
@@ -75,7 +80,7 @@ public class FileStoreLockHandler : IDataProvider, IAsyncDisposable
 
     private async Task<Option> ReleaseLock(DataPipelineContext dataContext, ScopeContext context)
     {
-        LockDetail? lockDetail = _lockDetailCollection.Contains(dataContext.Path);
+        LockDetail? lockDetail = _lockDetailCollection.Get(dataContext.PathDetail.NotNull().PipelineName, dataContext.Path);
         if (lockDetail == null) return StatusCode.NotFound;
 
         var result = await lockDetail.FileLeasedAccess.Release(context).ConfigureAwait(false);
@@ -92,7 +97,7 @@ public class FileStoreLockHandler : IDataProvider, IAsyncDisposable
 
     private async Task<Option> ProcessLock(DataPipelineContext dataContext, LockMode lockMode, ScopeContext context)
     {
-        LockDetail? lockDetail = _lockDetailCollection.Contains(dataContext.Path);
+        LockDetail? lockDetail = _lockDetailCollection.Get(dataContext.PathDetail.NotNull().PipelineName, dataContext.Path);
         if (lockDetail != null) return StatusCode.OK;
 
         switch (lockMode)
@@ -124,7 +129,7 @@ public class FileStoreLockHandler : IDataProvider, IAsyncDisposable
                 var lockOption = await _fileStore.File(dataContext.Path).Acquire(_lockConfig.AcquireLockDuration, context).ConfigureAwait(false);
                 if (lockOption.IsOk())
                 {
-                    _lockDetailCollection.Set(new LockDetail(lockOption.Return(), false, _lockConfig.AcquireLockDuration));
+                    _lockDetailCollection.Set(new LockDetail(dataContext.PathDetail.NotNull().PipelineName, lockOption.Return(), false, _lockConfig.AcquireLockDuration));
                     return StatusCode.OK;
                 }
 
@@ -150,7 +155,7 @@ public class FileStoreLockHandler : IDataProvider, IAsyncDisposable
             var lockOption = await _fileStore.File(dataContext.Path).AcquireExclusive(true, context).ConfigureAwait(false);
             if (lockOption.IsOk())
             {
-                _lockDetailCollection.Set(new LockDetail(lockOption.Return(), true, TimeSpan.MaxValue));
+                _lockDetailCollection.Set(new LockDetail(dataContext.PathDetail.NotNull().PipelineName, lockOption.Return(), true, TimeSpan.MaxValue));
                 return StatusCode.OK;
             }
 

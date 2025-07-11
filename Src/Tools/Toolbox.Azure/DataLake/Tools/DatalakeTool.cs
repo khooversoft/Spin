@@ -76,6 +76,18 @@ public static class DatalakeTool
             ContentLength = subject.ContentLength,
             CreatedOn = subject.CreatedOn,
             ETag = subject.ETag.ToString(),
+            LeaseStatus = subject.LeaseStatus switch
+            {
+                DataLakeLeaseStatus.Locked => LeaseStatus.Locked,
+                DataLakeLeaseStatus.Unlocked => LeaseStatus.Unlocked,
+                _ => LeaseStatus.Unlocked,
+            },
+            LeaseDuration = subject.LeaseDuration switch
+            {
+                DataLakeLeaseDuration.Fixed => LeaseDuration.Fixed,
+                DataLakeLeaseDuration.Infinite => LeaseDuration.Infinite,
+                _ => LeaseDuration.Infinite,
+            },
         };
     }
 }

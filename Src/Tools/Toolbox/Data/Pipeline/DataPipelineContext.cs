@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Data;
@@ -29,15 +30,24 @@ public record DataPipelineContext
         PipelineConfig = pipelineConfig.NotNull();
     }
 
+    public DataPipelineContext(string command, string path, PathDetail pathDetail, IDataPipelineConfig pipelineConfig)
+    {
+        Command = command.NotEmpty();
+        Path = path.NotEmpty();
+        PathDetail = pathDetail.NotNull().Action(x => x.Validate().ThrowOnError());
+        PipelineConfig = pipelineConfig.NotNull();
+    }
+
     public string Command { get; }
     public string Path { get; }
-    public IDataPipelineConfig PipelineConfig { get; init; } = null!;
+    public PathDetail? PathDetail { get; }
+    public IDataPipelineConfig PipelineConfig { get; }
     public IReadOnlyList<DataETag> SetData { get; init; } = Array.Empty<DataETag>();
     public IReadOnlyList<DataETag> GetData { get; init; } = Array.Empty<DataETag>();
 
     public static IValidator<DataPipelineContext> Validator { get; } = new Validator<DataPipelineContext>()
         .RuleFor(x => x.Command).NotEmpty()
-        .RuleFor(x => x.Path).NotEmpty()
+        .RuleFor(x => x.PathDetail).ValidateOption(PathDetail.Validator)
         .RuleFor(x => x.PipelineConfig).NotNull()
         .RuleFor(x => x.SetData).NotNull()
         .RuleFor(x => x.SetData).NotNull()

@@ -2,6 +2,18 @@
 
 namespace Toolbox.Store;
 
+public enum LeaseStatus
+{
+    Locked,
+    Unlocked,
+}
+
+public enum LeaseDuration
+{
+    Infinite,
+    Fixed
+}
+
 public interface IStorePathDetail
 {
     string Path { get; }
@@ -10,6 +22,8 @@ public interface IStorePathDetail
     DateTimeOffset? CreatedOn { get; }
     DateTimeOffset LastModified { get; }
     string ETag { get; }
+    LeaseStatus LeaseStatus { get; }
+    LeaseDuration LeaseDuration { get; }
 }
 
 
@@ -21,6 +35,8 @@ public record StorePathDetail : IStorePathDetail
     public DateTimeOffset? CreatedOn { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset LastModified { get; init; } = DateTimeOffset.UtcNow;
     public string ETag { get; init; } = null!;
+    public LeaseStatus LeaseStatus { get; init; }
+    public LeaseDuration LeaseDuration { get; init; }
 }
 
 public static class StorePathDetailExtensions

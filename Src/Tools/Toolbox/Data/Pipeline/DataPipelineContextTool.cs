@@ -9,26 +9,26 @@ public static class DataPipelineContextTool
 
     public static DataPipelineContext CreateAppend<T>(this IDataPipelineConfig pipelineConfig, string key, DataETag data)
     {
-        string path = InternalCreateFilePath<T>(pipelineConfig, key);
-        return new DataPipelineContext(DataPipelineCommand.Append, path, pipelineConfig) { SetData = [data] };
+        (string path, PathDetail pathDetail) = InternalCreateFilePath<T>(pipelineConfig, key);
+        return new DataPipelineContext(DataPipelineCommand.Append, path, pathDetail, pipelineConfig) { SetData = [data] };
     }
 
     public static DataPipelineContext CreateDelete<T>(this IDataPipelineConfig pipelineConfig, string key)
     {
-        string path = InternalCreateFilePath<T>(pipelineConfig, key);
-        return new DataPipelineContext(DataPipelineCommand.Delete, path, pipelineConfig);
+        (string path, PathDetail pathDetail) = InternalCreateFilePath<T>(pipelineConfig, key);
+        return new DataPipelineContext(DataPipelineCommand.Delete, path, pathDetail, pipelineConfig);
     }
 
     public static DataPipelineContext CreateGet<T>(this IDataPipelineConfig pipelineConfig, string key)
     {
-        string path = InternalCreateFilePath<T>(pipelineConfig, key);
-        return new DataPipelineContext(DataPipelineCommand.Get, path, pipelineConfig);
+        (string path, PathDetail pathDetail) = InternalCreateFilePath<T>(pipelineConfig, key);
+        return new DataPipelineContext(DataPipelineCommand.Get, path, pathDetail, pipelineConfig);
     }
 
     public static DataPipelineContext CreateSet<T>(this IDataPipelineConfig pipelineConfig, string key, DataETag data)
     {
-        string path = InternalCreateFilePath<T>(pipelineConfig, key);
-        return new DataPipelineContext(DataPipelineCommand.Set, path, pipelineConfig) { SetData = [data] };
+        (string path, PathDetail pathDetail) = InternalCreateFilePath<T>(pipelineConfig, key);
+        return new DataPipelineContext(DataPipelineCommand.Set, path, pathDetail, pipelineConfig) { SetData = [data] };
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,23 +39,23 @@ public static class DataPipelineContextTool
     {
         data.NotNull().Assert(x => x.Any(), "Data cannot be empty");
 
-        var config = pipelineConfig.CreateConfig<T>(key);
-        string fullPath = pipelineConfig.NotNull().ListPartitionStrategy(config);
+        var pathDetail = pipelineConfig.CreateConfig<T>(key);
+        string fullPath = pipelineConfig.NotNull().PartitionStrategy.List(pathDetail);
         string path = pipelineConfig.CreatePath<T>(fullPath);
 
-        return new DataPipelineContext(DataPipelineCommand.AppendList, path, pipelineConfig) { SetData = [.. data] };
+        return new DataPipelineContext(DataPipelineCommand.AppendList, path, pathDetail, pipelineConfig) { SetData = [.. data] };
     }
 
     public static DataPipelineContext CreateDeleteList<T>(this IDataPipelineConfig pipelineConfig, string key)
     {
-        string path = InternalCreateSearchList<T>(pipelineConfig, key);
-        return new DataPipelineContext(DataPipelineCommand.DeleteList, path, pipelineConfig);
+        (string path, PathDetail pathDetail) = InternalCreateSearchList<T>(pipelineConfig, key);
+        return new DataPipelineContext(DataPipelineCommand.DeleteList, path, pathDetail, pipelineConfig);
     }
 
     public static DataPipelineContext CreateGetList<T>(this IDataPipelineConfig pipelineConfig, string key)
     {
-        string path = InternalCreateSearchList<T>(pipelineConfig, key);
-        return new DataPipelineContext(DataPipelineCommand.GetList, path, pipelineConfig);
+        (string path, PathDetail pathDetail) = InternalCreateSearchList<T>(pipelineConfig, key);
+        return new DataPipelineContext(DataPipelineCommand.GetList, path, pathDetail, pipelineConfig);
     }
 
 
@@ -70,20 +70,20 @@ public static class DataPipelineContextTool
 
     public static DataPipelineContext AcquireLock<T>(this IDataPipelineConfig pipelineConfig, string key)
     {
-        string path = InternalCreateFilePath<T>(pipelineConfig, key);
-        return new DataPipelineContext(DataPipelineCommand.AcquireLock, path, pipelineConfig);
+        (string path, PathDetail pathDetail) = InternalCreateFilePath<T>(pipelineConfig, key);
+        return new DataPipelineContext(DataPipelineCommand.AcquireLock, path, pathDetail, pipelineConfig);
     }
 
     public static DataPipelineContext AcquireExclusiveLock<T>(this IDataPipelineConfig pipelineConfig, string key)
     {
-        string path = InternalCreateFilePath<T>(pipelineConfig, key);
-        return new DataPipelineContext(DataPipelineCommand.AcquireExclusiveLock, path, pipelineConfig);
+        (string path, PathDetail pathDetail) = InternalCreateFilePath<T>(pipelineConfig, key);
+        return new DataPipelineContext(DataPipelineCommand.AcquireExclusiveLock, path, pathDetail, pipelineConfig);
     }
 
     public static DataPipelineContext CreateReleaseLock<T>(this IDataPipelineConfig pipelineConfig, string key)
     {
-        string path = InternalCreateFilePath<T>(pipelineConfig, key);
-        return new DataPipelineContext(DataPipelineCommand.ReleaseLock, path, pipelineConfig);
+        (string path, PathDetail pathDetail) = InternalCreateFilePath<T>(pipelineConfig, key);
+        return new DataPipelineContext(DataPipelineCommand.ReleaseLock, path, pathDetail, pipelineConfig);
     }
 
 
@@ -91,19 +91,19 @@ public static class DataPipelineContextTool
     /// Support
     /// 
 
-    private static string InternalCreateFilePath<T>(IDataPipelineConfig pipelineConfig, string key)
+    private static (string path, PathDetail pathDetail) InternalCreateFilePath<T>(IDataPipelineConfig pipelineConfig, string key)
     {
-        var config = pipelineConfig.CreateConfig<T>(key);
-        string fullPath = pipelineConfig.NotNull().FilePartitionStrategy(config);
+        var pathDetail = pipelineConfig.CreateConfig<T>(key);
+        string fullPath = pipelineConfig.NotNull().PartitionStrategy.File(pathDetail);
         string path = pipelineConfig.CreatePath<T>(fullPath);
-        return path;
+        return (path, pathDetail);
     }
 
-    private static string InternalCreateSearchList<T>(IDataPipelineConfig pipelineConfig, string key)
+    private static (string path, PathDetail pathDetail) InternalCreateSearchList<T>(IDataPipelineConfig pipelineConfig, string key)
     {
-        var config = pipelineConfig.CreateConfig<T>(key);
-        string fullPath = pipelineConfig.NotNull().ListPartitionSearch(config);
+        var pathDetail = pipelineConfig.CreateConfig<T>(key);
+        string fullPath = pipelineConfig.NotNull().PartitionStrategy.Search(pathDetail);
         string path = pipelineConfig.CreatePath<T>(fullPath);
-        return path;
+        return (path, pathDetail);
     }
 }

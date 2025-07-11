@@ -100,6 +100,7 @@ public class DataClient<T> : IDataClient<T>
     //////////////////////////////////////////////////////////////////////////////////////////////////////
     /// Operations
     ///
+
     public async Task<Option> Drain(ScopeContext context)
     {
         context.LogDebug("DataClient: Drain");
@@ -111,13 +112,35 @@ public class DataClient<T> : IDataClient<T>
 
     public async Task<Option> ReleaseLock(string key, ScopeContext context)
     {
-        context.LogDebug("DataClient: ReleaseLock, key={key}");
+        context.LogDebug("DataClient: ReleaseLock, key={key}", key);
 
         var request = PipelineConfig.CreateReleaseLock<T>(key);
         var resultOption = await Handler.Execute(request, context);
 
         return resultOption.ToOptionStatus();
     }
+}
 
 
+public static class DataClientExtensions
+{
+    public static IEnumerable<IDataProvider> GetDataProviders<T>(this IDataClient<T> dataClient)
+    {
+        IDataProvider handler = dataClient switch
+        {
+            DataClient<T> client => client.Handler,
+            _ => throw new InvalidOperationException("Unsupported data client type")
+        };
+
+        var list = new Sequence<IDataProvider>();
+        list += handler;
+
+        while (handler.InnerHandler is not null)
+        {
+            handler = handler.InnerHandler;
+            list += handler;
+        }
+
+        return list;
+    }
 }

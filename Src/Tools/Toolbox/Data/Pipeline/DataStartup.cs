@@ -27,10 +27,7 @@ public static class DataStartup
         var builder = new DataPipelineConfig(services, pipelineName, DataPipelineConfigTool.CreateKeyedName<T>(pipelineName));
         config(builder);
 
-        builder.FilePartitionStrategy ??= config => PartitionSchemas.ScalarFile(config.PipelineConfig, config.TypeName, config.Key);
-        builder.ListPartitionStrategy ??= config => PartitionSchemas.DailyListPartitioning(config.PipelineConfig, config.TypeName, config.Key);
-        builder.ListPartitionSearch ??= config => PartitionSchemas.DailyListPartitionSearch(config.PipelineConfig, config.TypeName, config.Key);
-
+        builder.PartitionStrategy ??= new PartitionStrategy();
         builder.Validate().ThrowOnError();
 
         services.AddKeyedSingleton(builder.ServiceKeyedName, builder);
@@ -71,18 +68,19 @@ public static class DataStartup
 
         var lockConfig = new DataPipelineLockConfig();
         config.NotNull()(lockConfig);
+        builder.Validate().ThrowOnError();
         builder.Services.AddKeyedSingleton<DataPipelineLockConfig>(builder.ServiceKeyedName, lockConfig);
 
+        builder.Services.TryAddSingleton<LockDetailCollection>();
         builder.Services.AddTransient<FileStoreLockHandler>();
 
-        builder.Services.AddKeyedSingleton<LockDetailCollection>(builder.ServiceKeyedName);
         builder.Handlers.Add(service =>
         {
-            var lockDetailCollection = service.GetRequiredKeyedService<LockDetailCollection>(builder.ServiceKeyedName);
             var lockConfig = service.GetRequiredKeyedService<DataPipelineLockConfig>(builder.ServiceKeyedName);
-            var lockHandler = ActivatorUtilities.CreateInstance<FileStoreLockHandler>(service, lockDetailCollection, lockConfig);
+            var lockHandler = ActivatorUtilities.CreateInstance<FileStoreLockHandler>(service, lockConfig);
             return lockHandler;
         });
+
         return builder;
     }
 

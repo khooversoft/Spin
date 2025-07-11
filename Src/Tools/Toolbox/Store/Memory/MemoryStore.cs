@@ -115,7 +115,16 @@ public sealed class MemoryStore
 
         return _store.TryGetValue(path, out var payload) switch
         {
-            true => payload.PathDetail,
+            true => payload.LeaseRecord switch
+            {
+                null => payload.PathDetail with { LeaseStatus = LeaseStatus.Unlocked, LeaseDuration = LeaseDuration.Infinite },
+                var v => payload.PathDetail with
+                {
+                    LeaseDuration = v.Infinite ? LeaseDuration.Infinite : LeaseDuration.Fixed,
+                    LeaseStatus = LeaseStatus.Locked,
+                },
+            },
+
             false => StatusCode.NotFound,
         };
     }

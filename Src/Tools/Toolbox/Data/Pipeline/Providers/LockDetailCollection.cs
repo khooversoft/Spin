@@ -8,19 +8,26 @@ namespace Toolbox.Data;
 
 public record LockDetail
 {
-    public LockDetail(IFileLeasedAccess fileLeasedAccess, bool isExclusive, TimeSpan duration)
+    public LockDetail(string pipelineName, IFileLeasedAccess fileLeasedAccess, bool isExclusive, TimeSpan duration)
     {
+        PipelineName = pipelineName.NotEmpty();
+        Path = fileLeasedAccess.Path.NotEmpty();
+        Key = CreateKey(PipelineName, Path);
+
         FileLeasedAccess = fileLeasedAccess.NotNull();
         IsExclusive = isExclusive;
         Duration = duration.Assert(x => x.TotalSeconds > 1, x => $"Invalid duration={x}");
-        Path = fileLeasedAccess.Path.NotEmpty();
     }
 
+    public string Key { get; }
+    public string PipelineName { get; }
+    public string Path { get; }
     public IFileLeasedAccess FileLeasedAccess { get; }
     public bool IsExclusive { get; }
     public DateTime AcquiredDate { get; } = DateTime.UtcNow;
-    public string Path { get; }
     public TimeSpan Duration { get; }
+
+    public static string CreateKey(string pipelineName, string path) => $"{pipelineName.NotEmpty()}:{path.NotEmpty()}".ToLowerInvariant();
 }
 
 
@@ -37,9 +44,10 @@ public class LockDetailCollection : IAsyncDisposable
         _logger = logger.NotNull();
     }
 
-    public LockDetail? Contains(string path)
+    public LockDetail? Get(string pipelineName, string path)
     {
-        if (!_lockMap.TryGetValue(path, out LockDetail? detail)) return null;
+        string key = LockDetail.CreateKey(pipelineName, path);
+        if (!_lockMap.TryGetValue(key, out LockDetail? detail)) return null;
 
         if (!IsValid(detail))
         {
@@ -51,7 +59,7 @@ public class LockDetailCollection : IAsyncDisposable
         return detail;
     }
 
-    public void Set(LockDetail detail) => _lockMap.AddOrUpdate(detail.Path, detail, (key, oldValue) => detail);
+    public void Set(LockDetail detail) => _lockMap.AddOrUpdate(detail.Key, detail, (key, oldValue) => detail);
 
     public async ValueTask DisposeAsync()
     {

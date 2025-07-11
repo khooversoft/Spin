@@ -10,7 +10,6 @@ public class CacheMemoryHandler : IDataProvider
 {
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger<CacheMemoryHandler> _logger;
-    private const string _name = nameof(CacheMemoryHandler);
 
     public CacheMemoryHandler(IMemoryCache memoryCache, ILogger<CacheMemoryHandler> logger)
     {
@@ -26,7 +25,7 @@ public class CacheMemoryHandler : IDataProvider
         dataContext.NotNull().Validate().ThrowOnError();
         dataContext.PipelineConfig.MemoryCacheDuration.Assert(x => x != null && x > TimeSpan.Zero, "MemoryCacheDuration must be set to a valid value");
         context = context.With(_logger);
-        context.LogDebug("CacheMemoryDataProvider: Executing command={command}, name={name}", dataContext.Command, _name);
+        context.LogDebug("CacheMemoryDataProvider: Executing command={command}", dataContext.Command);
 
         dataContext.NotNull();
         switch (dataContext.Command)

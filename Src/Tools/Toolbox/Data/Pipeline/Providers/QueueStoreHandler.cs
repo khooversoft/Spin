@@ -5,10 +5,9 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-internal class QueueStoreHandler : IDataProvider
+internal class QueueStoreHandler : IDataProvider, IAsyncDisposable
 {
     private readonly ILogger<QueueStoreHandler> _logger;
-    private const string _name = nameof(QueueStoreHandler);
     private readonly OperationQueue _operationQueue;
 
     public QueueStoreHandler(IServiceProvider serviceProvider, ILogger<QueueStoreHandler> logger)
@@ -27,7 +26,7 @@ internal class QueueStoreHandler : IDataProvider
     {
         dataContext.NotNull().Validate().ThrowOnError();
         context = context.With(_logger);
-        context.Location().LogDebug("Execute: Executing command={command}, name={name}", dataContext.Command, _name);
+        context.Location().LogDebug("Execute: Executing command={command}", dataContext.Command);
 
         dataContext.NotNull();
         switch (dataContext.Command)
@@ -39,7 +38,7 @@ internal class QueueStoreHandler : IDataProvider
                 await _operationQueue.Send(async () =>
                 {
                     await ((IDataProvider)this).NextExecute(dataContext, context);
-                    context.LogDebug("Send completed for command={command}, name={name}", dataContext.Command, _name);
+                    context.LogDebug("Send completed for command={command}", dataContext.Command);
                 }, context);
                 return dataContext;
 
@@ -49,14 +48,14 @@ internal class QueueStoreHandler : IDataProvider
                 var result = await _operationQueue.Get(async () =>
                 {
                     var result = await ((IDataProvider)this).NextExecute(dataContext, context);
-                    context.LogDebug("Get list complete for command={command}, name={name}", dataContext.Command, _name);
+                    context.LogDebug("Get list complete for command={command}", dataContext.Command);
                     return result;
                 }, context);
 
                 return result;
 
             case DataPipelineCommand.Drain:
-                context.LogDebug("Draining, name={name}", _name);
+                context.LogDebug("Draining");
                 await _operationQueue.Drain(context);
                 return dataContext;
         }
@@ -64,5 +63,7 @@ internal class QueueStoreHandler : IDataProvider
         var nextOption = await ((IDataProvider)this).NextExecute(dataContext, context).ConfigureAwait(false);
         return nextOption;
     }
+
+    public async ValueTask DisposeAsync() => await _operationQueue.DisposeAsync();
 }
 
