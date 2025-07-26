@@ -2,6 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Toolbox.Data;
+using Toolbox.Extensions;
+using Toolbox.Models;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -10,53 +13,40 @@ namespace Toolbox.Graph;
 
 public static class GraphStartup
 {
-    public static IServiceCollection AddGraphEngine(this IServiceCollection services, GraphHostOption? hostOption = null)
+    public static IServiceCollection AddGraphEngine(this IServiceCollection services, Action<GraphHostOption> config)
     {
         services.NotNull();
-        hostOption ??= new GraphHostOption();
+        config.NotNull();
+
+        var hostOption = new GraphHostOption().Action(x => config(x));
+        hostOption.Validate().ThrowOnError("GraphHostOption is invalid");
 
         services.AddSingleton<GraphHostOption>(hostOption);
         services.AddSingleton<IGraphEngine, GraphEngine>();
         services.AddSingleton<GraphMapCounter>();
-        services.AddSingleton<IGraphMapFactory, GraphMapFactory>();
-
-        // TODO
-        //services.AddJournalLog(GraphConstants.TrxJournal.DiKeyed, new JournalFileOption
-        //{
-        //    ConnectionString = GraphConstants.TrxJournal.ConnectionString,
-        //    UseBackgroundWriter = hostOption.UseBackgroundWriter,
-        //});
-
+        services.AddSingleton<GraphMapDataManager>();
         services.AddSingleton<IGraphClient, GraphQueryExecute>();
-        services.AddSingleton<IGraphFileStore, GraphFileStore>();
 
-        if (hostOption.ShareMode)
-            services.AddSingleton<IGraphMapAccess, MapSharedAccess>();
-        else
-            services.AddSingleton<IGraphMapAccess, MapExclusiveAccess>();
-
-        if (!hostOption.DisableCache)
+        services.AddDataPipeline<GraphSerialization>(GraphConstants.GraphMap.PipelineName, builder =>
         {
-            services.TryAddSingleton<IMemoryCache, MemoryCache>();
-            services.TryAddSingleton<MemoryCacheAccess>();
-        }
+            builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}";
+            builder.AddFileStore();
+        });
+
+        services.AddDataPipeline<DataETag>(GraphConstants.Data.PipelineName, builder =>
+        {
+            builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.Data.BasePath}";
+            builder.AddFileStore();
+        });
+
+        services.AddDataPipeline<DataChangeRecord>(GraphConstants.Journal.PipelineName, builder =>
+        {
+            builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.Journal.BasePath}";
+            builder.AddListStore();
+        });
 
         return services;
     }
-
-    public static async Task<Option> StartGraphEngine(this IServiceProvider serviceProvider, GraphMap? map = null)
-    {
-        serviceProvider.NotNull();
-        var graphHost = serviceProvider.GetRequiredService<IGraphEngine>();
-        var context = serviceProvider.GetRequiredService<ILogger<GraphEngine>>().ToScopeContext();
-
-        var result = map switch
-        {
-            null => await graphHost.Start(context).ConfigureAwait(false),
-            _ => await graphHost.Start(map, context).ConfigureAwait(false),
-        };
-
-        return result;
-    }
 }
+
 

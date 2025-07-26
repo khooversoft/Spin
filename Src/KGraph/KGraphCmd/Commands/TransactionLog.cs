@@ -1,48 +1,48 @@
-﻿using KGraphCmd.Application;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Toolbox.CommandRouter;
-using Toolbox.Data;
-using Toolbox.Extensions;
-using Toolbox.Graph;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿//using KGraphCmd.Application;
+//using Microsoft.Extensions.DependencyInjection;
+//using Microsoft.Extensions.Logging;
+//using Toolbox.CommandRouter;
+//using Toolbox.Data;
+//using Toolbox.Extensions;
+//using Toolbox.Graph;
+//using Toolbox.Tools;
+//using Toolbox.Types;
 
-namespace KGraphCmd.Commands;
+//namespace KGraphCmd.Commands;
 
-internal class TransactionLog : ICommandRoute
-{
-    private readonly ILogger<TransactionLog> _logger;
-    private readonly GraphHostManager _graphHostManager;
+//internal class TransactionLog : ICommandRoute
+//{
+//    private readonly ILogger<TransactionLog> _logger;
+//    private readonly GraphHostManager _graphHostManager;
 
-    public TransactionLog(GraphHostManager graphHostManager, ILogger<TransactionLog> logger)
-    {
-        _graphHostManager = graphHostManager.NotNull();
-        _logger = logger.NotNull();
-    }
+//    public TransactionLog(GraphHostManager graphHostManager, ILogger<TransactionLog> logger)
+//    {
+//        _graphHostManager = graphHostManager.NotNull();
+//        _logger = logger.NotNull();
+//    }
 
-    public CommandSymbol CommandSymbol() => new CommandSymbol("trx", "Dump or reset KGraph's database transaction logs")
-    {
-        new CommandSymbol("list", "List transactions").Action(x =>
-        {
-            var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
-            var monitor = x.AddOption<bool>("--monitor", "Monitor traces");
-            var lastNumber = x.AddOption<int>("--last", "Last number of traces to show", 10);
-            var fullDump = x.AddOption<bool>("--full", "Full dump of data");
-            var lsn = x.AddOption<string?>("--lsn", "Display LSN details");
+//    public CommandSymbol CommandSymbol() => new CommandSymbol("trx", "Dump or reset KGraph's database transaction logs")
+//    {
+//        new CommandSymbol("list", "List transactions").Action(x =>
+//        {
+//            var jsonFile = x.AddOption<string?>("--config", "Json file with data lake connection details");
+//            var monitor = x.AddOption<bool>("--monitor", "Monitor traces");
+//            var lastNumber = x.AddOption<int>("--last", "Last number of traces to show", 10);
+//            var fullDump = x.AddOption<bool>("--full", "Full dump of data");
+//            var lsn = x.AddOption<string?>("--lsn", "Display LSN details");
 
-            x.SetHandler(List, jsonFile, monitor, lastNumber, fullDump, lsn);
-        }),
-    };
+//            x.SetHandler(List, jsonFile, monitor, lastNumber, fullDump, lsn);
+//        }),
+//    };
 
-    private async Task List(string? jsonFile, bool monitor, int lastNumber, bool fullDump, string? lsn)
-    {
-        if (jsonFile.IsNotEmpty()) await _graphHostManager.Start(jsonFile);
+//    private async Task List(string? jsonFile, bool monitor, int lastNumber, bool fullDump, string? lsn)
+//    {
+//        if (jsonFile.IsNotEmpty()) await _graphHostManager.Start(jsonFile);
 
-        var context = _logger.ToScopeContext();
-        context.LogInformation("Starting to list transactions...");
+//        var context = _logger.ToScopeContext();
+//        context.LogInformation("Starting to list transactions...");
 
-        var traceLog = _graphHostManager.ServiceProvider.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed).NotNull();
-        //await JournalTool.Display(traceLog, monitor, lastNumber, fullDump, lsn, context);
-    }
-}
+//        var traceLog = _graphHostManager.ServiceProvider.GetRequiredKeyedService<IJournalFile>(GraphConstants.TrxJournal.DiKeyed).NotNull();
+//        //await JournalTool.Display(traceLog, monitor, lastNumber, fullDump, lsn, context);
+//    }
+//}

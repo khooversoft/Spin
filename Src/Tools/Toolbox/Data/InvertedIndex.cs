@@ -4,6 +4,13 @@ using Toolbox.Tools;
 
 namespace Toolbox.Data;
 
+/// <summary>
+/// The InvertedIndex<TKey, TReferenceKey> class is a thread-safe, generic data structure designed
+/// to map keys (TKey) to a set of reference keys (TReferenceKey). It is commonly used in scenarios 
+/// where you need to efficiently look up relationships between entities, such as indexing or graph-based applications.
+/// </summary>
+/// <typeparam name="TKey">Lookup key</typeparam>
+/// <typeparam name="TReferenceKey">reference key</typeparam>
 public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey, TReferenceKey>>
     where TKey : notnull
     where TReferenceKey : notnull

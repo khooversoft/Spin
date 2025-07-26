@@ -5,9 +5,16 @@ namespace Toolbox.Graph;
 
 public sealed class GraphMapCounter
 {
-    public NodeCounter Nodes { get; } = new NodeCounter();
-    public EdgeCounter Edges { get; } = new EdgeCounter();
-    public LeaseCounter Leases { get; } = new LeaseCounter();
+    public NodeCounter Nodes { get; private set; } = new NodeCounter();
+    public EdgeCounter Edges { get; private set; } = new EdgeCounter();
+    public LeaseCounter Leases { get; private set; } = new LeaseCounter();
+
+    public void Clear()
+    {
+        Nodes = new();
+        Edges = new();
+        Leases = new();
+    }
 }
 
 public sealed class NodeCounter : CounterBase

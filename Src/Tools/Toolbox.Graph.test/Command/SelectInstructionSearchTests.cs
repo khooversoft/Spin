@@ -1,4 +1,7 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
@@ -25,20 +28,36 @@ public class SelectInstructionSearchTests
         new GraphEdge("user:charlie", "user:fred", edgeType : "et1", tags: "created"),
         new GraphEdge("user:diana", "user:bob", edgeType : "et1", tags: "created"),
     };
-    private readonly ITestOutputHelper _outputHelper;
 
-    public SelectInstructionSearchTests(ITestOutputHelper outputHelper)
+    private readonly ITestOutputHelper _logOutput;
+    public SelectInstructionSearchTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
+
+    private async Task<IHost> CreateService()
     {
-        _outputHelper = outputHelper;
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryFileStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
+
+        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var context = host.Services.GetRequiredService<ILogger<NodeInstructionsIndexTests>>().ToScopeContext();
+        await graphEngine.DataManager.SetMap(_map, context);
+
+        return host;
     }
 
     [Fact]
     public async Task SelectAllUsers()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
 
-        var resultOption = await graphTestClient.Execute("select (key=account:*) ;", context);
+        var resultOption = await graphClient.Execute("select (key=account:*) ;", context);
         resultOption.IsOk().BeTrue();
 
         QueryResult result = resultOption.Return();
@@ -50,10 +69,11 @@ public class SelectInstructionSearchTests
     [Fact]
     public async Task SelectEdgeSubset()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
 
-        var resultOption = await graphTestClient.Execute("select [from=user:f*] ;", context);
+        var resultOption = await graphClient.Execute("select [from=user:f*] ;", context);
         resultOption.IsOk().BeTrue();
 
         QueryResult result = resultOption.Return();
@@ -65,10 +85,11 @@ public class SelectInstructionSearchTests
     [Fact]
     public async Task SelectNodesFromEdgeSubset()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<SelectInstructionSearchTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
 
-        var resultOption = await graphTestClient.Execute("select [from=user:f*] -> (*) ;", context);
+        var resultOption = await graphClient.Execute("select [from=user:f*] -> (*) ;", context);
         resultOption.IsOk().BeTrue();
 
         QueryResult result = resultOption.Return();

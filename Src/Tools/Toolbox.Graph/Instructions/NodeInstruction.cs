@@ -6,9 +6,9 @@ namespace Toolbox.Graph;
 
 internal static class NodeInstruction
 {
-    public static async Task<Option> Process(GiNode giNode, QueryExecutionContext pContext)
+    public static async Task<Option> Process(GiNode giNode, GraphTrxContext pContext)
     {
-        pContext.TrxContext.Context.Location().LogDebug("Process giNode={giNode}, changeType={changeType}", giNode, giNode.ChangeType);
+        pContext.Context.Location().LogDebug("Process giNode={giNode}, changeType={changeType}", giNode, giNode.ChangeType);
 
         var result = giNode.ChangeType switch
         {
@@ -20,16 +20,16 @@ internal static class NodeInstruction
 
         pContext.AddQueryResult(result);
 
-        result.LogStatus(pContext.TrxContext.Context, "Completed processing of giNode={giNode}", [giNode]);
+        result.LogStatus(pContext.Context, "Completed processing of giNode={giNode}", [giNode]);
         return result;
     }
 
-    private static async Task<Option> Add(GiNode giNode, QueryExecutionContext pContext)
+    private static async Task<Option> Add(GiNode giNode, GraphTrxContext pContext)
     {
         giNode.NotNull();
         pContext.NotNull();
 
-        pContext.TrxContext.Context.LogDebug("Adding giNode={giNode}", giNode);
+        pContext.Context.LogDebug("Adding giNode={giNode}", giNode);
 
         var dataMapOption = await NodeDataTool.AddData(giNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
@@ -47,45 +47,45 @@ internal static class NodeInstruction
             foreignKeys
             );
 
-        var graphResult = pContext.TrxContext.Map.Nodes.Add(graphNode, pContext.TrxContext);
+        var graphResult = pContext.GetMap().Nodes.Add(graphNode, pContext);
         if (graphResult.IsError()) return graphResult;
 
         var fk = AddForeignKeys(giNode.Key, foreignKeys, tags, pContext);
         if (fk.IsError()) return fk;
 
-        pContext.TrxContext.Context.LogDebug("Added giNode={giNode}", giNode);
+        pContext.Context.LogDebug("Added giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
-    private static async Task<Option> Delete(GiNode giNode, QueryExecutionContext pContext)
+    private static async Task<Option> Delete(GiNode giNode, GraphTrxContext pContext)
     {
         giNode.NotNull();
         pContext.NotNull();
 
-        pContext.TrxContext.Context.LogDebug("Deleting giNode={giNode}", giNode);
+        pContext.Context.LogDebug("Deleting giNode={giNode}", giNode);
 
-        if (pContext.TrxContext.Map.Nodes.TryGetValue(giNode.Key, out var readGraphNode))
+        if (pContext.GetMap().Nodes.TryGetValue(giNode.Key, out var readGraphNode))
         {
-            var dataMapOption = await NodeDataTool.DeleteData([readGraphNode], pContext.TrxContext);
+            var dataMapOption = await NodeDataTool.DeleteData([readGraphNode], pContext);
             if (dataMapOption.IsError()) return dataMapOption;
         }
 
-        var graphResult = pContext.TrxContext.Map.Nodes.Remove(giNode.Key, pContext.TrxContext);
+        var graphResult = pContext.GetMap().Nodes.Remove(giNode.Key, pContext);
         if (!giNode.IfExist && graphResult.IsError()) return graphResult;
 
-        pContext.TrxContext.Context.LogDebug("Deleting giNode={giNode}", giNode);
+        pContext.Context.LogDebug("Deleting giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
-    private static async Task<Option> Set(GiNode giNode, QueryExecutionContext pContext)
+    private static async Task<Option> Set(GiNode giNode, GraphTrxContext pContext)
     {
-        if (!pContext.TrxContext.Map.Nodes.TryGetValue(giNode.Key, out var currentGraphNode))
+        if (!pContext.GetMap().Nodes.TryGetValue(giNode.Key, out var currentGraphNode))
         {
-            pContext.TrxContext.Context.LogDebug("Node key={key} not found, adding node for upsert", giNode.Key);
+            pContext.Context.LogDebug("Node key={key} not found, adding node for upsert", giNode.Key);
             return await Add(giNode, pContext);
         }
 
-        pContext.TrxContext.Context.LogDebug("Updating giNode={giNode}", giNode);
+        pContext.Context.LogDebug("Updating giNode={giNode}", giNode);
 
         var dataMapOption = await NodeDataTool.MergeData(giNode, currentGraphNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
@@ -103,8 +103,8 @@ internal static class NodeInstruction
             foreignKeys
             );
 
-        var updateOption = pContext.TrxContext.Map.Nodes.Set(graphNode, pContext.TrxContext);
-        if (updateOption.IsError()) return updateOption.LogStatus(pContext.TrxContext.Context, "Failed to upsert node nodeKey={nodeKey}", [giNode.Key]);
+        var updateOption = pContext.GetMap().Nodes.Set(graphNode, pContext);
+        if (updateOption.IsError()) return updateOption.LogStatus(pContext.Context, "Failed to set node nodeKey={nodeKey}", [giNode.Key]);
 
         var fkAdd = AddForeignKeys(giNode.Key, foreignKeys, tags, pContext);
         if (fkAdd.IsError()) return fkAdd;
@@ -119,7 +119,7 @@ internal static class NodeInstruction
         string fromKey,
         IReadOnlyDictionary<string, string?> foreignKeys,
         IReadOnlyDictionary<string, string?> tags,
-        QueryExecutionContext pContext
+        GraphTrxContext pContext
         )
     {
         fromKey.NotEmpty();
@@ -129,7 +129,7 @@ internal static class NodeInstruction
 
         if (foreignKeys.Count == 0) return StatusCode.OK;
 
-        pContext.TrxContext.Context.LogDebug(
+        pContext.Context.LogDebug(
             "Add foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}, tags={tags}",
             fromKey,
             foreignKeys.ToTagsString(),
@@ -149,27 +149,27 @@ internal static class NodeInstruction
             .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.NotEmpty()))
             .ToArray();
 
-        pContext.TrxContext.Context.LogDebug("Foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}", fromKey, fkTags);
+        pContext.Context.LogDebug("Foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}", fromKey, fkTags);
 
         var missingEdges = fkTags
             .Where(x => x.Value.IsNotEmpty())
             .Select(x => new GraphEdgePrimaryKey(fromKey, x.Value.NotEmpty(), x.Key))
-            .Where(x => !pContext.TrxContext.Map.Edges.ContainsKey(x))
+            .Where(x => !pContext.GetMap().Edges.ContainsKey(x))
             .Select(x => new GraphEdge(x.FromKey, x.ToKey, x.EdgeType))
             .ToArray();
 
-        pContext.TrxContext.Context.LogDebug(
+        pContext.Context.LogDebug(
             "Missing edges fromKey={fromKey}, missingEdges={missingEdges}",
             fromKey,
             missingEdges.Select(x => x.ToString()).Join(',')
             );
 
         var allStatus = missingEdges
-            .Select(x => pContext.TrxContext.Map.Edges.Add(x, pContext.TrxContext))
+            .Select(x => pContext.GetMap().Edges.Add(x, pContext))
             .ToArray();
 
         var status = ScanOptions(allStatus);
-        pContext.TrxContext.Map.Nodes.NodeCounter?.ForeignKeyAdded.Add(missingEdges.Length > 0 && status.IsOk());
+        pContext.GetMap().Nodes.NodeCounter?.ForeignKeyAdded.Add(missingEdges.Length > 0 && status.IsOk());
         return status;
     }
 
@@ -179,7 +179,7 @@ internal static class NodeInstruction
         IReadOnlyList<string> removedForeignKeys,
         IReadOnlyDictionary<string, string?> tags,
         IReadOnlyList<string> removedTags,
-        QueryExecutionContext pContext
+        GraphTrxContext pContext
         )
     {
         fromKey.NotEmpty();
@@ -208,17 +208,17 @@ internal static class NodeInstruction
 
         if (removedEdgeTypes.Count == 0 && removedForeignKeys.Count == 0) return StatusCode.OK;
 
-        var currentEdgesNotValid = pContext.TrxContext.Map.Edges
+        var currentEdgesNotValid = pContext.GetMap().Edges
             .LookupByFromKey([fromKey])
             .Where(x => removedEdgeTypes.Contains(x.EdgeType) || (isEdgeTypeValid(x.EdgeType) && isInTagList(x.ToKey, x.EdgeType)))
             .ToArray();
 
         var allStatus = currentEdgesNotValid
-            .Select(x => pContext.TrxContext.Map.Edges.Remove(x, pContext.TrxContext))
+            .Select(x => pContext.GetMap().Edges.Remove(x, pContext))
             .ToArray();
 
         var status = ScanOptions(allStatus);
-        pContext.TrxContext.Map.Nodes.NodeCounter?.ForeignKeyRemoved.Add(currentEdgesNotValid.Length > 0 && status.IsOk());
+        pContext.GetMap().Nodes.NodeCounter.ForeignKeyRemoved.Add(currentEdgesNotValid.Length > 0 && status.IsOk());
         return status;
 
         bool isEdgeTypeValid(string edgeType) => foreignKeys.ContainsKey(edgeType);

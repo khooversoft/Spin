@@ -2,19 +2,32 @@
 
 public static class GraphConstants
 {
+    public static class GraphMap
+    {
+        public const string Key = "graphMap";
+        public const string PipelineName = "graphMap-pipeline";
+        public const string BasePath = "graphDb";
+    }
+
+    public static class Journal
+    {
+        public const string Key = "graphMapJournal";
+        public const string PipelineName = "graphMapJournal-pipeline";
+        public const string BasePath = "log";
+    }
+
+    public static class Data
+    {
+        public const string PipelineName = "data-pipeline";
+        public const string BasePath = "files";
+    }
+
     public const string EntityFileIdPrefix = "entity:";
     public const string EntityFileIdSearch = "entity:*";
     public const string EntityName = "entity";
 
     public const string NodesDataBasePath = "nodes";
-    public const string MapDatabasePath = "graphMap/graphMap.gdb.json";
     public const string DbDatabaseSearchPath = "**/*;includeFolder=true";
-
-    public static class TrxJournal
-    {
-        public const string ConnectionString = "tranLog=/journal/data";
-        public const string DiKeyed = "graph-journal";
-    }
 
     public static class Trx
     {

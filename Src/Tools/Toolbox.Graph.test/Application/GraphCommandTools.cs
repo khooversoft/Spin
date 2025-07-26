@@ -1,7 +1,7 @@
 ﻿using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Graph.test.Command;
+namespace Toolbox.Graph.test.Application;
 
 public static class GraphCommandTools
 {
@@ -44,5 +44,4 @@ public static class GraphCommandTools
 
         return new Sequence<IGraphCommon>() + nodeDelta1 + edgeDelta1 + nodeDelta2 + edgeDelta2;
     }
-
 }

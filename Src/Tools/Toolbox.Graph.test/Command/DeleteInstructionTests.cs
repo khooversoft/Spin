@@ -1,6 +1,11 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
+using Toolbox.Graph.test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Command;
 
@@ -23,12 +28,37 @@ public class DeleteInstructionTests
         new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
     };
 
+    private readonly ITestOutputHelper _logOutput;
+    public DeleteInstructionTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
+
+    private async Task<IHost> CreateService()
+    {
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryFileStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
+
+        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var context = host.Services.GetRequiredService<ILogger<DeleteInstructionTests>>().ToScopeContext();
+        await graphEngine.DataManager.SetMap(_map, context);
+
+        return host;
+    }
+
+
     [Fact]
     public async Task DeleteAllNode()
     {
-        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<DeleteInstructionTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await testClient.Execute("delete (*) ;", NullScopeContext.Instance);
+        var newMapOption = await graphClient.Execute("delete (*) ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -37,16 +67,19 @@ public class DeleteInstructionTests
         result.Edges.Count.Be(0);
         result.DataLinks.Count.Be(0);
 
-        testClient.Map.Nodes.Count.Be(0);
-        testClient.Map.Edges.Count.Be(0);
+        graphEngine.DataManager.GetMap().Nodes.Count.Be(0);
+        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
     }
 
     [Fact]
     public async Task DeleteAllEdges()
     {
-        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<DeleteInstructionTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await testClient.Execute("delete [*] ;", NullScopeContext.Instance);
+        var newMapOption = await graphClient.Execute("delete [*] ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -55,16 +88,19 @@ public class DeleteInstructionTests
         result.Edges.Count.Be(5);
         result.DataLinks.Count.Be(0);
 
-        testClient.Map.Nodes.Count.Be(7);
-        testClient.Map.Edges.Count.Be(0);
+        graphEngine.DataManager.GetMap().Nodes.Count.Be(7);
+        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
     }
 
     [Fact]
     public async Task DeleteNode()
     {
-        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<DeleteInstructionTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await testClient.Execute("delete (key=node2) a1 ;", NullScopeContext.Instance);
+        var newMapOption = await graphClient.Execute("delete (key=node2) a1 ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -74,7 +110,7 @@ public class DeleteInstructionTests
         result.Edges.Count.Be(0);
         result.DataLinks.Count.Be(0);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(2);
         compareMap.OfType<GraphNode>().Single().Action(x =>
@@ -91,9 +127,12 @@ public class DeleteInstructionTests
     [Fact]
     public async Task DeleteEdgeFromNode()
     {
-        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<DeleteInstructionTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await testClient.Execute("delete (key=node6) -> [*] ;", NullScopeContext.Instance);
+        var newMapOption = await graphClient.Execute("delete (key=node6) -> [*] ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -102,7 +141,7 @@ public class DeleteInstructionTests
         result.Edges.Count.Be(1);
         result.DataLinks.Count.Be(0);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap.OfType<GraphEdge>().Single().Action(x =>
@@ -115,9 +154,12 @@ public class DeleteInstructionTests
     [Fact]
     public async Task DeleteNodeFromEdgeFromNode()
     {
-        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<DeleteInstructionTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await testClient.Execute("delete (key=node6) -> [*] -> (*) ;", NullScopeContext.Instance);
+        var newMapOption = await graphClient.Execute("delete (key=node6) -> [*] -> (*) ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -126,7 +168,7 @@ public class DeleteInstructionTests
         result.Edges.Count.Be(0);
         result.DataLinks.Count.Be(0);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(4);
         compareMap.OfType<GraphNode>().Single().Action(x =>

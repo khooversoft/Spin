@@ -31,33 +31,33 @@ public static class AzureStartup
         return services;
     }
 
-    public static GraphHostBuilder AddDatalakeFileStore(this GraphHostBuilder graphHostService, DatalakeOption datalakeOption)
-    {
-        graphHostService.NotNull();
-        datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption");
+    //public static GraphHostBuilder AddDatalakeFileStore(this GraphHostBuilder graphHostService, DatalakeOption datalakeOption)
+    //{
+    //    graphHostService.NotNull();
+    //    datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption");
 
-        graphHostService.AddServiceConfiguration(x => x.AddDatalakeFileStore(datalakeOption));
-        return graphHostService;
-    }
+    //    graphHostService.AddServiceConfiguration(x => x.AddDatalakeFileStore(datalakeOption));
+    //    return graphHostService;
+    //}
 
-    public static GraphHostBuilder AddDatalakeFileStore(this GraphHostBuilder graphHostService)
-    {
-        graphHostService.NotNull();
+    //public static GraphHostBuilder AddDatalakeFileStore(this GraphHostBuilder graphHostService)
+    //{
+    //    graphHostService.NotNull();
 
-        graphHostService.AddServiceConfiguration(x =>
-        {
-            x.AddSingleton<DatalakeOption>(service =>
-            {
-                IConfiguration config = service.GetRequiredService<IConfiguration>();
-                DatalakeOption datalakeOption = config.GetSection("Storage").Get<DatalakeOption>().NotNull();
-                datalakeOption.Validate().BeOk();
+    //    graphHostService.AddServiceConfiguration(x =>
+    //    {
+    //        x.AddSingleton<DatalakeOption>(service =>
+    //        {
+    //            IConfiguration config = service.GetRequiredService<IConfiguration>();
+    //            DatalakeOption datalakeOption = config.GetSection("Storage").Get<DatalakeOption>().NotNull();
+    //            datalakeOption.Validate().BeOk();
 
-                return datalakeOption;
-            });
+    //            return datalakeOption;
+    //        });
 
-            x.AddSingleton<IFileStore, DatalakeStore>();
-        });
+    //        x.AddSingleton<IFileStore, DatalakeStore>();
+    //    });
 
-        return graphHostService;
-    }
+    //    return graphHostService;
+    //}
 }

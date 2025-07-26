@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Toolbox.Graph.test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -25,21 +27,38 @@ public class SelectEdgeInstructionTests
         new GraphEdge("node4", "node3", edgeType : "et3", tags: "created"),
         new GraphEdge("node5", "node4", edgeType : "et2", tags: "created"),
     };
-    private readonly ITestOutputHelper _outputHelper;
 
-    public SelectEdgeInstructionTests(ITestOutputHelper outputHelper)
+    private readonly ITestOutputHelper _logOutput;
+    public SelectEdgeInstructionTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
+
+    private async Task<IHost> CreateService()
     {
-        _outputHelper = outputHelper;
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryFileStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
+
+        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var context = host.Services.GetRequiredService<ILogger<NodeInstructionsIndexTests>>().ToScopeContext();
+        await graphEngine.DataManager.SetMap(_map, context);
+
+        return host;
     }
 
     [Fact]
     public async Task SelectAllEdges()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.Execute("select [*] ;", context);
+        var newMapOption = await graphClient.Execute("select [*] ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -69,11 +88,13 @@ public class SelectEdgeInstructionTests
     [Fact]
     public async Task SelectAllEdgesWithTag()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.Execute("select [*, level=1] ;", context);
+        var newMapOption = await graphClient.Execute("select [*, level=1] ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -99,11 +120,13 @@ public class SelectEdgeInstructionTests
     [Fact]
     public async Task SelectEdgesWithTag()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.Execute("select [level=1] ;", context);
+        var newMapOption = await graphClient.Execute("select [level=1] ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -129,11 +152,13 @@ public class SelectEdgeInstructionTests
     [Fact]
     public async Task SelectEdgesByFrom()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.Execute("select [from=node1] ;", context);
+        var newMapOption = await graphClient.Execute("select [from=node1] ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -159,11 +184,13 @@ public class SelectEdgeInstructionTests
     [Fact]
     public async Task SelectEdgesByTo()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.Execute("select [to=node3] ;", context);
+        var newMapOption = await graphClient.Execute("select [to=node3] ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -190,11 +217,13 @@ public class SelectEdgeInstructionTests
     [Fact]
     public async Task SelectEdgesByEdgeType()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<SelectEdgeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.Execute("select [type=et3] ;", context);
+        var newMapOption = await graphClient.Execute("select [type=et3] ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();

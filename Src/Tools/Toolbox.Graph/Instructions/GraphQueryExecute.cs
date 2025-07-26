@@ -13,12 +13,12 @@ public class GraphQueryExecute : IGraphClient
     private readonly ILogger<GraphQueryExecute> _logger;
     private readonly string _instanceId = Guid.NewGuid().ToString();
     private readonly AsyncReaderWriterLock _rwLock = new AsyncReaderWriterLock();
-    private readonly IGraphMapAccess _graphMapAccess;
+    private readonly GraphMapDataManager _graphDataManager;
 
-    public GraphQueryExecute(IGraphEngine graphEngine, IGraphMapAccess graphMapAccess, ILogger<GraphQueryExecute> logger)
+    public GraphQueryExecute(IGraphEngine graphEngine, GraphMapDataManager graphDataManager, ILogger<GraphQueryExecute> logger)
     {
         _graphEngine = graphEngine.NotNull();
-        _graphMapAccess = graphMapAccess.NotNull();
+        _graphDataManager = graphDataManager.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -40,52 +40,52 @@ public class GraphQueryExecute : IGraphClient
         return result.Return().Items.Last();
     }
 
-    private async Task<Option<QueryBatchResult>> InternalExecute(IGraphEngine graphHost, string graphQuery, ScopeContext context)
+    private async Task<Option<QueryBatchResult>> InternalExecute(IGraphEngine graphEngine, string graphQuery, ScopeContext context)
     {
-        await using var graphTrxContext = new GraphTrxContext(graphHost, context);
-
-        var pContextOption = ParseQuery(graphQuery, graphTrxContext, context);
+        var pContextOption = ParseQuery(graphQuery, graphEngine, context);
         if (pContextOption.IsError()) return pContextOption.ToOptionStatus<QueryBatchResult>();
 
-        var graphQueryResultOption = await ExecuteInstruction(pContextOption.Return());
+        var graphQueryResultOption = await ExecuteInstruction(graphQuery, pContextOption.Return(), graphEngine, context);
         if (graphQueryResultOption.IsError()) return graphQueryResultOption;
         var graphQueryResult = graphQueryResultOption.Return();
 
         return new Option<QueryBatchResult>(graphQueryResult, graphQueryResult.Option.StatusCode, graphQueryResult.Option.Error);
     }
 
-    private static Option<QueryExecutionContext> ParseQuery(string graphQuery, IGraphTrxContext graphTrxContext, ScopeContext context)
+    private static Option<IReadOnlyList<IGraphInstruction>> ParseQuery(string graphQuery, IGraphEngine graphEngine, ScopeContext context)
     {
         using (var metric = context.LogDuration("queryExecution-parseQuery"))
         {
-            graphTrxContext.Context.LogDebug("Parsing query: {graphQuery}", graphQuery);
-            var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, graphTrxContext.Context);
-            if (parse.Status.IsError()) return parse.Status.LogStatus(graphTrxContext.Context, graphQuery).ToOptionStatus<QueryExecutionContext>();
+            context.LogDebug("Parsing query: {graphQuery}", graphQuery);
+            var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, context);
+            if (parse.Status.IsError()) return parse.Status.LogStatus(context, graphQuery).ToOptionStatus<IReadOnlyList<IGraphInstruction>>();
 
             var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs();
-            var instructions = InterLangTool.Build(syntaxPairs);
+            Option<IReadOnlyList<IGraphInstruction>> instructions = InterLangTool.Build(syntaxPairs);
+            instructions.LogStatus(context, "Parsing query: {graphQuery}", [graphQuery]);
 
-            if (instructions.IsError()) return instructions
-                .LogStatus(graphTrxContext.Context, "Parsing query: {graphQuery}", [graphQuery])
-                .ToOptionStatus<QueryExecutionContext>();
-
-            return new QueryExecutionContext(graphQuery, instructions.Return(), graphTrxContext);
+            return instructions;
         }
     }
 
-    private async Task<Option<QueryBatchResult>> ExecuteInstruction(QueryExecutionContext pContext)
+    private async Task<Option<QueryBatchResult>> ExecuteInstruction(string graphQuery, IReadOnlyList<IGraphInstruction> instructions, IGraphEngine graphEngine, ScopeContext context)
     {
-        bool writeLockRequired = pContext.TrxContext.GraphEngine.IsShareMode || pContext.IsMutating;
+        graphQuery.NotEmpty();
+        instructions.NotNull();
+        graphEngine.NotNull();
+        bool isMutating = instructions.IsMutating();
 
-        using var metric = pContext.TrxContext.Context.LogDuration($"queryExecution-executionInstruction, iKey={_instanceId}");
-        using var releaseWriteReadLock = writeLockRequired ? (await _rwLock.WriterLockAsync()) : (await _rwLock.ReaderLockAsync());
-        await using var scopeLease = await _graphMapAccess.CreateScope(pContext.TrxContext.Context);
+        context.LogDebug("Executing query: write={write}, graphQuery={graphQuery}, iKey={iKey}", isMutating, graphQuery, _instanceId);
+        using var metric = context.LogDuration($"queryExecution-executionInstruction, iKey={_instanceId}");
+        
+        using var releaseWriteReadLock = isMutating ? (await _rwLock.WriterLockAsync()) : (await _rwLock.ReaderLockAsync());
+        await using var scopeLease = _graphDataManager.StartTransaction();
 
-        pContext.TrxContext.Context.LogDebug("Executing query: write={write}, graphQuery={graphQuery}, iKey={iKey}", writeLockRequired, pContext.GraphQuery, _instanceId);
+        var pContext = new GraphTrxContext(graphQuery, instructions, graphEngine, scopeLease,  context);
 
         while (pContext.Cursor.TryGetValue(out var graphInstruction))
         {
-            var metric2 = pContext.TrxContext.Context.LogDuration("queryExecution-executionInstruction-instruction");
+            var metric2 = pContext.Context.LogDuration("queryExecution-executionInstruction-instruction");
 
             var queryResult = graphInstruction switch
             {
@@ -102,8 +102,9 @@ public class GraphQueryExecute : IGraphClient
 
             if (queryResult.IsError())
             {
-                pContext.TrxContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", pContext.TrxContext.Context, queryResult.ToString());
-                await pContext.TrxContext.ChangeLog.Rollback();
+                queryResult.LogStatus(context, "Graph batch failed - rolling back: query={graphQuery}", [graphQuery]);
+                pContext.Context.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", graphQuery, queryResult.ToString());
+                await scopeLease.Rollback(pContext.Context);
                 return itemResult;
             }
         }
@@ -112,20 +113,19 @@ public class GraphQueryExecute : IGraphClient
 
         if (pContext.IsMutating)
         {
-            await pContext.TrxContext.ChangeLog.CommitLogs(pContext.TrxContext.Context);
+            context.LogDebug("Committing transaction: query={graphQuery}, iKey={iKey}", pContext.GraphQuery, _instanceId);
+            var commitOption = await pContext.TransactionScope.Commit(context);
+            commitOption.LogStatus(context, "Commit transaction: query={graphQuery}, iKey={iKey}", [pContext.GraphQuery, _instanceId]);
 
-            pContext.TrxContext.Context.LogDebug("Saving graph database, iKey={iKey}", _instanceId);
-            var writeOption = await scopeLease.SaveDatabase(pContext.TrxContext.Context).ConfigureAwait(false);
-            if (writeOption.IsError())
+            if (commitOption.IsError())
             {
-                writeOption.LogStatus(pContext.TrxContext.Context, "Checkpoint failed - attempting to roll back");
-                await pContext.TrxContext.ChangeLog.Rollback();
-
-                return writeOption.ToOptionStatus<QueryBatchResult>();
+                context.LogError("Failed to commit, Checkpoint failed - attempting to roll back");
+                await pContext.TransactionScope.Rollback(context);
+                return commitOption.ToOptionStatus<QueryBatchResult>();
             }
         }
 
-        pContext.TrxContext.Context.LogDebug("Graph batch completed: query={graphQuery}, iKey={iKey}", pContext.GraphQuery, _instanceId);
+        context.LogDebug("Graph batch completed: query={graphQuery}, iKey={iKey}", pContext.GraphQuery, _instanceId);
         return batchResult;
     }
 }

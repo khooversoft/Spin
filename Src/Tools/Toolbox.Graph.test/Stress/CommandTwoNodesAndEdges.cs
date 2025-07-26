@@ -8,13 +8,13 @@ namespace Toolbox.Graph.test.Stress;
 public class CommandTwoNodesAndEdges : IWorker
 {
     private readonly IGraphClient _graphClient;
-    private readonly ITestOutputHelper _output;
+    private readonly ScopeContext _context;
     private readonly int _workNumber;
 
-    public CommandTwoNodesAndEdges(IGraphClient graphClient, ITestOutputHelper output, int workNumber)
+    public CommandTwoNodesAndEdges(IGraphClient graphClient, ScopeContext context, int workNumber)
     {
         _graphClient = graphClient;
-        _output = output;
+        _context = context;
         _workNumber = workNumber;
     }
 
@@ -24,7 +24,7 @@ public class CommandTwoNodesAndEdges : IWorker
 
         var ct = new TaskCompletionSource<bool>();
 
-        _output.WriteLine($"Starting workNumber={_workNumber}");
+        _context.LogInformation($"Starting workNumber={_workNumber}");
 
         _ = Task.Run(async () =>
         {
@@ -109,12 +109,12 @@ public class CommandTwoNodesAndEdges : IWorker
                 catch (Exception ex)
                 {
                     ct.SetException(ex);
-                    _output.WriteLine($"Exception workNumber={_workNumber}, ex={ex}", ex.ToString());
+                    _context.LogInformation($"Exception workNumber={_workNumber}, ex={ex}", ex.ToString());
                     return;
                 }
             }
 
-            _output.WriteLine($"Completed workNumber={_workNumber}");
+            _context.LogInformation($"Completed workNumber={_workNumber}");
             ct.SetResult(true);
         });
 
@@ -131,7 +131,7 @@ public class CommandTwoNodesAndEdges : IWorker
         read.Edges.Count.Be(0);
         if (read.Nodes.Count == expectedRowCount) return;
 
-        _output.WriteLine($"Expected row count={expectedRowCount}, actual={read.Nodes.Count}, rowkeys={read.Nodes.Select(x => x.Key).Join(',')}");
+        _context.LogInformation($"Expected row count={expectedRowCount}, actual={read.Nodes.Count}, rowkeys={read.Nodes.Select(x => x.Key).Join(',')}");
         read.Nodes.Count.Be(expectedRowCount);
     }
 

@@ -16,7 +16,7 @@ internal class TagIndex<TPrimaryKey> where TPrimaryKey : notnull
     public TagIndex(IEqualityComparer<TPrimaryKey>? primaryKeyComparer = null) => _index = new SecondaryIndex<string, TPrimaryKey>(StringComparer.OrdinalIgnoreCase, primaryKeyComparer);
 
     public void Clear() => _index.Clear();
-    public bool Remove(TPrimaryKey primarykey) => _index.RemovePrimaryKey(primarykey);
+    public bool Remove(TPrimaryKey primaryKey) => _index.RemovePrimaryKey(primaryKey);
     public IReadOnlyList<TPrimaryKey> Lookup(string key) => _index.Lookup(key);
     public IReadOnlyList<string> LookupPrimaryKey(TPrimaryKey pkey) => _index.LookupPrimaryKey(pkey);
 

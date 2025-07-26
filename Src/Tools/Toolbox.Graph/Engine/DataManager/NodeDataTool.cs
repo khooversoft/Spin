@@ -7,7 +7,7 @@ namespace Toolbox.Graph;
 
 internal static class NodeDataTool
 {
-    public static async Task<Option<IReadOnlyList<GraphLink>>> AddData(GiNode giNode, QueryExecutionContext pContext)
+    public static async Task<Option<IReadOnlyList<GraphLink>>> AddData(GiNode giNode, GraphTrxContext pContext)
     {
         giNode.NotNull();
         pContext.NotNull();
@@ -23,7 +23,7 @@ internal static class NodeDataTool
         return dataMap.Select(x => x.ConvertTo()).ToImmutableArray();
     }
 
-    public static async Task<Option> DeleteData(IReadOnlyList<GraphNode> nodes, IGraphTrxContext graphContext)
+    public static async Task<Option> DeleteData(IReadOnlyList<GraphNode> nodes, GraphTrxContext graphContext)
     {
         var linksToDelete = nodes.SelectMany(x => x.DataMap.Values.Select(y => y.FileId));
         foreach (var fileId in linksToDelete)
@@ -35,7 +35,7 @@ internal static class NodeDataTool
         return StatusCode.OK;
     }
 
-    public static async Task<Option<GraphLinkData>> GetData(GraphLink graphLink, QueryExecutionContext pContext)
+    public static async Task<Option<GraphLinkData>> GetData(GraphLink graphLink, GraphTrxContext pContext)
     {
         var readOption = await GetData(graphLink.FileId, pContext);
         if (readOption.IsError()) return readOption.ToOptionStatus<GraphLinkData>();
@@ -44,14 +44,14 @@ internal static class NodeDataTool
         return result;
     }
 
-    public static async Task<Option<DataETag>> GetData(string fileId, QueryExecutionContext pContext)
+    public static async Task<Option<DataETag>> GetData(string fileId, GraphTrxContext pContext)
     {
-        var readOption = await pContext.TrxContext.FileStore.File(fileId).Get(pContext.TrxContext.Context).ConfigureAwait(false);
-        readOption.LogStatus(pContext.TrxContext.Context, $" Get node data fileId={fileId}");
+        var readOption = await pContext.DataClient.Get(fileId, pContext.Context).ConfigureAwait(false);
+        readOption.LogStatus(pContext.Context, $" Get node data fileId={fileId}");
         return readOption;
     }
 
-    public static async Task<Option<IReadOnlyList<GraphLink>>> MergeData(GiNode giNode, GraphNode graphNode, QueryExecutionContext pContext)
+    public static async Task<Option<IReadOnlyList<GraphLink>>> MergeData(GiNode giNode, GraphNode graphNode, GraphTrxContext pContext)
     {
         giNode.NotNull();
         graphNode.NotNull();
@@ -71,10 +71,10 @@ internal static class NodeDataTool
 
         foreach (var dataLink in dataLinks.Where(x => x.remove))
         {
-            var deleteOption = await DeleteNodeData(dataLink.graphLink.FileId, pContext.TrxContext);
+            var deleteOption = await DeleteNodeData(dataLink.graphLink.FileId, pContext);
 
             if (deleteOption.IsError()) return deleteOption
-                    .LogStatus(pContext.TrxContext.Context, $"Cannot delete fileId={dataLink.graphLink.FileId}")
+                    .LogStatus(pContext.Context, $"Cannot delete fileId={dataLink.graphLink.FileId}")
                     .ToOptionStatus<IReadOnlyList<GraphLink>>();
         }
 
@@ -85,33 +85,35 @@ internal static class NodeDataTool
         return result;
     }
 
-    public static async Task<Option> DeleteNodeData(string fileId, IGraphTrxContext graphContext)
+    public static async Task<Option> DeleteNodeData(string fileId, GraphTrxContext pContext)
     {
-        var readOption = await graphContext.FileStore.File(fileId).Get(graphContext.Context).ConfigureAwait(false);
+        var readOption = await pContext.DataClient.Get(fileId, pContext.Context).ConfigureAwait(false);
         if (readOption.IsNotFound()) return StatusCode.OK;
         if (readOption.IsError()) return readOption.ToOptionStatus();
 
-        graphContext.ChangeLog.Push(new CmNodeDataDelete(fileId, readOption.Return()));
+        pContext.TransactionScope.DataDelete(fileId, readOption.Return());
 
-        graphContext.Context.LogTrace("Deleting data map={fileId}", fileId);
-        var deleteOption = await graphContext.FileStore.File(fileId).Delete(graphContext.Context).ConfigureAwait(false);
-        deleteOption.LogStatus(graphContext.Context, "Deleted data map");
+        pContext.Context.LogTrace("Deleting data map={fileId}", fileId);
+        var deleteOption = await pContext.DataClient.Delete(fileId, pContext.Context).ConfigureAwait(false);
+        deleteOption.LogStatus(pContext.Context, "Deleted data map");
 
         return deleteOption;
     }
 
-    private static async Task<Option> SetNodeData(QueryExecutionContext pContext, string fileId, DataETag dataETag)
+    private static async Task<Option> SetNodeData(GraphTrxContext pContext, string fileId, DataETag dataETag)
     {
-        pContext.TrxContext.Context.LogTrace("Writing node data fileId={fileId}", fileId);
-        var readOption = await pContext.TrxContext.FileStore.File(fileId).Get(pContext.TrxContext.Context).ConfigureAwait(false);
+        pContext.Context.LogTrace("Writing node data fileId={fileId}", fileId);
+        var currentOption = await pContext.DataClient.Get(fileId, pContext.Context).ConfigureAwait(false);
 
-        var writeOption = await pContext.TrxContext.FileStore.File(fileId).Set(dataETag, pContext.TrxContext.Context).ConfigureAwait(false);
+        var writeOption = await pContext.DataClient.Set(fileId, dataETag, pContext.Context).ConfigureAwait(false);
 
-        if (writeOption.IsError()) return writeOption
-                .LogStatus(pContext.TrxContext.Context, "Write node data fileId={fileId} failed", [fileId])
-                .ToOptionStatus();
+        if (writeOption.IsError()) return writeOption.LogStatus(pContext.Context, "Write node data fileId={fileId} failed", [fileId]);
 
-        pContext.TrxContext.ChangeLog.Push(new CmNodeDataSet(fileId, readOption.IsOk() ? readOption.Return() : (DataETag?)null));
+        if (currentOption.IsNotFound())
+            pContext.TransactionScope.DataAdd(fileId, dataETag);
+        else
+            pContext.TransactionScope.DataChange(fileId, currentOption.Return(), dataETag);
+
         return StatusCode.OK;
     }
 }

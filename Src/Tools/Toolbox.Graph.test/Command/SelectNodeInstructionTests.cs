@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Toolbox.Graph.test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -26,17 +28,36 @@ public class SelectNodeInstructionTests
         new GraphEdge("node5", "node4", edgeType : "et1", tags: "created"),
     };
 
-    private readonly ITestOutputHelper _outputHelper;
-    public SelectNodeInstructionTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+    private readonly ITestOutputHelper _logOutput;
+    public SelectNodeInstructionTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
+
+    private async Task<IHost> CreateService()
+    {
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryFileStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
+
+        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var context = host.Services.GetRequiredService<ILogger<NodeInstructionsIndexTests>>().ToScopeContext();
+        await graphEngine.DataManager.SetMap(_map, context);
+
+        return host;
+    }
 
     [Fact]
     public async Task SelectNode()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<SelectNodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.Execute("select (key=node2) a1 ;", context);
+        var newMapOption = await graphClient.Execute("select (key=node2) a1 ;", context);
         newMapOption.IsOk().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -57,11 +78,12 @@ public class SelectNodeInstructionTests
     [Fact]
     public async Task SelectNodeWithTag()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<SelectNodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.Execute("select (user) ;", context);
+        var newMapOption = await graphClient.Execute("select (user) ;", context);
         newMapOption.IsOk().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -82,11 +104,12 @@ public class SelectNodeInstructionTests
     [Fact]
     public async Task SelectAllNodes()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<SelectNodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.Execute("select (*) ;", context);
+        var newMapOption = await graphClient.Execute("select (*) ;", context);
         newMapOption.IsOk().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();
@@ -106,11 +129,12 @@ public class SelectNodeInstructionTests
     [Fact]
     public async Task SelectAllNodesWithAgeTag()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<SelectNodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.Execute("select (age) ;", context);
+        var newMapOption = await graphClient.Execute("select (age) ;", context);
         newMapOption.IsOk().BeTrue(newMapOption.ToString());
 
         QueryResult result = newMapOption.Return();

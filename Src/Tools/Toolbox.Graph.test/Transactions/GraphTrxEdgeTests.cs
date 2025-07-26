@@ -1,16 +1,60 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Toolbox.Azure;
+using Toolbox.Extensions;
+using Toolbox.Graph.test.Application;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Transactions;
 
 public class GraphTrxEdgeTests
 {
+    private readonly ITestOutputHelper _logOutput;
+    public GraphTrxEdgeTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
 
-    [Fact]
-    public async Task AddEdgeFailure()
+    private async Task<IHost> CreateService(bool useDatalake)
     {
-        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        DatalakeOption datalakeOption = TestApplication.ReadDatalakeOption("test-GraphTransactionTests");
+
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .ConfigureServices((context, services) =>
+            {
+                _ = useDatalake switch
+                {
+                    true => services.AddDatalakeFileStore(datalakeOption),
+                    false => services.AddInMemoryFileStore(),
+                };
+
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
+
+        var context = host.Services.GetRequiredService<ILogger<GraphTrxEdgeTests>>().ToScopeContext();
+
+        IFileStore fileStore = host.Services.GetRequiredService<IFileStore>();
+        var list = await fileStore.Search("**/*", context);
+        await list.ForEachAsync(async x => await fileStore.File(x.Path).Delete(context));
+
+        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        await graphEngine.DataManager.LoadDatabase(context);
+
+        return host;
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AddEdgeFailure(bool useDataLake)
+    {
+        using var host = await CreateService(useDataLake);
+        var context = host.Services.GetRequiredService<ILogger<GraphTransactionTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
         string q = """
             add node key=node1;
@@ -19,31 +63,36 @@ public class GraphTrxEdgeTests
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).IsOk().BeTrue();
+        (await graphClient.ExecuteBatch(q, context)).IsOk().BeTrue();
 
-        testClient.Map.Nodes.Count.Be(3);
-        testClient.Map.Edges.Count.Be(1);
+        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
+        graphEngine.DataManager.GetMap().Edges.Count.Be(1);
 
         string q2 = """
             add edge from=node2, to=node3, type=default;
             add node key=node3;
             """;
 
-        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
+        (await graphClient.ExecuteBatch(q2, context)).Action(x =>
         {
             x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
-        testClient.Map.Nodes.Count.Be(3);
-        testClient.Map.Edges.Count.Be(1);
+        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
+        graphEngine.DataManager.GetMap().Edges.Count.Be(1);
     }
 
-    [Fact]
-    public async Task UpdateEdgeFailure()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UpdateEdgeFailure(bool useDataLake)
     {
-        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using var host = await CreateService(useDataLake);
+        var context = host.Services.GetRequiredService<ILogger<GraphTransactionTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
         string q = """
             add node key=node1;
@@ -53,31 +102,36 @@ public class GraphTrxEdgeTests
             add edge from=node2, to=node3, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).IsOk().BeTrue();
+        (await graphClient.ExecuteBatch(q, context)).IsOk().BeTrue();
 
-        testClient.Map.Nodes.Count.Be(3);
-        testClient.Map.Edges.Count.Be(2);
+        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
+        graphEngine.DataManager.GetMap().Edges.Count.Be(2);
 
         string q2 = """
             set edge from=node2, to=node3, type=default set t1;
             add node key=node2;
             """;
 
-        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
+        (await graphClient.ExecuteBatch(q2, context)).Action(x =>
         {
             x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
-        testClient.Map.Nodes.Count.Be(3);
-        testClient.Map.Edges.Count.Be(2);
+        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
+        graphEngine.DataManager.GetMap().Edges.Count.Be(2);
     }
 
-    [Fact]
-    public async Task DeleteEdgeFailure()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DeleteEdgeFailure(bool useDataLake)
     {
-        using GraphHostService testClient = await GraphTestStartup.CreateGraphService();
+        using var host = await CreateService(useDataLake);
+        var context = host.Services.GetRequiredService<ILogger<GraphTransactionTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
         string q = """
             add node key=node1;
@@ -88,17 +142,17 @@ public class GraphTrxEdgeTests
             add edge from=node2, to=node3, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q, NullScopeContext.Instance)).IsOk().BeTrue();
+        (await graphClient.ExecuteBatch(q, context)).IsOk().BeTrue();
 
-        testClient.Map.Nodes.Count.Be(3);
-        testClient.Map.Edges.Count.Be(2);
+        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
+        graphEngine.DataManager.GetMap().Edges.Count.Be(2);
 
         string q2 = """
             delete edge from=node2, to=node3, type=default;
             add edge from=node1, to=node2, type=default;
             """;
 
-        (await testClient.ExecuteBatch(q2, NullScopeContext.Instance)).Action(x =>
+        (await graphClient.ExecuteBatch(q2, context)).Action(x =>
         {
             x.Value.Items.Count.Be(2);
             x.Value.Items[0].Action(y => TestReturn(y, StatusCode.OK));
@@ -106,8 +160,8 @@ public class GraphTrxEdgeTests
         });
 
 
-        testClient.Map.Nodes.Count.Be(3);
-        testClient.Map.Edges.Count.Be(2);
+        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
+        graphEngine.DataManager.GetMap().Edges.Count.Be(2);
     }
 
     private void TestReturn(QueryResult graphResult, StatusCode statusCode)

@@ -1,4 +1,8 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
+using Toolbox.Graph.test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
@@ -23,11 +27,26 @@ public class NodeInstructionTests
         new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
         new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
     };
-    private readonly ITestOutputHelper _outputHelper;
 
-    public NodeInstructionTests(ITestOutputHelper outputHelper)
+    private readonly ITestOutputHelper _logOutput;
+    public NodeInstructionTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
+
+    private async Task<IHost> CreateService()
     {
-        _outputHelper = outputHelper;
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryFileStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
+
+        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var context = host.Services.GetRequiredService<ILogger<NodeInstructionsIndexTests>>().ToScopeContext();
+        await graphEngine.DataManager.SetMap(_map, context);
+
+        return host;
     }
 
     [Theory]
@@ -35,14 +54,16 @@ public class NodeInstructionTests
     [InlineData("delete node from=node1, to=node2, type=et1 set newTags, t2=v2")]
     public async Task Failures(string query)
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.Execute(query, context);
+        var newMapOption = await graphClient.Execute(query, context);
         newMapOption.IsError().BeTrue();
 
-        graphTestClient.Map.Nodes.Count.Be(7);
-        graphTestClient.Map.Edges.Count.Be(5);
+        graphEngine.DataManager.GetMap().Nodes.Count.Be(7);
+        graphEngine.DataManager.GetMap().Edges.Count.Be(5);
     }
 
     [Theory]
@@ -61,13 +82,15 @@ public class NodeInstructionTests
     [Fact]
     public async Task AddNode()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.Execute("add node key=node8;", context);
+        var newMapOption = await graphClient.Execute("add node key=node8;", context);
         newMapOption.IsOk().BeTrue();
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -80,16 +103,18 @@ public class NodeInstructionTests
     [Fact]
     public async Task AddNodeWithTag()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node9 set newTags;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node9 set newTags;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         commandResults.Items.Count.Be(1);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -102,16 +127,18 @@ public class NodeInstructionTests
     [Fact]
     public async Task AddNodeWithRemoveTagsThatDoesNotExist()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node10 set -newTags;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node10 set -newTags;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         commandResults.Items.Count.Be(1);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -124,14 +151,16 @@ public class NodeInstructionTests
     [Fact]
     public async Task AddNodeWithTwoTags()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.ExecuteBatch("add node key=node8 set newTags, t2=v2;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set newTags, t2=v2;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -146,14 +175,16 @@ public class NodeInstructionTests
     [Fact]
     public async Task DeleteNode()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.ExecuteBatch("delete node key=node1 ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("delete node key=node1 ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(3);
         compareMap.OfType<GraphNode>().First().Action(x =>
@@ -184,35 +215,39 @@ public class NodeInstructionTests
     [Fact]
     public async Task DeleteNodeIfExist()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
         // Verify delete will fail
-        var newMapOption = await graphTestClient.ExecuteBatch("delete node key=node11 ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("delete node key=node11 ;", context);
         newMapOption.IsError().BeTrue();
 
         // Delet should not fail because of 'ifexist'
-        newMapOption = await graphTestClient.ExecuteBatch("delete node ifexist key=node111 ;", context);
+        newMapOption = await graphClient.ExecuteBatch("delete node ifexist key=node111 ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
         commandResults.Items.Count.Be(1);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
         compareMap.Count.Be(0);
     }
 
     [Fact]
     public async Task SetNode()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.ExecuteBatch("set node key=node8 ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("set node key=node8 ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -227,14 +262,16 @@ public class NodeInstructionTests
     [Fact]
     public async Task SetNodeWithNamespace()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.ExecuteBatch("set node key=role:owner@domain.com;", context);
+        var newMapOption = await graphClient.ExecuteBatch("set node key=role:owner@domain.com;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -249,14 +286,16 @@ public class NodeInstructionTests
     [Fact]
     public async Task UpdateNodeTags()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.ExecuteBatch("set node key=node11 set t1, t2=v2 ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("set node key=node11 set t1, t2=v2 ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -271,14 +310,16 @@ public class NodeInstructionTests
     [Fact]
     public async Task SetNodeWithTags()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.ExecuteBatch("set node key=node4 set t1, t2=v2 ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("set node key=node4 set t1, t2=v2 ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -293,14 +334,16 @@ public class NodeInstructionTests
     [Fact]
     public async Task SetNodeWithRemoveTag()
     {
-        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(_map.Clone(), logOutput: x => _outputHelper.WriteLine(x));
-        var context = graphTestClient.CreateScopeContext<NodeInstructionTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphTestClient.ExecuteBatch("set node key=node4 set -age ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("set node key=node4 set -age ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphTestClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>

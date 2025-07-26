@@ -21,7 +21,10 @@ public class DataClient<T> : IDataClient<T>
 
     public async Task<Option> Append(string key, T value, ScopeContext context)
     {
+        key.NotEmpty();
+        value.NotNull();
         context.LogDebug("DataClient: Append key={key}, type={type}", key, typeof(T).Name);
+
         var data = value.NotNull().ToDataETag();
 
         var request = PipelineConfig.CreateAppend<T>(key, data);
@@ -31,6 +34,7 @@ public class DataClient<T> : IDataClient<T>
 
     public async Task<Option> Delete(string key, ScopeContext context)
     {
+        key.NotEmpty();
         context.LogDebug("DataClient: Delete key={key}", key);
 
         var request = PipelineConfig.CreateDelete<T>(key);
@@ -40,6 +44,7 @@ public class DataClient<T> : IDataClient<T>
 
     public async Task<Option<T>> Get(string key, ScopeContext context)
     {
+        key.NotEmpty();
         context.LogDebug("DataClient: Get key={key}, type={type}", key, typeof(T).Name);
 
         var request = PipelineConfig.CreateGet<T>(key);
@@ -52,7 +57,10 @@ public class DataClient<T> : IDataClient<T>
 
     public async Task<Option> Set(string key, T value, ScopeContext context)
     {
+        key.NotEmpty();
+        value.NotNull();
         context.LogDebug("DataClient: Set key={key}, type={type}", key, typeof(T).Name);
+
         var data = value.NotNull().ToDataETag();
 
         var request = PipelineConfig.CreateSet<T>(key, data);
@@ -67,8 +75,11 @@ public class DataClient<T> : IDataClient<T>
 
     public async Task<Option> AppendList(string key, IEnumerable<T> values, ScopeContext context)
     {
+        key.NotEmpty();
+        values.NotNull();
         context.LogDebug("DataClient: AppendList key={key}, type={type}", key, typeof(T).Name);
-        var dataItems = values.NotNull().Select(x => x.ToDataETag()).ToImmutableArray();
+
+        var dataItems = values.Select(x => x.ToDataETag()).ToImmutableArray();
         dataItems.Assert(x => x.Length > 0, "Empty list");
 
         var request = PipelineConfig.CreateAppendList<T>(key, dataItems);
@@ -78,6 +89,7 @@ public class DataClient<T> : IDataClient<T>
 
     public async Task<Option> DeleteList(string key, ScopeContext context)
     {
+        key.NotEmpty();
         context.LogDebug("DataClient: DeleteList key={key}", key);
 
         var request = PipelineConfig.CreateDeleteList<T>(key);
@@ -87,9 +99,10 @@ public class DataClient<T> : IDataClient<T>
 
     public async Task<Option<IReadOnlyList<T>>> GetList(string key, ScopeContext context)
     {
+        key.NotEmpty();
         context.LogDebug("DataClient: GetList key={key}, type={type}", key, typeof(T).Name);
-        var request = PipelineConfig.CreateGetList<T>(key);
 
+        var request = PipelineConfig.CreateGetList<T>(key);
         var resultOption = await Handler.Execute(request, context);
         if (resultOption.IsError()) return resultOption.ToOptionStatus<IReadOnlyList<T>>();
 
@@ -112,6 +125,7 @@ public class DataClient<T> : IDataClient<T>
 
     public async Task<Option> ReleaseLock(string key, ScopeContext context)
     {
+        key.NotEmpty();
         context.LogDebug("DataClient: ReleaseLock, key={key}", key);
 
         var request = PipelineConfig.CreateReleaseLock<T>(key);

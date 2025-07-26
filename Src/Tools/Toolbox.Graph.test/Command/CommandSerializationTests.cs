@@ -1,8 +1,12 @@
 ﻿using System.Collections.Immutable;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Command;
 
@@ -22,9 +26,31 @@ public class CommandSerializationTests
         new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
         new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
         new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
-        new GraphEdge("node5", "node4", edgeType : "et1", tags: "created"),
+        new GraphEdge("node4", "node3", edgeType: "et1", tags: "created"),
+        new GraphEdge("node5", "node4", edgeType: "et1", tags: "created"),
     };
+
+    private readonly ITestOutputHelper _logOutput;
+    public CommandSerializationTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
+
+    private async Task<IHost> CreateService()
+    {
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryFileStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
+
+        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var context = host.Services.GetRequiredService<ILogger<CommandSerializationTests>>().ToScopeContext();
+        await graphEngine.DataManager.SetMap(_map, context);
+
+        return host;
+    }
+
 
     [Fact]
     public void SimpleGraphResults()
@@ -56,9 +82,11 @@ public class CommandSerializationTests
     [Fact]
     public async Task SelectDirectedNodeToEdgeToNodeWithAlias()
     {
-        using GraphHostService testClient = await GraphTestStartup.CreateGraphService(_map.Clone());
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<CommandSerializationTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
 
-        var newMapOption = await testClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", NullScopeContext.Instance);
+        var newMapOption = await graphClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", context);
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult r1 = newMapOption.Return();

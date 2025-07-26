@@ -1,7 +1,8 @@
 ﻿using System.Security.Cryptography;
 using Toolbox.Extensions;
+using Toolbox.Types;
 
-namespace Toolbox.Data;
+namespace Toolbox.Tools;
 
 public class LogSequenceNumber
 {
@@ -14,8 +15,9 @@ public class LogSequenceNumber
         var counter = Interlocked.Increment(ref _counter);
 
         string randString = RandomNumberGenerator.GetBytes(2).Func(x => BitConverter.ToUInt16(x, 0).ToString("X4"));
+        DateTimeOffset now = DateTimeOffset.UtcNow;
 
-        var result = $"{DateTime.UtcNow:yyyyMMdd}-{counter.ToString("d10")}-{randString}";
+        var result = $"{now.ToUnixTimeMilliseconds():D15}-{counter.ToString("D6")}-{randString}";
         return result;
     }
 }

@@ -51,6 +51,7 @@ public sealed record GraphEdge : IGraphCommon
         this.Validate().ThrowOnError("Edge is invalid");
     }
 
+    public string Key => $"{FromKey}->{ToKey}({EdgeType})";
     public string FromKey { get; }
     public string ToKey { get; }
     public string EdgeType { get; }

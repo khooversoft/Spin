@@ -11,7 +11,7 @@ namespace Toolbox.Graph;
 ///   tagKey + tagValue -> nodeKeys
 ///   
 /// </summary>
-public class GraphUniqueIndex
+internal class GraphUniqueIndex
 {
     private readonly object _syncLock;
 
@@ -19,7 +19,7 @@ public class GraphUniqueIndex
 
     public GraphUniqueIndex(object syncLock) => _syncLock = syncLock.NotNull();
 
-    public Option Set(GraphNode newNode, GraphNode? currentNode, IGraphTrxContext? trxContext)
+    public Option Set(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
     {
         newNode.NotNull();
 
@@ -37,7 +37,7 @@ public class GraphUniqueIndex
     public Option<UniqueIndex> Lookup(string indexName, string value) => _tagIndex.Lookup(indexName, value);
     public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _tagIndex.LookupByNodeKey(nodeKey);
 
-    public Option Verify(GraphNode newNode, GraphNode? currentNode, IGraphTrxContext? trxContext)
+    public Option Verify(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
     {
         newNode.NotNull();
 
@@ -69,7 +69,7 @@ public class GraphUniqueIndex
         }
     }
 
-    public void RemoveNodeKey(string nodeKey, IGraphTrxContext? trxContext)
+    public void RemoveNodeKey(string nodeKey, GraphTrxContext? trxContext)
     {
         lock (_syncLock)
         {
@@ -78,7 +78,7 @@ public class GraphUniqueIndex
         }
     }
 
-    private void AddToIndex(GraphNode newNode, GraphNode? currentNode, IGraphTrxContext? trxContext)
+    private void AddToIndex(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
     {
         var indexedTags = GetIndexedTags(newNode, currentNode);
 

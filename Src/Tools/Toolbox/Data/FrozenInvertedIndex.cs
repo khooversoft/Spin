@@ -22,7 +22,7 @@ public class FrozenInvertedIndex<TKey, TReferenceKey>
 }
 
 
-public static class ForzenInvertedIndexExtensions
+public static class FrozenInvertedIndexExtensions
 {
     public static FrozenInvertedIndex<TKey, TReferenceKey> ToFrozenInvertedIndex<TKey, TReferenceKey>(this InvertedIndex<TKey, TReferenceKey> subject)
         where TKey : notnull

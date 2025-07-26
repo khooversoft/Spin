@@ -19,7 +19,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     private readonly object _lock;
     private readonly GraphMap _map;
 
-    internal GraphNodeIndex(GraphMap map, object syncLock, GraphMapCounter? mapCounters = null)
+    internal GraphNodeIndex(GraphMap map, object syncLock, GraphMapCounter mapCounters)
     {
         _map = map.NotNull();
         _lock = syncLock.NotNull();
@@ -27,7 +27,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         _tagIndex = new TagIndex<string>(StringComparer.OrdinalIgnoreCase);
         _uniqueIndex = new GraphUniqueIndex(_lock);
 
-        NodeCounter = mapCounters?.Nodes;
+        NodeCounter = mapCounters.Nodes;
     }
 
     public GraphNode this[string key]
@@ -42,9 +42,9 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     public IReadOnlyList<string> LookupTag(string tag) => _tagIndex.Lookup(tag).Action(x => NodeCounter?.Index(x.Count > 0));
     public Option<UniqueIndex> LookupIndex(string indexName, string indexValue) => _uniqueIndex.Lookup(indexName, indexValue).Action(x => NodeCounter?.Index(x));
     public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _uniqueIndex.LookupByNodeKey(nodeKey).Action(x => NodeCounter?.Index(x.Count > 0));
-    internal NodeCounter? NodeCounter { get; }
+    internal NodeCounter NodeCounter { get; }
 
-    internal Option Add(GraphNode node, IGraphTrxContext? trxContext = null)
+    public Option Add(GraphNode node, GraphTrxContext? trxContext = null)
     {
         if (node.Validate().IsError(out var v)) return v;
 
@@ -63,13 +63,13 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 );
 
             if (!_index.TryAdd(newNode.Key, newNode)) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
-            NodeCounter?.Count.Record(_index.Count);
+            NodeCounter.Count.Record(_index.Count);
 
             _tagIndex.Set(node.Key, node.Tags);
             _uniqueIndex.Set(node, null, trxContext).ThrowOnError();
 
-            NodeCounter?.Added.Add();
-            trxContext?.ChangeLog.Push(new CmNodeAdd(node));
+            NodeCounter.Added.Add();
+            trxContext?.TransactionScope.NodeAdd(newNode);
             return StatusCode.OK;
         }
     }
@@ -80,12 +80,12 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
         {
             var nodes = _tagIndex.Lookup(tag);
             var list = nodes.Select(x => _index[x]).ToImmutableArray();
-            NodeCounter?.Index(list.Length > 0);
+            NodeCounter.Index(list.Length > 0);
             return list;
         }
     }
 
-    internal Option Remove(string key, IGraphTrxContext? trxContext = null)
+    internal Option Remove(string key, GraphTrxContext? trxContext = null)
     {
         lock (_lock)
         {
@@ -95,20 +95,20 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             _uniqueIndex.RemoveNodeKey(key, trxContext);
             removedNodeFromEdges(oldValue!, trxContext);
 
-            trxContext?.ChangeLog.Push(new CmNodeDelete(oldValue));
+            trxContext?.TransactionScope.NodeDelete(oldValue);
             NodeCounter?.Deleted.Add();
             NodeCounter?.Count.Record(_index.Count);
             return StatusCode.OK;
         }
 
-        void removedNodeFromEdges(GraphNode graphNode, IGraphTrxContext? graphContext)
+        void removedNodeFromEdges(GraphNode graphNode, GraphTrxContext? graphContext)
         {
             var edges = _map.Edges.LookupByNodeKey([graphNode.Key]);
             edges.ForEach(x => _map.Edges.Remove(x, graphContext));
         }
     }
 
-    internal Option Set(GraphNode node, IGraphTrxContext? trxContext = null)
+    internal Option Set(GraphNode node, GraphTrxContext? trxContext = null)
     {
         if (node.Validate().IsError(out var v)) return v;
 
@@ -127,11 +127,14 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             _tagIndex.Set(node.Key, node.Tags);
             _uniqueIndex.Set(node, current, trxContext).ThrowOnError();
 
-            trxContext?.ChangeLog.Push(exist switch
+            trxContext?.Action(x =>
             {
-                false => new CmNodeAdd(updatedNode),
-                true => new CmNodeChange(current!, updatedNode),
+                if (exist)
+                    x.TransactionScope.NodeChange(current.NotNull(), updatedNode);
+                else
+                    x.TransactionScope.NodeAdd(updatedNode);
             });
+
 
             if (exist) NodeCounter?.Updated.Add(); else NodeCounter?.Added.Add();
             NodeCounter?.Count.Record(_index.Count);

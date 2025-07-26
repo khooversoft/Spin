@@ -1,61 +1,61 @@
-﻿using System.Collections.Concurrent;
-using Microsoft.Extensions.Logging;
-using Toolbox.Data;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿//using System.Collections.Concurrent;
+//using Microsoft.Extensions.Logging;
+//using Toolbox.Data;
+//using Toolbox.Tools;
+//using Toolbox.Types;
 
-namespace Toolbox.Graph;
-
-
-public interface IChangeLog
-{
-    Guid LogKey { get; }
-    JournalEntry CreateJournal();
-    Task<Option> Undo(IGraphTrxContext graphContext);
-}
+//namespace Toolbox.Graph;
 
 
-public class ChangeLog
-{
-    private ConcurrentStack<IChangeLog> _commands = new();
-    private readonly IGraphTrxContext _graphTrxContext;
+//public interface IChangeLog
+//{
+//    Guid LogKey { get; }
+//    JournalEntry CreateJournal();
+//    Task<Option> Undo(IGraphTrxContext graphContext);
+//}
 
-    public ChangeLog(IGraphTrxContext graphContext) => _graphTrxContext = graphContext.NotNull();
 
-    public Guid TrxId { get; } = Guid.NewGuid();
+//public class ChangeLog
+//{
+//    private ConcurrentStack<IChangeLog> _commands = new();
+//    private readonly IGraphTrxContext _graphTrxContext;
 
-    public void Push(IChangeLog changeLog)
-    {
-        changeLog.NotNull();
-        _commands.Push(changeLog);
-        _graphTrxContext.Context.LogDebug("Push changeLog={changeLog}", changeLog.LogKey);
-    }
+//    public ChangeLog(IGraphTrxContext graphContext) => _graphTrxContext = graphContext.NotNull();
 
-    public async Task Rollback()
-    {
-        _graphTrxContext.Context.LogWarning("Rolling back changeLog");
+//    public Guid TrxId { get; } = Guid.NewGuid();
 
-        while (_commands.TryPop(out var changeLog))
-        {
-            var result = await changeLog.Undo(_graphTrxContext);
-            result.LogStatus(_graphTrxContext.Context, "Undo changeLog={changeLog}", [changeLog]);
+//    public void Push(IChangeLog changeLog)
+//    {
+//        changeLog.NotNull();
+//        _commands.Push(changeLog);
+//        _graphTrxContext.Context.LogDebug("Push changeLog={changeLog}", changeLog.LogKey);
+//    }
 
-            _graphTrxContext.Context.LogWarning("Rolling back changeLog={changeLog}", changeLog.LogKey);
-        }
-    }
+//    public async Task Rollback()
+//    {
+//        _graphTrxContext.Context.LogWarning("Rolling back changeLog");
 
-    public async Task CommitLogs(ScopeContext context)
-    {
-        var journalEntries = _commands
-            .Select(x => x.CreateJournal())
-            .ToArray();
+//        while (_commands.TryPop(out var changeLog))
+//        {
+//            var result = await changeLog.Undo(_graphTrxContext);
+//            result.LogStatus(_graphTrxContext.Context, "Undo changeLog={changeLog}", [changeLog]);
 
-        if (journalEntries.Length == 0) return;
+//            _graphTrxContext.Context.LogWarning("Rolling back changeLog={changeLog}", changeLog.LogKey);
+//        }
+//    }
 
-        var result = await _graphTrxContext.TransactionWriter.Write(journalEntries, context);
-        result.LogStatus(_graphTrxContext.Context, "CommitLogs: length={journalEntries.Length}", [journalEntries.Length]);
-        _commands.Clear();
-    }
+//    public async Task CommitLogs(ScopeContext context)
+//    {
+//        var journalEntries = _commands
+//            .Select(x => x.CreateJournal())
+//            .ToArray();
 
-    public IReadOnlyList<IChangeLog> GetCommands() => _commands.ToArray();
-}
+//        if (journalEntries.Length == 0) return;
+
+//        var result = await _graphTrxContext.TransactionWriter.Write(journalEntries, context);
+//        result.LogStatus(_graphTrxContext.Context, "CommitLogs: length={journalEntries.Length}", [journalEntries.Length]);
+//        _commands.Clear();
+//    }
+
+//    public IReadOnlyList<IChangeLog> GetCommands() => _commands.ToArray();
+//}

@@ -5,8 +5,6 @@ namespace Toolbox.Data;
 
 public static class DataPipelineContextTool
 {
-    public static Option Validate(this DataPipelineContext subject) => DataPipelineContext.Validator.Validate(subject).ToOptionStatus();
-
     public static DataPipelineContext CreateAppend<T>(this IDataPipelineConfig pipelineConfig, string key, DataETag data)
     {
         (string path, PathDetail pathDetail) = InternalCreateFilePath<T>(pipelineConfig, key);

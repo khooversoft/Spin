@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using Toolbox.Tools;
 
-namespace Toolbox.Types;
+namespace Toolbox.Models;
 
 public readonly struct RsaKeyPair
 {

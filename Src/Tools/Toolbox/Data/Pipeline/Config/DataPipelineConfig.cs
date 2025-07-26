@@ -54,7 +54,7 @@ public static class DataPipelineConfigTool
     public static PathDetail CreateConfig<T>(this IDataPipelineConfig pipelineConfig, string key) => new PathDetail
     {
         PipelineName = pipelineConfig.PipelineName.NotEmpty(),
-        TypeName = typeof(T).Name,
+        TypeName = typeof(T).Name.Func(x => x == typeof(DataETag).Name ? null : x),
         Key = key.NotEmpty(),
     };
 

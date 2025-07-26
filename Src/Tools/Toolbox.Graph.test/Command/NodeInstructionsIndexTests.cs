@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
 using Toolbox.Tools;
@@ -26,14 +28,35 @@ public class NodeInstructionsIndexTests
         new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
     };
 
-    private readonly ITestOutputHelper _outputHelper;
-    public NodeInstructionsIndexTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+    private readonly ITestOutputHelper _logOutput;
+    public NodeInstructionsIndexTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
+
+    private async Task<IHost> CreateService()
+    {
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryFileStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
+
+        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var context = host.Services.GetRequiredService<ILogger<NodeInstructionsIndexTests>>().ToScopeContext();
+        await graphEngine.DataManager.SetMap(_map, context);
+
+        return host;
+    }
 
     [Fact]
     public async Task TestIndexCounter()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
         collector.Nodes.Count.Value.Be(7);
         collector.Nodes.Added.Value.Be(7);
@@ -53,14 +76,16 @@ public class NodeInstructionsIndexTests
     [Fact]
     public async Task SetNode()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<NodeInstructionsIndexTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await testClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;", NullScopeContext.Instance);
+        var newMapOption = await graphClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;", NullScopeContext.Instance);
         newMapOption.IsOk().BeTrue();
 
-        testClient.Map.Nodes.LookupTag("uniqueIndex").Action(x =>
+        graphEngine.DataManager.GetMap().Nodes.LookupTag("uniqueIndex").Action(x =>
         {
             x.Count.Be(1);
             Enumerable.SequenceEqual(x, ["provider:provider1/provider1-key"]);
@@ -73,7 +98,7 @@ public class NodeInstructionsIndexTests
         collector.Nodes.IndexMissed.Value.Be(1);
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -88,28 +113,30 @@ public class NodeInstructionsIndexTests
     [Fact]
     public async Task SetNodeWithIndex()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<NodeForeignKeyTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
         var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider ;";
-        var newMapOption = await testClient.ExecuteBatch(cmd, context);
+        var newMapOption = await graphClient.ExecuteBatch(cmd, context);
         newMapOption.IsOk().BeTrue();
 
         var uniqueIndex = new UniqueIndex("loginProvider", "userEmail", "userEmail:username1@domain1.com");
-        testClient.Map.Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
+        graphEngine.DataManager.GetMap().Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
         {
             x.Count.Be(1);
             Enumerable.SequenceEqual(x, [uniqueIndex]);
         });
 
-        testClient.Map.Nodes.LookupTag("email").Action(x =>
+        graphEngine.DataManager.GetMap().Nodes.LookupTag("email").Action(x =>
         {
             x.Count.Be(1);
             Enumerable.SequenceEqual(x, ["user:username1@company.com"]);
         });
 
-        testClient.Map.Nodes.LookupIndex("loginProvider", "userEmail:username1@domain1.com").Action(x =>
+        graphEngine.DataManager.GetMap().Nodes.LookupIndex("loginProvider", "userEmail:username1@domain1.com").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("user:username1@company.com");
@@ -122,7 +149,7 @@ public class NodeInstructionsIndexTests
         collector.Nodes.IndexMissed.Value.Be(1);
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -138,12 +165,14 @@ public class NodeInstructionsIndexTests
     [Fact]
     public async Task SetNodeWithTwoIndex()
     {
-        using GraphHostService testClient = await TestApplication.CreateTestGraphService(_map.Clone(), _outputHelper);
-        var collector = testClient.Services.GetRequiredService<GraphMapCounter>();
-        var context = testClient.CreateScopeContext<NodeForeignKeyTests>();
+        using var host = await CreateService();
+        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
+        var graphClient = host.Services.GetRequiredService<IGraphClient>();
+        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
+        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
         var cmd = "set node key=user:username1@company.com set loginProvider=provider:provider1/provider1-key, email=userEmail:username1@domain1.com index loginProvider, email ;";
-        var newMapOption = await testClient.ExecuteBatch(cmd, context);
+        var newMapOption = await graphClient.ExecuteBatch(cmd, context);
         newMapOption.IsOk().BeTrue();
 
         UniqueIndex[] indexes = [
@@ -151,7 +180,7 @@ public class NodeInstructionsIndexTests
             new UniqueIndex("loginProvider", "provider:provider1/provider1-key", "user:username1@company.com"),
             ];
 
-        testClient.Map.Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
+        graphEngine.DataManager.GetMap().Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
         {
             x.Count.Be(indexes.Length);
             var source = x.OrderBy(x => x.PrimaryKey).ToArray();
@@ -160,13 +189,13 @@ public class NodeInstructionsIndexTests
             source.SequenceEqual(target).BeTrue();
         });
 
-        testClient.Map.Nodes.LookupTag("email").Action(x =>
+        graphEngine.DataManager.GetMap().Nodes.LookupTag("email").Action(x =>
         {
             x.Count.Be(1);
             x.SequenceEqual(["user:username1@company.com"]).BeTrue();
         });
 
-        testClient.Map.Nodes.LookupIndex("loginProvider", "provider:provider1/provider1-key").Action(x =>
+        graphEngine.DataManager.GetMap().Nodes.LookupIndex("loginProvider", "provider:provider1/provider1-key").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("user:username1@company.com");
@@ -179,7 +208,7 @@ public class NodeInstructionsIndexTests
         collector.Nodes.IndexMissed.Value.Be(1);
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, testClient.Map);
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>

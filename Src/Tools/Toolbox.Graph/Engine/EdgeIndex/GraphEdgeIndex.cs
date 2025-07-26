@@ -42,7 +42,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         set => Set(value).ThrowOnError();
     }
 
-    public Option Add(GraphEdge edge, IGraphTrxContext? graphContext = null)
+    public Option Add(GraphEdge edge, GraphTrxContext? graphContext = null)
     {
         if (edge.Validate().IsError(out var v1)) return v1;
 
@@ -59,7 +59,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _edgesEdges.Set(edge.EdgeType, pk);
             _tagIndex.Set(pk, edge.Tags);
 
-            graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
+            graphContext?.TransactionScope.EdgeAdd(edge);
             EdgeCounter?.Added.Add();
             return StatusCode.OK;
         }
@@ -97,7 +97,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         .ToImmutableArray()
         .Action(x => EdgeCounter?.Index(x.Length > 0));
 
-    public Option Remove(GraphEdgePrimaryKey edgeKey, IGraphTrxContext? graphContext = null)
+    public Option Remove(GraphEdgePrimaryKey edgeKey, GraphTrxContext? graphContext = null)
     {
         lock (_lock)
         {
@@ -108,14 +108,14 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _edgesEdges.Remove(edgeKey.EdgeType, edgeKey);
             _tagIndex.Remove(edgeKey);
 
-            graphContext?.ChangeLog.Push(new CmEdgeDelete(edgeValue));
+            graphContext?.TransactionScope.EdgeDelete(edgeValue);
             EdgeCounter?.Deleted.Add();
             EdgeCounter?.Count.Record(_index.Count);
             return StatusCode.OK;
         }
     }
 
-    public Option RemoveNodes(IEnumerable<string> nodeKeys, IGraphTrxContext? graphContext = null)
+    public Option RemoveNodes(IEnumerable<string> nodeKeys, GraphTrxContext? graphContext = null)
     {
         lock (_lock)
         {
@@ -129,7 +129,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         }
     }
 
-    public Option Set(GraphEdge edge, IGraphTrxContext? graphContext = null)
+    public Option Set(GraphEdge edge, GraphTrxContext? graphContext = null)
     {
         lock (_lock)
         {
@@ -146,19 +146,19 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
         StatusCode tryAdd(GraphEdgePrimaryKey pk, GraphEdge edge)
         {
-            if (!_index.TryAdd(pk, edge)) return StatusCode.NotFound;
+            if (!_index.TryAdd(pk, edge)) return StatusCode.Conflict;
 
             _edgesFrom.Set(edge.FromKey, pk);
             _edgesTo.Set(edge.ToKey, pk);
             _edgesEdges.Set(edge.EdgeType, pk);
             _tagIndex.Set(pk, edge.Tags);
 
-            graphContext?.ChangeLog.Push(new CmEdgeAdd(edge));
+            graphContext?.TransactionScope.EdgeAdd(edge);
             EdgeCounter?.Added.Add();
             return StatusCode.OK;
         }
 
-        Option update(GraphEdge edge, IGraphTrxContext? graphContext = null)
+        Option update(GraphEdge edge, GraphTrxContext? graphContext = null)
         {
             lock (_lock)
             {
@@ -190,7 +190,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
                     _edgesTo.Set(edge.EdgeType, pk);
                 }
 
-                graphContext?.ChangeLog.Push(new CmEdgeChange(readEdge, edge));
+                graphContext?.TransactionScope.EdgeChange(readEdge, edge);
                 EdgeCounter?.Updated.Add();
                 return StatusCode.OK;
             }

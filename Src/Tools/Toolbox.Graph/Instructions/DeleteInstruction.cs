@@ -5,9 +5,9 @@ namespace Toolbox.Graph;
 
 internal static class DeleteInstruction
 {
-    public static async Task<Option> Process(GiDelete giDelete, QueryExecutionContext pContext)
+    public static async Task<Option> Process(GiDelete giDelete, GraphTrxContext pContext)
     {
-        pContext.TrxContext.Context.Location().LogDebug("Process giDelete={giDelete}", giDelete);
+        pContext.Context.Location().LogDebug("Process giDelete={giDelete}", giDelete);
 
         var selectResultOption = await SelectInstruction.Select(giDelete.Instructions, pContext);
         if (selectResultOption.IsError()) return selectResultOption;
@@ -15,11 +15,11 @@ internal static class DeleteInstruction
         var lastQueryResult = pContext.GetLastQueryResult();
         if (lastQueryResult == null)
         {
-            pContext.TrxContext.Context.LogError("No query result found for delete");
+            pContext.Context.LogError("No query result found for delete");
             return (StatusCode.BadRequest, "No query result found for delete");
         }
 
-        var deleteData = await DeleteData(lastQueryResult.Nodes, pContext.TrxContext);
+        var deleteData = await DeleteData(lastQueryResult.Nodes, pContext);
         if (deleteData.IsError()) return deleteData;
 
         var removeEdges = RemoveEdges(lastQueryResult.Edges, pContext);
@@ -28,45 +28,45 @@ internal static class DeleteInstruction
         var removeNodes = RemoveNodes(lastQueryResult.Nodes, pContext);
         if (removeNodes.IsError()) return removeNodes;
 
-        pContext.TrxContext.Context.LogDebug("Completed processing of giSelect={giSelect}", giDelete);
+        pContext.Context.LogDebug("Completed processing of giSelect={giSelect}", giDelete);
         return StatusCode.OK;
     }
 
-    private static Option RemoveEdges(IReadOnlyList<GraphEdge> edges, QueryExecutionContext pContext)
+    private static Option RemoveEdges(IReadOnlyList<GraphEdge> edges, GraphTrxContext pContext)
     {
         foreach (var edge in edges)
         {
-            var success = pContext.TrxContext.Map.Edges.Remove(edge.GetPrimaryKey(), pContext.TrxContext);
+            var success = pContext.GetMap().Edges.Remove(edge.GetPrimaryKey(), pContext);
             if (success.IsError())
             {
-                pContext.TrxContext.Context.LogWarning("Cannot remove edge key={edge.Key}", edge);
+                pContext.Context.LogWarning("Cannot remove edge key={edge.Key}", edge);
                 continue;
             }
 
-            pContext.TrxContext.Context.LogDebug("Removed edge key={edge.Key}", edge);
+            pContext.Context.LogDebug("Removed edge key={edge.Key}", edge);
         }
 
         return StatusCode.OK;
     }
 
-    private static Option RemoveNodes(IReadOnlyList<GraphNode> nodes, QueryExecutionContext pContext)
+    private static Option RemoveNodes(IReadOnlyList<GraphNode> nodes, GraphTrxContext pContext)
     {
         foreach (var node in nodes)
         {
-            var result = pContext.TrxContext.Map.Nodes.Remove(node.Key, pContext.TrxContext);
+            var result = pContext.GetMap().Nodes.Remove(node.Key, pContext);
             if (result.IsError())
             {
-                pContext.TrxContext.Context.LogWarning("Cannot remove node key={node.Key}", node.Key);
+                pContext.Context.LogWarning("Cannot remove node key={node.Key}", node.Key);
                 continue;
             }
 
-            pContext.TrxContext.Context.LogDebug("Removed node key={node.Key}", node.Key);
+            pContext.Context.LogDebug("Removed node key={node.Key}", node.Key);
         }
 
         return StatusCode.OK;
     }
 
-    private static async Task<Option> DeleteData(IReadOnlyList<GraphNode> nodes, IGraphTrxContext graphContext)
+    private static async Task<Option> DeleteData(IReadOnlyList<GraphNode> nodes, GraphTrxContext graphContext)
     {
         var linksToDelete = nodes.SelectMany(x => x.DataMap.Values.Select(y => y.FileId));
         foreach (var fileId in linksToDelete)

@@ -50,7 +50,12 @@ public record DataPipelineContext
         .RuleFor(x => x.PathDetail).ValidateOption(PathDetail.Validator)
         .RuleFor(x => x.PipelineConfig).NotNull()
         .RuleFor(x => x.SetData).NotNull()
-        .RuleFor(x => x.SetData).NotNull()
+        .RuleFor(x => x.GetData).NotNull()
         .Build();
+}
+
+public static class DataPipelineContextExtensions
+{
+    public static Option Validate(this DataPipelineContext subject) => DataPipelineContext.Validator.Validate(subject).ToOptionStatus();
 }
 

@@ -4,6 +4,7 @@ namespace Toolbox.Graph;
 
 public class GraphSerialization
 {
+    public string? LastLogSequenceNumber { get; init; } = null;
     public IReadOnlyList<GraphNode> Nodes { get; init; } = Array.Empty<GraphNode>();
     public IReadOnlyList<GraphEdge> Edges { get; init; } = Array.Empty<GraphEdge>();
 }
@@ -15,10 +16,13 @@ public static class GraphSerializationExtensions
 
     public static GraphSerialization ToSerialization(this GraphMap subject) => new GraphSerialization
     {
+        LastLogSequenceNumber = subject.LastLogSequenceNumber,
         Nodes = subject.Nodes.ToArray(),
         Edges = subject.Edges.ToArray(),
     };
 
     public static GraphMap FromSerialization(this GraphSerialization subject) => new GraphMap(subject.Nodes, subject.Edges);
-    public static GraphMap FromSerialization(this GraphSerialization subject, GraphMapCounter mapCounters) => new GraphMap(subject.Nodes, subject.Edges, mapCounters);
+
+    public static GraphMap FromSerialization(this GraphSerialization subject, GraphMapCounter mapCounters) =>
+        new GraphMap(subject.Nodes, subject.Edges, mapCounters, subject.LastLogSequenceNumber);
 }

@@ -88,7 +88,7 @@ public static class ByteExtensions
     /// <returns></returns>
     public static T? ToObject<T>(this ReadOnlySpan<byte> subject)
     {
-        subject.Length.Assert(x => x > 0, nameof(subject));
+        subject.Length.Assert(x => x > 0, "subject.length == 0");
         string json = subject.BytesToString();
         return Json.Default.Deserialize<T>(json);
     }

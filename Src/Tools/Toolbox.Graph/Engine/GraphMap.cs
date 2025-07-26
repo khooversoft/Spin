@@ -7,21 +7,20 @@ namespace Toolbox.Graph;
 
 public class GraphMap : IEnumerable<IGraphCommon>
 {
-    private readonly Guid _instance = Guid.NewGuid();
     private readonly object _lock = new object();
 
     public GraphMap()
     {
-        Nodes = new GraphNodeIndex(this, _lock);
-        Edges = new GraphEdgeIndex(this, _lock);
+        Counters = new GraphMapCounter();
+        Nodes = new GraphNodeIndex(this, _lock, Counters);
+        Edges = new GraphEdgeIndex(this, _lock, mapCounters: Counters);
     }
 
     public GraphMap(GraphMapCounter mapCounters)
     {
-        mapCounters.NotNull();
-
-        Nodes = new GraphNodeIndex(this, _lock, mapCounters);
-        Edges = new GraphEdgeIndex(this, _lock, mapCounters: mapCounters);
+        Counters = mapCounters.NotNull();
+        Nodes = new GraphNodeIndex(this, _lock, Counters);
+        Edges = new GraphEdgeIndex(this, _lock, mapCounters: Counters);
     }
 
     public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges)
@@ -30,14 +29,19 @@ public class GraphMap : IEnumerable<IGraphCommon>
         LoadRowsAndEdges(nodes, edges);
     }
 
-    public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges, GraphMapCounter mapCounters)
+    public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges, GraphMapCounter mapCounters, string? lastLsn = null)
         : this(mapCounters)
     {
         LoadRowsAndEdges(nodes, edges);
+        LastLogSequenceNumber = lastLsn;
     }
 
+    public string? LastLogSequenceNumber { get; private set; } = null;
+    public GraphMapCounter Counters { get; }
     public GraphNodeIndex Nodes { get; }
     public GraphEdgeIndex Edges { get; }
+
+    public void SetLastLogSequenceNumber(string lsn) => LastLogSequenceNumber = lsn.NotEmpty();
 
     public GraphMap Add(IGraphCommon element)
     {
@@ -75,5 +79,6 @@ public class GraphMap : IEnumerable<IGraphCommon>
 public static class GraphMapTool
 {
     public static GraphMap Clone(this GraphMap subject) => new GraphMap(subject.Nodes, subject.Edges);
+    public static GraphMap Clone(this GraphMap subject, GraphMapCounter counters) => new GraphMap(subject.Nodes, subject.Edges, counters);
     public static GraphMap FromJson(string json) => json.NotEmpty().ToObject<GraphSerialization>().NotNull().FromSerialization();
 }

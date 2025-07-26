@@ -6,14 +6,14 @@ using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
-public readonly struct DataETag<T>
-{
-    [JsonConstructor]
-    public DataETag(T value, string? eTag = null) => (Value, ETag) = (value.NotNull(), eTag);
+//public readonly struct DataETag<T>
+//{
+//    [JsonConstructor]
+//    public DataETag(T value, string? eTag = null) => (Value, ETag) = (value.NotNull(), eTag);
 
-    public T Value { get; }
-    public string? ETag { get; }
-}
+//    public T Value { get; }
+//    public string? ETag { get; }
+//}
 
 public readonly struct DataETag : IEquatable<DataETag>
 {
@@ -55,14 +55,15 @@ public static class DataETagExtensions
         { } data => data,
     };
 
-    public static DataETag ToDataETag<T>(this T value)
+    public static DataETag ToDataETag<T>(this T value, string? currentETag = null)
     {
         value.NotNull();
+
+        if (value is DataETag dataTag) return dataTag;
 
         var bytes = value switch
         {
             null => throw new ArgumentNullException("value"),
-            DataETag => throw new ArgumentException("No data etag"),
             IEnumerable<DataETag> => throw new ArgumentException("No array are allowed"),
             IEnumerable<byte> v => v.ToArray(),
             string v => v.ToBytes(),
@@ -70,30 +71,19 @@ public static class DataETagExtensions
             var v => v.ToJson().ToBytes(),
         };
 
-        return new DataETag(bytes);
-    }
-
-    public static DataETag ToDataETag<T>(this T value, string? currentETag)
-    {
-        value.NotNull();
-
-        var bytes = value switch
-        {
-            null => throw new ArgumentNullException(nameof(value)),
-            byte[] v => v,
-            string v => v.ToBytes(),
-            Memory<byte> v => v.ToArray(),
-            var v => v.ToJson().ToBytes(),
-        };
-
-        return currentETag.IsEmpty() ? new DataETag(bytes) : new DataETag(bytes, currentETag);
+        return new DataETag(bytes, currentETag);
     }
 
     public static DataETag StripETag(this DataETag data) => new DataETag([.. data.Data]);
     public static string ToHash(this DataETag data) => data.Data.ToHexHash();
     public static DataETag WithHash(this DataETag data) => new DataETag(data.Data, data.ToHash());
     public static DataETag WithETag(this DataETag data, string eTag) => new DataETag(data.Data, eTag.NotEmpty());
-    public static T ToObject<T>(this DataETag data) => data.Data.AsSpan().ToObject<T>().NotNull("Serialization failed");
+
+    public static T ToObject<T>(this DataETag data) => (typeof(T) == typeof(DataETag)) switch
+    {
+        true => (T)(object)data,
+        false => data.Data.AsSpan().ToObject<T>().NotNull("Serialization failed"),
+    };
 
     public static string ToJsonFromData(this DataETag subject)
     {
