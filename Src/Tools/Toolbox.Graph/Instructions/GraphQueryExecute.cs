@@ -77,11 +77,11 @@ public class GraphQueryExecute : IGraphClient
 
         context.LogDebug("Executing query: write={write}, graphQuery={graphQuery}, iKey={iKey}", isMutating, graphQuery, _instanceId);
         using var metric = context.LogDuration($"queryExecution-executionInstruction, iKey={_instanceId}");
-        
+
         using var releaseWriteReadLock = isMutating ? (await _rwLock.WriterLockAsync()) : (await _rwLock.ReaderLockAsync());
         await using var scopeLease = _graphDataManager.StartTransaction();
 
-        var pContext = new GraphTrxContext(graphQuery, instructions, graphEngine, scopeLease,  context);
+        var pContext = new GraphTrxContext(graphQuery, instructions, graphEngine, scopeLease, context);
 
         while (pContext.Cursor.TryGetValue(out var graphInstruction))
         {

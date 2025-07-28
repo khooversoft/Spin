@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Models;
@@ -15,7 +10,7 @@ namespace Toolbox.Graph;
 public class GraphMapDataManager
 {
     private readonly IDataClient<GraphSerialization> _graphDataClient;
-    private readonly IDataClient<DataChangeRecord> _changeClient;
+    private readonly IDataListClient<DataChangeRecord> _changeClient;
     private readonly ILogger<GraphMapDataManager> _logger;
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private readonly IDataClient<DataETag> _dataFileClient;
@@ -25,7 +20,7 @@ public class GraphMapDataManager
 
     public GraphMapDataManager(
         IDataClient<GraphSerialization> graphDataClient,
-        IDataClient<DataChangeRecord> changeClient,
+        IDataListClient<DataChangeRecord> changeClient,
         IDataClient<DataETag> dataFileClient,
         GraphMapCounter graphMapCounter,
         ILogger<GraphMapDataManager> logger
@@ -91,7 +86,7 @@ public class GraphMapDataManager
         context = context.With(_logger);
         context.LogDebug("Building new GraphMap from journals");
 
-        var journalsOption = await _changeClient.GetList(GraphConstants.Journal.Key, context);
+        var journalsOption = await _changeClient.Get(GraphConstants.Journal.Key, context);
         if (journalsOption.IsError()) return journalsOption.LogStatus(context, "Failed to read journals").ToOptionStatus<GraphMap>();
 
         var journals = journalsOption.Return()
@@ -144,7 +139,7 @@ public class GraphMapDataManager
         await _semaphore.WaitAsync(context.CancellationToken).ConfigureAwait(false);
         try
         {
-            var journalOption = await _changeClient.AppendList(GraphConstants.Journal.Key, [dataChangeRecord], context);
+            var journalOption = await _changeClient.Append(GraphConstants.Journal.Key, [dataChangeRecord], context);
             if (journalOption.IsError()) return journalOption.LogStatus(context, "Failed to load graph map");
 
             dataChangeRecord.GetLastLogSequenceNumber()?.Action(x => _map.SetLastLogSequenceNumber(x));

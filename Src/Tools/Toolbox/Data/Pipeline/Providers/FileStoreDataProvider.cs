@@ -184,7 +184,7 @@ public class FileStoreDataProvider : IDataProvider
 
         context.LogDebug("Check if path is locked, path={path}", dataContext.Path);
 
-        LockDetail? lockDetail = _lockDetailCollection.Get(dataContext.PipelineConfig.PipelineName, dataContext.Path);
+        LockDetail? lockDetail = _lockDetailCollection.Get(dataContext.Path);
         if (lockDetail == null) return _fileStore.File(dataContext.Path);
 
         context.LogDebug("Using locked file access for path={path}", dataContext.Path);

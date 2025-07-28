@@ -1,12 +1,5 @@
 ﻿using System.Reflection;
-using KGraphCmd.Application;
 //using KGraphCmd.Commands;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Toolbox.CommandRouter;
-using Toolbox.Tools;
-using Toolbox.Types;
 
 Console.WriteLine($"KGraphCmd CLI - Version {Assembly.GetExecutingAssembly().GetName().Version}");
 Console.WriteLine();

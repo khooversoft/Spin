@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Models;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -74,7 +69,7 @@ public static class NodeBuild
         node.Validate().ThrowOnError("Validation failure");
 
         var setOption = map.Nodes.Set(node);
-        if( setOption.IsError()) return setOption.LogStatus(context, "Failed to set node");
+        if (setOption.IsError()) return setOption.LogStatus(context, "Failed to set node");
 
         context.LogDebug("Build: restored node nodeKey={nodeKey}, entity={entity}", node.Key, entry);
         map.SetLastLogSequenceNumber(entry.LogSequenceNumber);

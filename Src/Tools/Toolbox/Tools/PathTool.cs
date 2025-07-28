@@ -4,17 +4,7 @@ namespace Toolbox.Tools;
 
 public static class PathTool
 {
-    //private static FrozenSet<(string chr, string replace)> _replaceMap = new[]
-    //{
-    //    ( "/", "___" ),
-    //    ( ":", "__" ),
-    //    ( "$", "_DLR_" ),
-    //}.ToFrozenSet();
-
-    //private static string ToEncoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.chr, y.replace));
-    //private static string ToDecoding(string value) => _replaceMap.Aggregate(value, (x, y) => x.Replace(y.replace, y.chr));
-
-    public static string ToExtension(string extension) => extension.NotEmpty().StartsWith(".") ? extension : "." + extension;
+    public static string ToExtension(string extension) => extension.NotEmpty()[0] == '.' ? extension : "." + extension;
 
     public static string SetExtension(string path, string? extension)
     {
@@ -23,7 +13,7 @@ public static class PathTool
         path.NotEmpty();
         extension = ToExtension(extension);
 
-        var dotCount = extension.WithIndex().Where(x => x.Item == '.').Count();
+        var dotCount = extension.Count(x => x == '.');
 
         var indexInMessage = path
             .Reverse().WithIndex()
@@ -53,40 +43,67 @@ public static class PathTool
         };
     }
 
-    public static string RemoveExtension(string path, string extension, params string[] extensions)
-    {
-        path.NotEmpty();
-
-        var extensionList = extension.ToEnumerable()
-            .Concat(extensions)
-            .Select(x => ToExtension(x))
-            .ToArray();
-
-        foreach (var item in extensionList)
-        {
-            if (path.EndsWith(item)) return path[0..^(item.Length)];
-        }
-
-        return path;
-    }
-
-    public static string ToValidFileName(string fileName)
+    public static string CreateHashPath(string fileName, int depth = 2, int width = 2)
     {
         fileName.NotEmpty();
-        // Replace invalid characters with an underscore
-        var invalidChars = System.IO.Path.GetInvalidFileNameChars();
+        depth.Assert(x => x > 0, "Depth must be greater than 0");
+        width.Assert(x => x > 0, "Width must be greater than 0");
+        (depth * width).Assert(x => x <= 64, "Depth * Width must be less than or equal to 64");
 
-        foreach (var c in invalidChars)
+        byte[] hashBytes = fileName.NotEmpty().ToLower().ToBytes().ToHash();
+        string hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+
+        var span = hash.AsSpan();
+        int stackSize = (depth * (width + 1)) + depth;
+        Span<char> pathSpan = stackalloc char[stackSize];
+        int bufferIndex = 0;
+
+        for (int i = 0; i < depth; i++)
         {
-            fileName = fileName.Replace(c, '_');
+            if (bufferIndex > 0) pathSpan[bufferIndex++] = '/';
+
+            span.Slice(i * width, width).CopyTo(pathSpan.Slice(bufferIndex));
+            bufferIndex += width;
         }
 
-        // Trim to a maximum length if necessary (e.g., 255 characters for most filesystems)
-        if (fileName.Length > 255)
-        {
-            fileName = fileName.Substring(0, 255);
-        }
-
-        return fileName;
+        var hashPath = new string(pathSpan.Slice(0, bufferIndex));
+        return hashPath;
     }
+
+    //public static string RemoveExtension(string path, string extension, params string[] extensions)
+    //{
+    //    path.NotEmpty();
+
+    //    var extensionList = extension.ToEnumerable()
+    //        .Concat(extensions)
+    //        .Select(x => ToExtension(x))
+    //        .ToArray();
+
+    //    foreach (var item in extensionList)
+    //    {
+    //        if (path.EndsWith(item)) return path[0..^(item.Length)];
+    //    }
+
+    //    return path;
+    //}
+
+    //public static string ToValidFileName(string fileName)
+    //{
+    //    fileName.NotEmpty();
+    //    // Replace invalid characters with an underscore
+    //    var invalidChars = System.IO.Path.GetInvalidFileNameChars();
+
+    //    foreach (var c in invalidChars)
+    //    {
+    //        fileName = fileName.Replace(c, '_');
+    //    }
+
+    //    // Trim to a maximum length if necessary (e.g., 255 characters for most filesystems)
+    //    if (fileName.Length > 255)
+    //    {
+    //        fileName = fileName.Substring(0, 255);
+    //    }
+
+    //    return fileName;
+    //}
 }

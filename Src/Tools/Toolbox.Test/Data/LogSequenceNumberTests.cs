@@ -1,8 +1,7 @@
-﻿using Toolbox.Data;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Test.Data.Journal;
+namespace Toolbox.Test.Data;
 
 public class LogSequenceNumberTests
 {

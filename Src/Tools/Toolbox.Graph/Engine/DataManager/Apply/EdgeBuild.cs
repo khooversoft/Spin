@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Models;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -73,7 +68,7 @@ public static class EdgeBuild
         edge.Validate().ThrowOnError("Validation failure");
 
         var setOption = map.Edges.Set(edge);
-        if( setOption.IsError()) return setOption.LogStatus(context, "Failed to update edge");
+        if (setOption.IsError()) return setOption.LogStatus(context, "Failed to update edge");
 
         context.LogDebug("Build: restored edge entity={entity}", entry);
         map.SetLastLogSequenceNumber(entry.LogSequenceNumber);

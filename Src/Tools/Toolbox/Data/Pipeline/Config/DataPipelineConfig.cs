@@ -7,63 +7,60 @@ namespace Toolbox.Data;
 
 public interface IDataPipelineConfig
 {
-    string PipelineName { get; }
-    string ServiceKeyedName { get; }
     TimeSpan? MemoryCacheDuration { get; }
     TimeSpan? FileCacheDuration { get; }
     string BasePath { get; }
     IReadOnlyDictionary<string, string?>? Tags { get; }
-    PartitionStrategy PartitionStrategy { get; set; }
+    Func<string, string> CreatePath { get; set; }
+    Func<string, string, string> CreateSearch { get; set; }
 }
 
-public class DataPipelineConfig : IDataPipelineConfig
+public interface IDataPipelineBuilder
 {
-    public DataPipelineConfig(IServiceCollection services, string pipelineName, string serviceKeyedName)
-    {
-        Services = services.NotNull();
-        PipelineName = pipelineName.NotEmpty();
-        ServiceKeyedName = serviceKeyedName;
-    }
+    IServiceCollection Services { get; }
+    DataPipelineHandlerCollection Handlers { get; }
+
+    TimeSpan? MemoryCacheDuration { get; set; }
+    TimeSpan? FileCacheDuration { get; set; }
+    string BasePath { get; set; }
+    IReadOnlyDictionary<string, string?>? Tags { get; set; }
+    Func<string, string> CreatePath { get; set; }
+    Func<string, string, string> CreateSearch { get; set; }
+}
+
+public class DataPipelineConfig<T> : IDataPipelineBuilder, IDataPipelineConfig
+{
+    public DataPipelineConfig(IServiceCollection services) => Services = services.NotNull();
 
     public IServiceCollection Services { get; }
-    public string PipelineName { get; } = null!;
-    public string ServiceKeyedName { get; }
+    public DataPipelineHandlerCollection Handlers { get; } = new();
+
     public TimeSpan? MemoryCacheDuration { get; set; }
     public TimeSpan? FileCacheDuration { get; set; }
     public string BasePath { get; set; } = null!;
-    public DateTime? Date { get; init; }
     public IReadOnlyDictionary<string, string?>? Tags { get; set; }
-    public PartitionStrategy PartitionStrategy { get; set; } = new();
-    public DataPipelineHandlerCollection Handlers { get; } = new();
+    public Func<string, string> CreatePath { get; set; } = null!;
+    public Func<string, string, string> CreateSearch { get; set; } = null!;
 
-    public static IValidator<DataPipelineConfig> Validator { get; } = new Validator<DataPipelineConfig>()
+    public static IValidator<DataPipelineConfig<T>> Validator { get; } = new Validator<DataPipelineConfig<T>>()
         .RuleFor(x => x.Services).NotNull()
-        .RuleFor(x => x.PipelineName).NotEmpty()
-        .RuleFor(x => x.ServiceKeyedName).NotEmpty()
         .RuleFor(x => x.MemoryCacheDuration).ValidTimeSpanOption()
         .RuleFor(x => x.FileCacheDuration).ValidTimeSpanOption()
         .RuleFor(x => x.BasePath).NotEmpty()
-        .RuleFor(x => x.Date).ValidDateTimeOption()
+        .RuleFor(x => x.CreatePath).NotNull()
+        .RuleFor(x => x.CreateSearch).NotNull()
         .Build();
 }
 
+
 public static class DataPipelineConfigTool
 {
-    public static Option Validate(this DataPipelineConfig subject) => DataPipelineConfig.Validator.Validate(subject).ToOptionStatus();
+    public static Option Validate<T>(this DataPipelineConfig<T> subject) => DataPipelineConfig<T>.Validator.Validate(subject).ToOptionStatus();
 
-    public static PathDetail CreateConfig<T>(this IDataPipelineConfig pipelineConfig, string key) => new PathDetail
-    {
-        PipelineName = pipelineConfig.PipelineName.NotEmpty(),
-        TypeName = typeof(T).Name.Func(x => x == typeof(DataETag).Name ? null : x),
-        Key = key.NotEmpty(),
-    };
-
-    public static string CreatePath<T>(this IDataPipelineConfig config, string filePath)
+    public static string CreatePath(this IDataPipelineConfig config, string filePath)
     {
         config.NotNull();
         filePath.NotEmpty();
-
-        filePath = filePath.EndsWith(".json") ? filePath : filePath += ".json";
 
         var segments = filePath.Split('/', StringSplitOptions.RemoveEmptyEntries).ToArray();
 
@@ -75,23 +72,6 @@ public static class DataPipelineConfigTool
             .ToLower();
 
         return path;
-    }
-
-    public static string CreateKeyedName<T>(string pipelineName) => $"{pipelineName.NotEmpty()}/{typeof(T).Name}";
-
-    public static DataPipelineConfig GetDataPipelineBuilder<T>(this IServiceProvider serviceProvider, string pipelineName)
-    {
-        serviceProvider.NotNull();
-        string keyedName = DataPipelineConfigTool.CreateKeyedName<T>(pipelineName);
-
-        serviceProvider.GetKeyedServices<DataPipelineConfig>(keyedName)
-            .Assert(x => x.Count() == 1, $"Pipeline '{pipelineName}' not found or multiple instances exist");
-
-        DataPipelineConfig dataContext = serviceProvider.GetRequiredKeyedService<DataPipelineConfig>(keyedName);
-        dataContext.NotNull().Validate().ThrowOnError();
-        dataContext.ServiceKeyedName.Be(keyedName);
-
-        return dataContext;
     }
 
     private static string ToSafePathVector(string path) => path.NotEmpty()

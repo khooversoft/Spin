@@ -57,7 +57,7 @@ public class GraphTransactionTests
         var context = host.Services.GetRequiredService<ILogger<GraphTransactionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        IDataClient<DataChangeRecord> changeClient = host.Services.GetRequiredService<IDataClient<DataChangeRecord>>();
+        IDataListClient<DataChangeRecord> changeClient = host.Services.GetRequiredService<IDataListClient<DataChangeRecord>>();
 
         string q = """
             add node key=node1 set t1;
@@ -75,7 +75,7 @@ public class GraphTransactionTests
         graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
         graphEngine.DataManager.GetMap().Edges.Count.Be(0);
 
-        (await changeClient.GetList(GraphConstants.Journal.Key, context)).Action(x =>
+        (await changeClient.Get(GraphConstants.Journal.Key, context)).Action(x =>
         {
             x.BeOk();
             IReadOnlyList<DataChangeRecord> journals = x.Return();
@@ -99,7 +99,7 @@ public class GraphTransactionTests
         graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
         graphEngine.DataManager.GetMap().Edges.Count.Be(0);
 
-        (await changeClient.GetList(GraphConstants.Journal.Key, context)).Action(x =>
+        (await changeClient.Get(GraphConstants.Journal.Key, context)).Action(x =>
         {
             x.BeOk();
             IReadOnlyList<DataChangeRecord> journals = x.Return();
@@ -133,7 +133,7 @@ public class GraphTransactionTests
         graphEngine.DataManager.GetMap().Nodes.Count.Be(4);
         graphEngine.DataManager.GetMap().Edges.Count.Be(2);
 
-        (await changeClient.GetList(GraphConstants.Journal.Key, context)).Action(x =>
+        (await changeClient.Get(GraphConstants.Journal.Key, context)).Action(x =>
         {
             x.BeOk();
             IReadOnlyList<DataChangeRecord> journals = x.Return();
@@ -160,7 +160,7 @@ public class GraphTransactionTests
             .BeTrue();
 
         graphEngine.DataManager.GetMap().Edges.Count.Be(2);
-        
+
         graphEngine.DataManager.GetMap().Edges
             .Select(x => (x.FromKey, x.ToKey))
             .OrderBy(x => x)
@@ -185,7 +185,7 @@ public class GraphTransactionTests
             node.Tags.ContainsKey("t1").BeTrue();
         });
     }
-    
+
     private void ValidateNode2(Cursor<DataChangeEntry> cursor)
     {
         cursor.NextValue().BeOk().Return().Action(x =>

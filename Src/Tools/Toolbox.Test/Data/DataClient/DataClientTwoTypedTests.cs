@@ -11,7 +11,6 @@ namespace Toolbox.Test.Data.Client;
 
 public class DataClientTwoTypedTests
 {
-    private const string _pipelineName = nameof(DataClientTests) + ".pipeline";
     private readonly ITestOutputHelper _outputHelper;
 
     public DataClientTwoTypedTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
@@ -27,14 +26,12 @@ public class DataClientTwoTypedTests
         (await myType1.Handler.Get("anyKey1", context)).Action(result =>
         {
             result.BeOk();
-
             (result.Return() == new EntityModel1 { Name = "CustomerProviderCreated-1", Age = 25 }).BeTrue();
         });
 
         (await myType2.Handler.Get("anyKey2", context)).Action(result =>
         {
             result.BeOk();
-
             (result.Return() == new EntityModel2 { City = "Kirkland", Date = new DateTime(2025, 1, 10) }).BeTrue();
         });
     }
@@ -47,22 +44,21 @@ public class DataClientTwoTypedTests
                 services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
                 services.AddInMemoryFileStore();
 
-                services.AddDataPipeline<EntityModel1>(_pipelineName, builder =>
+                services.AddDataPipeline<EntityModel1>(builder =>
                 {
                     builder.MemoryCacheDuration = TimeSpan.FromMinutes(1);
                     builder.FileCacheDuration = TimeSpan.FromMinutes(1);
-                    builder.BasePath = nameof(DataClientTypedTests);
+                    builder.BasePath = nameof(DataClientTwoTypedTests);
 
                     builder.AddCacheMemory();
-                    builder.AddFileStore();
                     builder.AddProvider<CustomProvider1>();
                 });
 
-                services.AddDataPipeline<EntityModel2>(_pipelineName, builder =>
+                services.AddDataPipeline<EntityModel2>(builder =>
                 {
                     builder.MemoryCacheDuration = TimeSpan.FromMinutes(1);
                     builder.FileCacheDuration = TimeSpan.FromMinutes(1);
-                    builder.BasePath = nameof(DataClientTypedTests);
+                    builder.BasePath = nameof(DataClientTwoTypedTests);
 
                     builder.AddCacheMemory();
                     builder.AddFileStore();

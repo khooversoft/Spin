@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -42,6 +43,11 @@ public class ListStoreDataProvider : IDataProvider
             case DataPipelineCommand.GetList:
                 var getListOption = await OnGetList(dataContext, context);
                 if (getListOption.IsOk()) return getListOption;
+                break;
+
+            case DataPipelineCommand.SearchList:
+                var searchOption = await OnSearch(dataContext, context);
+                if (searchOption.IsOk()) return searchOption;
                 break;
         }
 
@@ -122,6 +128,17 @@ public class ListStoreDataProvider : IDataProvider
         context.LogDebug("OnGetList: search={path}, name={name}, count={count}", dataContext.Path, _name, dataItems.Length);
 
         dataContext = dataContext with { GetData = dataItems };
+        return dataContext;
+    }
+
+    private async Task<Option<DataPipelineContext>> OnSearch(DataPipelineContext dataContext, ScopeContext context)
+    {
+        context.LogDebug("OnGetList: Getting path={path}, name={name}", dataContext.Path, _name);
+
+        IReadOnlyList<IStorePathDetail> searchList = await _fileStore.Search(dataContext.Path, context);
+        var dataList = searchList.ToJson().ToDataETag();
+
+        dataContext = dataContext with { GetData = [dataList] };
         return dataContext;
     }
 }

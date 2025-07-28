@@ -1,16 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Azure;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
-using Toolbox.Store;
-using Toolbox.Types;
-using Toolbox.Tools;
-using Xunit.Abstractions;
 using Toolbox.Models;
-using Toolbox.Data;
+using Toolbox.Store;
+using Toolbox.Tools;
+using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Transactions;
 

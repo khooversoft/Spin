@@ -66,7 +66,7 @@ public class GraphTrxContext
 internal static class QueryExecutionContextTool
 {
     public static bool IsMutating(this IReadOnlyList<IGraphInstruction> instructions) => instructions.NotNull().Any(x => x is GiNode || x is GiEdge || x is GiDelete);
-    
+
     public static QueryBatchResult BuildQueryResult(this GraphTrxContext subject)
     {
         var result = new QueryBatchResult

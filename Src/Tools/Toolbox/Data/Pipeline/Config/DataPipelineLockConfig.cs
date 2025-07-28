@@ -11,54 +11,44 @@ public enum LockMode
     Exclusive,
 }
 
-public record LockPathConfig
-{
-    public PathDetail PathDetail { get; init; } = null!;
-    public LockMode LockMode { get; init; }
-}
-
 public class DataPipelineLockConfig
 {
-    private ConcurrentDictionary<string, LockPathConfig> _lockConfig = new(StringComparer.OrdinalIgnoreCase);
+    private ConcurrentDictionary<string, PathLock> _lockConfig = new(StringComparer.OrdinalIgnoreCase);
 
     public TimeSpan AcquireLockDuration { get; set; } = TimeSpan.FromSeconds(60);
 
-    public void Add<T>(LockMode lockMode, string pipelineName, string key) => Add(pipelineName, typeof(T).Name, key, lockMode);
+    public void Add(string pattern, LockMode lockMode) => _lockConfig[pattern.NotEmpty()] = new PathLock(pattern, lockMode);
 
-    public void Add(string pipelineName, string typeName, string key, LockMode lockMode)
+    public void Add<T>(LockMode lockMode)
     {
-        var result = new LockPathConfig
-        {
-            PathDetail = new PathDetail
-            {
-                PipelineName = pipelineName.NotEmpty(),
-                TypeName = typeName.NotEmpty(),
-                Key = key.NotEmpty(),
-            },
-            LockMode = lockMode.Assert(x => x.IsEnumValid(), "Invalid lock mode"),
-        };
-
-        _lockConfig[result.PathDetail.GetKey()] = result;
+        var pattern = $"*{typeof(T).Name}*";
+        _lockConfig[pattern] = new PathLock(pattern, lockMode);
     }
 
-    public Option<LockMode> GetLockMode(PathDetail lookForPathDetail, ScopeContext context)
+    public Option<LockMode> CheckLockMode(string checkPath, ScopeContext context)
     {
-        if (_lockConfig.TryGetValue(lookForPathDetail.GetKey(), out LockPathConfig? found))
+        foreach (var item in _lockConfig)
         {
-            context.LogDebug("Found lock mode for pathDetail={pathDetail}: lockMode={lockMode}", lookForPathDetail, found.LockMode);
-            return found.LockMode;
-        }
-
-        foreach (var item in _lockConfig.Values)
-        {
-            if (lookForPathDetail.Like(item.PathDetail))
+            if (checkPath.Like(item.Value.Pattern))
             {
-                context.LogDebug("Found lock mode for pathDetail={pathDetail}: lockMode={lockMode}", lookForPathDetail, item.LockMode);
-                return item.LockMode;
+                context.LogDebug("Found lock mode for path={path}: lockMode={lockMode}", checkPath, item.Value.LockMode);
+                return item.Value.LockMode;
             }
         }
 
-        context.LogDebug("Lock not found for pathDetail={pathDetail}", lookForPathDetail);
+        context.LogDebug("Lock not found for checkPath={checkPath}", checkPath);
         return StatusCode.NotFound;
+    }
+
+    private record PathLock
+    {
+        public PathLock(string pattern, LockMode lockMode)
+        {
+            Pattern = pattern.NotEmpty();
+            LockMode = lockMode.Assert(x => x.IsEnumValid(), "Invalid lock mode");
+        }
+
+        public string Pattern { get; init; } = null!;
+        public LockMode LockMode { get; init; }
     }
 }

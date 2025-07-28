@@ -1,11 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Models;
-using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -21,25 +17,25 @@ public static class GraphStartup
         var hostOption = new GraphHostOption().Action(x => config(x));
         hostOption.Validate().ThrowOnError("GraphHostOption is invalid");
 
-        services.AddSingleton<GraphHostOption>(hostOption);
+        services.AddSingleton(hostOption);
         services.AddSingleton<IGraphEngine, GraphEngine>();
         services.AddSingleton<GraphMapCounter>();
         services.AddSingleton<GraphMapDataManager>();
         services.AddSingleton<IGraphClient, GraphQueryExecute>();
 
-        services.AddDataPipeline<GraphSerialization>(GraphConstants.GraphMap.PipelineName, builder =>
+        services.AddDataPipeline<GraphSerialization>(builder =>
         {
             builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}";
             builder.AddFileStore();
         });
 
-        services.AddDataPipeline<DataETag>(GraphConstants.Data.PipelineName, builder =>
+        services.AddDataPipeline<DataETag>(builder =>
         {
             builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.Data.BasePath}";
             builder.AddFileStore();
         });
 
-        services.AddDataPipeline<DataChangeRecord>(GraphConstants.Journal.PipelineName, builder =>
+        services.AddDataListPipeline<DataChangeRecord>(builder =>
         {
             builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.Journal.BasePath}";
             builder.AddListStore();

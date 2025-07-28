@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Data;
+﻿using Toolbox.Data;
 using Toolbox.Models;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -67,7 +62,7 @@ public record DataChangeEntry
     public DataETag? Before { get; init; }
     public DataETag? After { get; init; }
 
-    public override string ToString() => 
+    public override string ToString() =>
         $"Lsn={LogSequenceNumber}, TranId={TransactionId}, Date={Date:o}, TypeName={TypeName}, SourceName={SourceName}, ObjectId={ObjectId}, Action={Action}";
 
     public static IValidator<DataChangeEntry> Validator { get; } = new Validator<DataChangeEntry>()

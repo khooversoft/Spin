@@ -17,12 +17,14 @@ public interface IDataProvider
             DataPipelineCommand.Append => ReturnOK(dataContext),
             DataPipelineCommand.Delete => ReturnOK(dataContext),
             DataPipelineCommand.Drain => ReturnOK(dataContext),
-            DataPipelineCommand.Set => ReturnOK(dataContext),
-            DataPipelineCommand.AppendList => ReturnOK(dataContext),
-
             DataPipelineCommand.Get => ReturnNotFound(dataContext),
+            DataPipelineCommand.Set => ReturnOK(dataContext),
+            DataPipelineCommand.Search => ReturnOK(dataContext),
+
+            DataPipelineCommand.AppendList => ReturnOK(dataContext),
             DataPipelineCommand.GetList => ReturnNotFound(dataContext),
             DataPipelineCommand.DeleteList => ReturnOK(dataContext),
+            DataPipelineCommand.SearchList => ReturnOK(dataContext),
 
             DataPipelineCommand.AcquireLock => ReturnNotFound(dataContext),
             DataPipelineCommand.AcquireExclusiveLock => ReturnNotFound(dataContext),

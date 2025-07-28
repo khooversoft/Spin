@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Toolbox.Types;
-using Toolbox.Tools;
-using Xunit.Abstractions;
-using Toolbox.Graph.test.Application;
 using Toolbox.Azure;
-using Toolbox.Store;
 using Toolbox.Extensions;
+using Toolbox.Graph.test.Application;
+using Toolbox.Store;
+using Toolbox.Tools;
+using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Stress;
 

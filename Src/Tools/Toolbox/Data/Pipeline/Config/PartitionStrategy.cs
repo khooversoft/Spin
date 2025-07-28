@@ -1,54 +1,49 @@
-﻿using System.Security.Cryptography;
-using Toolbox.Extensions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 
 namespace Toolbox.Data;
 
 
-public record PartitionStrategy
-{
-    public Func<PathDetail, string> File { get; init; } = PartitionSchemas.ScalarFile;
-    public Func<PathDetail, string> List { get; init; } = PartitionSchemas.DailyListPartitioning;
-    public Func<PathDetail, string> Search { get; init; } = PartitionSchemas.DailyListPartitionSearch;
-}
+/// File partitioning schemas
+///   File = {h1}/{h2}/{key}.{typeName}.json
+///   FileSearch = ?"
+///   
+///   List = {key}/yyyyMM/{key}-yyyyMMdd.{typeName}.json
+///   ListSearch = {key}/?"
+///   
+/// timeIndex = "yyyyMM"
+/// Day timeIndex = "yyyyMMdd"
+/// 
+
 
 public static class PartitionSchemas
 {
-    public static string ScalarFile(PathDetail fileDetail) => fileDetail.TypeName switch
+    public static string ScalarPath<T>(string key)
     {
-        null => $"{fileDetail.NotNull().PipelineName}/{fileDetail.Key}",
-        not null => $"{fileDetail.NotNull().PipelineName}/{fileDetail.TypeName}/{fileDetail.Key}-{fileDetail.TypeName}"
-    };
+        key.NotEmpty();
 
-    public static string DailyListPartitioning(PathDetail fileDetail)
-    {
-        fileDetail.NotNull();
-        DateTime now = DateTime.UtcNow;
+        var path = $"{key}.{typeof(T).Name}.json";
+        var hashPath = PathTool.CreateHashPath(path);
 
-        return fileDetail.TypeName switch
-        {
-            not null => $"{fileDetail.PipelineName}/{fileDetail.TypeName}/{now:yyyyMM}/{fileDetail.Key}-{now:yyyyMMdd}-{fileDetail.TypeName}",
-            null => $"{fileDetail.PipelineName}/{now:yyyyMM}/{fileDetail.Key}-{now:yyyyMMdd}-{fileDetail.TypeName}"
-        };
+        var result = $"{hashPath}/{path}";
+        return result;
     }
 
-    public static string DailyListPartitionSearch(PathDetail fileDetail) => fileDetail.TypeName switch
-    {
-        not null => $"{fileDetail.NotNull().PipelineName}/{fileDetail.TypeName}/**/{fileDetail.Key}-*-{fileDetail.TypeName}*",
-        null => $"{fileDetail.NotNull().PipelineName}/**/{fileDetail.Key}-*-{fileDetail.TypeName}*",
-    };
+    public static string ScalarSearch(string _, string pattern) => $"*/*/{pattern.NotEmpty()}";
 
-    public static string BatchPartitioning(PathDetail fileDetail)
+    public static string ListPath<T>(string key)
     {
-        fileDetail.NotNull();
-
+        key.NotEmpty();
         DateTime now = DateTime.UtcNow;
-        string randString = RandomNumberGenerator.GetBytes(2).Func(x => BitConverter.ToUInt16(x, 0).ToString("X4"));
 
-        return fileDetail.TypeName switch
-        {
-            not null => $"{fileDetail.PipelineName}/{fileDetail.TypeName}/{now:yyyyMM}/{fileDetail.Key}-{now:yyyyMMdd}-{randString}-{fileDetail.TypeName}",
-            null => $"{fileDetail.PipelineName}/{now:yyyyMM}/{fileDetail.Key}-{now:yyyyMMdd}-{randString}-{fileDetail.TypeName}",
-        };
+        var path = $"{key}/{now:yyyyMM}/{key}-{now:yyyyMMdd}.{typeof(T).Name}.json";
+        return path;
+    }
+
+    public static string ListSearch(string key, string pattern)
+    {
+        key.NotEmpty();
+
+        var path = $"{key}/{pattern}";
+        return path;
     }
 }

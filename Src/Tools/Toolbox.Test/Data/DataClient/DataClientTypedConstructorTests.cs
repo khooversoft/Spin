@@ -11,7 +11,6 @@ namespace Toolbox.Test.Data.Client;
 
 public class DataClientTypedConstructorTests
 {
-    private const string _pipelineName = nameof(DataClientTypedConstructorTests) + ".pipeline";
     private readonly ITestOutputHelper _outputHelper;
     public DataClientTypedConstructorTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
@@ -37,7 +36,7 @@ public class DataClientTypedConstructorTests
                 services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
                 services.AddInMemoryFileStore();
 
-                services.AddDataPipeline<EntityModel>(_pipelineName, builder =>
+                services.AddDataPipeline<EntityModel>(builder =>
                 {
                     builder.MemoryCacheDuration = TimeSpan.FromMinutes(1);
                     builder.FileCacheDuration = TimeSpan.FromMinutes(1);

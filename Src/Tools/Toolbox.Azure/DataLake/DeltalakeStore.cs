@@ -58,15 +58,8 @@ public class DatalakeStore : IFileStore
 
     public async Task<IReadOnlyList<IStorePathDetail>> Search(string pattern, ScopeContext context)
     {
-        var query = QueryParameter.Parse(pattern);
-        var result = await Search(query, context).ConfigureAwait(false);
-        return result;
-    }
-
-    private async Task<IReadOnlyList<IStorePathDetail>> Search(QueryParameter queryParameter, ScopeContext context)
-    {
         context = context.With(_logger);
-        queryParameter.NotNull();
+        var queryParameter = QueryParameter.Parse(pattern);
         using var metric = context.LogDuration("dataLakeStore-search", "queryParameter={queryParameter}", queryParameter);
 
         queryParameter = queryParameter with
