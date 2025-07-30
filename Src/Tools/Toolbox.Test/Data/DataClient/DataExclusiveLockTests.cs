@@ -49,15 +49,15 @@ public class DataExclusiveLockTests
 
         // Verify that file is locked
         var dummyEntry = new EntityModel().ToDataETag();
-        var readRawOption = await fileStore.File(path).Set(dummyEntry, context);
-        readRawOption.BeError();
+        (await fileStore.File(path).Set(dummyEntry, context)).IsLocked().BeTrue();
 
-        var readOption = await dataClient.Get(_key, context);
-        readOption.BeOk();
-        (readOption.Return() == entityModel).BeTrue();
+        (await dataClient.Get(_key, context)).Action(x =>
+        {
+            x.BeOk();
+            (x.Return() == entityModel).BeTrue();
+        });
 
-        var unlockOption = await dataClient.ReleaseLock(_key, context);
-        unlockOption.BeOk();
+        (await dataClient.ReleaseLock(_key, context)).BeOk();
 
         (await fileStore.File(path).GetDetails(context)).Action(x =>
         {
