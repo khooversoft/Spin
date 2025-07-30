@@ -11,7 +11,7 @@ public class DataClientTests : Toolbox.Test.Data.Client.DataClientTests
 
     protected override void AddStore(IServiceCollection services, IDataPipelineBuilder builder)
     {
-        var datalakeOption = TestApplication.ReadOption("datastore-hybridCache-tests");
+        var datalakeOption = TestApplication.ReadOption("DataClientTests");
         services.AddDatalakeFileStore(datalakeOption);
 
         if (builder.MemoryCacheDuration != null)

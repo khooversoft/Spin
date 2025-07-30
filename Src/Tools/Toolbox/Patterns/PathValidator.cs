@@ -8,6 +8,12 @@ public static partial class PathValidator
 {
     /// <summary>
     /// Validates whether the given path is a valid Azure Data Lake path.
+    /// 
+    /// Letters: A–Z, a–z
+    /// Numbers: 0–9
+    /// Special characters: -, _, ., !, ~, ', (, ), *
+    /// Forward slash /: Used as a path separator between directories
+    /// 
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsPathValid(string path) => path.IsEmpty() switch

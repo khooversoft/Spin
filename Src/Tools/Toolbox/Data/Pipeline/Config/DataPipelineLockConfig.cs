@@ -5,12 +5,6 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public enum LockMode
-{
-    Shared,
-    Exclusive,
-}
-
 public class DataPipelineLockConfig
 {
     private ConcurrentDictionary<string, PathLock> _lockConfig = new(StringComparer.OrdinalIgnoreCase);
@@ -25,7 +19,7 @@ public class DataPipelineLockConfig
         _lockConfig[pattern] = new PathLock(pattern, lockMode);
     }
 
-    public Option<LockMode> CheckLockMode(string checkPath, ScopeContext context)
+    public Option<LockMode> HasLockMode(string checkPath, ScopeContext context)
     {
         foreach (var item in _lockConfig)
         {

@@ -22,11 +22,12 @@ public static class DataStartup
 
         var builder = new DataPipelineConfig<T>(services);
         config(builder);
-        builder.CreatePath ??= PartitionSchemas.ScalarPath<T>;
-        builder.CreateSearch ??= PartitionSchemas.ScalarSearch;
+        builder.PathBuilder ??= PartitionSchemas.ScalarPath<T>;
+        builder.SearchBuilder ??= PartitionSchemas.ScalarSearch;
         builder.Validate().ThrowOnError();
 
         services.AddSingleton(builder);
+        services.AddSingleton<LockManager>();
         builder.Services.AddTransient<IDataClient<T>, DataClient<T>>();
 
         return services;
@@ -39,11 +40,12 @@ public static class DataStartup
 
         var builder = new DataPipelineConfig<T>(services);
         config(builder);
-        builder.CreatePath ??= PartitionSchemas.ListPath<T>;
-        builder.CreateSearch ??= PartitionSchemas.ListSearch;
+        builder.PathBuilder ??= PartitionSchemas.ListPath<T>;
+        builder.SearchBuilder ??= PartitionSchemas.ListSearch;
         builder.Validate().ThrowOnError();
 
         services.AddSingleton(builder);
+        services.AddSingleton<LockManager>();
         builder.Services.AddTransient<IDataListClient<T>, DataListClient<T>>();
 
         return services;
@@ -77,7 +79,7 @@ public static class DataStartup
         var lockConfig = new DataPipelineLockConfig();
         config(lockConfig);
 
-        builder.Services.TryAddSingleton<LockDetailCollection>();
+        builder.Services.TryAddSingleton<LockManager>();
         builder.Services.AddTransient<FileStoreLockHandler>();
 
         builder.Handlers.Add(service =>

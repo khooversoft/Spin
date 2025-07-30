@@ -10,18 +10,12 @@ public class FileStoreDataProvider : IDataProvider
 {
     private readonly IFileStore _fileStore;
     private readonly ILogger<FileStoreDataProvider> _logger;
-    private readonly LockDetailCollection? _lockDetailCollection;
+    private readonly LockManager _lockManager;
 
-    public FileStoreDataProvider(IFileStore fileStore, ILogger<FileStoreDataProvider> logger)
+    public FileStoreDataProvider(IFileStore fileStore, LockManager lockManager, ILogger<FileStoreDataProvider> logger)
     {
         _fileStore = fileStore.NotNull();
-        _logger = logger.NotNull();
-    }
-
-    public FileStoreDataProvider(IFileStore fileStore, LockDetailCollection lockDetailCollection, ILogger<FileStoreDataProvider> logger)
-    {
-        _fileStore = fileStore.NotNull();
-        _lockDetailCollection = lockDetailCollection.NotNull();
+        _lockManager = lockManager.NotNull();
         _logger = logger.NotNull();
     }
 
@@ -77,7 +71,7 @@ public class FileStoreDataProvider : IDataProvider
         var isValidOption = await IsCacheIsValid(dataContext, context);
         if (isValidOption.IsError()) return isValidOption;
 
-        var detailsOption = await GetReadWriteAccess(dataContext, context).Append(data, context);
+        var detailsOption = await _lockManager.GetReadWriteAccess(dataContext.Path, context).Append(data, context);
         if (detailsOption.IsError())
         {
             context.LogDebug("Fail to append to path={path} from file store", dataContext.Path);
@@ -131,7 +125,7 @@ public class FileStoreDataProvider : IDataProvider
     {
         context.LogDebug("Setting path={path} to file store cache", dataContext.Path);
 
-        var setOption = await GetReadWriteAccess(dataContext, context).Set(data, context);
+        var setOption = await _lockManager.GetReadWriteAccess(dataContext.Path, context).Set(data, context);
         if (setOption.IsOk())
         {
             Counters.AddSetCount();
@@ -176,18 +170,5 @@ public class FileStoreDataProvider : IDataProvider
         }
 
         return StatusCode.OK;
-    }
-
-    private IFileReadWriteAccess GetReadWriteAccess(DataPipelineContext dataContext, ScopeContext context)
-    {
-        if (_lockDetailCollection == null) return _fileStore.File(dataContext.Path);
-
-        context.LogDebug("Check if path is locked, path={path}", dataContext.Path);
-
-        LockDetail? lockDetail = _lockDetailCollection.Get(dataContext.Path);
-        if (lockDetail == null) return _fileStore.File(dataContext.Path);
-
-        context.LogDebug("Using locked file access for path={path}", dataContext.Path);
-        return lockDetail.FileLeasedAccess;
     }
 }

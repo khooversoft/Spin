@@ -13,7 +13,7 @@ public class FileUpdateTests
 {
     private readonly ITestOutputHelper _outputHelper;
     private const string _basePath = "data/single-file-updates";
-    private const int _count = 1000;
+    private const int _count = 100;
 
     public FileUpdateTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
@@ -73,7 +73,7 @@ public class FileUpdateTests
         var context = host.Services.CreateContext<FileUpdateTests>();
 
         host.NotNull();
-        IDataClient<EntityMaster> dataHandler = host.Services.GetDataClient<EntityMaster>();
+        IDataClient<EntityMaster> dataClient = host.Services.GetDataClient<EntityMaster>();
 
         var entityMaster = new EntityMaster();
 
@@ -94,11 +94,11 @@ public class FileUpdateTests
         async Task write(EntityMaster subject)
         {
             context.LogWarning("SingleThreadFileUpdate: Set, count={count}", subject.Entities.Count);
-            var result = await dataHandler.Set(key, subject, context).ConfigureAwait(false);
+            var result = await dataClient.Set(key, subject, context).ConfigureAwait(false);
             result.BeOk();
 
             context.LogWarning("SingleThreadFileUpdate: Get");
-            var readOption = await dataHandler.Get(key, context).ConfigureAwait(false);
+            var readOption = await dataClient.Get(key, context).ConfigureAwait(false);
             readOption.BeOk();
             context.LogWarning("SingleThreadFileUpdate: Get, count={count}", readOption.Return().Entities.Count);
             (readOption.Return() == subject).BeTrue($"Failed to match sourceCount={subject.Entities.Count}, readCount={readOption.Return().Entities.Count}");

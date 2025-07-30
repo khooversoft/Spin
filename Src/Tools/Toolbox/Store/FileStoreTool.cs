@@ -28,13 +28,22 @@ public static class FileStoreTool
         using var metric = context.LogDuration("fileStore-clear", "store={store}", subject.GetType().Name);
 
         context.LogDebug("Clearing file store {store}", subject.GetType().Name);
-        IReadOnlyList<IStorePathDetail> pathItems = await subject.Search("*", context).ConfigureAwait(false);
+        IReadOnlyList<IStorePathDetail> pathItems = await subject.Search("*;includeFolder=true", context).ConfigureAwait(false);
         pathItems.NotNull();
 
         foreach (var item in pathItems)
         {
-            var deleteOption = await subject.File(item.Path).Delete(context).ConfigureAwait(false);
-            if (deleteOption.IsError()) return deleteOption;
+            switch (item.IsFolder)
+            {
+                case true:
+                    var deleteFolderOption = await subject.DeleteFolder(item.Path, context).ConfigureAwait(false);
+                    if (deleteFolderOption.IsError()) return deleteFolderOption;
+                    break;
+                case false:
+                    var deleteOption = await subject.File(item.Path).Delete(context).ConfigureAwait(false);
+                    if (deleteOption.IsError()) return deleteOption;
+                    break;
+            }
         }
 
         return StatusCode.OK;

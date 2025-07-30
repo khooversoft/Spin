@@ -86,7 +86,7 @@ public class GraphMapDataManager
         context = context.With(_logger);
         context.LogDebug("Building new GraphMap from journals");
 
-        var journalsOption = await _changeClient.Get(GraphConstants.Journal.Key, context);
+        var journalsOption = await _changeClient.Get(GraphConstants.Journal.Key, "**/*", context);
         if (journalsOption.IsError()) return journalsOption.LogStatus(context, "Failed to read journals").ToOptionStatus<GraphMap>();
 
         var journals = journalsOption.Return()

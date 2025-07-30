@@ -13,7 +13,7 @@ public static class DatalakeLeaseTool
 {
     private const string _leaseAlreadyPresentText = "LeaseAlreadyPresent";
     private const string _blobNotFoundText = "BlobNotFound";
-    private static readonly TimeSpan DefaultLeaseDuration = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan _leaseRetryDuration = TimeSpan.FromSeconds(5);
 
     public static async Task<Option<IFileLeasedAccess>> Acquire(this DataLakeFileClient fileClient, TimeSpan leaseDuration, ScopeContext context)
     {
@@ -70,13 +70,14 @@ public static class DatalakeLeaseTool
         DataLakeLease? lease = null;
         int notFoundCount = 0;
 
-        var token = new CancellationTokenSource(DefaultLeaseDuration);
+        var token = new CancellationTokenSource(_leaseRetryDuration);
         while (!token.IsCancellationRequested)
         {
             try
             {
                 context.LogDebug("Attempting to acquire lease, leaseDuration={leaseDuration}", leaseDuration.ToString());
                 lease = await leaseClient.AcquireAsync(leaseDuration);
+
                 context.LogDebug("Lease acquired. Duration={duration}, leaseId={leaseId}", leaseDuration.ToString(), lease.LeaseId);
                 return new DatalakeLeasedAccess(fileClient, leaseClient, context.Logger);
             }
@@ -105,7 +106,7 @@ public static class DatalakeLeaseTool
             }
         }
 
-        context.LogError("Failed to acquire lease, timed out duration={duration}", DefaultLeaseDuration.ToString());
+        context.LogError("Failed to acquire lease, timed out duration={duration}", _leaseRetryDuration.ToString());
         return (StatusCode.Locked, _leaseAlreadyPresentText);
     }
 }

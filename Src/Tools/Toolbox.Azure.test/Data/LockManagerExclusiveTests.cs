@@ -4,13 +4,13 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Azure.test.Data;
 
-public class FileUpdateTests : Toolbox.Test.Data.Client.FileUpdateTests
+public class LockManagerExclusiveTests : Toolbox.Test.Data.DataClient.LockManagerExclusiveTests
 {
-    public FileUpdateTests(ITestOutputHelper outputHelper) : base(outputHelper) { }
+    public LockManagerExclusiveTests(ITestOutputHelper outputHelper) : base(outputHelper) { }
 
     protected override void AddStore(IServiceCollection services)
     {
-        var datalakeOption = TestApplication.ReadOption("FileUpdateTests");
+        var datalakeOption = TestApplication.ReadOption("LockManagerExclusiveTests");
         services.AddDatalakeFileStore(datalakeOption);
     }
 }

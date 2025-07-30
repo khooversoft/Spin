@@ -75,7 +75,7 @@ public class GraphTransactionTests
         graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
         graphEngine.DataManager.GetMap().Edges.Count.Be(0);
 
-        (await changeClient.Get(GraphConstants.Journal.Key, context)).Action(x =>
+        (await changeClient.Get(GraphConstants.Journal.Key, "**/*", context)).Action(x =>
         {
             x.BeOk();
             IReadOnlyList<DataChangeRecord> journals = x.Return();
@@ -99,7 +99,7 @@ public class GraphTransactionTests
         graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
         graphEngine.DataManager.GetMap().Edges.Count.Be(0);
 
-        (await changeClient.Get(GraphConstants.Journal.Key, context)).Action(x =>
+        (await changeClient.Get(GraphConstants.Journal.Key, "**/*", context)).Action(x =>
         {
             x.BeOk();
             IReadOnlyList<DataChangeRecord> journals = x.Return();
@@ -133,7 +133,7 @@ public class GraphTransactionTests
         graphEngine.DataManager.GetMap().Nodes.Count.Be(4);
         graphEngine.DataManager.GetMap().Edges.Count.Be(2);
 
-        (await changeClient.Get(GraphConstants.Journal.Key, context)).Action(x =>
+        (await changeClient.Get(GraphConstants.Journal.Key, "**/*", context)).Action(x =>
         {
             x.BeOk();
             IReadOnlyList<DataChangeRecord> journals = x.Return();

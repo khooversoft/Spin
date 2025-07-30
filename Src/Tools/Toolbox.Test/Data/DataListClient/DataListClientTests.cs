@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -50,6 +51,7 @@ public class DataListClientTests
     }
 
     [Theory]
+    [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(true, true)]
@@ -64,7 +66,7 @@ public class DataListClientTests
         var addOption = await listClient.Append(key, [entity], context);
         addOption.BeOk();
 
-        var listOption = await listClient.Get(key, context);
+        var listOption = await listClient.Get(key, "**/*", context);
         listOption.BeOk();
         var list = listOption.Return();
         list.Count.Be(1);
@@ -72,17 +74,24 @@ public class DataListClientTests
 
         var searchOption = await listClient.Search(key, "**/*", context);
         searchOption.BeOk();
-        var items = searchOption.Return();
+        var items = searchOption.Return().Action(x =>
+        {
+            x.Count.Be(1);
+            x[0].Path.Contains(key + "-", StringComparison.OrdinalIgnoreCase).BeTrue();
+            x[0].Path.EndsWith(typeof(EntityModel).Name + ".json", StringComparison.OrdinalIgnoreCase).BeTrue();
+            x[0].IsFolder.BeFalse();
+        });
 
         var deleteOption = await listClient.Delete(key, context);
         deleteOption.BeOk();
 
-        var getOption = await listClient.Get(key, context);
+        var getOption = await listClient.Get(key, "**/*", context);
         getOption.BeOk();
         getOption.Return().Count.Be(0);
     }
 
     [Theory]
+    [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(true, true)]
@@ -102,7 +111,19 @@ public class DataListClientTests
         var addOption = await listClient.Append(key, entities, context);
         addOption.BeOk();
 
-        var listOption = await listClient.Get(key, context);
+        if (addQueueStore) (await listClient.Drain(context)).BeOk();
+
+        var searchOption = await listClient.Search(key, "**/*", context);
+        searchOption.BeOk();
+        var items = searchOption.Return().Action(x =>
+        {
+            x.Count.Be(1);
+            x[0].Path.Contains(key + "-", StringComparison.OrdinalIgnoreCase).BeTrue();
+            x[0].Path.EndsWith(typeof(EntityModel).Name + ".json", StringComparison.OrdinalIgnoreCase).BeTrue();
+            x[0].IsFolder.BeFalse();
+        });
+
+        var listOption = await listClient.Get(key, "**/*", context);
         listOption.BeOk();
         var list = listOption.Return();
         list.Count.Be(count);
@@ -111,7 +132,7 @@ public class DataListClientTests
         var deleteOption = await listClient.Delete(key, context);
         deleteOption.BeOk();
 
-        var getOption = await listClient.Get(key, context);
+        var getOption = await listClient.Get(key, "**/*", context);
         getOption.BeOk();
         getOption.Return().Count.Be(0);
     }

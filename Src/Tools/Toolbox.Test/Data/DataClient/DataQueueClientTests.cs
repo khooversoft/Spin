@@ -16,7 +16,7 @@ public class DataQueueClientTests
     private readonly ITestOutputHelper _outputHelper;
     public DataQueueClientTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
-    protected virtual void AddStore(IServiceCollection services) => services.AddInMemoryFileStore();
+    protected virtual void AddStore(IServiceCollection services, IDataPipelineBuilder _) => services.AddInMemoryFileStore();
 
     private async Task<IHost> BuildService(
         bool addMemory,
@@ -30,13 +30,13 @@ public class DataQueueClientTests
             .ConfigureServices((context, services) =>
             {
                 services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
-                if (addFileStore) AddStore(services);
 
                 services.AddDataPipeline<EntityModel>(builder =>
                 {
                     builder.MemoryCacheDuration = memoryCacheDuration;
                     builder.FileCacheDuration = fileCacheDuration;
                     builder.BasePath = nameof(DataListClientTests);
+                    if (addFileStore) AddStore(services, builder);
 
                     if (addMemory) builder.AddCacheMemory();
                     builder.AddQueueStore();

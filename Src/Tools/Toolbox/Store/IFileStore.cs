@@ -12,6 +12,7 @@ public interface IFileStore
 
 public interface IFileReadWriteAccess
 {
+    public string Path { get; }
     Task<Option<string>> Append(DataETag data, ScopeContext context);
     Task<Option<DataETag>> Get(ScopeContext context);
     Task<Option<string>> Set(DataETag data, ScopeContext context);
@@ -19,7 +20,6 @@ public interface IFileReadWriteAccess
 
 public interface IFileAccess : IFileReadWriteAccess
 {
-    public string Path { get; }
     Task<Option<string>> Add(DataETag data, ScopeContext context);
 
     Task<Option<IStorePathDetail>> GetDetails(ScopeContext context);
@@ -33,7 +33,6 @@ public interface IFileAccess : IFileReadWriteAccess
 
 public interface IFileLeasedAccess : IFileReadWriteAccess, IAsyncDisposable
 {
-    public string Path { get; }
     public string LeaseId { get; }
 
     Task<Option> Release(ScopeContext context);

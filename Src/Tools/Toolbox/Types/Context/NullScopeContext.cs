@@ -8,4 +8,5 @@ public static class NullScopeContext
     public static ScopeContext Instance { get; } = new ScopeContext(NullLogger.Instance);
 
     public static ScopeContext ToScopeContext(this ILogger subject) => new ScopeContext(subject, CancellationToken.None);
+    public static ScopeContext ToScopeContext(this ILogger subject, CancellationToken token) => new ScopeContext(subject, token);
 }

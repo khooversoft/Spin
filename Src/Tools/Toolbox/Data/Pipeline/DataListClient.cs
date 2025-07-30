@@ -72,7 +72,7 @@ public class DataListClient<T> : IDataListClient<T>
         key.NotEmpty();
         context = context.With(_logger);
 
-        string path = _pipelineConfig.CreateSearch(key, "**/*");
+        string path = _pipelineConfig.CreateSearch(key, pattern);
         context.LogDebug("GetList key={key}, path={path}", key, path);
 
         var request = new DataPipelineContext(DataPipelineCommand.GetList, path, _pipelineConfig) { Pattern = pattern };
@@ -96,8 +96,8 @@ public class DataListClient<T> : IDataListClient<T>
         if (resultOption.IsError()) return resultOption.ToOptionStatus<IReadOnlyList<IStorePathDetail>>();
 
         IReadOnlyList<IStorePathDetail> values = resultOption.Return().GetData
-            .Select(x => x.ToObject<StorePathDetail>())
-            .ToImmutableArray();
+            .First()
+            .ToObject<IReadOnlyList<StorePathDetail>>();
 
         return values.ToOption();
     }
@@ -112,7 +112,7 @@ public class DataListClient<T> : IDataListClient<T>
         context = context.With(_logger);
         context.LogDebug("Drain");
 
-        var request = new DataPipelineContext(DataPipelineCommand.Drain, string.Empty, _pipelineConfig);
+        var request = new DataPipelineContext(DataPipelineCommand.Drain, "drain", _pipelineConfig);
         var resultOption = await Handler.Execute(request, context);
         return resultOption.ToOptionStatus();
     }
