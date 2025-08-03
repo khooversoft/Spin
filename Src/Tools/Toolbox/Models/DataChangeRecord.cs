@@ -32,24 +32,6 @@ public record DataChangeRecord
         .Build();
 }
 
-public static class DataChangeRecordTool
-{
-    public static Option Validate(this DataChangeRecord subject) => DataChangeRecord.Validator.Validate(subject).ToOptionStatus();
-
-    public static string? GetLastLogSequenceNumber(this DataChangeRecord subject)
-    {
-        if (subject.Entries.Count == 0) return null;
-
-        var result = subject.Entries
-            .Select(x => x.LogSequenceNumber)
-            .OrderByDescending(x => x)
-            .FirstOrDefault();
-
-        return result;
-    }
-}
-
-
 public record DataChangeEntry
 {
     public string LogSequenceNumber { get; init; } = null!;
@@ -74,4 +56,21 @@ public record DataChangeEntry
         .RuleFor(x => x.ObjectId).NotEmpty()
         .RuleFor(x => x.Action).NotEmpty()
         .Build();
+}
+
+public static class DataChangeRecordTool
+{
+    public static Option Validate(this DataChangeRecord subject) => DataChangeRecord.Validator.Validate(subject).ToOptionStatus();
+
+    public static string? GetLastLogSequenceNumber(this DataChangeRecord subject)
+    {
+        if (subject.Entries.Count == 0) return null;
+
+        var result = subject.Entries
+            .Select(x => x.LogSequenceNumber)
+            .OrderByDescending(x => x)
+            .FirstOrDefault();
+
+        return result;
+    }
 }

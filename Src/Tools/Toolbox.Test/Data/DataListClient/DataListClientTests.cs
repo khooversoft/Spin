@@ -137,7 +137,67 @@ public class DataListClientTests
         getOption.Return().Count.Be(0);
     }
 
-    internal record EntityModel
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task MultipleSetItem(bool addMemory, bool addQueueStore)
+    {
+        const string key = nameof(SingleSetItem);
+        var host = await BuildService(addMemory, addQueueStore);
+        var context = host.Services.CreateContext<DataListClientTests>();
+        var listClient = host.Services.GetDataListClient<EntityModel>();
+
+        var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        const int batchSize = 10;
+        var sourceList = new Sequence<EntityModel>();
+        int batchCount = 0;
+
+        while (!tokenSource.IsCancellationRequested)
+        {
+            context.LogDebug("Adding batch {count} with {BatchCount} items", batchCount++, batchSize);
+            var entities = Enumerable.Range(0, batchSize)
+                .Select(x => new EntityModel { Name = $"Test{x}", Age = 30 + x })
+                .ToArray();
+
+            sourceList += entities;
+
+            var addOption = await listClient.Append(key, entities, context);
+            addOption.BeOk();
+
+            if (addQueueStore) (await listClient.Drain(context)).BeOk();
+
+            var searchOption = await listClient.Search(key, "**/*", context);
+            searchOption.BeOk();
+            var items = searchOption.Return().Action(x =>
+            {
+                x.Count.Assert(x => x > 0, "Search should return at least one item");
+                x.ForEach(y =>
+                {
+                    y.Path.Contains(key + "-", StringComparison.OrdinalIgnoreCase).BeTrue();
+                    y.Path.EndsWith(typeof(EntityModel).Name + ".json", StringComparison.OrdinalIgnoreCase).BeTrue();
+                    y.IsFolder.BeFalse();
+                });
+            });
+
+            // Read all items and compare to source list
+            var listOption = await listClient.Get(key, "**/*", context);
+            listOption.BeOk();
+            listOption.Return().Action(x =>
+            {
+                x.Count.Be(sourceList.Count);
+                x.SequenceEqual(sourceList).BeTrue();
+            });
+        }
+
+        context.LogInformation("Source list count={count}, batchCount={batchCount}", sourceList.Count, batchCount);
+        sourceList.Count.Assert(x => x > 10, "Should have added more than 10 items");
+        (await listClient.Delete(key, context)).BeOk();
+        (await listClient.Get(key, "**/*", context)).BeOk().Return().Count.Be(0);
+    }
+
+    private record EntityModel
     {
         public string Name { get; init; } = null!;
         public int Age { get; init; }

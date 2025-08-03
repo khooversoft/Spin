@@ -1,18 +1,17 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Azure.test.Application;
 using Toolbox.Data;
-using Toolbox.Test.Data.Client;
 using Xunit.Abstractions;
 
-namespace Toolbox.Azure.test;
+namespace Toolbox.Azure.test.Data.DataClient;
 
-public class DataClientQueueTests : DataQueueClientTests
+public class DataClientTests : Test.Data.Client.DataClientTests
 {
-    public DataClientQueueTests(ITestOutputHelper outputHelper) : base(outputHelper) { }
+    public DataClientTests(ITestOutputHelper outputHelper) : base(outputHelper) { }
 
     protected override void AddStore(IServiceCollection services, IDataPipelineBuilder builder)
     {
-        var datalakeOption = TestApplication.ReadOption("DataClientQueueTests");
+        var datalakeOption = TestApplication.ReadOption("DataClientTests");
         services.AddDatalakeFileStore(datalakeOption);
 
         if (builder.MemoryCacheDuration != null)

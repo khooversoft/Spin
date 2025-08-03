@@ -23,25 +23,43 @@ public static class FileStoreTool
         return result;
     }
 
-    public static async Task<Option> ClearStore(this IFileStore subject, ScopeContext context)
+    public static Task<Option> ClearStore(this IFileStore subject, ScopeContext context) => ClearFolder(subject, null, context);
+
+    public static async Task<Option> ClearFolder(this IFileStore fileStore, string? path, ScopeContext context)
     {
-        using var metric = context.LogDuration("fileStore-clear", "store={store}", subject.GetType().Name);
+        using var metric = context.LogDuration("fileStore-clear", "store={store}", fileStore.GetType().Name);
+        context.LogDebug("Clearing file store path={path}", path);
 
-        context.LogDebug("Clearing file store {store}", subject.GetType().Name);
-        IReadOnlyList<IStorePathDetail> pathItems = await subject.Search("*;includeFolder=true", context).ConfigureAwait(false);
-        pathItems.NotNull();
+        string pattern = $"{buildPattern()};includeFolder=true";
 
+        IReadOnlyList<IStorePathDetail> pathItems = (await fileStore.Search(pattern, context)).Where(x => x.IsFolder).ToArray();
+        var deleteFolderOption = await InternalDelete(fileStore, pathItems, context);
+
+        pathItems = (await fileStore.Search(pattern, context));
+        deleteFolderOption = await InternalDelete(fileStore, pathItems, context);
+
+        return StatusCode.OK;
+
+        string buildPattern() => path switch
+        {
+            null => "**/*",
+            string => path.EndsWith('/') ? path + "**/*" : path + "/**/*",
+        };
+    }
+
+    private static async Task<Option> InternalDelete(IFileStore fileStore, IReadOnlyList<IStorePathDetail> pathItems, ScopeContext context)
+    {
         foreach (var item in pathItems)
         {
             switch (item.IsFolder)
             {
                 case true:
-                    var deleteFolderOption = await subject.DeleteFolder(item.Path, context).ConfigureAwait(false);
-                    if (deleteFolderOption.IsError()) return deleteFolderOption;
+                    var deleteFolderOption = await fileStore.DeleteFolder(item.Path, context).ConfigureAwait(false);
+                    if (deleteFolderOption.IsError()) return deleteFolderOption.LogStatus(context, "Failed to delete folder");
                     break;
                 case false:
-                    var deleteOption = await subject.File(item.Path).Delete(context).ConfigureAwait(false);
-                    if (deleteOption.IsError()) return deleteOption;
+                    var deleteOption = await fileStore.File(item.Path).Delete(context).ConfigureAwait(false);
+                    if (deleteOption.IsError()) return deleteOption.LogStatus(context, "Failed to delete file");
                     break;
             }
         }

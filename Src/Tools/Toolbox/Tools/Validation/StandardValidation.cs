@@ -12,15 +12,15 @@ public static partial class StandardValidation
         false => false,
     };
 
-    public const string NameError = "Invalid character(s), start with alpha and only alpha, numberic or / - : @ . allowed";
+    public const string NameError = "Invalid character(s), start with alpha and only alpha, numeric or / - : @ . allowed";
 
-    public static bool IsDescrption(string? value) => value.IsNotEmpty() switch
+    public static bool IsDescription(string? value) => value.IsNotEmpty() switch
     {
         true => DescriptionRegex().IsMatch(value),
         false => false,
     };
 
-    public const string DescriptionError = "Invalid character(s), only only alpha, numberic, or symbols allowed";
+    public const string DescriptionError = "Invalid character(s), only only alpha, numeric, or symbols allowed";
 
     public static bool IsEmail(string? value) => value.IsNotEmpty() switch
     {

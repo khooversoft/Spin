@@ -2,9 +2,9 @@
 using Toolbox.Azure.test.Application;
 using Xunit.Abstractions;
 
-namespace Toolbox.Azure.test.Data;
+namespace Toolbox.Azure.test.Data.DataClient;
 
-public class FileUpdateTests : Toolbox.Test.Data.Client.FileUpdateTests
+public class FileUpdateTests : Test.Data.Client.FileUpdateTests
 {
     public FileUpdateTests(ITestOutputHelper outputHelper) : base(outputHelper) { }
 

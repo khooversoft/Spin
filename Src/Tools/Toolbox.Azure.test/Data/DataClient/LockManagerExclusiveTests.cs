@@ -2,9 +2,9 @@
 using Toolbox.Azure.test.Application;
 using Xunit.Abstractions;
 
-namespace Toolbox.Azure.test.Data;
+namespace Toolbox.Azure.test.Data.DataClient;
 
-public class LockManagerExclusiveTests : Toolbox.Test.Data.DataClient.LockManagerExclusiveTests
+public class LockManagerExclusiveTests : Test.Data.DataClient.LockManagerExclusiveTests
 {
     public LockManagerExclusiveTests(ITestOutputHelper outputHelper) : base(outputHelper) { }
 

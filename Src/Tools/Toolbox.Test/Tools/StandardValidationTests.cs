@@ -54,7 +54,7 @@ public class StandardValidationTests
     [InlineData("1234567890abcedfghijklmnopqurstuvxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !@#$%^&*()-_=+[{]}\\|:;\"'<,>.?/~`")]
     public void DescriptionValidationTest(string value)
     {
-        bool result = StandardValidation.IsDescrption(value);
+        bool result = StandardValidation.IsDescription(value);
         result.BeTrue(value);
     }
 
@@ -66,7 +66,7 @@ public class StandardValidationTests
     [InlineData("\t")]
     public void DescriptionValidationFailTest(string? value)
     {
-        bool result = StandardValidation.IsDescrption(value!);
+        bool result = StandardValidation.IsDescription(value!);
         result.BeFalse(value);
     }
 }

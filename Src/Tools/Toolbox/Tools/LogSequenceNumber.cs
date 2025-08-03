@@ -19,4 +19,12 @@ public class LogSequenceNumber
         var result = $"{now.ToUnixTimeMilliseconds():D15}-{counter.ToString("D6")}-{randString}";
         return result;
     }
+
+    public static DateTime ConvertToDateTime(string logSequenceNumber)
+    {
+        logSequenceNumber.NotEmpty();
+
+        long.TryParse(logSequenceNumber[..15], out long milliseconds).Assert(x => x == true, "Invalid log sequence number format");
+        return DateTimeOffset.FromUnixTimeMilliseconds(milliseconds).UtcDateTime;
+    }
 }
