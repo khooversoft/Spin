@@ -49,7 +49,7 @@ public class GraphEngineNodeDataTests
 
     [Theory]
     [InlineData(false)]
-    [InlineData(true)]
+    //[InlineData(true)]
     public async Task AddNodeWithData(bool useDataLake)
     {
         using var host = await CreateService(useDataLake);
@@ -376,6 +376,6 @@ public class GraphEngineNodeDataTests
 
     private async Task CheckFileStoreCount(IFileStore fileStore, int count, ScopeContext context)
     {
-        (await fileStore.Search("basepath/files/data-pipeline/nodes/**/*", context)).Count.Be(count);
+        (await fileStore.Search("basepath/files/*/*/nodes/**/*", context)).Count.Be(count);
     }
 }

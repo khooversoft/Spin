@@ -16,8 +16,7 @@ public static class ToolboxStartup
         {
             case null: services.AddSingleton<MemoryStore>(); break;
             default: services.AddSingleton(memoryStore); break;
-        }
-        ;
+        };
 
         return services;
     }

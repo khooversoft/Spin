@@ -67,7 +67,7 @@ public class GraphDbRoundTripTests
         var eResult = await graphClient.ExecuteBatch(cmd, context);
         eResult.IsOk().BeTrue(eResult.ToString());
 
-        (await fileStore.File("basepath/graphdb/graphmap-pipeline/graphserialization/graphmap-graphserialization.json").Get(context)).Action(x =>
+        (await fileStore.File("basepath/graphdb/graphserialization/graphmap.graphserialization.json").Get(context)).Action(x =>
         {
             x.IsOk().BeTrue(x.ToString());
 

@@ -69,41 +69,4 @@ public static class PathTool
         var hashPath = new string(pathSpan.Slice(0, bufferIndex));
         return hashPath;
     }
-
-    //public static string RemoveExtension(string path, string extension, params string[] extensions)
-    //{
-    //    path.NotEmpty();
-
-    //    var extensionList = extension.ToEnumerable()
-    //        .Concat(extensions)
-    //        .Select(x => ToExtension(x))
-    //        .ToArray();
-
-    //    foreach (var item in extensionList)
-    //    {
-    //        if (path.EndsWith(item)) return path[0..^(item.Length)];
-    //    }
-
-    //    return path;
-    //}
-
-    //public static string ToValidFileName(string fileName)
-    //{
-    //    fileName.NotEmpty();
-    //    // Replace invalid characters with an underscore
-    //    var invalidChars = System.IO.Path.GetInvalidFileNameChars();
-
-    //    foreach (var c in invalidChars)
-    //    {
-    //        fileName = fileName.Replace(c, '_');
-    //    }
-
-    //    // Trim to a maximum length if necessary (e.g., 255 characters for most filesystems)
-    //    if (fileName.Length > 255)
-    //    {
-    //        fileName = fileName.Substring(0, 255);
-    //    }
-
-    //    return fileName;
-    //}
 }

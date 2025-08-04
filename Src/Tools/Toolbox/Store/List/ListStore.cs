@@ -10,13 +10,13 @@ public class ListStore : IListStore
 {
     private readonly IFileStore _fileStore;
     private readonly ILogger<ListStore> _logger;
-    private readonly IListPartitionStrategy _listPartitionStrategy;
+    private readonly IListFileSystem _fileSystem;
 
-    public ListStore(IFileStore fileStore, IListPartitionStrategy listPartitionStrategy, ILogger<ListStore> logger)
+    public ListStore(IFileStore fileStore, IListFileSystem fileSystem, ILogger<ListStore> logger)
     {
         _fileStore = fileStore.NotNull();
         _logger = logger.NotNull();
-        _listPartitionStrategy = listPartitionStrategy;
+        _fileSystem = fileSystem;
     }
 
     public async Task<Option<string>> Append(string key, string listType, IEnumerable<DataETag> data, ScopeContext context)
@@ -24,7 +24,7 @@ public class ListStore : IListStore
         var dataItems = data.NotNull().ToArray();
         if (dataItems.Length == 0) return (StatusCode.NoContent, "Empty list");
 
-        string path = _listPartitionStrategy.PathBuilder(key, listType);
+        string path = _fileSystem.PathBuilder(key, listType);
         context.LogDebug("Appending key={key}, listType={listType}, path={path}", key, listType, path);
 
         string json = dataItems.Aggregate(string.Empty, (a, x) => a += x.DataToString() + Environment.NewLine);
@@ -40,7 +40,7 @@ public class ListStore : IListStore
     {
         context.LogDebug("Delete: Deleting list key={key}", key);
 
-        string pattern = _listPartitionStrategy.SearchBuilder(key, "**/*");
+        string pattern = _fileSystem.SearchBuilder(key, "**/*");
         var clearOption = await _fileStore.ClearFolder(pattern, context);
 
         return clearOption;
@@ -54,7 +54,7 @@ public class ListStore : IListStore
         pattern.NotEmpty();
         context.LogDebug("Get: Getting list items, pattern={pattern}", pattern);
 
-        string searchPattern = _listPartitionStrategy.SearchBuilder(key, pattern);
+        string searchPattern = _fileSystem.SearchBuilder(key, pattern);
 
         IReadOnlyList<IStorePathDetail> searchList = (await _fileStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
         return await ReadList(pattern, context, searchList);
@@ -64,11 +64,11 @@ public class ListStore : IListStore
     {
         context.LogDebug("Getting history, key={key}, timeIndex={timeIndex}", key, timeIndex);
 
-        string pattern = _listPartitionStrategy.SearchBuilder(key, "**/*");
+        string pattern = _fileSystem.SearchBuilder(key, "**/*");
         IReadOnlyList<IStorePathDetail> searchList = (await _fileStore.Search(pattern, context)).OrderBy(x => x.Path).ToArray();
 
         var indexedList = searchList
-            .Select((x, i) => (index: i, dir: x, active: _listPartitionStrategy.ExtractTimeIndex(x.Path) >= timeIndex))
+            .Select((x, i) => (index: i, dir: x, active: _fileSystem.ExtractTimeIndex(x.Path) >= timeIndex))
             .ToArray();
 
         int minIndex = indexedList.Where(x => x.active).Func(x => x.Any() ? x.Min(x => x.index) - 1 : 0);
@@ -83,11 +83,14 @@ public class ListStore : IListStore
 
     public async Task<Option<IReadOnlyList<DataETag>>> GetPartition(string key, string listType, DateTime timeIndex, ScopeContext context)
     {
-        var path = _listPartitionStrategy.PathBuilder(key, listType, timeIndex);
+        var path = _fileSystem.PathBuilder(key, listType, timeIndex);
         context.LogDebug("GetPartition: key={key}, listType={listType}, timeIndex={timeIndex}, path={path}", key, listType, timeIndex, path);
 
         var getOption = await _fileStore.File(path).Get(context);
-        if (getOption.IsError()) getOption.LogStatus(context, "GetPartition: Failed to get file for path={path}", [path]);
+
+        if (getOption.IsError()) return getOption
+                .LogStatus(context, "Failed to get file for path={path}", [path])
+                .ToOptionStatus<IReadOnlyList<DataETag>>();
 
         DataETag dataETag = getOption.Return();
 

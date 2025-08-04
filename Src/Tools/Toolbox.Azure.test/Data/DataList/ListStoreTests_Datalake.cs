@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Azure.test.Data.DataList;
 
-public class ListStoreTests_Datalake : Toolbox.Test.Data.Client.DataListClientTests
+public class ListStoreTests_Datalake : Toolbox.Test.Store.ListStoreTests
 {
     public ListStoreTests_Datalake(ITestOutputHelper outputHelper) : base(outputHelper) { }
 

@@ -26,7 +26,7 @@ public class ListStoreTimeIndexTests
             services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
             AddStore(services);
             services.AddSingleton<IListStore, ListStore>();
-            services.AddSingleton<IListPartitionStrategy, SecondPartitionStrategy>();
+            services.AddSingleton<IListFileSystem, ListSecondFileSystem>();
         })
         .Build();
 
@@ -38,10 +38,10 @@ public class ListStoreTimeIndexTests
     public async Task IndexPartition()
     {
         using var host = await BuildService();
-        var context = host.Services.CreateContext<ListStoreTests>();
+        var context = host.Services.CreateContext<ListStoreTimeIndexTests>();
         var fileStore = host.Services.GetRequiredService<IFileStore>();
         var listStore = host.Services.GetRequiredService<IListStore>();
-        var partitionStrategy = host.Services.GetRequiredService<IListPartitionStrategy>();
+        var fileSystem = host.Services.GetRequiredService<IListFileSystem>();
         var lsn = new LogSequenceNumber();
 
         const string key = nameof(IndexPartition);
@@ -98,10 +98,10 @@ public class ListStoreTimeIndexTests
     public async Task GetHistoryByTimeIndex()
     {
         using var host = await BuildService();
-        var context = host.Services.CreateContext<ListStoreTests>();
+        var context = host.Services.CreateContext<ListStoreTimeIndexTests>();
         var fileStore = host.Services.GetRequiredService<IFileStore>();
         var listStore = host.Services.GetRequiredService<IListStore>();
-        var partitionStrategy = host.Services.GetRequiredService<IListPartitionStrategy>();
+        var fileSystem = host.Services.GetRequiredService<IListFileSystem>();
         var lsn = new LogSequenceNumber();
 
         const string key = nameof(GetHistoryByTimeIndex);

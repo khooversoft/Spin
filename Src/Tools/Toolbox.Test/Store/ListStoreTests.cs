@@ -25,7 +25,7 @@ public class ListStoreTests
             services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
             AddStore(services);
             services.AddSingleton<IListStore, ListStore>();
-            services.AddSingleton<IListPartitionStrategy, DailyPartitionStrategy>();
+            services.AddSingleton<IListFileSystem, ListFileSystem>();
         })
         .Build();
 
@@ -40,12 +40,12 @@ public class ListStoreTests
         var context = host.Services.CreateContext<ListStoreTests>();
         var fileStore = host.Services.GetRequiredService<IFileStore>();
         var listStore = host.Services.GetRequiredService<IListStore>();
-        var partitionStrategy = host.Services.GetRequiredService<IListPartitionStrategy>();
+        var fileSystem = host.Services.GetRequiredService<IListFileSystem>();
 
         const string key = nameof(SingleItemInList);
         const string listType = "TestList";
 
-        string shouldMatch = partitionStrategy.PathBuilder(key, listType);
+        string shouldMatch = fileSystem.PathBuilder(key, listType);
 
         var journalEntry = new JournalEntry("Test", 30);
         (await listStore.Append(key, listType, [journalEntry.ToDataETag()], context)).BeOk();
@@ -90,7 +90,7 @@ public class ListStoreTests
         var context = host.Services.CreateContext<ListStoreTests>();
         var fileStore = host.Services.GetRequiredService<IFileStore>();
         var listStore = host.Services.GetRequiredService<IListStore>();
-        var partitionStrategy = host.Services.GetRequiredService<IListPartitionStrategy>();
+        var fileSystem = host.Services.GetRequiredService<IListFileSystem>();
 
         const string key = nameof(SingleItemInList);
         const string listType = "TestList";
@@ -101,7 +101,7 @@ public class ListStoreTests
 
         while (!token.IsCancellationRequested)
         {
-            string shouldMatch = partitionStrategy.PathBuilder(key, listType);
+            string shouldMatch = fileSystem.PathBuilder(key, listType);
 
             var journalEntry = new JournalEntry($"Test{count++}", 30 + count);
             sequence += journalEntry;
@@ -152,7 +152,7 @@ public class ListStoreTests
         var context = host.Services.CreateContext<ListStoreTests>();
         var fileStore = host.Services.GetRequiredService<IFileStore>();
         var listStore = host.Services.GetRequiredService<IListStore>();
-        var partitionStrategy = host.Services.GetRequiredService<IListPartitionStrategy>();
+        var fileSystem = host.Services.GetRequiredService<IListFileSystem>();
 
         const string key = nameof(SingleItemInList);
         const string listType = "TestList";
@@ -163,7 +163,7 @@ public class ListStoreTests
 
         while (!token.IsCancellationRequested)
         {
-            string shouldMatch = partitionStrategy.PathBuilder(key, listType);
+            string shouldMatch = fileSystem.PathBuilder(key, listType);
 
             var journalEntry = new JournalEntry($"Test{count++}", 30 + count);
             sequence += journalEntry;

@@ -19,44 +19,59 @@ namespace Toolbox.Store;
 
 public static partial class PartitionSchemas
 {
-    public static string ScalarPath<T>(string key)
-    {
-        key.NotEmpty();
+    //// Example: {hash}/{hash}/{key}.{typeName}.json
+    //public static string HashPath<T>(string key)
+    //{
+    //    key.NotEmpty();
 
-        var path = $"{key}.{typeof(T).Name}.json";
-        var hashPath = PathTool.CreateHashPath(path);
+    //    var path = $"{key}.{typeof(T).Name}.json";
+    //    var hashPath = PathTool.CreateHashPath(path);
 
-        var result = $"{hashPath}/{path}";
-        return result;
-    }
+    //    var result = $"{hashPath}/{path}";
+    //    return result;
+    //}
 
-    public static string ScalarSearch(string _, string pattern) => $"*/*/{pattern.NotEmpty()}";
+    //// Example: {hash}/{hash}/{key}.{typeName}.json
+    //public static string HashPath(string key, string typeName)
+    //{
+    //    key.NotEmpty();
+    //    typeName.NotEmpty();
 
-    public static string ListPath<T>(string key)
-    {
-        key.NotEmpty();
-        DateTime now = DateTime.UtcNow;
+    //    var path = $"{key}.{typeName}.json";
+    //    var hashPath = PathTool.CreateHashPath(path);
 
-        return ListPath(key, typeof(T).Name, DateTime.UtcNow);
-    }
+    //    var result = $"{hashPath}/{path}";
+    //    return result;
+    //}
 
-    public static string ListPath(string key, string listType, DateTime date)
-    {
-        key.NotEmpty();
-        listType.NotEmpty();
+    //// Example: {hash}/{hash}/{key}.{typeName}.json
+    //public static string ScalarSearch(string pattern) => $"*/*/{pattern.NotEmpty()}";
 
-        var path = $"{key}/{date:yyyyMM}/{key}-{date:yyyyMMdd}.{listType}.json";
-        return path;
-    }
+    //public static string ListPath<T>(string key)
+    //{
+    //    key.NotEmpty();
+    //    DateTime now = DateTime.UtcNow;
 
-    public static string ListPathBySeconds(string key, string listType, DateTime date)
-    {
-        key.NotEmpty();
-        listType.NotEmpty();
+    //    return ListPath(key, typeof(T).Name, DateTime.UtcNow);
+    //}
 
-        var path = $"{key}/{date:yyyyMM}/{key}-{date:yyyyMMdd-HHmmss}.{listType}.json";
-        return path;
-    }
+    //public static string ListPath(string key, string listType, DateTime date)
+    //{
+    //    key.NotEmpty();
+    //    listType.NotEmpty();
+
+    //    var path = $"{key}/{date:yyyyMM}/{key}-{date:yyyyMMdd}.{listType}.json";
+    //    return path;
+    //}
+
+    //public static string ListPathBySeconds(string key, string listType, DateTime date)
+    //{
+    //    key.NotEmpty();
+    //    listType.NotEmpty();
+
+    //    var path = $"{key}/{date:yyyyMM}/{key}-{date:yyyyMMdd-HHmmss}.{listType}.json";
+    //    return path;
+    //}
 
     // Example: {key}/yyyyMM/{key}-yyyyMMdd.{typeName}.json
     // Example: {key}/yyyyMM/{key}-yyyyMMdd-HHmmss.{typeName}.json
@@ -84,18 +99,18 @@ public static partial class PartitionSchemas
             DateTime.ParseExact(timeValue, "yyyyMMdd-HHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None);
     }
 
-    public static string ListSearch(string key, string? pattern)
-    {
-        key.NotEmpty();
+    //public static string ListSearch(string key, string? pattern)
+    //{
+    //    key.NotEmpty();
 
-        var path = pattern switch
-        {
-            string p => $"{key}/{pattern}",
-            _ => key,
-        };
+    //    var path = pattern switch
+    //    {
+    //        string p => $"{key}/{pattern}",
+    //        _ => key,
+    //    };
 
-        return path;
-    }
+    //    return path;
+    //}
 
     [GeneratedRegex(@"^[\w.-]+\/\d{6}\/[\w.-]+-(\d{8})\.[\w.-]+\.json$", RegexOptions.CultureInvariant)]
     private static partial Regex ExtractDateString();

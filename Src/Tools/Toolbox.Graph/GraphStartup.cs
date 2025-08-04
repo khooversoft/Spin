@@ -2,6 +2,7 @@
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Models;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -26,6 +27,7 @@ public static class GraphStartup
         services.AddDataPipeline<GraphSerialization>(builder =>
         {
             builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}";
+            //builder.PathBuilder = PartitionSchemas.ScalarPath<GraphSerialization>;
             builder.AddFileStore();
         });
 
