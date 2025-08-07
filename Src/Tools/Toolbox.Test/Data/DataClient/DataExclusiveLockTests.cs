@@ -26,7 +26,7 @@ public class DataExclusiveLockTests
         IDataClient<EntityModel> dataClient = host.Services.GetDataClient<EntityModel>();
         var context = host.Services.CreateContext<DataExclusiveLockTests>();
         IFileStore fileStore = host.Services.GetRequiredService<IFileStore>();
-        string path = host.Services.GetRequiredService<DataPipelineConfig<EntityModel>>().CreatePath(_key);
+        string path = host.Services.GetRequiredService<DataPipelineConfig<EntityModel>>().CreatePath<EntityModel>(_key);
 
         await dataClient.Delete(_key, context);
 

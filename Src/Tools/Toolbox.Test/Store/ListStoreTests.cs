@@ -17,15 +17,14 @@ public class ListStoreTests
 
     protected virtual void AddStore(IServiceCollection services) => services.AddInMemoryFileStore();
 
-    public async Task<IHost> BuildService()
+    public async Task<IHost> BuildService(bool useQueue)
     {
         var host = Host.CreateDefaultBuilder()
         .ConfigureServices((context, services) =>
         {
             services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
             AddStore(services);
-            services.AddSingleton<IListStore, ListStore>();
-            services.AddSingleton<IListFileSystem, ListFileSystem>();
+            services.AddListStore<JournalEntry>(config => useQueue.IfTrue(() => config.AddBackgroundQueue()));
         })
         .Build();
 
@@ -33,22 +32,23 @@ public class ListStoreTests
         return host;
     }
 
-    [Fact]
-    public async Task SingleItemInList()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SingleItemInList(bool useQueue)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useQueue);
         var context = host.Services.CreateContext<ListStoreTests>();
         var fileStore = host.Services.GetRequiredService<IFileStore>();
-        var listStore = host.Services.GetRequiredService<IListStore>();
-        var fileSystem = host.Services.GetRequiredService<IListFileSystem>();
+        var listStore = host.Services.GetRequiredService<IListStore<JournalEntry>>();
+        var fileSystem = host.Services.GetRequiredService<IListFileSystem<JournalEntry>>();
 
         const string key = nameof(SingleItemInList);
-        const string listType = "TestList";
 
-        string shouldMatch = fileSystem.PathBuilder(key, listType);
+        string shouldMatch = fileSystem.PathBuilder(key);
 
         var journalEntry = new JournalEntry("Test", 30);
-        (await listStore.Append(key, listType, [journalEntry.ToDataETag()], context)).BeOk();
+        (await listStore.Append(key, [journalEntry], context)).BeOk();
         (await listStore.Search(key, "**/*", context)).Action(x =>
         {
             x.Count.Be(1);
@@ -58,14 +58,7 @@ public class ListStoreTests
         (await listStore.Get(key, context)).BeOk().Return().Action(x =>
         {
             x.Count.Be(1);
-            x[0].Action(y =>
-            {
-                y.PathDetail.Path.Be(shouldMatch);
-                JournalEntry[] dataItems = y.Data.Select(z => z.ToObject<JournalEntry>()).ToArray();
-
-                dataItems.Length.Be(1);
-                var x = dataItems.SequenceEqual([journalEntry]).BeTrue();
-            });
+            x.SequenceEqual([journalEntry]).BeTrue();
         });
 
         IReadOnlyList<IStorePathDetail> searchList = await listStore.Search(key, "**/*", context);
@@ -83,17 +76,18 @@ public class ListStoreTests
         (await fileStore.Search("**/*", context)).Count.Be(0);
     }
 
-    [Fact]
-    public async Task MultipleItemDailySchema()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MultipleItemDailySchema(bool useQueue)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useQueue);
         var context = host.Services.CreateContext<ListStoreTests>();
         var fileStore = host.Services.GetRequiredService<IFileStore>();
-        var listStore = host.Services.GetRequiredService<IListStore>();
-        var fileSystem = host.Services.GetRequiredService<IListFileSystem>();
+        var listStore = host.Services.GetRequiredService<IListStore<JournalEntry>>();
+        var fileSystem = host.Services.GetRequiredService<IListFileSystem<JournalEntry>>();
 
         const string key = nameof(SingleItemInList);
-        const string listType = "TestList";
 
         var token = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         int count = 0;
@@ -101,12 +95,12 @@ public class ListStoreTests
 
         while (!token.IsCancellationRequested)
         {
-            string shouldMatch = fileSystem.PathBuilder(key, listType);
+            string shouldMatch = fileSystem.PathBuilder(key);
 
             var journalEntry = new JournalEntry($"Test{count++}", 30 + count);
             sequence += journalEntry;
 
-            (await listStore.Append(key, listType, [journalEntry.ToDataETag()], context)).BeOk();
+            (await listStore.Append(key, [journalEntry], context)).BeOk();
 
             (await listStore.Search(key, "**/*", context)).Action(x =>
             {
@@ -116,15 +110,8 @@ public class ListStoreTests
 
             (await listStore.Get(key, context)).BeOk().Return().Action(x =>
             {
-                x.Count.Be(1);
-                x[0].Action(y =>
-                {
-                    y.PathDetail.Path.Be(shouldMatch);
-                    JournalEntry[] dataItems = y.Data.Select(z => z.ToObject<JournalEntry>()).ToArray();
-
-                    dataItems.Length.Be(sequence.Count);
-                    dataItems.SequenceEqual(sequence).BeTrue();
-                });
+                x.Count.Be(sequence.Count);
+                x.SequenceEqual(sequence).BeTrue();
             });
 
             IReadOnlyList<IStorePathDetail> searchList = await listStore.Search(key, "**/*", context);
@@ -145,17 +132,18 @@ public class ListStoreTests
         (await fileStore.Search("**/*", context)).Count.Be(0);
     }
 
-    [Fact]
-    public async Task MultipleItemSecondSchema()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MultipleItemSecondSchema(bool useQueue)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useQueue);
         var context = host.Services.CreateContext<ListStoreTests>();
         var fileStore = host.Services.GetRequiredService<IFileStore>();
-        var listStore = host.Services.GetRequiredService<IListStore>();
-        var fileSystem = host.Services.GetRequiredService<IListFileSystem>();
+        var listStore = host.Services.GetRequiredService<IListStore<JournalEntry>>();
+        var fileSystem = host.Services.GetRequiredService<IListFileSystem<JournalEntry>>();
 
         const string key = nameof(SingleItemInList);
-        const string listType = "TestList";
 
         var token = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         int count = 0;
@@ -163,26 +151,22 @@ public class ListStoreTests
 
         while (!token.IsCancellationRequested)
         {
-            string shouldMatch = fileSystem.PathBuilder(key, listType);
+            string shouldMatch = fileSystem.PathBuilder(key);
 
             var journalEntry = new JournalEntry($"Test{count++}", 30 + count);
             sequence += journalEntry;
 
-            (await listStore.Append(key, listType, [journalEntry.ToDataETag()], context)).BeOk();
+            (await listStore.Append(key, [journalEntry], context)).BeOk();
 
             (await listStore.Search(key, "**/*", context)).Action(x =>
             {
                 x.Count.Assert(x => x > 0 && x <= 6, x => $"{x} Journal file count should be 1 => && 6 <=");
             });
 
-            var list = (await listStore.Get(key, context))
-                .BeOk().Return()
-                .SelectMany(z => z.Data)
-                .Select(x => x.ToObject<JournalEntry>())
-                .ToArray();
+            var list = (await listStore.Get(key, context)).BeOk().Return();
 
             list.SequenceEqual(sequence).BeTrue();
-            context.LogDebug("Returned list count={count}", list.Length);
+            context.LogDebug("Returned list count={count}", list.Count);
 
             (await fileStore.Search("**/*", context)).Count.Assert(x => x > 0 && x <= 6, "Journal file count should be 1 => && 6 <=");
         }

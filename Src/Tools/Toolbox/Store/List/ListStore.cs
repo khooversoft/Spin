@@ -6,26 +6,26 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class ListStore : IListStore
+public class ListStore<T> : IListStore<T>
 {
     private readonly IFileStore _fileStore;
-    private readonly ILogger<ListStore> _logger;
-    private readonly IListFileSystem _fileSystem;
+    private readonly ILogger<ListStore<T>> _logger;
+    private readonly IListFileSystem<T> _fileSystem;
 
-    public ListStore(IFileStore fileStore, IListFileSystem fileSystem, ILogger<ListStore> logger)
+    public ListStore(IFileStore fileStore, IListFileSystem<T> fileSystem, ILogger<ListStore<T>> logger)
     {
         _fileStore = fileStore.NotNull();
         _logger = logger.NotNull();
         _fileSystem = fileSystem;
     }
 
-    public async Task<Option<string>> Append(string key, string listType, IEnumerable<DataETag> data, ScopeContext context)
+    public async Task<Option<string>> Append(string key, IEnumerable<T> data, ScopeContext context)
     {
-        var dataItems = data.NotNull().ToArray();
+        var dataItems = data.NotNull().Select(x => x.ToDataETag()).ToArray();
         if (dataItems.Length == 0) return (StatusCode.NoContent, "Empty list");
 
-        string path = _fileSystem.PathBuilder(key, listType);
-        context.LogDebug("Appending key={key}, listType={listType}, path={path}", key, listType, path);
+        string path = _fileSystem.PathBuilder(key);
+        context.LogDebug("Appending key={key}, listType={listType}, path={path}", key, typeof(T).Name, path);
 
         string json = dataItems.Aggregate(string.Empty, (a, x) => a += x.DataToString() + Environment.NewLine);
         DataETag dataEtag = json.ToDataETag();
@@ -38,33 +38,31 @@ public class ListStore : IListStore
 
     public async Task<Option> Delete(string key, ScopeContext context)
     {
+        key.NotEmpty();
         context.LogDebug("Delete: Deleting list key={key}", key);
 
-        string pattern = _fileSystem.SearchBuilder(key, "**/*");
-        var clearOption = await _fileStore.ClearFolder(pattern, context);
-
+        var clearOption = await _fileStore.ClearFolder($"{key}/**/*", context);
         return clearOption;
     }
 
-    public Task<Option<IReadOnlyList<ListPathData>>> Get(string key, ScopeContext context) => Get(key, "**/*", context);
+    public Task<Option<IReadOnlyList<T>>> Get(string key, ScopeContext context) => Get(key, "**/*", context);
 
-    public async Task<Option<IReadOnlyList<ListPathData>>> Get(string key, string pattern, ScopeContext context)
+    public async Task<Option<IReadOnlyList<T>>> Get(string key, string pattern, ScopeContext context)
     {
         key.NotEmpty();
         pattern.NotEmpty();
         context.LogDebug("Get: Getting list items, pattern={pattern}", pattern);
 
-        string searchPattern = _fileSystem.SearchBuilder(key, pattern);
-
+        string searchPattern = $"{key}/{pattern}";
         IReadOnlyList<IStorePathDetail> searchList = (await _fileStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
         return await ReadList(pattern, context, searchList);
     }
 
-    public async Task<Option<IReadOnlyList<ListPathData>>> GetHistory(string key, DateTime timeIndex, ScopeContext context)
+    public async Task<Option<IReadOnlyList<T>>> GetHistory(string key, DateTime timeIndex, ScopeContext context)
     {
         context.LogDebug("Getting history, key={key}, timeIndex={timeIndex}", key, timeIndex);
 
-        string pattern = _fileSystem.SearchBuilder(key, "**/*");
+        string pattern = _fileSystem.BuildSearch(key);
         IReadOnlyList<IStorePathDetail> searchList = (await _fileStore.Search(pattern, context)).OrderBy(x => x.Path).ToArray();
 
         var indexedList = searchList
@@ -81,22 +79,22 @@ public class ListStore : IListStore
         return await ReadList(pattern, context, list);
     }
 
-    public async Task<Option<IReadOnlyList<DataETag>>> GetPartition(string key, string listType, DateTime timeIndex, ScopeContext context)
+    public async Task<Option<IReadOnlyList<T>>> GetPartition(string key, DateTime timeIndex, ScopeContext context)
     {
-        var path = _fileSystem.PathBuilder(key, listType, timeIndex);
-        context.LogDebug("GetPartition: key={key}, listType={listType}, timeIndex={timeIndex}, path={path}", key, listType, timeIndex, path);
+        var path = _fileSystem.PathBuilder(key, timeIndex);
+        context.LogDebug("GetPartition: key={key}, listType={listType}, timeIndex={timeIndex}, path={path}", key, typeof(T).Name, timeIndex, path);
 
         var getOption = await _fileStore.File(path).Get(context);
 
         if (getOption.IsError()) return getOption
-                .LogStatus(context, "Failed to get file for path={path}", [path])
-                .ToOptionStatus<IReadOnlyList<DataETag>>();
+            .LogStatus(context, "Failed to get file for path={path}", [path])
+            .ToOptionStatus<IReadOnlyList<T>>();
 
         DataETag dataETag = getOption.Return();
 
         var list = dataETag.DataToString()
             .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => x.ToDataETag())
+            .Select(x => x.ToObject<T>())
             .ToImmutableArray();
 
         return list;
@@ -107,13 +105,14 @@ public class ListStore : IListStore
         pattern.NotEmpty();
         context.LogDebug("Search: pattern={pattern}", pattern);
 
-        IReadOnlyList<IStorePathDetail> searchList = await _fileStore.Search(pattern, context);
+        string searchPattern = _fileSystem.BuildSearch(key, pattern);
+        IReadOnlyList<IStorePathDetail> searchList = await _fileStore.Search(searchPattern, context);
         return searchList;
     }
 
-    private async Task<Option<IReadOnlyList<ListPathData>>> ReadList(string pattern, ScopeContext context, IReadOnlyList<IStorePathDetail> searchList)
+    private async Task<Option<IReadOnlyList<T>>> ReadList(string pattern, ScopeContext context, IReadOnlyList<IStorePathDetail> searchList)
     {
-        var list = new Sequence<ListPathData>();
+        var list = new Sequence<T>();
 
         foreach (var pathDetail in searchList)
         {
@@ -127,15 +126,11 @@ public class ListStore : IListStore
                 continue;
             }
 
-            list += new ListPathData
-            {
-                PathDetail = pathDetail,
-                Data = readOption.Return()
-                    .DataToString()
-                    .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => x.ToDataETag())
-                    .ToImmutableArray(),
-            };
+            list += readOption.Return()
+                .DataToString()
+                .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.ToObject<T>())
+                .ToImmutableArray();
         }
 
         var dataItems = list.ToImmutableArray();

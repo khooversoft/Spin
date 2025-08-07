@@ -2,41 +2,53 @@
 
 namespace Toolbox.Store;
 
-public class ListFileSystem : IListFileSystem
-{
-    public FileSystemType SystemType { get; init; } = FileSystemType.List;
-    public string PathBuilder<T>(string key) => PathBuilder(key, typeof(T).Name);
+// List index: {key}/yyyyMM/{key}-yyyyMMdd.{typeName}.json
+// ListSecond index: {key}/yyyyMM/{key}-yyyyMMdd.{typeName}.json
 
-    public virtual string PathBuilder(string key, string listType)
+public class ListFileSystem<T> : IListFileSystem<T>
+{
+    public ListFileSystem() { }
+    public ListFileSystem(string? basePath) => BasePath = basePath;
+
+    public string? BasePath { get; } = null!;
+    public FileSystemType SystemType { get; } = FileSystemType.List;
+
+    public virtual string PathBuilder(string key)
     {
         DateTime now = DateTime.UtcNow;
-        return $"{key}/{now:yyyyMM}/{key}-{now:yyyyMMdd}.{listType}.json";
-    }
-    public virtual string PathBuilder(string key, string listType, DateTime date)
-    {
-        return $"{key}/{date:yyyyMM}/{key}-{date:yyyyMMdd-HHmmss}.{listType}.json";
+        return $"{this.CreatePathPrefix()}{key}/{now:yyyyMM}/{key}-{now:yyyyMMdd}.{typeof(T).Name}.json";
     }
 
-    public string SearchBuilder(string key, string? pattern) => pattern switch
+    public virtual string PathBuilder(string key, DateTime date)
     {
-        string p => $"{key.NotEmpty()}/{pattern}",
-        _ => key,
+        return $"{this.CreatePathPrefix()}{key}/{date:yyyyMM}/{key}-{date:yyyyMMdd-HHmmss}.{typeof(T).Name}.json";
+    }
+
+    public string BuildSearch(string? key = null, string? pattern = null) => (key, pattern) switch
+    {
+        (null, null) => $"{this.CreatePathPrefix()}**/*",
+        (null, _) => $"{this.CreatePathPrefix()}{pattern}",
+        (_, null) => $"{this.CreatePathPrefix()}{key}/**/*",
+        _ => $"{this.CreatePathPrefix()}{key}/{pattern}"
     };
 
     public DateTime ExtractTimeIndex(string path) => PartitionSchemas.ExtractTimeIndex(path);
 }
 
 
-public class ListSecondFileSystem : ListFileSystem
+public class ListSecondFileSystem<T> : ListFileSystem<T>
 {
-    public override string PathBuilder(string key, string listType)
+    public ListSecondFileSystem() { }
+    public ListSecondFileSystem(string basePath) : base(basePath) { }
+
+    public override string PathBuilder(string key)
     {
         DateTime now = DateTime.UtcNow;
-        return $"{key}/{now:yyyyMM}/{key}-{now:yyyyMMdd-HHmmss}.{listType}.json";
+        return $"{this.CreatePathPrefix()}{key}/{now:yyyyMM}/{key}-{now:yyyyMMdd-HHmmss}.{typeof(T).Name}.json";
     }
 
-    public override string PathBuilder(string key, string listType, DateTime date)
+    public override string PathBuilder(string key, DateTime date)
     {
-        return $"{key}/{date:yyyyMM}/{key}-{date:yyyyMMdd-HHmmss}.{listType}.json";
+        return $"{this.CreatePathPrefix()}{key}/{date:yyyyMM}/{key}-{date:yyyyMMdd-HHmmss}.{typeof(T).Name}.json";
     }
 }

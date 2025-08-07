@@ -94,7 +94,7 @@ public class DataClientTests
         var context = host.Services.CreateContext<DataClientTests>();
         CacheMemoryHandler memoryProvider = dataHandler.GetDataProviders().OfType<CacheMemoryHandler>().First();
         IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
-        string path = host.Services.GetRequiredService<DataPipelineConfig<EntityModel>>().CreatePath(key);
+        string path = host.Services.GetRequiredService<DataPipelineConfig<EntityModel>>().CreatePath<EntityModel>(key);
 
         context.Location().LogInformation("#1 - Set value");
         var model = new EntityModel { Name = "OnlyMemoryCache", Age = 25 };
@@ -141,7 +141,7 @@ public class DataClientTests
         IDataClient<EntityModel> dataClient = host.Services.GetDataClient<EntityModel>();
         var context = host.Services.CreateContext<DataClientTests>();
         FileStoreDataProvider fileProvider = dataClient.GetDataProviders().OfType<FileStoreDataProvider>().First();
-        string path = host.Services.GetRequiredService<DataPipelineConfig<EntityModel>>().CreatePath(key);
+        string path = host.Services.GetRequiredService<DataPipelineConfig<EntityModel>>().CreatePath<EntityModel>(key);
 
         var model = new EntityModel { Name = "OnlyFileCache", Age = 25 };
         var result = await dataClient.Set(key, model, context);
@@ -192,7 +192,7 @@ public class DataClientTests
         CacheMemoryHandler memoryProvider = dataClient.GetDataProviders().OfType<CacheMemoryHandler>().First();
         FileStoreDataProvider fileProvider = dataClient.GetDataProviders().OfType<FileStoreDataProvider>().First();
         IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
-        string path = host.Services.GetRequiredService<DataPipelineConfig<EntityModel>>().CreatePath(key);
+        string path = host.Services.GetRequiredService<DataPipelineConfig<EntityModel>>().CreatePath<EntityModel>(key);
 
         context.Location().LogInformation("#1 - Create value");
         var model = new EntityModel { Name = "OnlyFileCache", Age = 25 };
@@ -288,7 +288,7 @@ public class DataClientTests
         CacheMemoryHandler memoryProvider = dataClient.GetDataProviders().OfType<CacheMemoryHandler>().First();
         FileStoreDataProvider fileProvider = dataClient.GetDataProviders().OfType<FileStoreDataProvider>().First();
         IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
-        string path = host.Services.GetRequiredService<DataPipelineConfig<EntityModel>>().CreatePath(key);
+        string path = host.Services.GetRequiredService<DataPipelineConfig<EntityModel>>().CreatePath<EntityModel>(key);
 
         // Make sure the cache is clear
         context.Location().LogInformation("#01 - clear cache for setup");

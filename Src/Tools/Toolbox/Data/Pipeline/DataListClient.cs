@@ -41,7 +41,7 @@ public class DataListClient<T> : IDataListClient<T>
         values.NotNull();
         context = context.With(_logger);
 
-        string path = _pipelineConfig.CreatePath(key);
+        string path = _pipelineConfig.CreatePath<T>(key);
         context.LogDebug("AppendList key={key}, path={path}", key, path);
 
         var dataItems = values

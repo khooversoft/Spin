@@ -11,26 +11,32 @@ namespace Toolbox.Store;
 // List index: {key}/yyyyMM/{key}-yyyyMMdd.{typeName}.json
 // ListSecond index: {key}/yyyyMM/{key}-yyyyMMdd.{typeName}.json
 
-
 public enum FileSystemType
 {
-    None,
     Hash,
     Key,
     List
 }
 
-public interface IFileSystem
+public interface IFileSystem<T>
 {
-    public FileSystemType SystemType { get; init; }
-    string PathBuilder<T>(string key);
-    string PathBuilder(string key, string listType);
+    public string? BasePath { get; }
+    public FileSystemType SystemType { get; }
+    string PathBuilder(string key);
+    string BuildSearch(string? key = null, string? pattern = null);
 }
 
-public interface IListFileSystem : IFileSystem
+public interface IListFileSystem<T> : IFileSystem<T>
 {
-    string PathBuilder(string key, string listType, DateTime timeIndex);
-    string SearchBuilder(string key, string pattern);
+    string PathBuilder(string key, DateTime timeIndex);
     DateTime ExtractTimeIndex(string path);
 }
 
+public static class FileSystemTool
+{
+    public static string CreatePathPrefix<T>(this IFileSystem<T> subject) => subject.BasePath switch
+    {
+        null => string.Empty,
+        _ => $"{subject.BasePath}/"
+    };
+}

@@ -23,8 +23,7 @@ public static class DataStartup
 
         var builder = new DataPipelineConfig<T>(services);
         config(builder);
-        //builder.PathBuilder ??= PartitionSchemas.HashPath<T>;
-        //builder.SearchBuilder ??= PartitionSchemas.ScalarSearch;
+        //builder.FileSystem ??= new HashFileSystem("fake");
         builder.Validate().ThrowOnError();
 
         services.AddSingleton(builder);
@@ -41,8 +40,7 @@ public static class DataStartup
 
         var builder = new DataPipelineConfig<T>(services);
         config(builder);
-        //builder.PathBuilder ??= PartitionSchemas.ListPath<T>;
-        //builder.SearchBuilder ??= PartitionSchemas.ListSearch;
+        //builder.FileSystem ??= new ListFileSystem<T>("fake");
         builder.Validate().ThrowOnError();
 
         services.AddSingleton(builder);

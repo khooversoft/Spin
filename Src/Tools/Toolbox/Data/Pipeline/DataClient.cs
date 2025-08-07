@@ -41,7 +41,7 @@ public class DataClient<T> : IDataClient<T>
         value.NotNull();
         context = context.With(_logger);
 
-        var path = _pipelineConfig.CreatePath(key);
+        var path = _pipelineConfig.CreatePath<T>(key);
         context.LogDebug("Append key={key}, path={path}", key, path);
 
         var data = value.NotNull().ToDataETag();
@@ -55,7 +55,7 @@ public class DataClient<T> : IDataClient<T>
     {
         context = context.With(_logger);
 
-        var path = _pipelineConfig.CreatePath(key);
+        var path = _pipelineConfig.CreatePath<T>(key);
         context.LogDebug("Delete key={key}, path={path}", key, path);
 
         var request = new DataPipelineContext(DataPipelineCommand.Delete, path, _pipelineConfig);
@@ -67,7 +67,7 @@ public class DataClient<T> : IDataClient<T>
     {
         context = context.With(_logger);
 
-        var path = _pipelineConfig.CreatePath(key);
+        var path = _pipelineConfig.CreatePath<T>(key);
         context.LogDebug("Get key={key}, path={path}", key, path);
 
         var request = new DataPipelineContext(DataPipelineCommand.Get, path, _pipelineConfig);
@@ -83,7 +83,7 @@ public class DataClient<T> : IDataClient<T>
         value.NotNull();
         context = context.With(_logger);
 
-        var path = _pipelineConfig.CreatePath(key);
+        var path = _pipelineConfig.CreatePath<T>(key);
         context.LogDebug("Set key={key}, path={path}", key, path);
 
         var data = value.NotNull().ToDataETag();
@@ -99,7 +99,7 @@ public class DataClient<T> : IDataClient<T>
         context = context.With(_logger);
         context.LogDebug("Search, pattern={pattern}", pattern);
 
-        var path = _pipelineConfig.CreateSearch(null!, pattern);
+        var path = _pipelineConfig.CreateSearch(null, pattern);
         var request = new DataPipelineContext(DataPipelineCommand.Search, path, _pipelineConfig);
 
         var resultOption = await Handler.Execute(request, context);
@@ -131,7 +131,7 @@ public class DataClient<T> : IDataClient<T>
     {
         context = context.With(_logger);
 
-        var path = _pipelineConfig.CreatePath(key);
+        var path = _pipelineConfig.CreatePath<T>(key);
         context.LogDebug("ReleaseLock, key={key}, path={path}", key, path);
 
         var request = new DataPipelineContext(DataPipelineCommand.ReleaseLock, path, _pipelineConfig);

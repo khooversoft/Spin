@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -11,8 +12,7 @@ public interface IDataPipelineConfig
     TimeSpan? FileCacheDuration { get; }
     string BasePath { get; }
     IReadOnlyDictionary<string, string?>? Tags { get; }
-    Func<string, string> PathBuilder { get; set; }
-    Func<string, string, string> SearchBuilder { get; set; }
+    //IFileSystem FileSystem { get; set; }
 }
 
 public interface IDataPipelineBuilder
@@ -24,8 +24,7 @@ public interface IDataPipelineBuilder
     TimeSpan? FileCacheDuration { get; set; }
     string BasePath { get; set; }
     IReadOnlyDictionary<string, string?>? Tags { get; set; }
-    Func<string, string> PathBuilder { get; set; }
-    Func<string, string, string> SearchBuilder { get; set; }
+    //IFileSystem FileSystem { get; set; }
 }
 
 public class DataPipelineConfig<T> : IDataPipelineBuilder, IDataPipelineConfig
@@ -39,16 +38,14 @@ public class DataPipelineConfig<T> : IDataPipelineBuilder, IDataPipelineConfig
     public TimeSpan? FileCacheDuration { get; set; }
     public string BasePath { get; set; } = null!;
     public IReadOnlyDictionary<string, string?>? Tags { get; set; }
-    public Func<string, string> PathBuilder { get; set; } = null!;
-    public Func<string, string, string> SearchBuilder { get; set; } = null!;
+    //public IFileSystem FileSystem { get; set; } = null!;
 
     public static IValidator<DataPipelineConfig<T>> Validator { get; } = new Validator<DataPipelineConfig<T>>()
         .RuleFor(x => x.Services).NotNull()
         .RuleFor(x => x.MemoryCacheDuration).ValidTimeSpanOption()
         .RuleFor(x => x.FileCacheDuration).ValidTimeSpanOption()
         .RuleFor(x => x.BasePath).NotEmpty()
-        .RuleFor(x => x.PathBuilder).NotNull()
-        .RuleFor(x => x.SearchBuilder).NotNull()
+        //.RuleFor(x => x.FileSystem).NotNull()
         .Build();
 }
 
@@ -57,22 +54,30 @@ public static class DataPipelineConfigTool
 {
     public static Option Validate<T>(this DataPipelineConfig<T> subject) => DataPipelineConfig<T>.Validator.Validate(subject).ToOptionStatus();
 
-    public static string CreatePath(this IDataPipelineConfig config, string key)
+    public static string CreatePath<T>(this IDataPipelineConfig config, string key)
     {
         config.NotNull();
         key.NotEmpty();
 
-        string path = config.PathBuilder.NotNull()(key);
-        path = config.CreateSafePath(path);
-        return path;
+        //string path = config.FileSystem.PathBuilder<T>(key);
+        //path = config.CreateSafePath(path);
+        //return path;
+        return default!;
     }
 
-    public static string CreateSearch(this IDataPipelineConfig config, string key, string pattern)
+    public static string CreateSearch(this IDataPipelineConfig config, string? key, string? pattern)
     {
         config.NotNull();
         key.NotEmpty();
 
-        string path = config.SearchBuilder.NotNull()(key, pattern);
+        string path = (key, pattern) switch
+        {
+            (null, null) => "**/*",
+            (string k, null) => $"{k}/**/*",
+            (null, string p) => p,
+            (string k, string p) => $"{k}/{p}",
+        };
+
         path = config.CreateSafePath(path);
         return path;
     }
@@ -93,7 +98,6 @@ public static class DataPipelineConfigTool
 
         return fullPath;
     }
-
 
     private static string ToSafePathVector(string path) => path.NotEmpty()
         .Select(x => ToStandardCharacter(x))
