@@ -24,7 +24,7 @@ public class ListStoreTests
         {
             services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
             AddStore(services);
-            services.AddListStore<JournalEntry>(config => useQueue.IfTrue(() => config.AddBackgroundQueue()));
+            services.AddListStore<JournalEntry>(config => useQueue.IfTrue(() => config.AddBatchProvider()));
         })
         .Build();
 
@@ -124,7 +124,6 @@ public class ListStoreTests
             (await fileStore.Search("**/*", context)).Count.Be(1);
         }
 
-        context.LogDebug("Final Count={count}, sequence.count={seqCount}", count, sequence.Count);
         (await fileStore.Search("**/*", context)).Count.Be(1);
 
         (await listStore.Delete(key, context)).BeOk();
@@ -176,5 +175,46 @@ public class ListStoreTests
         (await listStore.Delete(key, context)).BeOk();
         (await listStore.Search(key, "**/*", context)).Count.Be(0);
         (await fileStore.Search("**/*", context)).Count.Be(0);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Performance(bool useQueue)
+    {
+        using var host = await BuildService(useQueue);
+        var context = host.Services.CreateContext<ListStoreTests>();
+        var fileStore = host.Services.GetRequiredService<IFileStore>();
+        var listStore = host.Services.GetRequiredService<IListStore<JournalEntry>>();
+        var fileSystem = host.Services.GetRequiredService<IListFileSystem<JournalEntry>>();
+
+        const string key = nameof(Performance);
+
+        var token = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+        int count = 0;
+        var sequence = new Sequence<JournalEntry>();
+        DateTime start = DateTime.Now;
+
+        while (!token.IsCancellationRequested)
+        {
+            var journalEntry = new JournalEntry($"Test{count++}", 30 + count);
+            sequence += journalEntry;
+
+            (await listStore.Append(key, [journalEntry], context)).BeOk();
+        }
+
+        (await listStore.Get(key, context)).BeOk().Return().Action(x =>
+        {
+            x.Count.Be(count);
+            x.SequenceEqual(sequence).BeTrue();
+        });
+
+        TimeSpan timing = DateTime.Now - start;
+        double tps = count / timing.TotalSeconds;
+        context.LogDebug("Performance: Count={count}, sequence.count={seqCount}, timing={timing}, tps={tps}", count, sequence.Count, timing, tps);
+
+        //(await listStore.Delete(key, context)).BeOk();
+        //(await listStore.Search(key, "**/*", context)).Count.Be(0);
+        //(await fileStore.Search("**/*", context)).Count.Be(0);
     }
 }

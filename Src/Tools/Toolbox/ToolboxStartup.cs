@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -55,10 +54,15 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static ListStoreBuilder<T> AddBackgroundQueue<T>(this ListStoreBuilder<T> builder)
+    public static ListStoreBuilder<T> AddBatchProvider<T>(this ListStoreBuilder<T> builder, TimeSpan? batchInterval = null)
     {
-        builder.Services.AddSingleton<ListBackgroundQueue<T>>();
-        builder.NotNull().Add<ListBackgroundQueue<T>>();
+        batchInterval ??= TimeSpan.FromSeconds(1);
+
+        builder.Services.AddSingleton<ListBatchProvider<T>>(services =>
+                ActivatorUtilities.CreateInstance<ListBatchProvider<T>>(services, batchInterval.Value)
+            );
+
+        builder.NotNull().Add<ListBatchProvider<T>>();
         return builder;
     }
 }

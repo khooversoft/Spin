@@ -21,13 +21,13 @@ public class ListStore<T> : IListStore<T>
 
     public async Task<Option<string>> Append(string key, IEnumerable<T> data, ScopeContext context)
     {
-        var dataItems = data.NotNull().Select(x => x.ToDataETag()).ToArray();
+        var dataItems = data.NotNull().Select(x => x.ToJson()).ToArray();
         if (dataItems.Length == 0) return (StatusCode.NoContent, "Empty list");
 
         string path = _fileSystem.PathBuilder(key);
-        context.LogDebug("Appending key={key}, listType={listType}, path={path}", key, typeof(T).Name, path);
+        context.LogDebug("Appending key={key}, listType={listType}, path={path}, dataCount={dataCount}", key, typeof(T).Name, path, dataItems.Length);
 
-        string json = dataItems.Aggregate(string.Empty, (a, x) => a += x.DataToString() + Environment.NewLine);
+        string json = dataItems.Aggregate(string.Empty, (a, x) => a += x + Environment.NewLine);
         DataETag dataEtag = json.ToDataETag();
 
         var detailsOption = await _fileStore.File(path).Append(dataEtag, context);
@@ -79,27 +79,6 @@ public class ListStore<T> : IListStore<T>
         return await ReadList(pattern, context, list);
     }
 
-    public async Task<Option<IReadOnlyList<T>>> GetPartition(string key, DateTime timeIndex, ScopeContext context)
-    {
-        var path = _fileSystem.PathBuilder(key, timeIndex);
-        context.LogDebug("GetPartition: key={key}, listType={listType}, timeIndex={timeIndex}, path={path}", key, typeof(T).Name, timeIndex, path);
-
-        var getOption = await _fileStore.File(path).Get(context);
-
-        if (getOption.IsError()) return getOption
-            .LogStatus(context, "Failed to get file for path={path}", [path])
-            .ToOptionStatus<IReadOnlyList<T>>();
-
-        DataETag dataETag = getOption.Return();
-
-        var list = dataETag.DataToString()
-            .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => x.ToObject<T>())
-            .ToImmutableArray();
-
-        return list;
-    }
-
     public async Task<IReadOnlyList<IStorePathDetail>> Search(string key, string pattern, ScopeContext context)
     {
         pattern.NotEmpty();
@@ -112,29 +91,37 @@ public class ListStore<T> : IListStore<T>
 
     private async Task<Option<IReadOnlyList<T>>> ReadList(string pattern, ScopeContext context, IReadOnlyList<IStorePathDetail> searchList)
     {
-        var list = new Sequence<T>();
+        var taskList = new Sequence<Task<IReadOnlyList<T>>>();
 
         foreach (var pathDetail in searchList)
         {
             if (pathDetail.IsFolder) continue;
-            context.LogDebug("Reading path={path}", pathDetail.Path);
 
-            Option<DataETag> readOption = await _fileStore.File(pathDetail.Path).Get(context);
-            if (readOption.IsError())
-            {
-                context.LogDebug("Fail to read path={path}", pathDetail.Path);
-                continue;
-            }
-
-            list += readOption.Return()
-                .DataToString()
-                .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.ToObject<T>())
-                .ToImmutableArray();
+            taskList += reader(pathDetail.Path);
         }
 
-        var dataItems = list.ToImmutableArray();
+        IReadOnlyList<T>[] list = await Task.WhenAll(taskList);
+        var dataItems = list.SelectMany(x => x).ToImmutableArray();
         context.LogDebug("GetList: search={pattern}, count={count}", pattern, dataItems.Length);
         return dataItems;
+
+        async Task<IReadOnlyList<T>> reader(string path)
+        {
+            context.LogDebug("Reading path={path}", path);
+            Option<DataETag> readOption = await _fileStore.File(path).Get(context);
+            if (readOption.IsError())
+            {
+                context.LogDebug("Fail to read path={path}", path);
+                return Array.Empty<T>();
+            }
+
+            var result = readOption.Return()
+                .DataToString()
+                .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.ToObject<T>().NotNull())
+                .ToArray();
+
+            return result;
+        }
     }
 }

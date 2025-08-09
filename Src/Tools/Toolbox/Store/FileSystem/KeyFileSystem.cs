@@ -1,6 +1,4 @@
-﻿using Toolbox.Tools;
-
-namespace Toolbox.Store;
+﻿namespace Toolbox.Store;
 
 // Key index: {typeName}/{key}.{typeName}.json
 

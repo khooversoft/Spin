@@ -151,7 +151,7 @@ public class OperationQueue : IAsyncDisposable
         }
         catch (OperationCanceledException)
         {
-            context.LogWarning("Process operations canceled - shutting down");
+            context.LogDebug("Process operations canceled - shutting down");
         }
     }
 

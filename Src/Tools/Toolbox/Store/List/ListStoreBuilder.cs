@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -40,6 +35,6 @@ public record ListStoreBuilder<T>
         {
             null => StatusCode.NotFound,
             _ => firstHandler.Cast<IListStoreProvider<T>>().ToOption(),
-        };        
+        };
     }
 }

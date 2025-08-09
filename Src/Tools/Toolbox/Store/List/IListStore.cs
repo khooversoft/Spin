@@ -16,7 +16,6 @@ public interface IListStore<T>
     Task<Option<IReadOnlyList<T>>> Get(string key, ScopeContext context);
     Task<Option<IReadOnlyList<T>>> Get(string key, string pattern, ScopeContext context);
     Task<Option<IReadOnlyList<T>>> GetHistory(string key, DateTime timeIndex, ScopeContext context);
-    Task<Option<IReadOnlyList<T>>> GetPartition(string key, DateTime timeIndex, ScopeContext context);
     Task<IReadOnlyList<IStorePathDetail>> Search(string key, string pattern, ScopeContext context);
 }
 

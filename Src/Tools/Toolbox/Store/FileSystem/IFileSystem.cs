@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Toolbox.Store;
+﻿namespace Toolbox.Store;
 
 // Hash index: {hash}/{hash}/{key}.{typeName}.json
 // Key index: {typeName}/{key}.{typeName}.json

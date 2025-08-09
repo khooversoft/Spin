@@ -69,7 +69,7 @@ public class DatalakeStore : IFileStore
         };
         context.LogDebug("Searching {queryParameter}", queryParameter);
 
-        var collection = new List<PathItem>();
+        var collection = new Sequence<PathItem>();
         var matcher = queryParameter.GetMatcher();
 
         int index = -1;
@@ -82,7 +82,7 @@ public class DatalakeStore : IFileStore
                 index++;
                 if (index < queryParameter.Index) continue;
 
-                collection.Add(pathItem);
+                collection += pathItem;
                 if (collection.Count >= queryParameter.Count) break;
             }
 
