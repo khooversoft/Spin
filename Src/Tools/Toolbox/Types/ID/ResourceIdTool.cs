@@ -94,7 +94,6 @@ internal class ResourceIdTool
         },
     };
 
-    // TODO: Do we really need this?
     // {schema}:{domain}
     private static Test TenantTest = new Test
     {

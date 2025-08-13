@@ -32,7 +32,6 @@ public class StructureLineBuilderTests
         result.Message.Be("statusCode={statusCode}");
         result.Args.Action(x =>
         {
-            // TODO
             x.Length.Be(1);
             x[0].NotNull().Cast<StatusCode>().Be(StatusCode.OK);
         });

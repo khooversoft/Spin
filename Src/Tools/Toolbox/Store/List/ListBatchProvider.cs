@@ -57,8 +57,6 @@ public class ListBatchProvider<T> : IListStoreProvider<T>, IAsyncDisposable
     {
         var appendData = new AppendWork(key, data.ToArray());
         await _batchStream.Send(appendData);
-
-        //await _operationQueue.Send(async () => await GetHandler().Append(key, data, context), context);
         return "<deferred>";
     }
 

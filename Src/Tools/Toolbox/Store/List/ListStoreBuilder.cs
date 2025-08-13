@@ -9,10 +9,7 @@ public record ListStoreBuilder<T>
 {
     private readonly IList<Func<IServiceProvider, IListStoreProvider<T>>> _handlers = new List<Func<IServiceProvider, IListStoreProvider<T>>>();
 
-    public ListStoreBuilder(IServiceCollection services)
-    {
-        Services = services;
-    }
+    public ListStoreBuilder(IServiceCollection services) => Services = services;
 
     public string? BasePath { get; set; } = null!;
     public IServiceCollection Services { get; }

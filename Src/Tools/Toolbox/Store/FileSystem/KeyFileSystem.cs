@@ -1,4 +1,6 @@
-﻿namespace Toolbox.Store;
+﻿using Toolbox.Tools;
+
+namespace Toolbox.Store;
 
 // Key index: {typeName}/{key}.{typeName}.json
 
@@ -9,8 +11,16 @@ public class KeyFileSystem<T> : IFileSystem<T>
 
     public string? BasePath { get; init; } = null!;
     public FileSystemType SystemType { get; } = FileSystemType.Key;
+
     public string PathBuilder(string key) => PathBuilder(key, typeof(T).Name);
-    public string PathBuilder(string key, string listType) => $"{this.CreatePathPrefix()}{listType}/{key}.{listType}.json";
+
+    public string PathBuilder(string key, string listType)
+    {
+        key.NotEmpty();
+        listType.NotEmpty();
+
+        return $"{this.CreatePathPrefix()}{listType}/{key}.{listType}.json";
+    }
 
     public string BuildSearch(string? key = null, string? pattern = null) => (key, pattern) switch
     {

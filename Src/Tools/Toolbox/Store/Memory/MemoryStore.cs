@@ -95,7 +95,7 @@ public sealed class MemoryStore
 
         lock (_lock)
         {
-            if (IsLeased(path, leaseId)) return (StatusCode.Conflict, "Path is leased");
+            if (IsLeased(path, leaseId)) return (StatusCode.Locked, "Path is leased");
 
             Option result = _store.TryRemove(path, out var payload) switch
             {

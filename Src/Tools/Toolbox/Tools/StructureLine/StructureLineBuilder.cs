@@ -1,36 +1,47 @@
 ﻿using System.Diagnostics;
+using System.Text;
 using Toolbox.Extensions;
 
 namespace Toolbox.Tools;
 
-public static class StructureLineBuilder
+public sealed class StructureLineBuilder
 {
-    public static IEnumerable<StructureLineRecord> Start() => Array.Empty<StructureLineRecord>();
+    private readonly List<object?> _allArgs = new();
+    private readonly StringBuilder _messageBuilder = new();
 
-    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, string? message, object? value)
+    public static StructureLineBuilder Start() => new();
+
+    public StructureLineBuilder Add(string? message, object? value)
     {
-        if (message.IsEmpty()) return subject;
+        if (message.IsEmpty()) return this;
 
-        var record = new StructureLineRecord(message, value);
-        return subject.Append(record);
+        if (_messageBuilder.Length > 0) _messageBuilder.Append(", ");
+        _messageBuilder.Append(message);
+
+        if (value != null) _allArgs.Add(value);
+
+        return this;
     }
 
-    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, string? message, params IEnumerable<object?>? args)
+    public StructureLineBuilder Add(string? message, params IEnumerable<object?>? args)
     {
-        if (message.IsEmpty()) return subject;
+        if (message.IsEmpty()) return this;
 
-        var record = new StructureLineRecord(message, args);
-        return subject.Append(record);
+        if (_messageBuilder.Length > 0) _messageBuilder.Append(", ");
+
+        _messageBuilder.Append(message);
+
+        if (args != null)
+        {
+            foreach (var arg in args) _allArgs.Add(arg);
+        }
+
+        return this;
     }
 
-    public static StructureLineRecord Build(this IEnumerable<StructureLineRecord> subject)
+    public StructureLineRecord Build()
     {
-        subject.NotNull();
-
-        string message = subject.Select(x => x.Message).OfType<string>().Join(", ");
-        var args = subject.SelectMany(x => x.Args);
-
-        var record = new StructureLineRecord(message, args);
+        var record = new StructureLineRecord(_messageBuilder.ToString(), _allArgs);
 
 #if DEBUG
         var variableCount = record.GetVariables().Count;

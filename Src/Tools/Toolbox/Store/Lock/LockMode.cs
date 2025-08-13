@@ -1,4 +1,4 @@
-﻿namespace Toolbox.Data;
+﻿namespace Toolbox.Store;
 
 public enum LockMode
 {

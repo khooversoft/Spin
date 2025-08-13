@@ -6,13 +6,13 @@ namespace Toolbox.Tools;
 
 public static class StructureLineExtensions
 {
-    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, ScopeContext context)
+    public static StructureLineBuilder Add(this StructureLineBuilder subject, ScopeContext context)
     {
         var newSubject = subject.Add("traceId={traceId}", context.TraceId.NotEmpty());
         return newSubject;
     }
 
-    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, Option option)
+    public static StructureLineBuilder Add(this StructureLineBuilder subject, Option option)
     {
         var newSubject = subject.Add("statusCode={statusCode}", option.StatusCode);
         if (option.Error.IsNotEmpty()) subject.Add("error={error}", option.Error);
@@ -20,7 +20,7 @@ public static class StructureLineExtensions
         return newSubject;
     }
 
-    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, CodeLocation codeLocation)
+    public static StructureLineBuilder Add(this StructureLineBuilder subject, CodeLocation codeLocation)
     {
         var newSubject = subject
             .Add("callerFunction={callerFunction}", codeLocation.CallerFunction)
@@ -31,7 +31,7 @@ public static class StructureLineExtensions
         return newSubject;
     }
 
-    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, ScopeContextLocation context)
+    public static StructureLineBuilder Add(this StructureLineBuilder subject, ScopeContextLocation context)
     {
         var newSubject = subject
             .Add(context.Context)
@@ -40,7 +40,7 @@ public static class StructureLineExtensions
         return newSubject;
     }
 
-    public static IEnumerable<StructureLineRecord> Add(this IEnumerable<StructureLineRecord> subject, ILoggingContext context)
+    public static StructureLineBuilder Add(this StructureLineBuilder subject, ILoggingContext context)
     {
         var newSubject = context switch
         {

@@ -1,13 +1,11 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
-using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Data;
+namespace Toolbox.Store;
 
-
-public partial class LockManager : IAsyncDisposable
+public class LockManager : IAsyncDisposable
 {
     private ConcurrentDictionary<string, LockDetail> _lockMap = new(StringComparer.OrdinalIgnoreCase);
     private readonly IFileStore _fileStore;
@@ -31,8 +29,6 @@ public partial class LockManager : IAsyncDisposable
 
         context.LogDebug("Using locked file access for path={path}", path);
         return lockDetail.FileLeasedAccess;
-        //var retryLock = new LockedReadWriteAccess(this, path, lockDetail.LockMode, lockDetail.FileLeasedAccess);
-        //return retryLock;
     }
 
     public async Task<Option> ReleaseLock(string path, ScopeContext context)

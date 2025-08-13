@@ -137,4 +137,36 @@ public static class VerifyOption
         if (!subject.StatusCode.IsError()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should NOT be OK", because));
         return subject;
     }
+
+    [DebuggerStepThrough]
+    public static Option BeNotFound(
+        this Option subject,
+        string? because = null,
+        [CallerMemberName] string function = "",
+        [CallerFilePath] string path = "",
+        [CallerLineNumber] int lineNumber = 0,
+        [CallerArgumentExpression("subject")] string name = ""
+        )
+    {
+        var location = new CodeLocation(function, path, lineNumber, name);
+
+        if (!subject.StatusCode.IsNotFound()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be NotFound", because));
+        return subject;
+    }
+
+    [DebuggerStepThrough]
+    public static Option<T> BeNotFound<T>(
+        this Option<T> subject,
+        string? because = null,
+        [CallerMemberName] string function = "",
+        [CallerFilePath] string path = "",
+        [CallerLineNumber] int lineNumber = 0,
+        [CallerArgumentExpression("subject")] string name = ""
+        )
+    {
+        var location = new CodeLocation(function, path, lineNumber, name);
+
+        if (!subject.StatusCode.IsNotFound()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should NOT NotFound", because));
+        return subject;
+    }
 }

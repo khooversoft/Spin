@@ -1,7 +1,6 @@
-﻿using Toolbox.Store;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 
-namespace Toolbox.Data;
+namespace Toolbox.Store;
 
 public record LockDetail
 {
