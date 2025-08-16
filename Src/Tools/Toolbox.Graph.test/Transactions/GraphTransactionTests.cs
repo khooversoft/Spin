@@ -57,7 +57,7 @@ public class GraphTransactionTests
         var context = host.Services.GetRequiredService<ILogger<GraphTransactionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        IDataListClient<DataChangeRecord> changeClient = host.Services.GetRequiredService<IDataListClient<DataChangeRecord>>();
+        IListStore<DataChangeRecord> changeClient = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         string q = """
             add node key=node1 set t1;

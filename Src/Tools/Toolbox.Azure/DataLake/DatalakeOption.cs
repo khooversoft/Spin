@@ -38,15 +38,20 @@ public static class DatalakeOptionTool
         return new DataLakeServiceClient(serviceUri, credential);
     }
 
-    public static string WithBasePath(this DatalakeOption subject, string? path) => (subject.BasePath, path) switch
+    public static string WithBasePath(this DatalakeOption subject, string? path)
     {
-        (string v, null) => v,
-        (string v1, string v2) => (v1 + "/" + v2)
-            .Split('/', StringSplitOptions.RemoveEmptyEntries)
-            .Join('/'),
+        var result = (subject.BasePath, path) switch
+        {
+            (string v, null) => v,
+            (string v1, string v2) => (v1 + "/" + v2)
+                .Split('/', StringSplitOptions.RemoveEmptyEntries)
+                .Join('/'),
 
-        _ => throw new ArgumentException("BasePath and Path is null"),
-    };
+            _ => throw new ArgumentException("BasePath and Path is null"),
+        };
+
+        return result.ToLowerInvariant();
+    }
 
     public static string RemoveBaseRoot(this DatalakeOption subject, string path)
     {

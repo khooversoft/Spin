@@ -191,7 +191,10 @@ public class InMemoryFileStoreTests
         (await store.Search("*", NullScopeContext.Instance)).Action(x =>
         {
             x.Count.Be(size);
-            x.Select(x => x.Path).OrderBy(x => x).SequenceEqual(queue.Select(x => x.fileId).OrderBy(x => x)).BeTrue();
+            x.Select(x => x.Path)
+                .OrderBy(x => x)
+                .SequenceEqual(queue.Select(x => x.fileId).OrderBy(x => x), StringComparer.OrdinalIgnoreCase)
+                .BeTrue();
         });
 
         var storeList = memoryStore.SearchData("*");

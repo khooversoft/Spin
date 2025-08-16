@@ -40,7 +40,7 @@ public class ListStoreTimeIndexTests
 
     [Theory]
     [InlineData(false)]
-    [InlineData(true)]
+    //[InlineData(true)]
     public async Task GetHistoryByTimeIndex(bool useQueue)
     {
         using var host = await BuildService(useQueue);

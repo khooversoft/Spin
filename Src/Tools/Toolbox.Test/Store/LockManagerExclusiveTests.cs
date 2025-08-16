@@ -8,7 +8,7 @@ using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
-namespace Toolbox.Test.Data.DataClient;
+namespace Toolbox.Test.Store;
 
 public class LockManagerExclusiveTests
 {

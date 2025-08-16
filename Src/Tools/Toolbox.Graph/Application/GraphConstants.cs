@@ -16,7 +16,7 @@ public static class GraphConstants
 
     public static class Data
     {
-        public const string BasePath = "files";
+        public const string BasePath = "data";
     }
 
     public const string EntityFileIdPrefix = "entity:";

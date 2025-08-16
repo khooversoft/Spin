@@ -107,7 +107,7 @@ internal static class NodeDataTool
 
         var writeOption = await pContext.DataClient.Set(fileId, dataETag, pContext.Context).ConfigureAwait(false);
 
-        if (writeOption.IsError()) return writeOption.LogStatus(pContext.Context, "Write node data fileId={fileId} failed", [fileId]);
+        if (writeOption.IsError()) return writeOption.LogStatus(pContext.Context, "Write node data fileId={fileId} failed", [fileId]).ToOptionStatus();
 
         if (currentOption.IsNotFound())
             pContext.TransactionScope.DataAdd(fileId, dataETag);

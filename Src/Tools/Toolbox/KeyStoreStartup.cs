@@ -29,8 +29,8 @@ public static class KeyStoreStartup
             case FileSystemType.Hash:
                 services.TryAddSingleton<IFileSystem<T>>(services => builder.BasePath switch
                 {
-                    null => ActivatorUtilities.CreateInstance<KeyFileSystem<T>>(services),
-                    string basePath => ActivatorUtilities.CreateInstance<KeyFileSystem<T>>(services, basePath),
+                    null => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services),
+                    string basePath => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services, basePath),
                 });
                 break;
         }

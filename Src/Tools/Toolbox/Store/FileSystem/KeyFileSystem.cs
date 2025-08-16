@@ -1,4 +1,5 @@
 ﻿using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Store;
 
@@ -19,14 +20,25 @@ public class KeyFileSystem<T> : IFileSystem<T>
         key.NotEmpty();
         listType.NotEmpty();
 
-        return $"{this.CreatePathPrefix()}{listType}/{key}.{listType}.json";
+        var path = (typeof(T) == typeof(DataETag)) switch
+        {
+            true => $"{this.CreatePathPrefix()}{listType}/{key}",
+            false => $"{this.CreatePathPrefix()}{listType}/{key}.{listType}.json"
+        };
+
+        return path.ToLowerInvariant();
     }
 
-    public string BuildSearch(string? key = null, string? pattern = null) => (key, pattern) switch
+    public string BuildSearch(string? key = null, string? pattern = null)
     {
-        (null, null) => $"{this.CreatePathPrefix()}**/*",
-        (null, _) => $"{this.CreatePathPrefix()}{pattern}",
-        (_, null) => $"{this.CreatePathPrefix()}{key}/**/*",
-        _ => $"{this.CreatePathPrefix()}{key}/{pattern}"
-    };
+        string path = (key, pattern) switch
+        {
+            (null, null) => $"{this.CreatePathPrefix()}**/*",
+            (null, _) => $"{this.CreatePathPrefix()}{pattern}",
+            (_, null) => $"{this.CreatePathPrefix()}{key}/**/*",
+            _ => $"{this.CreatePathPrefix()}{key}/{pattern}"
+        };
+
+        return path.ToLowerInvariant();
+    }
 }

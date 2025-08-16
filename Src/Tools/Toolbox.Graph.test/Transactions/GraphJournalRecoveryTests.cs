@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Azure;
-using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
 using Toolbox.Models;
@@ -20,7 +19,7 @@ public class GraphJournalRecoveryTests
 
     private async Task<IHost> CreateService(bool useDatalake)
     {
-        DatalakeOption datalakeOption = TestApplication.ReadDatalakeOption("test-GraphTransactionTests");
+        DatalakeOption datalakeOption = TestApplication.ReadDatalakeOption("test-GraphJournalRecoveryTests");
 
         var host = Host.CreateDefaultBuilder()
             .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
@@ -57,7 +56,7 @@ public class GraphJournalRecoveryTests
         var context = host.Services.GetRequiredService<ILogger<GraphTransactionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        IDataClient<DataChangeRecord> changeClient = host.Services.GetRequiredService<IDataClient<DataChangeRecord>>();
+        IListStore<DataChangeRecord> changeClient = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         string q = """
             add node key=node1 set t1;
@@ -89,7 +88,7 @@ public class GraphJournalRecoveryTests
         var context = host.Services.GetRequiredService<ILogger<GraphTransactionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        IDataClient<DataChangeRecord> changeClient = host.Services.GetRequiredService<IDataClient<DataChangeRecord>>();
+        IListStore<DataChangeRecord> changeClient = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         string q = """
                 add node key=node1 set t1;

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Models;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -23,24 +23,41 @@ public static class GraphStartup
         services.AddSingleton<GraphMapDataManager>();
         services.AddSingleton<IGraphClient, GraphQueryExecute>();
 
-        services.AddDataPipeline<GraphSerialization>(builder =>
+        services.AddKeyStore<GraphSerialization>(FileSystemType.Key, config =>
         {
-            builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}";
-            //builder.PathBuilder = PartitionSchemas.ScalarPath<GraphSerialization>;
-            builder.AddFileStore();
+            config.BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}";
+            config.AddKeyStore();
         });
 
-        services.AddDataPipeline<DataETag>(builder =>
+        services.AddKeyStore<DataETag>(FileSystemType.Hash, config =>
         {
-            builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.Data.BasePath}";
-            builder.AddFileStore();
+            config.BasePath = $"{hostOption.BasePath}/{GraphConstants.Data.BasePath}";
+            config.AddKeyStore();
         });
 
-        services.AddDataListPipeline<DataChangeRecord>(builder =>
+        services.AddListStore<DataChangeRecord>(config =>
         {
-            builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.Journal.BasePath}";
-            builder.AddListStore();
+            config.BasePath = $"{hostOption.BasePath}/{GraphConstants.Journal.BasePath}";
         });
+
+        //services.AddDataPipeline<GraphSerialization>(builder =>
+        //{
+        //    builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}";
+        //    //builder.PathBuilder = PartitionSchemas.ScalarPath<GraphSerialization>;
+        //    builder.AddFileStore();
+        //});
+
+        //services.AddDataPipeline<DataETag>(builder =>
+        //{
+        //    builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.Data.BasePath}";
+        //    builder.AddFileStore();
+        //});
+
+        //services.AddDataListPipeline<DataChangeRecord>(builder =>
+        //{
+        //    builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.Journal.BasePath}";
+        //    builder.AddListStore();
+        //});
 
         return services;
     }

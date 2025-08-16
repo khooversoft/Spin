@@ -13,7 +13,7 @@ public class InMemoryFileAccess : IFileAccess
 
     internal InMemoryFileAccess(string path, MemoryStore memoryStore, ILogger logger)
     {
-        Path = path.NotEmpty();
+        Path = path.NotEmpty().ToLowerInvariant();
         _memoryStore = memoryStore.NotNull();
         _logger = logger.NotNull();
     }

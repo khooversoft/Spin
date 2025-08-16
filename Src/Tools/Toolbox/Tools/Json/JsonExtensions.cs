@@ -1,8 +1,7 @@
 ﻿using System.Text.Json;
-using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Extensions;
+namespace Toolbox.Tools;
 
 public static class JsonExtensions
 {
@@ -21,7 +20,7 @@ public static class JsonExtensions
         }
         catch (Exception ex)
         {
-            context.LogError(ex, "Json serialzation error");
+            context.LogError(ex, "Json serialization error");
             return string.Empty;
         }
     }

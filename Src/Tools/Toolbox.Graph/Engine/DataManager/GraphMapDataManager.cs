@@ -2,6 +2,7 @@
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Models;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -9,19 +10,19 @@ namespace Toolbox.Graph;
 
 public class GraphMapDataManager
 {
-    private readonly IDataClient<GraphSerialization> _graphDataClient;
-    private readonly IDataListClient<DataChangeRecord> _changeClient;
+    private readonly IKeyStore<GraphSerialization> _graphDataClient;
+    private readonly IListStore<DataChangeRecord> _changeClient;
     private readonly ILogger<GraphMapDataManager> _logger;
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-    private readonly IDataClient<DataETag> _dataFileClient;
+    private readonly IKeyStore<DataETag> _dataFileClient;
     private readonly LogSequenceNumber _logSequenceNumber = new LogSequenceNumber();
     private readonly GraphMapCounter _graphMapCounter;
     private GraphMap? _map;
 
     public GraphMapDataManager(
-        IDataClient<GraphSerialization> graphDataClient,
-        IDataListClient<DataChangeRecord> changeClient,
-        IDataClient<DataETag> dataFileClient,
+        IKeyStore<GraphSerialization> graphDataClient,
+        IListStore<DataChangeRecord> changeClient,
+        IKeyStore<DataETag> dataFileClient,
         GraphMapCounter graphMapCounter,
         ILogger<GraphMapDataManager> logger
         )
@@ -46,7 +47,7 @@ public class GraphMapDataManager
         var setOption = await _graphDataClient.Set(GraphConstants.GraphMap.Key, _map.ToSerialization(), context);
         setOption.LogStatus(context, "Failed to initialize graph map").ToOption();
 
-        return setOption;
+        return setOption.ToOptionStatus();
     }
 
     public async Task<Option> LoadDatabase(ScopeContext context)
@@ -140,12 +141,12 @@ public class GraphMapDataManager
         try
         {
             var journalOption = await _changeClient.Append(GraphConstants.Journal.Key, [dataChangeRecord], context);
-            if (journalOption.IsError()) return journalOption.LogStatus(context, "Failed to load graph map");
+            if (journalOption.IsError()) return journalOption.LogStatus(context, "Failed to load graph map").ToOptionStatus();
 
             dataChangeRecord.GetLastLogSequenceNumber()?.Action(x => _map.SetLastLogSequenceNumber(x));
 
             var setOption = await _graphDataClient.Set(GraphConstants.GraphMap.Key, _map.ToSerialization(), context);
-            if (setOption.IsError()) return setOption.LogStatus(context, "Failed to load graph map");
+            if (setOption.IsError()) return setOption.LogStatus(context, "Failed to load graph map").ToOptionStatus();
 
             return StatusCode.OK;
         }

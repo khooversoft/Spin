@@ -31,6 +31,6 @@ public static class FileSystemTool
     public static string CreatePathPrefix<T>(this IFileSystem<T> subject) => subject.BasePath switch
     {
         null => string.Empty,
-        _ => $"{subject.BasePath}/"
+        _ => $"{subject.BasePath}/".ToLowerInvariant(),
     };
 }

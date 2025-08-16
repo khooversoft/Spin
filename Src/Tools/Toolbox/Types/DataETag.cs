@@ -6,14 +6,24 @@ using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
-//public readonly struct DataETag<T>
-//{
-//    [JsonConstructor]
-//    public DataETag(T value, string? eTag = null) => (Value, ETag) = (value.NotNull(), eTag);
+public readonly struct DataETag<T>
+{
+    public DataETag(DataETag data) => Data = data;
+    public DataETag Data { get; }
 
-//    public T Value { get; }
-//    public string? ETag { get; }
-//}
+    public static DataETag<T> Create(DataETag data)
+    {
+        if (data.Data.IsDefaultOrEmpty) throw new ArgumentException("Data cannot be empty", nameof(data));
+        return new DataETag<T>(data);
+    }
+    public static DataETag<T> Create<TValue>(TValue value)
+    {
+        value.NotNull();
+        DataETag data = value.ToDataETag();
+        return new DataETag<T>(data);
+    }
+}
+
 
 public readonly struct DataETag : IEquatable<DataETag>
 {
@@ -25,6 +35,7 @@ public readonly struct DataETag : IEquatable<DataETag>
 
     public ImmutableArray<byte> Data { get; }
     public string? ETag { get; }
+    public DataETag Append(DataETag append) => Data.Concat(append.Data).ToDataETag();
 
     public override bool Equals(object? obj) => obj is DataETag tag && Equals(tag);
     public bool Equals(DataETag other) => !other.Data.IsDefault && Data.SequenceEqual(other.Data);
@@ -60,6 +71,7 @@ public static class DataETagExtensions
         value.NotNull();
 
         if (value is DataETag dataTag) return dataTag;
+        if (value is DataETag<T> dataTagType) return dataTagType.Data;
 
         var bytes = value switch
         {
@@ -74,6 +86,7 @@ public static class DataETagExtensions
         return new DataETag(bytes, currentETag);
     }
 
+    public static T ToObject<T>(this DataETag<T> subject) => subject.NotNull().Data.ToObject<T>();
     public static DataETag StripETag(this DataETag data) => new DataETag([.. data.Data]);
     public static string ToHash(this DataETag data) => data.Data.ToHexHash();
     public static DataETag WithHash(this DataETag data) => new DataETag(data.Data, data.ToHash());
@@ -96,5 +109,4 @@ public static class DataETagExtensions
         return result;
     }
 
-    public static DataETag Append(this DataETag subject, DataETag append) => subject.Data.Concat(append.Data).ToDataETag();
 }

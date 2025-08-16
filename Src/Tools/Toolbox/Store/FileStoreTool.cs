@@ -43,8 +43,19 @@ public static class FileStoreTool
         string buildPattern() => path switch
         {
             null => "**/*",
-            string => path.EndsWith('/') ? path + "**/*" : path + "/**/*",
+            string => fixPath(path),
         };
+
+        static string fixPath(string pathToFix)
+        {
+            pathToFix.Contains('*').BeFalse("Path should not contain wildcard characters");
+
+            return pathToFix.EndsWith('/') switch
+            {
+                true => pathToFix + "**/*",
+                false => pathToFix + "/**/*"
+            };
+        }
     }
 
     private static async Task<Option> InternalDelete(IFileStore fileStore, IReadOnlyList<IStorePathDetail> pathItems, ScopeContext context)

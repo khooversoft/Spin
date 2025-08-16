@@ -1,4 +1,4 @@
-﻿using Toolbox.Extensions;
+﻿using Toolbox.Tools;
 
 namespace Toolbox.Graph;
 

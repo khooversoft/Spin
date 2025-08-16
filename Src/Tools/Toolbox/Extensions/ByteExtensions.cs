@@ -18,7 +18,7 @@ public static class ByteExtensions
     }
 
     /// <summary>
-    /// COnvert bytes to string
+    /// Convert bytes to string
     /// </summary>
     /// <param name="bytes"></param>
     /// <returns></returns>
@@ -29,7 +29,7 @@ public static class ByteExtensions
     }
 
     /// <summary>
-    /// COnvert bytes to string
+    /// Convert bytes to string
     /// </summary>
     /// <param name="span"></param>
     /// <returns></returns>

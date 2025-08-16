@@ -1,5 +1,5 @@
-﻿using Toolbox.Data;
-using Toolbox.Models;
+﻿using Toolbox.Models;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -7,7 +7,7 @@ namespace Toolbox.Graph;
 
 public static class DataBuild
 {
-    public static async Task<Option> Build(GraphMap map, DataChangeEntry entry, IDataClient<DataETag> dataFileClient, ScopeContext context)
+    public static async Task<Option> Build(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ScopeContext context)
     {
         map.NotNull();
         entry.NotNull();
@@ -26,7 +26,8 @@ public static class DataBuild
         return StatusCode.NotFound;
     }
 
-    private static async Task<Option> Add(GraphMap map, DataChangeEntry entry, IDataClient<DataETag> dataFileClient, ScopeContext context)
+
+    private static async Task<Option> Add(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ScopeContext context)
     {
         if (entry.After == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 
@@ -34,7 +35,7 @@ public static class DataBuild
         if (setOption.IsError())
         {
             context.LogError("Cannot set fileId={fileId}", entry.ObjectId);
-            return setOption;
+            return setOption.ToOptionStatus();
         }
 
         context.LogDebug("Build: added fileId={fileId} to store, entry={entry}", entry.ObjectId, entry);
@@ -42,7 +43,7 @@ public static class DataBuild
         return StatusCode.OK;
     }
 
-    private static async Task<Option> Delete(GraphMap map, DataChangeEntry entry, IDataClient<DataETag> dataFileClient, ScopeContext context)
+    private static async Task<Option> Delete(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ScopeContext context)
     {
         var deleteOption = await dataFileClient.Delete(entry.ObjectId, context);
         if (deleteOption.IsError())

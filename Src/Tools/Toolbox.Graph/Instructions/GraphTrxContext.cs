@@ -1,6 +1,6 @@
 ﻿using System.Collections.Immutable;
-using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -31,7 +31,7 @@ public class GraphTrxContext
     public JoinInstructionSwitch LastJoin { get; } = new JoinInstructionSwitch();
     public TransactionScope TransactionScope { get; }
     public ScopeContext Context { get; }
-    public IDataClient<DataETag> DataClient => _graphEngine.DataClient;
+    public IKeyStore<DataETag> DataClient => _graphEngine.DataClient;
     public GraphMap GetMap() => _graphEngine.DataManager.GetMap();
 
     public void AddQueryResult(Option subject) => _queryResult.Add(new QueryResult { QueryNumber = NextQueryNumber(), Option = subject });

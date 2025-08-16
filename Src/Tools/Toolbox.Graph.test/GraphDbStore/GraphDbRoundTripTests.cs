@@ -55,7 +55,8 @@ public class GraphDbRoundTripTests
         var context = host.Services.GetRequiredService<ILogger<GraphDbRoundTripTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        IFileStore fileStore = host.Services.GetRequiredService<IFileStore>();
+        var fileStore = host.Services.GetRequiredService<IFileStore>();
+        var fileSystem = host.Services.GetRequiredService<IFileSystem<GraphSerialization>>();
         const int count = 5;
 
         var seq = new Sequence<string>();
@@ -67,9 +68,11 @@ public class GraphDbRoundTripTests
         var eResult = await graphClient.ExecuteBatch(cmd, context);
         eResult.IsOk().BeTrue(eResult.ToString());
 
-        (await fileStore.File("basepath/graphdb/graphserialization/graphmap.graphserialization.json").Get(context)).Action(x =>
+        string path = fileSystem.PathBuilder(GraphConstants.GraphMap.Key);
+
+        (await fileStore.File(path).Get(context)).Action(x =>
         {
-            x.IsOk().BeTrue(x.ToString());
+            x.BeOk();
 
             GraphSerialization readRec = x.Return().ToObject<GraphSerialization>();
             readRec.NotNull();

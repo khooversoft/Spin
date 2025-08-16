@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Toolbox.Data;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -8,14 +8,14 @@ namespace Toolbox.Graph;
 public interface IGraphEngine
 {
     GraphMapDataManager DataManager { get; }
-    IDataClient<DataETag> DataClient { get; }
+    IKeyStore<DataETag> DataClient { get; }
 }
 
 public class GraphEngine : IGraphEngine
 {
     private readonly ILogger<GraphEngine> _logger;
 
-    public GraphEngine(GraphMapDataManager dataManager, IDataClient<DataETag> dataClient, ILogger<GraphEngine> logger)
+    public GraphEngine(GraphMapDataManager dataManager, IKeyStore<DataETag> dataClient, ILogger<GraphEngine> logger)
     {
         DataManager = dataManager.NotNull();
         DataClient = dataClient.NotNull();
@@ -23,5 +23,5 @@ public class GraphEngine : IGraphEngine
     }
 
     public GraphMapDataManager DataManager { get; }
-    public IDataClient<DataETag> DataClient { get; }
+    public IKeyStore<DataETag> DataClient { get; }
 }

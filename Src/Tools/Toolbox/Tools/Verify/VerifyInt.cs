@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace Toolbox.Tools;
@@ -71,6 +72,28 @@ public static class VerifyInt
         var location = new CodeLocation(function, path, lineNumber, name);
 
         if (subject == value) throw new ArgumentException(Verify.FormatException($"Value is '{subject}' should NOT be '{value}'", because));
+        return subject;
+    }
+
+    [DebuggerStepThrough]
+    public static int? BeWithinPercentage(
+        this int subject,
+        int target,
+        double percentage,
+        string? because = null,
+        [CallerMemberName] string function = "",
+        [CallerFilePath] string path = "",
+        [CallerLineNumber] int lineNumber = 0,
+        [CallerArgumentExpression("subject")] string name = ""
+        )
+    {
+        var location = new CodeLocation(function, path, lineNumber, name);
+
+        if (!subject.IsWithinPercentage(target, percentage)) throw new ArgumentException(
+                Verify.FormatException($"Value is '{subject}' is not within percentage {percentage} of {target}",
+                because
+                ));
+
         return subject;
     }
 }

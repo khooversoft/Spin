@@ -2,9 +2,9 @@
 using Toolbox.Azure.test.Application;
 using Xunit.Abstractions;
 
-namespace Toolbox.Azure.test.Data.DataClient;
+namespace Toolbox.Azure.test.Store;
 
-public class LockManagerSharedTests : Test.Data.DataClient.LockManagerSharedTests
+public class LockManagerSharedTests : Test.Store.LockManagerSharedTests
 {
     public LockManagerSharedTests(ITestOutputHelper outputHelper) : base(outputHelper) { }
 

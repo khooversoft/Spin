@@ -94,7 +94,7 @@ public class KeyStore<T> : IKeyStore<T>
         }
 
         context.LogDebug("Found path={path}", path);
-        T value = readOption.Return().ToObject<T>();
+        T value = data.ToObject<T>();
         return value;
     }
 
@@ -164,7 +164,7 @@ public class KeyStore<T> : IKeyStore<T>
         string path = _fileSystem.PathBuilder(key);
         context.LogDebug("Setting path={path}", path);
 
-        var data = value.ToJson().ToDataETag();
+        var data = value.ToDataETag();
         var setOption = await _lockManager.GetReadWriteAccess(path, context).Set(data, context);
         setOption.LogStatus(context, "Write path={path}", [path]);
         return setOption;

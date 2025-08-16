@@ -18,7 +18,7 @@ public class GraphTrxEdgeTests
 
     private async Task<IHost> CreateService(bool useDatalake)
     {
-        DatalakeOption datalakeOption = TestApplication.ReadDatalakeOption("test-GraphTransactionTests");
+        DatalakeOption datalakeOption = TestApplication.ReadDatalakeOption("test-GraphTrxEdgeTests");
 
         var host = Host.CreateDefaultBuilder()
             .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
@@ -65,9 +65,10 @@ public class GraphTrxEdgeTests
 
         (await graphClient.ExecuteBatch(q, context)).IsOk().BeTrue();
 
-        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
-        graphEngine.DataManager.GetMap().Edges.Count.Be(1);
+        graphEngine.DataManager.GetMap().Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).BeTrue();
+        graphEngine.DataManager.GetMap().Edges.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1->node2(default)"]).BeTrue();
 
+        // should fail, adding node3 because it already exist
         string q2 = """
             add edge from=node2, to=node3, type=default;
             add node key=node3;
@@ -80,8 +81,8 @@ public class GraphTrxEdgeTests
             x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
         });
 
-        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
-        graphEngine.DataManager.GetMap().Edges.Count.Be(1);
+        graphEngine.DataManager.GetMap().Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).BeTrue();
+        graphEngine.DataManager.GetMap().Edges.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1->node2(default)"]).BeTrue();
     }
 
     [Theory]

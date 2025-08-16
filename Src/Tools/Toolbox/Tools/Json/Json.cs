@@ -1,5 +1,4 @@
-﻿using System.Text.Encodings.Web;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
@@ -18,7 +17,11 @@ public class Json
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+        Converters =
+        {
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+            new ImmutableByteArrayConverter(),
+        },
     };
 
     public static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions
@@ -26,13 +29,16 @@ public class Json
         PropertyNameCaseInsensitive = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         ReadCommentHandling = JsonCommentHandling.Skip,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+        Converters =
+        {
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+            new ImmutableByteArrayConverter(),
+        },
     };
 
     public static JsonSerializerOptions PascalOptions { get; } = new JsonSerializerOptions
     {
         PropertyNameCaseInsensitive = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         ReadCommentHandling = JsonCommentHandling.Skip,
     };
 

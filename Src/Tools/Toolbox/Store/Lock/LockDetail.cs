@@ -20,5 +20,5 @@ public record LockDetail
     public DateTime AcquiredDate { get; } = DateTime.UtcNow;
     public TimeSpan Duration { get; }
 
-    public static string CreateKey(string pipelineName, string path) => $"{pipelineName.NotEmpty()}:{path.NotEmpty()}".ToLowerInvariant();
+    public static string CreateKey(string pipelineName, string path) => $"{pipelineName.NotEmpty()}:{path.NotEmpty()}";
 }
