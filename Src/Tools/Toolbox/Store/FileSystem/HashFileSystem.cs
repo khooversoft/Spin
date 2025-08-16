@@ -18,7 +18,7 @@ public class HashFileSystem<T> : IFileSystem<T>
     {
         var path = (typeof(T) == typeof(DataETag)) switch
         {
-            true => $"{key}",
+            true => key,
             false => $"{key}.{listType}.json"
         };
 

@@ -41,7 +41,7 @@ public class ListStore<T> : IListStore<T>
         key.NotEmpty();
         context.LogDebug("Delete: Deleting list key={key}", key);
 
-        var clearOption = await _fileStore.ClearFolder($"{key}", context);
+        var clearOption = await _fileStore.ClearFolder(key, context);
         return clearOption;
     }
 
@@ -54,7 +54,6 @@ public class ListStore<T> : IListStore<T>
         context.LogDebug("Get: Getting list items, pattern={pattern}", pattern);
 
         string searchPattern = _fileSystem.BuildSearch(key);
-        //string searchPattern = $"{key}/{pattern}";
         IReadOnlyList<IStorePathDetail> searchList = (await _fileStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
         return await ReadList(pattern, context, searchList);
     }

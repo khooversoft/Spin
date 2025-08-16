@@ -40,7 +40,7 @@ public class ListStoreTimeIndexTests
 
     [Theory]
     [InlineData(false)]
-    //[InlineData(true)]
+    [InlineData(true)]
     public async Task GetHistoryByTimeIndex(bool useQueue)
     {
         using var host = await BuildService(useQueue);
@@ -81,6 +81,7 @@ public class ListStoreTimeIndexTests
         (await listStore.Get(key, context)).BeOk().Return().SequenceEqual(entrySequence).BeTrue();
 
         await entrySequence.First().Func(async selectedEntry => await testEntry(selectedEntry));
+
         await entrySequence.Last().Func(async selectedEntry => await testEntry(selectedEntry));
         await entrySequence.Shuffle().First().Func(async selectedEntry => await testEntry(selectedEntry));
 
