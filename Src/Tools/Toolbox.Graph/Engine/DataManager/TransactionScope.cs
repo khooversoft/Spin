@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Models;
@@ -43,7 +44,7 @@ public class TransactionScope : IAsyncDisposable
         if (committed) throw new InvalidOperationException();
 
         context.LogDebug("Committing changes for transaction");
-        var commitOption = await _commitFunc(GetChangeRecords(), context).ConfigureAwait(false);
+        var commitOption = await _commitFunc(GetChangeRecords(), context);
         if (commitOption.IsError())
         {
             commitOption.LogStatus(context, "Failed to commit changes");
@@ -59,8 +60,16 @@ public class TransactionScope : IAsyncDisposable
         var current = Interlocked.CompareExchange(ref _isCommitted, true, false);
         if (current)
         {
-            if (_queue.Count > 0) throw new InvalidOperationException($"Commit or rollback already executed, queue.count={_queue.Count}");
-            return;
+            if (_queue.Count == 0) return;
+            var str = new StringBuilder(Environment.NewLine);
+
+            foreach (var item in _queue)
+            {
+                context.LogDebug("Rollback entry: {Entry}", item);
+                str.Append(item.ToString() + Environment.NewLine);
+            }
+
+            throw new InvalidOperationException($"Commit or rollback already executed, queue.count={_queue.Count}, details={str}");
         }
 
         if (_queue.Count == 0) return;
@@ -76,7 +85,7 @@ public class TransactionScope : IAsyncDisposable
         _queue.Clear();
     }
 
-    public async ValueTask DisposeAsync() => await Rollback(_logger.ToScopeContext()).ConfigureAwait(false);
+    public async ValueTask DisposeAsync() => await Rollback(_logger.ToScopeContext());
 
     private DataChangeRecord GetChangeRecords() => new DataChangeRecord
     {

@@ -71,9 +71,8 @@ public class ListStoreTests
         (await fileStore.Search("**/*", context)).Count.Be(1);
 
         (await listStore.Delete(key, context)).BeOk();
-        (await listStore.Search(key, "**/*", context)).Count.Be(0);
-
-        (await fileStore.Search("**/*", context)).Count.Be(0);
+        (await listStore.Search(key, "**/*", context)).ForEach(x => context.LogError("Search item={item}", x.Path)).Count().Be(0);
+        (await fileStore.Search("**/*", context)).ForEach(x => context.LogError("Search item={item}", x.Path)).Count().Be(0);
     }
 
     [Theory]
@@ -127,8 +126,8 @@ public class ListStoreTests
         (await fileStore.Search("**/*", context)).Count.Be(1);
 
         (await listStore.Delete(key, context)).BeOk();
-        (await listStore.Search(key, "**/*", context)).Count.Be(0);
-        (await fileStore.Search("**/*", context)).Count.Be(0);
+        (await listStore.Search(key, "**/*", context)).ForEach(x => context.LogError("Search item={item}", x.Path)).Count().Be(0);
+        (await fileStore.Search("**/*", context)).ForEach(x => context.LogError("Search item={item}", x.Path)).Count().Be(0);
     }
 
     [Theory]
@@ -173,8 +172,8 @@ public class ListStoreTests
         context.LogDebug("Final Count={count}, sequence.count={seqCount}", count, sequence.Count);
 
         (await listStore.Delete(key, context)).BeOk();
-        (await listStore.Search(key, "**/*", context)).Count.Be(0);
-        (await fileStore.Search("**/*", context)).Count.Be(0);
+        (await listStore.Search(key, "**/*", context)).ForEach(x => context.LogError("Search item={item}", x.Path)).Count().Be(0);
+        (await fileStore.Search("**/*", context)).ForEach(x => context.LogDebug("Search item={item}", x.Path)).Count().Be(0);
     }
 
     [Theory]
@@ -213,8 +212,8 @@ public class ListStoreTests
         double tps = count / timing.TotalSeconds;
         context.LogDebug("Performance: Count={count}, sequence.count={seqCount}, timing={timing}, tps={tps}", count, sequence.Count, timing, tps);
 
-        //(await listStore.Delete(key, context)).BeOk();
-        //(await listStore.Search(key, "**/*", context)).Count.Be(0);
-        //(await fileStore.Search("**/*", context)).Count.Be(0);
+        (await listStore.Delete(key, context)).BeOk();
+        (await listStore.Search(key, "**/*", context)).ForEach(x => context.LogError("Search item={item}", x.Path)).Count().Be(0);
+        (await fileStore.Search("**/*", context)).ForEach(x => context.LogDebug("Search item={item}", x.Path)).Count().Be(0);
     }
 }

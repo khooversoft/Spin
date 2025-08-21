@@ -99,7 +99,7 @@ public class LockManager : IAsyncDisposable
     private async Task<Option> Acquire(string path, ScopeContext context)
     {
         context.LogDebug("Acquiring shared lock for path={path}", path);
-        var lockOption = await _fileStore.File(path).Acquire(_defaultLockDuration, context).ConfigureAwait(false);
+        var lockOption = await _fileStore.File(path).AcquireLease(_defaultLockDuration, context).ConfigureAwait(false);
 
         if (lockOption.IsError()) return lockOption.LogStatus(context, "Failed to acquire lock for path={path}", [path]).ToOptionStatus();
 
@@ -111,7 +111,7 @@ public class LockManager : IAsyncDisposable
     {
         context.LogDebug("Acquiring exclusive lock for path={path}", path);
 
-        var lockOption = await _fileStore.File(path).AcquireExclusive(true, context).ConfigureAwait(false);
+        var lockOption = await _fileStore.File(path).AcquireExclusiveLease(true, context).ConfigureAwait(false);
         if (lockOption.IsError()) return lockOption.LogStatus(context, "Failed to acquire exclusive lock for path={path}", [path]).ToOptionStatus();
 
         SetDetail(new LockDetail(path, lockOption.Return(), LockMode.Exclusive, TimeSpan.MaxValue));

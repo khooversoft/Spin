@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.Configuration;
 using Toolbox.Extensions;
 
-namespace Toolbox.Tools.Dump;
+namespace Toolbox.Tools;
 
 public static class AppEnvironment
 {

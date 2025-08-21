@@ -26,7 +26,7 @@ public class GraphQueryExecute : IGraphClient
     {
         context = context.With(_logger);
 
-        var result = await InternalExecute(_graphEngine, command, context).ConfigureAwait(false);
+        var result = await InternalExecute(_graphEngine, command, context);
         return result;
     }
 
@@ -34,7 +34,7 @@ public class GraphQueryExecute : IGraphClient
     {
         context = context.With(_logger);
 
-        var result = await InternalExecute(_graphEngine, command, context).ConfigureAwait(false);
+        var result = await InternalExecute(_graphEngine, command, context);
         if (result.IsError()) return result.ToOptionStatus<QueryResult>();
 
         return result.Return().Items.Last();

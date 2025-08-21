@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <ConfigureAwaitEnforcer>ConfigureAwaitEnforcer.Always</ConfigureAwaitEnforcer>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,7 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Docs\" />
+        <Folder Include="Docs\" />
     </ItemGroup>
 
 </Project>

@@ -35,25 +35,25 @@ public static class DatalakeGetTool
 
         try
         {
-            var ifExists = await fileClient.ExistsAsync(context).ConfigureAwait(false);
+            var ifExists = await fileClient.ExistsAsync(context);
             metric.Log("InternalRead");
             if (ifExists.Value == false)
             {
-                context.LogWarning("File not found, path={path}", fileClient.Path);
+                context.LogDebug("File not found, path={path}", fileClient.Path);
                 return StatusCode.NotFound;
             }
 
             Response<FileDownloadInfo> response = options switch
             {
-                null => await fileClient.ReadAsync(context.CancellationToken).ConfigureAwait(false),
-                var v => await fileClient.ReadAsync(v, context.CancellationToken).ConfigureAwait(false),
+                null => await fileClient.ReadAsync(context.CancellationToken),
+                var v => await fileClient.ReadAsync(v, context.CancellationToken),
             };
 
             if (response.Value == null) return StatusCode.NotFound;
             metric.Log("readAsync");
 
             using MemoryStream memory = new MemoryStream();
-            await response.Value.Content.CopyToAsync(memory).ConfigureAwait(false);
+            await response.Value.Content.CopyToAsync(memory);
 
             byte[] data = memory.ToArray();
             string etag = response.Value.Properties.ETag.ToString();

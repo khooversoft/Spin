@@ -11,7 +11,7 @@ public class KeyStoreDatalakeTests : KeyStoreTests
 
     protected override void AddStore(IServiceCollection services)
     {
-        var datalakeOption = TestApplication.ReadOption("KeyStoreTests");
+        var datalakeOption = TestApplication.ReadOption("KeyStoreDatalakeTests");
         services.AddDatalakeFileStore(datalakeOption);
     }
 }

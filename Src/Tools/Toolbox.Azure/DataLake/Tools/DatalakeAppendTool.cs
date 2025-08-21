@@ -1,6 +1,7 @@
 ﻿using Azure;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
+using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -30,30 +31,68 @@ public static class DatalakeAppendTool
         using var metric = context.LogDuration("dataLakeStore-append", "path={path}, dataSize={dataSize}", fileClient.Path, data.Data.Length);
         context.LogDebug("Appending to {path}, data.Length={data.Length}", fileClient.Path, data.Data.Length);
 
+        var resultOption = appendOptions?.LeaseId switch
+        {
+            string leaseId when leaseId.IsNotEmpty() => await LeaseAppend(fileClient, leaseId, data, context),
+            _ => await getLeaseAndAppend()
+        };
+
+        return resultOption;
+
+
+        async Task<Option<string>> getLeaseAndAppend()
+        {
+            context.LogDebug("Acquiring lease for path={path}", fileClient.Path);
+
+            var leaseOption = await fileClient.InternalAcquireLease(TimeSpan.FromSeconds(30), context);
+            if (leaseOption.IsError())
+            {
+                context.LogError("Failed to acquire lease for path={path}", fileClient.Path);
+                return leaseOption.ToOptionStatus<string>();
+            }
+
+            var leaseFile = leaseOption.Return();
+            try
+            {
+                return await LeaseAppend(fileClient, leaseFile.LeaseId, data, context);
+            }
+            finally
+            {
+                context.LogDebug("Releasing lease for path={path}", fileClient.Path);
+                await leaseFile.ReleaseLease(fileClient.Path, context);
+            }
+        }
+    }
+
+    private static async Task<Option<string>> LeaseAppend(DataLakeFileClient fileClient, string leaseId, DataETag data, ScopeContext context)
+    {
+        var fileAppendOption = new DataLakeFileAppendOptions { LeaseId = leaseId };
+        var flushOptions = new DataLakeFileFlushOptions { Conditions = new DataLakeRequestConditions { LeaseId = leaseId } };
+
         using var memoryBuffer = new MemoryStream(data.Data.ToArray());
 
         try
         {
-            Option<IStorePathDetail> pathDetailOption = await fileClient.GetPathDetailOrCreate(context).ConfigureAwait(false);
+            Option<IStorePathDetail> pathDetailOption = await fileClient.GetPathDetailOrCreate(context);
             if (pathDetailOption.IsError()) return pathDetailOption.ToOptionStatus<string>();
             var pathDetail = pathDetailOption.Return();
 
-            var response = appendOptions switch
+            context.LogDebug("Appending to file with options, path={path}, leaseId={leaseId}", fileClient.Path, fileAppendOption.LeaseId);
+            await fileClient.AppendAsync(memoryBuffer, pathDetail.ContentLength, fileAppendOption, cancellationToken: context);
+
+            Response<PathInfo> resultLock = await fileClient.FlushAsync(pathDetail.ContentLength + data.Data.Length, options: flushOptions);
+            if (!resultLock.HasValue)
             {
-                DataLakeFileAppendOptions v => await fileClient.AppendAsync(memoryBuffer, pathDetail.ContentLength, v, cancellationToken: context).ConfigureAwait(false),
-                _ => await fileClient.AppendAsync(memoryBuffer, pathDetail.ContentLength, cancellationToken: context).ConfigureAwait(false)
-            };
+                context.LogDebug("Failed to flush data, path={path}", fileClient.Path);
+                return (StatusCode.Conflict, "Failed to flush data");
+            }
 
-            Response<PathInfo> result = await fileClient.FlushAsync(pathDetail.ContentLength + data.Data.Length).ConfigureAwait(false);
-            if (!result.HasValue) return (StatusCode.Conflict, "Failed to flush data");
-
-            context.LogDebug("Appended to path={path}", fileClient.Path);
-            return result.Value.ETag.ToString();
+            return resultLock.Value.ETag.ToString();
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "PathNotFound" || ex.ErrorCode == "BlobNotFound")
         {
             context.LogDebug("Creating path={path}", fileClient.Path);
-            return await fileClient.Set(data, context).ConfigureAwait(false);
+            return await fileClient.Set(data, context);
         }
         catch (TaskCanceledException ex)
         {

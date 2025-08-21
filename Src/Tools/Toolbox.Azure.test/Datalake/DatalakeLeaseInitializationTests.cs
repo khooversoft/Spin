@@ -31,15 +31,15 @@ public class AcquireLeaseOnNotExistFileTest : ParallelBaseTests
 
         (await _dataLake.File(path).ForceDelete(_context)).BeOk();
 
-        Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).Acquire(TimeSpan.FromSeconds(60), _context)).BeOk();
+        Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).AcquireLease(TimeSpan.FromSeconds(60), _context)).BeOk();
 
         var testData = "wrong data".ToDataETag();
         var testData2 = "right data".ToDataETag();
 
         await using (var leaseLock = leaseOption.Return())
         {
-            (await _dataLake.File(path).Acquire(TimeSpan.FromSeconds(60), _context)).BeError();
-            (await _dataLake.File(path).AcquireExclusive(false, _context)).BeError();
+            (await _dataLake.File(path).AcquireLease(TimeSpan.FromSeconds(60), _context)).BeError();
+            (await _dataLake.File(path).AcquireExclusiveLease(false, _context)).BeError();
             (await _dataLake.File(path).Set(testData, _context)).IsLocked().BeTrue();
 
             (await leaseOption.Return().Set(testData2, _context)).BeOk();
@@ -66,15 +66,15 @@ public class AcquireExclusiveLeaseOnNotExistFileTest : ParallelBaseTests
 
         (await _dataLake.File(path).ForceDelete(_context)).BeOk();
 
-        Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).AcquireExclusive(false, _context)).BeOk();
+        Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).AcquireExclusiveLease(false, _context)).BeOk();
 
         var testData = "wrong data".ToDataETag();
         var testData2 = "right data".ToDataETag();
 
         await using (var leaseLock = leaseOption.Return())
         {
-            (await _dataLake.File(path).AcquireExclusive(false, _context)).BeError();
-            (await _dataLake.File(path).Acquire(TimeSpan.FromSeconds(60), _context)).BeError();
+            (await _dataLake.File(path).AcquireExclusiveLease(false, _context)).BeError();
+            (await _dataLake.File(path).AcquireLease(TimeSpan.FromSeconds(60), _context)).BeError();
             (await _dataLake.File(path).Set(testData, _context)).IsLocked().BeTrue();
 
             (await leaseOption.Return().Set(testData2, _context)).BeOk();
@@ -104,7 +104,7 @@ public class AcquireLeaseOnExistFileTest : ParallelBaseTests
 
         (await _dataLake.File(path).ForceSet(testData, _context)).BeOk();
 
-        Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).Acquire(TimeSpan.FromSeconds(60), _context)).BeOk();
+        Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).AcquireLease(TimeSpan.FromSeconds(60), _context)).BeOk();
 
         await using (var leaseLock = leaseOption.Return())
         {
@@ -137,11 +137,11 @@ public class AcquireExclusiveLeaseOnExistFileTest : ParallelBaseTests
 
         (await _dataLake.File(path).ForceSet(testData, _context)).BeOk();
 
-        Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).AcquireExclusive(false, _context)).BeOk();
+        Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).AcquireExclusiveLease(false, _context)).BeOk();
 
         await using (var leaseLock = leaseOption.Return())
         {
-            (await _dataLake.File(path).Acquire(TimeSpan.FromSeconds(60), _context)).BeError();
+            (await _dataLake.File(path).AcquireLease(TimeSpan.FromSeconds(60), _context)).BeError();
             (await _dataLake.File(path).Set(testData, _context)).IsLocked().BeTrue();
 
             (await leaseOption.Return().Set(testData2, _context)).BeOk();
@@ -175,19 +175,19 @@ public class AcquireExclusiveAndLeaseOnExistFileTest : ParallelBaseTests
 
         _context.LogInformation("Set file {path}", path);
 
-        Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).AcquireExclusive(false, _context)).BeOk();
+        Option<IFileLeasedAccess> leaseOption = (await _dataLake.File(path).AcquireExclusiveLease(false, _context)).BeOk();
         Option<IFileLeasedAccess> leaseOption2 = default;
 
         await using (var leaseLock = leaseOption.Return())
         {
-            (await _dataLake.File(path).AcquireExclusive(false, _context)).BeError();
+            (await _dataLake.File(path).AcquireExclusiveLease(false, _context)).BeError();
             (await _dataLake.File(path).Set(testData, _context)).IsLocked().BeTrue();
 
             (await leaseOption.Return().Set(testData2, _context)).BeOk();
             (await _dataLake.File(path).Get(_context)).BeOk().Return().Data.SequenceEqual(testData2.Data).BeTrue();
 
             // Break lease
-            leaseOption2 = (await _dataLake.File(path).AcquireExclusive(true, _context)).BeOk();
+            leaseOption2 = (await _dataLake.File(path).AcquireExclusiveLease(true, _context)).BeOk();
             (await leaseOption2.Return().Set(testData3, _context)).BeOk();
 
             (await leaseOption.Return().Set(testData3, _context)).IsLocked().BeTrue();

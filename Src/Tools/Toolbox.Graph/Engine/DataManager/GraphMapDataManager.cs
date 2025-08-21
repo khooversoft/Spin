@@ -54,7 +54,7 @@ public class GraphMapDataManager
     {
         context = context.With(_logger);
 
-        await _semaphore.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        await _semaphore.WaitAsync(context.CancellationToken);
         try
         {
             var getOption = await _graphDataClient.Get(GraphConstants.GraphMap.Key, context);
@@ -65,7 +65,7 @@ public class GraphMapDataManager
                 { StatusCode: StatusCode.NotFound } => await new GraphMap(_graphMapCounter).Func(async x =>
                 {
                     var setOption = await _graphDataClient.Set(GraphConstants.GraphMap.Key, x.ToSerialization(), context);
-                    setOption.LogStatus(context, "Failed to initialize graph map").ToOption();
+                    setOption.LogStatus(context, "Graph DB not found, failed to create a new one").ToOption();
 
                     return x.ToOption();
                 }),
@@ -82,7 +82,9 @@ public class GraphMapDataManager
         }
     }
 
-    public async Task<Option<GraphMap>> BuildFromJournals(ScopeContext context)
+    public Task<Option<GraphMap>> BuildFromJournals(ScopeContext context) => BuildFromJournals(_dataFileClient, context);
+
+    public async Task<Option<GraphMap>> BuildFromJournals(IKeyStore<DataETag> dataFileClient, ScopeContext context)
     {
         context = context.With(_logger);
         context.LogDebug("Building new GraphMap from journals");
@@ -102,7 +104,7 @@ public class GraphMapDataManager
         Func<DataChangeEntry, Task<Option>>[] _exeStack = [
             x => NodeBuild.Build(map, x, context),
             x => EdgeBuild.Build(map, x, context),
-            x => DataBuild.Build(map, x, _dataFileClient, context),
+            x => DataBuild.Build(map, x, dataFileClient, context),
             ];
 
         try
@@ -137,11 +139,11 @@ public class GraphMapDataManager
         dataChangeRecord.NotNull().Validate().ThrowOnError();
         context = _logger.ToScopeContext();
 
-        await _semaphore.WaitAsync(context.CancellationToken).ConfigureAwait(false);
+        await _semaphore.WaitAsync(context.CancellationToken);
         try
         {
             var journalOption = await _changeClient.Append(GraphConstants.Journal.Key, [dataChangeRecord], context);
-            if (journalOption.IsError()) return journalOption.LogStatus(context, "Failed to load graph map").ToOptionStatus();
+            if (journalOption.IsError()) return journalOption.LogStatus(context, "Failed to append to journal file").ToOptionStatus();
 
             dataChangeRecord.GetLastLogSequenceNumber()?.Action(x => _map.SetLastLogSequenceNumber(x));
 

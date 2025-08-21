@@ -78,15 +78,37 @@ internal static class QueryExecutionContextTool
                 { Count: 0 } => Array.Empty<QueryResult>(),
                 { Count: 1 } => subject.QueryResult.ToImmutableArray(),
 
-                _ => subject.QueryResult
-                    .Take(subject.QueryResult.Count - 1)
-                    .Where(x => x.Alias == null || !x.Alias.StartsWith('_'))
-                    .Append(subject.QueryResult.Last())
-                    .ToImmutableArray(),
+                _ => buildResults(subject),
+                //_ => subject.QueryResult
+                //    .Take(subject.QueryResult.Count - 1)
+                //    .Where(x => x.Alias == null || !x.Alias.StartsWith('_'))
+                //    .Append(subject.QueryResult.Last())
+                //    .ToImmutableArray(),
             },
         };
 
         return result;
+
+        static IReadOnlyList<QueryResult> buildResults(GraphTrxContext subject)
+        {
+            var count = subject.QueryResult.Count;
+            var lastItem = subject.QueryResult[count - 1];
+            var builder = ImmutableArray.CreateBuilder<QueryResult>(count);
+
+            // Add filtered items (all but last)
+            for (int i = 0; i < count - 1; i++)
+            {
+                var item = subject.QueryResult[i];
+                if (item.Alias == null || !item.Alias.StartsWith('_'))
+                {
+                    builder.Add(item);
+                }
+            }
+
+            // Always add the last item
+            builder.Add(lastItem);
+            return builder.ToImmutable();
+        }
     }
 
     public static QueryResult? GetLastQueryResult(this GraphTrxContext subject) => subject.NotNull().QueryResult switch

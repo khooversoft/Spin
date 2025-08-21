@@ -24,6 +24,7 @@ public interface IStorePathDetail
     string ETag { get; }
     LeaseStatus LeaseStatus { get; }
     LeaseDuration LeaseDuration { get; }
+    string? ContentHash { get; }
 }
 
 
@@ -37,6 +38,7 @@ public record StorePathDetail : IStorePathDetail
     public string ETag { get; init; } = null!;
     public LeaseStatus LeaseStatus { get; init; }
     public LeaseDuration LeaseDuration { get; init; }
+    public string? ContentHash { get; init; }
 }
 
 public static class StorePathDetailExtensions
@@ -46,5 +48,19 @@ public static class StorePathDetailExtensions
         Path = path,
         ContentLength = dataETag.Data.Length,
         ETag = dataETag.ToHash(),
+    };
+
+    public static StorePathDetail WithContextHash(this IStorePathDetail subject, string contentHash) => new StorePathDetail
+    {
+        Path = subject.Path,
+        IsFolder = subject.IsFolder,
+        ContentLength = subject.ContentLength,
+        CreatedOn = subject.CreatedOn,
+        LastModified = subject.LastModified,
+        ETag = subject.ETag,
+        LeaseStatus = subject.LeaseStatus,
+        LeaseDuration = subject.LeaseDuration,
+
+        ContentHash = contentHash,
     };
 }

@@ -5,19 +5,20 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <UserSecretsId>Toolbox-Azure-test</UserSecretsId>
+        <ConfigureAwaitEnforcer>ConfigureAwaitEnforcer.Always</ConfigureAwaitEnforcer>
 
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="Application\test-appsettings.json" />
+        <None Remove="Application\test-appsettings.json" />
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="Application\test-appsettings.json">
-        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-      </EmbeddedResource>
+        <EmbeddedResource Include="Application\test-appsettings.json">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>

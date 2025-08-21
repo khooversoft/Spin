@@ -82,7 +82,7 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
         if (!disposed)
         {
             context.Location().LogDebug("DisposingAsync release lease for path={path}, leaseId={leaseId}", Path, LeaseId);
-            await Release(context).ConfigureAwait(false);
+            await Release(context);
         }
     }
 }

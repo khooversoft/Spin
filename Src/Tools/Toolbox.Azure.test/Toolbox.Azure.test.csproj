@@ -4,10 +4,10 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
         <UserSecretsId>Toolbox-Azure-test</UserSecretsId>
+        <ConfigureAwaitEnforcer>ConfigureAwaitEnforcer.Always</ConfigureAwaitEnforcer>
     </PropertyGroup>
 
     <ItemGroup>
@@ -32,9 +32,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="TestSettings.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
+        <None Update="TestSettings.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
 </Project>

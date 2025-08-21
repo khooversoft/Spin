@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox;
 
@@ -33,22 +32,49 @@ public static class KeyStoreStartup
                     string basePath => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services, basePath),
                 });
                 break;
+
+            default: throw new ArgumentException($"Unsupported FileSystemType: {fileSystemType}", nameof(fileSystemType));
         }
 
-        services.AddTransient<KeyStore<T>>();
-        services.AddSingleton<LockManager>();
+        services.TryAddTransient<KeyStore<T>>();
+        services.TryAddSingleton<LockManager>();
+        services.AddTransient<IKeyStore<T>>(builder.BuildHandlers);
 
-        services.AddTransient<IKeyStore<T>>(services =>
+        return services;
+    }
+
+    public static IServiceCollection AddKeyedKeyStore<T>(this IServiceCollection services, FileSystemType fileSystemType, string name, Action<KeyStoreBuilder<T>>? config = null)
+    {
+        services.NotNull();
+        name.NotEmpty();
+
+        var builder = new KeyStoreBuilder<T>(services, name);
+        config?.Invoke(builder);
+
+        switch (fileSystemType)
         {
-            IKeyStore<T> keyStore = services.GetRequiredService<KeyStore<T>>();
-            var keyStoreClient = builder.BuildHandlers(services, keyStore) switch
-            {
-                { StatusCode: StatusCode.OK } v => v.Return(),
-                _ => keyStore,
-            };
+            case FileSystemType.Key:
+                services.TryAddKeyedSingleton<IFileSystem<T>>(name, (services, _) => builder.BasePath switch
+                {
+                    null => ActivatorUtilities.CreateInstance<KeyFileSystem<T>>(services),
+                    string basePath => ActivatorUtilities.CreateInstance<KeyFileSystem<T>>(services, basePath),
+                });
+                break;
 
-            return keyStoreClient;
-        });
+            case FileSystemType.Hash:
+                services.TryAddKeyedSingleton<IFileSystem<T>>(name, (services, _) => builder.BasePath switch
+                {
+                    null => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services),
+                    string basePath => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services, basePath),
+                });
+                break;
+
+            default: throw new ArgumentException($"Unsupported FileSystemType: {fileSystemType}", nameof(fileSystemType));
+        }
+
+        services.AddKeyedTransient<KeyStore<T>>(name);
+        services.TryAddSingleton<LockManager>();
+        services.AddKeyedTransient<IKeyStore<T>>(name, (services, _) => builder.BuildHandlers(services));
 
         return services;
     }
@@ -64,8 +90,7 @@ public static class KeyStoreStartup
         cacheSpan ??= TimeSpan.FromSeconds(1);
 
         builder.Services.AddTransient<KeyCacheProvider<T>>(services =>
-                ActivatorUtilities.CreateInstance<KeyCacheProvider<T>>(services, cacheSpan.Value)
-            );
+            ActivatorUtilities.CreateInstance<KeyCacheProvider<T>>(services, cacheSpan.Value));
 
         builder.Services.TryAddSingleton<IMemoryCache, MemoryCache>();
         builder.NotNull().Add<KeyCacheProvider<T>>();
@@ -75,8 +100,7 @@ public static class KeyStoreStartup
     public static KeyStoreBuilder<T> AddLockProvider<T>(this KeyStoreBuilder<T> builder, LockMode lockMode)
     {
         builder.Services.AddTransient<KeyLockProvider<T>>(services =>
-                ActivatorUtilities.CreateInstance<KeyLockProvider<T>>(services, lockMode)
-            );
+            ActivatorUtilities.CreateInstance<KeyLockProvider<T>>(services, lockMode));
 
         builder.NotNull().Add<KeyLockProvider<T>>();
         return builder;

@@ -83,7 +83,7 @@ internal class GraphUniqueIndex
         var indexedTags = GetIndexedTags(newNode, currentNode);
 
         // Remove node indexes
-        _tagIndex.RemoveNodeKey(newNode.Key).Action(x => trxContext?.Action(y => x.LogStatus(y.Context, "Remove nodeKey={nodeKey}", [newNode.Key])));
+        _tagIndex.RemoveNodeKey(newNode.Key);
 
         indexedTags.ForEach(x =>
         {

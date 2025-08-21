@@ -38,8 +38,7 @@ public class GraphJournalRecoveryTests
         var context = host.Services.GetRequiredService<ILogger<GraphTransactionTests>>().ToScopeContext();
 
         IFileStore fileStore = host.Services.GetRequiredService<IFileStore>();
-        var list = await fileStore.Search("**/*", context);
-        await list.ForEachAsync(async x => await fileStore.File(x.Path).Delete(context));
+        await fileStore.ClearStore(context);
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
         await graphEngine.DataManager.LoadDatabase(context);

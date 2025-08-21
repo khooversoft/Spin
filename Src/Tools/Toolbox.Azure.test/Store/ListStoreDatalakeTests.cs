@@ -10,7 +10,7 @@ public class ListStoreDatalakeTests : Test.Store.ListStoreTests
 
     protected override void AddStore(IServiceCollection services)
     {
-        var datalakeOption = TestApplication.ReadOption("ListStoreTests");
+        var datalakeOption = TestApplication.ReadOption("ListStoreDatalakeTests");
         services.AddDatalakeFileStore(datalakeOption);
     }
 }

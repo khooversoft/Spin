@@ -32,17 +32,14 @@ public static class FileStoreTool
 
         string pattern = $"{buildPattern()};includeFolder=true";
 
-        IReadOnlyList<IStorePathDetail> pathItems = (await fileStore.Search(pattern, context)).Where(x => x.IsFolder).ToArray();
+        IReadOnlyList<IStorePathDetail> pathItems = await fileStore.Search(pattern, context);
         var deleteFolderOption = await InternalDelete(fileStore, pathItems, context);
-
-        pathItems = (await fileStore.Search(pattern, context));
-        deleteFolderOption = await InternalDelete(fileStore, pathItems, context);
 
         return StatusCode.OK;
 
         string buildPattern() => path switch
         {
-            null => "**/*",
+            null => "*",
             string => fixPath(path),
         };
 

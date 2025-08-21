@@ -26,8 +26,8 @@ public interface IFileAccess : IFileReadWriteAccess
     Task<Option> Delete(ScopeContext context);
     Task<Option> Exists(ScopeContext context);
 
-    Task<Option<IFileLeasedAccess>> Acquire(TimeSpan leaseDuration, ScopeContext context);
-    Task<Option<IFileLeasedAccess>> AcquireExclusive(bool breakLeaseIfExist, ScopeContext context);
+    Task<Option<IFileLeasedAccess>> AcquireLease(TimeSpan leaseDuration, ScopeContext context);
+    Task<Option<IFileLeasedAccess>> AcquireExclusiveLease(bool breakLeaseIfExist, ScopeContext context);
     Task<Option> BreakLease(ScopeContext context);
 }
 

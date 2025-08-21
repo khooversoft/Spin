@@ -39,7 +39,7 @@ public class DatalakeFileAccess : IFileAccess
 
         try
         {
-            Response<bool> response = await _fileClient.DeleteIfExistsAsync(cancellationToken: context).ConfigureAwait(false);
+            Response<bool> response = await _fileClient.DeleteIfExistsAsync(cancellationToken: context);
 
             if (!response.Value)
             {
@@ -70,7 +70,7 @@ public class DatalakeFileAccess : IFileAccess
 
         try
         {
-            Response<bool> response = await _fileClient.ExistsAsync(context).ConfigureAwait(false);
+            Response<bool> response = await _fileClient.ExistsAsync(context);
             return response.Value ? StatusCode.OK : StatusCode.NotFound;
         }
         catch (Exception ex)
@@ -83,7 +83,7 @@ public class DatalakeFileAccess : IFileAccess
     public Task<Option<DataETag>> Get(ScopeContext context) => _fileClient.Get(context);
     public Task<Option<IStorePathDetail>> GetDetails(ScopeContext context) => _fileClient.GetPathDetail(context);
     public Task<Option<string>> Set(DataETag data, ScopeContext context) => _fileClient.Set(data, context);
-    public Task<Option<IFileLeasedAccess>> Acquire(TimeSpan leaseDuration, ScopeContext context) => _fileClient.Acquire(leaseDuration, context);
-    public Task<Option<IFileLeasedAccess>> AcquireExclusive(bool breakLeaseIfExist, ScopeContext context) => _fileClient.AcquireExclusive(breakLeaseIfExist, context);
+    public Task<Option<IFileLeasedAccess>> AcquireLease(TimeSpan leaseDuration, ScopeContext context) => _fileClient.AcquireLease(leaseDuration, context);
+    public Task<Option<IFileLeasedAccess>> AcquireExclusiveLease(bool breakLeaseIfExist, ScopeContext context) => _fileClient.AcquireExclusiveLease(breakLeaseIfExist, context);
     public Task<Option> BreakLease(ScopeContext context) => DatalakeLeaseTool.Break(_fileClient, context);
 }

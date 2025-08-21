@@ -5,6 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <UserSecretsId>6e89a29e-6c3e-4247-aca7-092fc0e4af58</UserSecretsId>
+        <ConfigureAwaitEnforcer>ConfigureAwaitEnforcer.Always</ConfigureAwaitEnforcer>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,9 +20,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Toolbox.Azure\Toolbox.Azure.csproj" />
-      <ProjectReference Include="..\Toolbox.Graph\Toolbox.Graph.csproj" />
-      <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
+        <ProjectReference Include="..\Toolbox.Azure\Toolbox.Azure.csproj" />
+        <ProjectReference Include="..\Toolbox.Graph\Toolbox.Graph.csproj" />
+        <ProjectReference Include="..\Toolbox\Toolbox.csproj" />
     </ItemGroup>
 
 </Project>

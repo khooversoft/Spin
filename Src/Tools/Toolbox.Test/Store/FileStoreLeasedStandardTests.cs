@@ -33,11 +33,11 @@ public class FileStoreLeasedStandardTests
         var writeResult = await fileAccess.Set(dataBytes, _context);
         writeResult.IsOk().BeTrue();
 
-        var leaseOption1 = await fileAccess.Acquire(TimeSpan.FromSeconds(60), _context);
+        var leaseOption1 = await fileAccess.AcquireLease(TimeSpan.FromSeconds(60), _context);
         leaseOption1.IsOk().BeTrue();
         var lease1 = leaseOption1.Return();
 
-        var leaseOption2 = await fileAccess.Acquire(TimeSpan.FromSeconds(60), _context);
+        var leaseOption2 = await fileAccess.AcquireLease(TimeSpan.FromSeconds(60), _context);
         leaseOption2.IsError().BeTrue();
 
         Option<DataETag> receive = await fileAccess.Get(_context);
@@ -78,12 +78,12 @@ public class FileStoreLeasedStandardTests
 
         var writeResult = (await fileAccess1.Set(dataBytes, _context)).BeOk().Return();
 
-        await using var lease1 = (await fileAccess1.Acquire(TimeSpan.FromSeconds(30), _context)).BeOk().Return();
+        await using var lease1 = (await fileAccess1.AcquireLease(TimeSpan.FromSeconds(30), _context)).BeOk().Return();
 
         var cancelTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(125));
         var context = _context.With(cancelTokenSource.Token);
 
-        var lease2Option = await fileAccess1.Acquire(TimeSpan.FromSeconds(60), context);
+        var lease2Option = await fileAccess1.AcquireLease(TimeSpan.FromSeconds(60), context);
         lease2Option.IsError().BeTrue();
 
         (await fileAccess2.Set(dataBytes, _context)).IsLocked().BeTrue();
@@ -114,7 +114,7 @@ public class FileStoreLeasedStandardTests
         byte[] dataBytes = Encoding.UTF8.GetBytes(data);
         var writeResult = (await fileAccess1.Set(dataBytes, _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
 
-        var lease1 = (await fileAccess1.Acquire(TimeSpan.FromSeconds(30), _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
+        var lease1 = (await fileAccess1.AcquireLease(TimeSpan.FromSeconds(30), _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
         await using (lease1)
         {
             dataBytes = Encoding.UTF8.GetBytes(data2);
@@ -126,7 +126,7 @@ public class FileStoreLeasedStandardTests
         }
 
         var fileAccess2 = fileStore2.File(path);
-        var lease2 = (await fileAccess2.Acquire(TimeSpan.FromSeconds(30), _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
+        var lease2 = (await fileAccess2.AcquireLease(TimeSpan.FromSeconds(30), _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
         await using (lease2)
         {
             dataBytes = Encoding.UTF8.GetBytes(data3);
@@ -159,7 +159,7 @@ public class FileStoreLeasedStandardTests
             breakResult.IsOk().BeTrue();
         }
 
-        var lease1 = (await fileAccess1.Acquire(TimeSpan.FromSeconds(-1), _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
+        var lease1 = (await fileAccess1.AcquireLease(TimeSpan.FromSeconds(-1), _context)).Assert(x => x.IsOk(), x => x.ToString()).Return();
 
         await using (lease1)
         {

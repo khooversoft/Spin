@@ -46,11 +46,11 @@ public static class DatalakeSetTool
                     }
                 };
 
-                result = await fileClient.UploadAsync(fromStream, option, context).ConfigureAwait(false);
+                result = await fileClient.UploadAsync(fromStream, option, context);
                 return result.Value.ETag.ToString();
             }
 
-            result = await fileClient.UploadAsync(fromStream, overwrite, context).ConfigureAwait(false);
+            result = await fileClient.UploadAsync(fromStream, overwrite, context);
             return result.Value.ETag.ToString();
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing" || ex.ErrorCode == "LeaseIdMismatch" || ex.ErrorCode == "LeaseNotPresent")

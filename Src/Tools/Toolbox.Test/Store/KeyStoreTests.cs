@@ -84,7 +84,7 @@ public class KeyStoreTests
         string shouldMatch = journalFileStore.PathBuilder(key);
         var journalEntry = new JournalEntry(1, "Test", 30);
 
-        (await keyStore.Get(key, context)).IsNotFound().BeTrue();
+        (await keyStore.Get(key, context)).BeNotFound();
         loggingMessageSave?.Action(x => x.Count(x => x.Contains("CacheMiss")).Be(1));
 
         (await keyStore.Set(key, journalEntry, context)).BeOk();

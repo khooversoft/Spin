@@ -19,7 +19,7 @@ public static class GraphClientTool
             .AddDataName("entity")
             .Build();
 
-        var resultOption = await graphClient.Execute(cmd, context).ConfigureAwait(false);
+        var resultOption = await graphClient.Execute(cmd, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, "Failed to find nodeKey={nodeKey}", [nodeKey]).ToOptionStatus<T>();
 
         var result = resultOption.Return();
@@ -35,7 +35,7 @@ public static class GraphClientTool
             .AddDataName("entity")
             .Build();
 
-        var resultOption = await graphClient.Execute(cmd, context).ConfigureAwait(false);
+        var resultOption = await graphClient.Execute(cmd, context);
         if (resultOption.IsError()) return resultOption.LogStatus(context, "Failed to find by tag={tag}", [tag]).ToOptionStatus<T>();
 
         var result = resultOption.Return();
@@ -54,7 +54,7 @@ public static class GraphClientTool
             .SetNodeKey(nodeKey)
             .Build();
 
-        var result = await graphClient.Execute(cmd, context).ConfigureAwait(false);
+        var result = await graphClient.Execute(cmd, context);
         result.LogStatus(context, "Delete nodeKey={nodeKey}", [nodeKey]);
         return result.ToOptionStatus();
     }

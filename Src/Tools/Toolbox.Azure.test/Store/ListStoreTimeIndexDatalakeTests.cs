@@ -10,7 +10,7 @@ public class ListStoreTimeIndexDatalakeTests : Test.Store.ListStoreTimeIndexTest
 
     protected override void AddStore(IServiceCollection services)
     {
-        var datalakeOption = TestApplication.ReadOption("ListStoreTimeIndexTests");
+        var datalakeOption = TestApplication.ReadOption("ListStoreTimeIndexDatalakeTests");
         services.AddDatalakeFileStore(datalakeOption);
     }
 }

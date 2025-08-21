@@ -20,8 +20,8 @@ public class InMemoryFileAccess : IFileAccess
 
     public string Path { get; }
 
-    public Task<Option<IFileLeasedAccess>> Acquire(TimeSpan leaseDuration, ScopeContext context) => InternalAcquire(leaseDuration, false, context);
-    public Task<Option<IFileLeasedAccess>> AcquireExclusive(bool breakLeaseIfExist, ScopeContext context) => InternalAcquire(TimeSpan.FromSeconds(-1), true, context);
+    public Task<Option<IFileLeasedAccess>> AcquireLease(TimeSpan leaseDuration, ScopeContext context) => InternalAcquire(leaseDuration, false, context);
+    public Task<Option<IFileLeasedAccess>> AcquireExclusiveLease(bool breakLeaseIfExist, ScopeContext context) => InternalAcquire(TimeSpan.FromSeconds(-1), true, context);
 
     public Task<Option<string>> Add(DataETag data, ScopeContext context) => _memoryStore.Add(Path, data, context.With(_logger)).ToTaskResult();
     public Task<Option<string>> Append(DataETag data, ScopeContext context) => _memoryStore.Append(Path, data, null, context.With(_logger)).ToTaskResult();

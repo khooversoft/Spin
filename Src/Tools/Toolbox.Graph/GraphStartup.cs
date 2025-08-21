@@ -40,25 +40,6 @@ public static class GraphStartup
             config.BasePath = $"{hostOption.BasePath}/{GraphConstants.Journal.BasePath}";
         });
 
-        //services.AddDataPipeline<GraphSerialization>(builder =>
-        //{
-        //    builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}";
-        //    //builder.PathBuilder = PartitionSchemas.ScalarPath<GraphSerialization>;
-        //    builder.AddFileStore();
-        //});
-
-        //services.AddDataPipeline<DataETag>(builder =>
-        //{
-        //    builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.Data.BasePath}";
-        //    builder.AddFileStore();
-        //});
-
-        //services.AddDataListPipeline<DataChangeRecord>(builder =>
-        //{
-        //    builder.BasePath = $"{hostOption.BasePath}/{GraphConstants.Journal.BasePath}";
-        //    builder.AddListStore();
-        //});
-
         return services;
     }
 }

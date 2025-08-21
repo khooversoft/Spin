@@ -44,7 +44,7 @@ public class DatalakeStore : IFileStore
         try
         {
             DataLakeDirectoryClient directoryClient = _fileSystem.GetDirectoryClient(path);
-            var response = await directoryClient.DeleteAsync(cancellationToken: context).ConfigureAwait(false);
+            var response = await directoryClient.DeleteAsync(cancellationToken: context);
             if (response.Status != 200) return (StatusCode.Conflict, response.ReasonPhrase);
 
             return StatusCode.OK;

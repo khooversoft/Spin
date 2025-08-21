@@ -19,7 +19,7 @@ public static class VerifyOption
     {
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        if (subject.StatusCode != value) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be '{value}'", because));
+        if (subject.StatusCode != value) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be '{value}', error={subject.Error}", because));
         return subject;
     }
 
@@ -36,7 +36,7 @@ public static class VerifyOption
     {
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        if (subject.StatusCode == value) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' NOT should be '{value}'", because));
+        if (subject.StatusCode == value) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' NOT should be '{value}', error={subject.Error}", because));
         return subject;
     }
 
@@ -53,7 +53,7 @@ public static class VerifyOption
     {
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        if (subject.StatusCode != value) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be '{value}'", because));
+        if (subject.StatusCode != value) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be '{value}', error={subject.Error}", because));
         return subject;
     }
 
@@ -70,7 +70,7 @@ public static class VerifyOption
     {
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        if (subject.StatusCode == value) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' NOT should be '{value}'", because));
+        if (subject.StatusCode == value) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' NOT should be '{value}', error= {subject.Error}", because));
         return subject;
     }
 
@@ -86,7 +86,7 @@ public static class VerifyOption
     {
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        if (!subject.StatusCode.IsOk()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be OK", because));
+        if (!subject.StatusCode.IsOk()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be OK, error={subject.Error}", because));
         return subject;
     }
 
@@ -102,7 +102,7 @@ public static class VerifyOption
     {
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        if (!subject.StatusCode.IsOk()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be OK", because));
+        if (!subject.StatusCode.IsOk()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be OK, error={subject.Error}", because));
         return subject;
     }
 
@@ -118,7 +118,7 @@ public static class VerifyOption
     {
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        if (!subject.StatusCode.IsError()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be OK", because));
+        if (!subject.StatusCode.IsError()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be Error, error={subject.Error}", because));
         return subject;
     }
 
@@ -134,7 +134,7 @@ public static class VerifyOption
     {
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        if (!subject.StatusCode.IsError()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should NOT be OK", because));
+        if (!subject.StatusCode.IsError()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be Error, error={subject.Error}", because));
         return subject;
     }
 
@@ -150,7 +150,7 @@ public static class VerifyOption
     {
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        if (!subject.StatusCode.IsNotFound()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be NotFound", because));
+        if (!subject.StatusCode.IsNotFound()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should be NotFound, error={subject.Error}", because));
         return subject;
     }
 
@@ -166,7 +166,7 @@ public static class VerifyOption
     {
         var location = new CodeLocation(function, path, lineNumber, name);
 
-        if (!subject.StatusCode.IsNotFound()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should NOT NotFound", because));
+        if (!subject.StatusCode.IsNotFound()) throw new ArgumentException(Verify.FormatException($"Value is '{subject.StatusCode}' should NOT be NotFound, error={subject.Error}", because));
         return subject;
     }
 }
