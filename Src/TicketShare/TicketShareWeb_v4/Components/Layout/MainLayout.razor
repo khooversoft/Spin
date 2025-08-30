@@ -1,0 +1,47 @@
+﻿@inherits LayoutComponentBase
+
+<FluentDesignTheme @bind-Mode="@Mode"
+                   OnLoaded="@OnLoaded"
+                   StorageName="theme"
+                   OnLuminanceChanged="@OnLoaded" />
+
+<FluentLayout>
+    <FluentHeader>
+        <Header />
+    </FluentHeader>
+    <FluentStack Class="main" Orientation="Orientation.Horizontal" Width="100%">
+        <NavMenu />
+        <FluentBodyContent Class="body-content">
+            <div class="content">
+                <FluentMessageBarProvider Section="@Constants.TopMessageSection" ClearAfterNavigation="true" />
+                @Body
+            </div>
+        </FluentBodyContent>
+        <FluentDialogProvider />
+    </FluentStack>
+    <FluentFooter>
+        <Footer SwitchMode="SwitchModes" />
+    </FluentFooter>
+</FluentLayout>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+@code {
+    private DesignThemeModes Mode { get; set; }
+
+    private string _bodyContentClass = "body-content";
+    private const string _bodyContentLightClass = "body-content body-content-light";
+    private const string _bodyContentDarkClass = "body-content";
+
+    protected void OnLoaded()
+    {
+        _bodyContentClass = Mode == DesignThemeModes.Dark ? _bodyContentDarkClass : _bodyContentLightClass;
+        StateHasChanged();
+    }
+
+    protected void SwitchModes() => Mode = Mode == DesignThemeModes.Dark ? DesignThemeModes.Light : DesignThemeModes.Dark;
+}

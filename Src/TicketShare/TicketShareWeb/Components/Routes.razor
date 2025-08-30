@@ -1,14 +1,6 @@
-﻿@using TicketShareWeb.Components.Account.Shared
-
-<FluentDesignTheme Mode="DesignThemeModes.Light" OfficeColor="OfficeColor.Booking" StorageName="theme" />
-
-<Router AppAssembly="@typeof(Program).Assembly">
+﻿<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
-        <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)">
-            <NotAuthorized>
-                <RedirectToLogin />
-            </NotAuthorized>
-        </AuthorizeRouteView>
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>
