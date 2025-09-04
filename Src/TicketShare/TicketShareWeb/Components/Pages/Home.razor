@@ -1,7 +1,20 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+<AuthorizeView>
+    <NotAuthorized>
+        <div>
+            <ol>
+                <li><a href="/signin/Microsoft">Log in with Microsoft</a></li>
+                <li><a href="/signin/Google">Log in with Google</a></li>
+            </ol>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>

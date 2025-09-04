@@ -1,0 +1,44 @@
+﻿@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+
+        @{
+            var displayName = context.User.FindFirst("name")?.Value
+                ?? context.User.FindFirst("preferred_username")?.Value
+                ?? context.User.Identity?.Name;
+        }
+        Hello, @displayName!
+
+        <button class="nav-link btn btn-link" @onclick="BeginLogout">Log out</button>
+    </Authorized>
+    <NotAuthorized>
+        <a href="authentication/login">Log in</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    @inject AuthenticationStateProvider _authenticationStateProvider;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var displayName = user.FindFirst("name")?.Value
+               ?? user.FindFirst("preferred_username")?.Value
+               ?? user.Identity?.Name;
+
+        // var email = 
+
+    }
+
+    private void BeginLogout()
+    {
+        // Navigation.NavigateTo("/MicrosoftIdentity/Account/SignOut", forceLoad: true);
+        Navigation.NavigateTo("MicrosoftIdentity/Account/SignOut?post_logout_redirect_uri=https://localhost:7144", forceLoad: true);
+    }
+}

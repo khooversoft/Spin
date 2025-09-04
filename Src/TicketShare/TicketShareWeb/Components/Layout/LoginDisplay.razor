@@ -1,0 +1,48 @@
+﻿@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Authorization;
+@using TicketShareWeb.Application;
+
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        Hello, @_userName
+
+        <form method="post" action="/signout" class="d-inline">
+            <button class="nav-link btn btn-link">Log out</button>
+        </form>
+    </Authorized>
+    <NotAuthorized>
+        <a href="/signin/Microsoft">Log in</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    @inject AuthenticationStateProvider _authenticationStateProvider;
+    private string _userName = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var authUser = user.GetAuthUser();
+        _userName = authUser?.GetDisplayName() ?? "<unknown>";
+
+        // var name = user.FindFirst("name")?.Value
+        //        ?? user.FindFirst("preferred_username")?.Value
+        //        ?? user.Identity?.Name;
+
+        // var email = user.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value
+        //     ?? user.FindFirst("preferred_username")?.Value
+        //     ?? user.Identity?.Name;
+
+        // _userName = (name, email) switch
+        // {
+        //     (null, null) => "<unknown>",
+        //     (string v1, null) => name,
+        //     (null, string v2) => email,
+        //     (string v1, string v2) => $"{name} ({email})",
+        // };
+    }
+}

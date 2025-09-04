@@ -37,7 +37,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketApi.sdk", "TicketShar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketApi.sdk.test", "TicketShare\TicketApi.sdk.test\TicketApi.sdk.test.csproj", "{F6E0FB92-443E-4DC6-BEE0-C055BA59FA12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketShareWeb", "TicketShare\TicketShareWeb\TicketShareWeb.csproj", "{67211424-F837-4EF8-A026-1E8B73DE741B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicketShareWeb", "TicketShare\TicketShareWeb\TicketShareWeb.csproj", "{818C082F-101A-4DB2-BFCC-A38CCEC42361}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -109,10 +109,10 @@ Global
 		{F6E0FB92-443E-4DC6-BEE0-C055BA59FA12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6E0FB92-443E-4DC6-BEE0-C055BA59FA12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6E0FB92-443E-4DC6-BEE0-C055BA59FA12}.Release|Any CPU.Build.0 = Release|Any CPU
-		{67211424-F837-4EF8-A026-1E8B73DE741B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{67211424-F837-4EF8-A026-1E8B73DE741B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{67211424-F837-4EF8-A026-1E8B73DE741B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{67211424-F837-4EF8-A026-1E8B73DE741B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{818C082F-101A-4DB2-BFCC-A38CCEC42361}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{818C082F-101A-4DB2-BFCC-A38CCEC42361}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{818C082F-101A-4DB2-BFCC-A38CCEC42361}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{818C082F-101A-4DB2-BFCC-A38CCEC42361}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

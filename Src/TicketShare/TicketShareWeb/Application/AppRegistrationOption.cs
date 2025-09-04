@@ -1,0 +1,21 @@
+﻿using Toolbox.Tools;
+using Toolbox.Types;
+
+namespace TicketShareWeb.Application;
+
+public record AppRegistrationOption
+{
+    public string ClientId { get; init; } = null!;
+    public string ClientSecret { get; init; } = null!;
+
+    public static IValidator<AppRegistrationOption> Validator { get; } = new Validator<AppRegistrationOption>()
+        .RuleFor(x => x.ClientId).NotEmpty()
+        .RuleFor(x => x.ClientSecret).NotEmpty()
+        .Build();
+}
+
+
+public static class AppRegistrationOptionExtensions
+{
+    public static Option<IValidatorResult> Validate(this AppRegistrationOption option) => AppRegistrationOption.Validator.Validate(option);
+}
