@@ -8,16 +8,25 @@ using Azure.Identity;
 using TicketShareWeb.Application;
 using Toolbox.Types;
 using Toolbox.Tools;
+using Azure.Core;
+using Toolbox.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Azure Key Vault configuration (after defaults so KV overrides others)
 // Use AppRegistration's client credentials for Key Vault access
 
+builder.Logging.AddFilter(_ => true);
+
 var appRegOption = builder.Configuration.GetSection("AppRegistration").Get<AppRegistrationOption>().NotNull("AppRegistration not in appsettings.json");
 appRegOption.Validate().ThrowOnError();
 
-var credential = new ClientSecretCredential(appRegOption.TenantId, appRegOption.ClientId, appRegOption.ClientSecret);
+TokenCredential credential = appRegOption.ClientSecret switch
+{
+    string => new ClientSecretCredential(appRegOption.TenantId, appRegOption.ClientId, appRegOption.ClientSecret),
+    null => new DefaultAzureCredential().Action(_ => Console.WriteLine("Using default credential")),
+};
+
 builder.Configuration.AddAzureKeyVault(new Uri(appRegOption.VaultUri), credential);
 
 var authOption = builder.Configuration.GetSection("Authentication").Get<AuthenticationOption>().NotNull("AppRegistration not in appsettings.json");
