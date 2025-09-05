@@ -11,6 +11,7 @@ using Toolbox.Tools;
 using Azure.Core;
 using Toolbox.Extensions;
 
+Console.WriteLine("Starting TicketShareWeb ver 1.0.1 ...");
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Azure Key Vault configuration (after defaults so KV overrides others)
@@ -23,7 +24,7 @@ appRegOption.Validate().ThrowOnError();
 
 TokenCredential credential = appRegOption.ClientSecret switch
 {
-    string => new ClientSecretCredential(appRegOption.TenantId, appRegOption.ClientId, appRegOption.ClientSecret),
+    string => new ClientSecretCredential(appRegOption.TenantId, appRegOption.ClientId, appRegOption.ClientSecret).Action(_ => Console.WriteLine("Using ClientSecretCredential")),
     null => new DefaultAzureCredential().Action(_ => Console.WriteLine("Using default credential")),
 };
 
