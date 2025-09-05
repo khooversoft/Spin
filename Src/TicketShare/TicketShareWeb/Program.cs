@@ -4,8 +4,24 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using TicketShareWeb.Components;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Components;
+using Azure.Identity;
+using TicketShareWeb.Application;
+using Toolbox.Types;
+using Toolbox.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Azure Key Vault configuration (after defaults so KV overrides others)
+// Use AppRegistration's client credentials for Key Vault access
+
+var appRegOption = builder.Configuration.GetSection("AppRegistration").Get<AppRegistrationOption>().NotNull("AppRegistration not in appsettings.json");
+appRegOption.Validate().ThrowOnError();
+
+var credential = new ClientSecretCredential(appRegOption.TenantId, appRegOption.ClientId, appRegOption.ClientSecret);
+builder.Configuration.AddAzureKeyVault(new Uri(appRegOption.VaultUri), credential);
+
+var authOption = builder.Configuration.GetSection("Authentication").Get<AuthenticationOption>().NotNull("AppRegistration not in appsettings.json");
+authOption.Validate().ThrowOnError();
 
 // Blazor Server
 builder.Services.AddRazorComponents()
@@ -30,8 +46,8 @@ builder.Services.AddAuthentication(options =>
 {
     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.Authority = "https://login.microsoftonline.com/consumers/v2.0";
-    options.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"]!;
-    options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"]!;
+    options.ClientId = authOption.Microsoft.ClientId; builder.Configuration["Authentication:Microsoft:ClientId"].Be(authOption.Microsoft.ClientId);
+    options.ClientSecret = authOption.Microsoft.ClientSecret; builder.Configuration["Authentication:Microsoft:ClientSecret"].Be(authOption.Microsoft.ClientSecret);
     options.CallbackPath = "/signin-oidc-microsoft";
     options.ResponseType = "code";
     options.UsePkce = true;
@@ -52,8 +68,8 @@ builder.Services.AddAuthentication(options =>
 {
     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.Authority = "https://accounts.google.com";
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    options.ClientId = authOption.Google.ClientId; // builder.Configuration["Authentication:Google:ClientId"]!;
+    options.ClientSecret = authOption.Google.ClientSecret; // builder.Configuration["Authentication:Google:ClientSecret"]!;
     options.CallbackPath = "/signin-oidc-google";
     options.ResponseType = "code";
     options.UsePkce = true;
