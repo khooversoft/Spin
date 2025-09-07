@@ -27,7 +27,7 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -f Src/TicketShare/TicketShareWeb/Dockerfile -t ticketshareweb ./src
+        docker build -f Src/TicketShare/TicketShareWeb/Dockerfile -t ticketshareweb ./Src
 
     # # Optional: Push to DockerHub
     # - name: Push Docker image
