@@ -41,3 +41,11 @@ jobs:
       run: |
         docker tag ticketshareweb ticketshareregistry.azurecr.io/ticketshareweb:latest
         docker push ticketshareregistry.azurecr.io/ticketshareweb:latest
+
+    - name: Deploy to Azure Container App
+      uses: azure/container-apps-deploy-action@v1
+      with:
+        acrName: ticketshareregistry
+        containerAppName: ticketshareweb
+        resourceGroup: ticket-share-rg
+        imageToDeploy: ticketshareregistry.azurecr.io/ticketshareweb:latest
