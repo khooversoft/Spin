@@ -1,7 +1,7 @@
 ﻿using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace TicketShareWeb.Application;
+namespace RaceAliveWeb.Application;
 
 public record AuthenticationOption
 {
