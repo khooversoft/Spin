@@ -14,7 +14,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: production
-
+    env:
+      _clientId: "e9cc702c-4354-49d2-98f8-d6622223195c"
+      _tenantId: "33470f72-2b3b-4a0b-837d-4ba9ba499d69"
+      _subscriptionId: "d3934b71-b4de-4535-9870-7e2a81cdb2da"
+      _acrName: "racealiveregistry"
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -24,13 +29,13 @@ jobs:
 
     - uses: azure/login@v2
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        client-id: ${{ env._clientId }}
+        tenant-id: ${{ env._tenantId }}
+        subscription-id: ${{ env._subscriptionId }}
 
     - name: Docker Login to ACR
       run: |
-        az acr login --name ${{ secrets.ACR_NAME }}
+        az acr login --name ${{ env._acrName }}}
 
     - name: Build Docker image
       run: |
@@ -45,7 +50,7 @@ jobs:
     - name: Deploy to Azure Container App
       uses: azure/container-apps-deploy-action@v1
       with:
-        acrName: racealiveregistry
+        acrName: ${{ env._acrName }}
         containerAppName: racealiveweb
         resourceGroup: race-alive-rg
         imageToDeploy: racealiveregistry.azurecr.io/racealiveweb:latest
