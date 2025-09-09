@@ -71,6 +71,7 @@ TokenCredential credential = appRegOption.ClientSecret switch
 
 // Add Azure Key Vault configuration (after defaults so KV overrides others)
 builder.Configuration.AddAzureKeyVault(new Uri(appRegOption.VaultUri), credential);
+Console.WriteLine($"step: AddAzureKeyVault()");
 
 var authOption = builder.Configuration.GetSection("Authentication").Get<AuthenticationOption>().NotNull("AppRegistration not in appsettings.json");
 authOption.Validate().ThrowOnError();
@@ -99,8 +100,8 @@ builder.Services.AddAuthentication(options =>
 {
     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.Authority = "https://login.microsoftonline.com/consumers/v2.0";
-    options.ClientId = authOption.Microsoft.ClientId; // builder.Configuration["Authentication:Microsoft:ClientId"].Be(authOption.Microsoft.ClientId);
-    options.ClientSecret = authOption.Microsoft.ClientSecret; // builder.Configuration["Authentication:Microsoft:ClientSecret"].Be(authOption.Microsoft.ClientSecret);
+    options.ClientId = authOption.Microsoft.ClientId;
+    options.ClientSecret = authOption.Microsoft.ClientSecret;
     options.CallbackPath = "/signin-oidc-microsoft";
     options.ResponseType = "code";
     options.UsePkce = true;
@@ -121,8 +122,8 @@ builder.Services.AddAuthentication(options =>
 {
     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.Authority = "https://accounts.google.com";
-    options.ClientId = authOption.Google.ClientId; // builder.Configuration["Authentication:Google:ClientId"]!;
-    options.ClientSecret = authOption.Google.ClientSecret; // builder.Configuration["Authentication:Google:ClientSecret"]!;
+    options.ClientId = authOption.Google.ClientId;
+    options.ClientSecret = authOption.Google.ClientSecret;
     options.CallbackPath = "/signin-oidc-google";
     options.ResponseType = "code";
     options.UsePkce = true;
@@ -200,4 +201,5 @@ app.MapPost("/signout", async (HttpContext ctx) =>
 app.MapRazorComponents<App>()
    .AddInteractiveServerRenderMode();
 
+Console.WriteLine($"Running {AppProgram.ServiceName} ver {AppProgram.ServiceVersion} ...");
 app.Run();
