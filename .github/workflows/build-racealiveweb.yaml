@@ -35,7 +35,7 @@ jobs:
 
     - name: Docker Login to ACR
       run: |
-        az acr login --name ${{ env._acrName }}}
+        az acr login --name ${{ env._acrName }}
 
     - name: Build Docker image
       run: |
