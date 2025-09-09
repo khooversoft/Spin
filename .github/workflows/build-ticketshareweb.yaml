@@ -1,4 +1,4 @@
-name: Build Blazor Docker Image
+name: TicketShareWeb Build and Deploy
 
 on:
   push:

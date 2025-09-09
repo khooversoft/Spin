@@ -1,4 +1,4 @@
-name: Build Blazor Docker Image
+name: RaceAliveWeb Build and Deploy
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     env:
-      _clientId: "e9cc702c-4354-49d2-98f8-d6622223195c"
+      _clientId: "2cce664e-f998-41da-a699-2c995382ee60"
       _tenantId: "33470f72-2b3b-4a0b-837d-4ba9ba499d69"
       _subscriptionId: "d3934b71-b4de-4535-9870-7e2a81cdb2da"
       _acrName: "racealiveregistry"
