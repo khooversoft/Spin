@@ -17,7 +17,7 @@ Console.WriteLine($"Starting {AppProgram.ServiceName} ver {AppProgram.ServiceVer
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConsole();
-builder.Logging.SetMinimumLevel(LogLevel.Debug);
+builder.Logging.AddFilter(x => true);
 
 // Configure to use PORT environment variable for Azure Container Apps
 var port = Environment.GetEnvironmentVariable("PORT");
