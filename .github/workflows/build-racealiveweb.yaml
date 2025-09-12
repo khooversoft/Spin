@@ -3,7 +3,7 @@ name: RaceAliveWeb Build and Deploy
 on:
   push:
     branches:
-      - master
+      - release
 
 permissions:
   id-token: write
