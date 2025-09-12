@@ -81,14 +81,14 @@ public class DocumentTokenizer
         }
     }
 
-    private static FrozenSet<char> _validCharacters = new char[]
+    private readonly static FrozenSet<char> _validCharacters = new char[]
     {
         '{', '}', '[', ']', '<', '>', '/'
     }.ToFrozenSet();
 
-    private static FrozenSet<string> _parseTokens = _validCharacters.Select(x => char.ToString(x)).ToFrozenSet();
+    private readonly static FrozenSet<string> _parseTokens = _validCharacters.Select(x => char.ToString(x)).ToFrozenSet();
 
-    private static FrozenSet<string> _stopWords = new[]
+    private readonly static FrozenSet<string> _stopWords = new[]
     {
         "and", "any", "a", "as", "at", "an", "are",
         "do", "does", "doesn't",

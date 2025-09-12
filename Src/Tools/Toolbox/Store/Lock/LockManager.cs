@@ -10,7 +10,7 @@ public class LockManager : IAsyncDisposable
     private ConcurrentDictionary<string, LockDetail> _lockMap = new(StringComparer.OrdinalIgnoreCase);
     private readonly IFileStore _fileStore;
     private readonly ILogger<LockManager> _logger;
-    private static TimeSpan _defaultLockDuration = TimeSpan.FromSeconds(60);
+    private readonly static TimeSpan _defaultLockDuration = TimeSpan.FromSeconds(60);
 
     public LockManager(IFileStore fileStore, ILogger<LockManager> logger)
     {

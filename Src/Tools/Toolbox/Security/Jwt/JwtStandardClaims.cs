@@ -2,6 +2,6 @@
 
 public static class JwtStandardClaimNames
 {
-    public static string SubjectName = "sub";
-    public static string DigestName = "blockDigest";
+    public readonly static string SubjectName = "sub";
+    public readonly static string DigestName = "blockDigest";
 }

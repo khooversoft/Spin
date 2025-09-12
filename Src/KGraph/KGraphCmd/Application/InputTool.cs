@@ -71,7 +71,7 @@ public static class InputTool
         data2.ForEach(x => data[$"{label}:{x.Key}"] = x.Value);
     }
 
-    static Func<string, string>[] _converters = new Func<string, string>[]
+    private readonly static Func<string, string>[] _converters = new Func<string, string>[]
     {
         str => str.Replace("\\u003C", "<<"),
         str => str.Replace("\\u003E", ">>"),

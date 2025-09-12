@@ -76,7 +76,7 @@ internal class ResourceIdTool
     }
 
     // {schema}:{systemName}
-    private static Test SystemTest = new Test
+    private readonly static Test SystemTest = new Test
     {
         Pattern = new Func<IToken, TokenResult>[]
         {
@@ -95,7 +95,7 @@ internal class ResourceIdTool
     };
 
     // {schema}:{domain}
-    private static Test TenantTest = new Test
+    private readonly static Test TenantTest = new Test
     {
         Pattern = new Func<IToken, TokenResult>[]
         {
@@ -114,7 +114,7 @@ internal class ResourceIdTool
     };
 
     // {user}@{domain}
-    private static Test PrincipalTest = new Test
+    private readonly static Test PrincipalTest = new Test
     {
         Pattern = new Func<IToken, TokenResult>[]
         {
@@ -136,7 +136,7 @@ internal class ResourceIdTool
     };
 
     // {schema}:{user}@{domain}[/{path}...}]
-    private static Test OwnedTest = new Test
+    private readonly static Test OwnedTest = new Test
     {
         Pattern = new Func<IToken, TokenResult>[]
         {
@@ -163,7 +163,7 @@ internal class ResourceIdTool
     };
 
     // {schema}:{domain}/{path}[/{path}...}]
-    private static Test DomainOwned = new Test
+    private readonly static Test DomainOwned = new Test
     {
         Pattern = new Func<IToken, TokenResult>[]
         {

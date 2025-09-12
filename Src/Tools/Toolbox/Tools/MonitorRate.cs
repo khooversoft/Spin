@@ -22,7 +22,7 @@ public class MonitorRate
     private readonly TimeSpan? _minDelaySpan;
     private DateTime? _lastDelayDate;
     private DateTime _lastCleaned = DateTime.MinValue;
-    private static TimeSpan _cleanSpan = TimeSpan.FromMilliseconds(200);
+    private readonly static TimeSpan _cleanSpan = TimeSpan.FromMilliseconds(200);
 
     public MonitorRate(TimeSpan windowSize, float tpsThreshold, float? maxBrustTps = null)
     {

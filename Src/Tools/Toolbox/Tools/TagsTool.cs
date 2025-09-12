@@ -7,8 +7,8 @@ namespace Toolbox.Tools;
 
 public static class TagsTool
 {
-    private static FrozenSet<string> _delimiters = new string[] { ",", "=" }.ToFrozenSet();
-    private static FrozenSet<char> _allowCharacters = new char[] { '*', '-', '.', ':' }.ToFrozenSet();
+    private readonly static FrozenSet<string> _delimiters = new string[] { ",", "=" }.ToFrozenSet();
+    private readonly static FrozenSet<char> _allowCharacters = new char[] { '*', '-', '.', ':' }.ToFrozenSet();
 
     public static IReadOnlyDictionary<string, string?> ToTags(this string? tags) => Parse(tags)
         .ThrowOnError().Return()

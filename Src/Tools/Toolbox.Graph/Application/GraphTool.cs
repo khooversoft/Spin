@@ -9,7 +9,7 @@ namespace Toolbox.Graph;
 
 public static class GraphTool
 {
-    private static FrozenSet<(string chr, string replace)> _replaceMap = new[]
+    private readonly static FrozenSet<(string chr, string replace)> _replaceMap = new[]
     {
         ( "/", "___" ),
         ( ":", "__" ),
