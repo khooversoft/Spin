@@ -1,0 +1,119 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization;
+@using RaceAliveWeb.Application
+@using MudBlazor
+
+<MudAppBar Color="Color.Transparent" Elevation="0">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => ToggleDrawer())" />
+
+    @if (!DrawerOpen)
+    {
+        <MudText Typo="Typo.h6" Color="Color.Primary">Race Alive</MudText>
+    }
+
+    <MudSpacer />
+
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <AuthorizeView>
+            <Authorized>
+                <MudText Style="margin-right:10px">@_userName</MudText>
+            </Authorized>
+        </AuthorizeView>
+    </MudHidden>
+
+    <!-- Settings (gear) icon -->
+    <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" aria-label="Settings" OnClick="@OpenSettings" />
+    <MudIconButton Icon="@Icons.Material.Filled.Person" Color="Color.Inherit" aria-label="Settings" OnClick="@OpenProfile" />
+
+    <!-- Auth buttons (hidden on small/phone screens) -->
+    <MudHidden Breakpoint="Breakpoint.SmAndDown">
+        <AuthorizeView>
+            <Authorized>
+                <form method="post" action="/signout" class="d-inline">
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Inherit"
+                               ButtonType="ButtonType.Submit"
+                               StartIcon="@Icons.Material.Filled.Logout"
+                               Class="mud-nav-link px-2"
+                               Style="margin-left:19px">
+                        Log Out
+                    </MudButton>
+                </form>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="mx-2" OnClick="@(() => Nav.NavigateTo("/login"))">Sign Up</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => Nav.NavigateTo("/login"))">Log In</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudHidden>
+</MudAppBar>
+
+<!-- Settings Drawer -->
+<MudDrawer @bind-Open="@_openSettings" Anchor="Anchor.End" Elevation="1" Variant="@DrawerVariant.Temporary" OverlayAutoClose=true>
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6">Settings</MudText>
+    </MudDrawerHeader>
+    <MudSwitch Value="IsDarkMode" ValueChanged="@((bool? nv) => OnDarkModeChanged(nv ?? false))" Label="Dark Mode" Color="Color.Secondary" />
+    <MudDivider />
+    <MudText Style="padding: 10px">Version @AppProgram.ServiceVersion</MudText>
+</MudDrawer>
+
+<!-- Profile Drawer -->
+<MudDrawer @bind-Open="@_openProfile" Anchor="Anchor.End" Elevation="1" Variant="@DrawerVariant.Temporary" OverlayAutoClose=true>
+    <div class="right-drawer-container">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6">User</MudText>
+        </MudDrawerHeader>
+
+        <AuthorizeView>
+            <NotAuthorized>
+                <MudNavMenu>
+                    <MudNavLink Icon="@Icons.Material.Filled.Logout" Href="/login">Log In</MudNavLink>
+                </MudNavMenu>
+            </NotAuthorized>
+
+            <Authorized>
+                <MudNavMenu>
+                    <MudNavLink Icon="@Icons.Material.Filled.Person" Href="/profile">Edit Profile</MudNavLink>
+
+                    <form method="post" action="/signout" class="d-inline">
+                        <MudButton Variant="Variant.Text"
+                                   Color="Color.Inherit"
+                                   ButtonType="ButtonType.Submit"
+                                   StartIcon="@Icons.Material.Filled.Logout"
+                                   Class="mud-nav-link px-2"
+                                   Style="margin-left:19px">
+                            Log Out
+                        </MudButton>
+                    </form>
+
+                </MudNavMenu>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</MudDrawer>
+
+@code {
+    [Parameter] public bool DrawerOpen { get; set; }
+    [Parameter] public EventCallback<bool> DrawerToggle { get; set; }
+    [Parameter] public EventCallback<bool> OnDarkMode { get; set; }
+    [Parameter] public bool IsDarkMode { get; set; }
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+    [Inject] private AuthenticationAccess authAccess { get; set; } = default!;
+
+    private bool _openSettings = false;
+    private bool _openProfile = false;
+    private string _userName = string.Empty;
+
+    protected override async Task OnParametersSetAsync() => _userName = await authAccess.GetUserName();
+
+    private async Task ToggleDrawer() => await DrawerToggle.InvokeAsync(!DrawerOpen);
+
+    private void OpenSettings() => _openSettings = true;
+    private void OpenProfile() => _openProfile = true;
+
+    private async Task OnDarkModeChanged(bool value)
+    {
+        IsDarkMode = value;
+        await OnDarkMode.InvokeAsync(value);
+    }
+}

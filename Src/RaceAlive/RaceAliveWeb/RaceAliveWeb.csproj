@@ -18,6 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+      <ProjectReference Include="..\RaceAlive.sdk\RaceAlive.sdk.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,18 +1,19 @@
 ﻿@inherits LayoutComponentBase
 
-@* <MudThemeProvider /> *@
 <MudThemeProvider Theme="RaceAliveWeb.Application.SunsetTheme.Theme" IsDarkMode=_isDarkMode />
 <MudPopoverProvider />
 
 <MudLayout>
-    <TopBar DrawerOpen="@_drawerOpen" DrawerToggle="DrawerToggle" />
-    <MudDrawer @bind-Open="@_drawerOpen">
+    <AppBar DrawerOpen="@_drawerOpen" DrawerToggle="DrawerToggle" OnDarkMode="OnDarkMode" IsDarkMode=_isDarkMode />
+    <MudDrawer @bind-Open="_drawerOpen"
+               Variant="DrawerVariant.Responsive"
+               Breakpoint="Breakpoint.Md">
         <NavMenu />
     </MudDrawer>
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Medium">
+    <MudMainContent Class="main-body">
+        <div class="body-wrapper">
             @Body
-        </MudContainer>
+        </div>
     </MudMainContent>
 </MudLayout>
 
@@ -26,9 +27,6 @@
     bool _drawerOpen = true;
     bool _isDarkMode = false;
 
-    private Task DrawerToggle(bool state)
-    {
-        _drawerOpen = state;
-        return Task.CompletedTask;
-    }
+    private void DrawerToggle(bool state) => _drawerOpen = state;
+    private void OnDarkMode(bool isDarkMode) => _isDarkMode = isDarkMode;
 }

@@ -84,6 +84,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddMudServices();
+builder.Services.AddTransient<AuthenticationAccess>();
 
 // Authentication
 builder.Services.AddAuthentication(options =>

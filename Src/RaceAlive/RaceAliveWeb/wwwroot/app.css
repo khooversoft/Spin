@@ -1,0 +1,23 @@
+/* Block container */
+.block-container {
+    max-width: 1200px;
+    width: auto; /* shrink to content up to max-width */
+}
+
+.right-drawer-container {
+    max-width: 220px;
+}
+
+/* Tablet (sm & md) - slightly narrower padding */
+@media (max-width: 1279.95px) {
+    .block-container {
+        max-width: 1100px;
+    }
+}
+
+/* Phones (xs) */
+@media (max-width: 599.95px) {
+    .block-container {
+        max-width: 100%; /* take full available width */
+    }
+}

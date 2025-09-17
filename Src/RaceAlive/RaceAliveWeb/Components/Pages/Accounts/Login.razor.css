@@ -1,0 +1,12 @@
+.button-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+/* Text span fills; centered via parent flex */
+.provider-btn .provider-text {
+    text-align: center;
+    width: 100%;
+    text-transform: none;
+}
