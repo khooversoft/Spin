@@ -4,6 +4,7 @@ using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
+using MudBlazor.Services;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -17,7 +18,7 @@ Console.WriteLine($"Starting {AppProgram.ServiceName} ver {AppProgram.ServiceVer
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConsole();
-builder.Logging.AddFilter(x => true);
+//builder.Logging.AddFilter(x => true);
 
 // Configure to use PORT environment variable for Azure Container Apps
 var port = Environment.GetEnvironmentVariable("PORT");
@@ -82,6 +83,8 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddMudServices();
+builder.Services.AddTransient<AuthenticationAccess>();
 
 // Authentication
 builder.Services.AddAuthentication(options =>
@@ -160,6 +163,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.MapStaticAssets();
 
 app.UseRouting();
 

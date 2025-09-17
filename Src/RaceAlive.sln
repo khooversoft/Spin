@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{450405
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox", "Tools\Toolbox\Toolbox.csproj", "{417421B0-A673-1FC9-466E-966A01EF5BFA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceAlive.sdk", "RaceAlive\RaceAlive.sdk\RaceAlive.sdk.csproj", "{3A59AD53-75B1-4BD0-95A9-9F0898BEE231}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{417421B0-A673-1FC9-466E-966A01EF5BFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{417421B0-A673-1FC9-466E-966A01EF5BFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{417421B0-A673-1FC9-466E-966A01EF5BFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A59AD53-75B1-4BD0-95A9-9F0898BEE231}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A59AD53-75B1-4BD0-95A9-9F0898BEE231}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A59AD53-75B1-4BD0-95A9-9F0898BEE231}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A59AD53-75B1-4BD0-95A9-9F0898BEE231}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

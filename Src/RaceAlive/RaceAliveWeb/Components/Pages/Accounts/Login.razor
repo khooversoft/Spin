@@ -1,0 +1,52 @@
+﻿@page "/login"
+@using Microsoft.AspNetCore.Components.Authorization
+@using RaceAliveWeb.Application
+
+<AuthorizeView>
+    <Authorized>
+        <MudText Typo="Typo.h6" Color="Color.Primary">You are already log in @_userName</MudText>
+
+        <form method="post" action="/signout" class="d-inline">
+            <button class="nav-link btn btn-link">Log out</button>
+        </form>
+    </Authorized>
+    <NotAuthorized>
+        <div class="block-container">
+            <MudText Typo="Typo.h6">Please select how to log on.</MudText>
+
+            <div style="margin-top:10px; max-width:400px">
+                <MudStack Spacing="2">
+                    <MudButton Variant="Variant.Filled"
+                               Href="/signin/Microsoft"
+                               Class="provider-btn"
+                               Style="background-color:white">
+                        <img src="microsoft-48.png" alt="Microsoft" class="button-icon" />
+                        <span class="provider-text">Log in with Microsoft</span>
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Filled"
+                               Href="/signin/Google"
+                               Class="provider-btn"
+                               Style="background-color:white">
+                        <img src="google-48.png" alt="Google" class="button-icon" />
+                        <span class="provider-text">Log in with Google</span>
+                    </MudButton>
+                </MudStack>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    @inject AuthenticationStateProvider _authenticationStateProvider;
+    private string _userName = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var authUser = user.GetAuthUser();
+        _userName = authUser?.GetDisplayName() ?? "<unknown>";
+    }
+}

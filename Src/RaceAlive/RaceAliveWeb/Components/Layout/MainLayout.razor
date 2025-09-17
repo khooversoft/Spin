@@ -1,24 +1,32 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
+<MudThemeProvider Theme="RaceAliveWeb.Application.SunsetTheme.Theme" IsDarkMode=_isDarkMode />
+<MudPopoverProvider />
+
+<MudLayout>
+    <AppBar DrawerOpen="@_drawerOpen" DrawerToggle="DrawerToggle" OnDarkMode="OnDarkMode" IsDarkMode=_isDarkMode />
+    <MudDrawer @bind-Open="_drawerOpen"
+               Variant="DrawerVariant.Responsive"
+               Breakpoint="Breakpoint.Md">
         <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-            <LoginDisplay />
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+    </MudDrawer>
+    <MudMainContent Class="main-body">
+        <div class="body-wrapper">
             @Body
-        </article>
-    </main>
-</div>
+        </div>
+    </MudMainContent>
+</MudLayout>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    bool _drawerOpen = true;
+    bool _isDarkMode = false;
+
+    private void DrawerToggle(bool state) => _drawerOpen = state;
+    private void OnDarkMode(bool isDarkMode) => _isDarkMode = isDarkMode;
+}

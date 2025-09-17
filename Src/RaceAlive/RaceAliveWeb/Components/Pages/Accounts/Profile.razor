@@ -1,0 +1,128 @@
+﻿@page "/profile"
+@using RaceAlive.sdk.Models
+@using MudBlazor
+@using RaceAliveWeb.Application
+
+<PageTitle>User Account</PageTitle>
+
+<MudPaper Class="pa-6" MaxWidth="800px" Elevation="1">
+    <MudText Typo="Typo.h5" GutterBottom="true">User Account</MudText>
+    <MudText Typo="Typo.caption" Class="mb-4">Your profile is private, and its use is governed by our Privacy Policy.</MudText>
+
+    <MudGrid GutterSize="16px" Style="margin-top:10px">
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="User Name"
+                          Required="true"
+                          RequiredError="User name is required"
+                          Value="@_model.UserName"
+                          ValueChanged="@( (string? nv) => OnUserNameChanged(nv) )"
+                          Immediate="true" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Email"
+                          Required="true"
+                          RequiredError="Email is required"
+                          Value="@_model.Email"
+                          ValueChanged="@( (string? nv) => OnEmailChanged(nv) )"
+                          Immediate="true" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Phone Number"
+                          Value="@_model.PhoneNumber"
+                          ValueChanged="@( (string? nv) => OnPhoneChanged(nv) )"
+                          Immediate="true" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudTextField Label="Address Line 1"
+                          Value="@_model.AddressLine1"
+                          ValueChanged="@( (string? nv) => OnAddressLine1Changed(nv) )"
+                          Immediate="true" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudTextField Label="Address Line 2"
+                          Value="@_model.AddressLine2"
+                          ValueChanged="@( (string? nv) => OnAddressLine2Changed(nv) )"
+                          Immediate="true" />
+        </MudItem>
+
+        <MudItem xs="12" sm="4">
+            <MudTextField Label="City"
+                          Value="@_model.City"
+                          ValueChanged="@( (string? nv) => OnCityChanged(nv) )"
+                          Immediate="true" />
+        </MudItem>
+
+        <MudItem xs="12" sm="4">
+            <MudTextField Label="State / Province"
+                          Value="@_model.StateOrProvince"
+                          ValueChanged="@( (string? nv) => OnStateChanged(nv) )"
+                          Immediate="true" />
+        </MudItem>
+
+        <MudItem xs="12" sm="4">
+            <MudTextField Label="Postal Code"
+                          Value="@_model.PostalCode"
+                          ValueChanged="@( (string? nv) => OnPostalChanged(nv) )"
+                          Immediate="true" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Country"
+                          Value="@_model.Country"
+                          ValueChanged="@( (string? nv) => OnCountryChanged(nv) )"
+                          Immediate="true" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudDivider Class="my-4" />
+        </MudItem>
+
+        <MudItem xs="12" Class="d-flex gap-3">
+            <MudButton Disabled="@(!_dirty)" OnClick="SaveAsync" Color="Color.Primary">Save</MudButton>
+            <MudButton Disabled="@(!_dirty)" OnClick="Reset" Variant="Variant.Outlined">Reset</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    @inject AuthenticationAccess _authAccess;
+
+    private UserRegistrationModel _model = new();
+    private bool _dirty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _model.UserName = await _authAccess.GetUserName();
+        _model.Email = await _authAccess.GetEmail();
+    }
+
+    private void MarkDirty() => _dirty = true;
+
+    private void OnUserNameChanged(string? v) { _model.UserName = v ?? string.Empty; MarkDirty(); }
+    private void OnEmailChanged(string? v) { _model.Email = v ?? string.Empty; MarkDirty(); }
+    private void OnPhoneChanged(string? v) { _model.PhoneNumber = v; MarkDirty(); }
+    private void OnAddressLine1Changed(string? v) { _model.AddressLine1 = v; MarkDirty(); }
+    private void OnAddressLine2Changed(string? v) { _model.AddressLine2 = v; MarkDirty(); }
+    private void OnCityChanged(string? v) { _model.City = v; MarkDirty(); }
+    private void OnStateChanged(string? v) { _model.StateOrProvince = v; MarkDirty(); }
+    private void OnPostalChanged(string? v) { _model.PostalCode = v; MarkDirty(); }
+    private void OnCountryChanged(string? v) { _model.Country = v; MarkDirty(); }
+
+    private Task SaveAsync()
+    {
+        // TODO: persist _model
+        _dirty = false;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private void Reset()
+    {
+        _model = new();
+        _dirty = false;
+    }
+}

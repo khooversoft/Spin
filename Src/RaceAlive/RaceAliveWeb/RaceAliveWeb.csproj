@@ -9,14 +9,16 @@
 
     <ItemGroup>
       <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
-      <PackageReference Include="Azure.Identity" Version="1.15.0" />
+      <PackageReference Include="Azure.Identity" Version="1.16.0" />
       <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.3.0" />
-      <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.8" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.9" />
+      <PackageReference Include="MudBlazor" Version="8.12.0" />
       <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+      <ProjectReference Include="..\RaceAlive.sdk\RaceAlive.sdk.csproj" />
     </ItemGroup>
 
 </Project>
