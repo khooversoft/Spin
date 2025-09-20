@@ -2,70 +2,21 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Authorization
 @using RaceAliveWeb.Application
+@using RaceAliveWeb.Components.Controls
 
 <PageTitle>Home</PageTitle>
 
-<MudText Typo="Typo.h4">Welcome to Race Alive</MudText>
-<MudText Class="mt-4" Typo="Typo.h6">Where Every Mile Has a Story — and a Smart Plan</MudText>
-
-<MudText Class="mt-4">
-    Discover your next race, track your journey, and train smarter with AI.<br />
-    Race Alive blends race discovery, performance tracking, and community support into one powerful platform.
-</MudText>
-
-<MudPaper Class="mt-4" Elevation="0">
-    <MudList T="string" Dense="true">
-        <MudListItem Icon="@Icons.Material.Filled.DirectionsRun">
-            <MudText>Find races worldwide with detailed insights and runner reviews</MudText>
-        </MudListItem>
-        <MudListItem Icon="@Icons.Material.Filled.ShowChart">
-            <MudText>Track your training and race results with intuitive analytics</MudText>
-        </MudListItem>
-        <MudListItem Icon="@Icons.Material.Filled.SmartToy">
-            <MudText>Train with AI that adapts to your goals, pace, and schedule</MudText>
-        </MudListItem>
-        <MudListItem Icon="@Icons.Material.Filled.Groups">
-            <MudText>Join a vibrant community of runners sharing goals, achievements, and support</MudText>
-        </MudListItem>
-    </MudList>
-</MudPaper>
-
-<MudText Class="mt-4">
-    Your race doesn’t end at the finish line. It starts here — with purpose, data, and heart.
-</MudText>
-
-<div style="max-width: 800px;">
-    <MudStack Wrap="Wrap.Wrap" Spacing="5" Row=true AlignItems="AlignItems.Start">
-        <MudCard Style=@_cardStyle>
-            <MudCardMedia Image="images/ManRunningToward.png" />
-            <MudCardContent>
-                <MudText Typo="Typo.body1">Open road...</MudText>
-            </MudCardContent>
-        </MudCard>
-
-        <MudCard Style=@_cardStyle>
-            <MudCardMedia Image="images/WomanRunnerSunset.png" />
-            <MudCardContent>
-                <MudText Typo="Typo.body1">Just a little farther...</MudText>
-            </MudCardContent>
-        </MudCard>
-
-        <MudCard Style=@_cardStyle>
-            <MudCardMedia Image="images/RunnersMarathon.png" />
-            <MudCardContent>
-                <MudText Typo="Typo.body1">Am really doing this!</MudText>
-            </MudCardContent>
-        </MudCard>
-
-        <MudCard Style=@_cardStyle>
-            <MudCardMedia Image="images/CrossingFinish.png" />
-            <MudCardContent>
-                <MudText Typo="Typo.body1">Oh Yea!!!</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudStack>
+<div class="block-container">
+    <AuthorizeView>
+        <Authorized>
+            <BlockInject />
+        </Authorized>
+        <NotAuthorized>
+            <HomeIntro />
+            <BlockInject />
+        </NotAuthorized>
+    </AuthorizeView>
 </div>
 
 @code {
-    private const string _cardStyle = "width:360px;margin-top:20px";
 }
