@@ -40,8 +40,8 @@
                 </form>
             </Authorized>
             <NotAuthorized>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="mx-2" OnClick="@(() => Nav.NavigateTo("/login"))">Sign Up</MudButton>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => Nav.NavigateTo("/login"))">Log In</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Class="mx-2" OnClick="@(() => _nav.NavigateTo("/login"))">Sign Up</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => _nav.NavigateTo("/login"))">Log In</MudButton>
             </NotAuthorized>
         </AuthorizeView>
     </MudHidden>
@@ -97,14 +97,14 @@
     [Parameter] public EventCallback<bool> DrawerToggle { get; set; }
     [Parameter] public EventCallback<bool> OnDarkMode { get; set; }
     [Parameter] public bool IsDarkMode { get; set; }
-    [Inject] private NavigationManager Nav { get; set; } = default!;
-    [Inject] private AuthenticationAccess authAccess { get; set; } = default!;
+    @inject NavigationManager _nav;
+    @inject AuthenticationAccess _authAccess;
 
     private bool _openSettings = false;
     private bool _openProfile = false;
     private string _userName = string.Empty;
 
-    protected override async Task OnParametersSetAsync() => _userName = await authAccess.GetUserName();
+    protected override async Task OnParametersSetAsync() => _userName = await _authAccess.GetUserName();
 
     private async Task ToggleDrawer() => await DrawerToggle.InvokeAsync(!DrawerOpen);
 

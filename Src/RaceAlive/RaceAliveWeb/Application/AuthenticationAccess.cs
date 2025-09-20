@@ -11,19 +11,37 @@ public class AuthenticationAccess
 
     public async Task<string> GetDisplayName()
     {
-        var authUser = (await _authProvider.GetAuthenticationStateAsync()).User.GetAuthUser();
+        var authState = await _authProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        bool isAuthenticated = user.Identity?.IsAuthenticated == true;
+        if (!isAuthenticated) return "Not authorized";
+
+        var authUser = user.GetAuthUser();
         return authUser?.GetDisplayName() ?? "Unknown user";
     }
 
     public async Task<string> GetUserName()
     {
-        var authUser = (await _authProvider.GetAuthenticationStateAsync()).User.GetAuthUser();
+        var authState = await _authProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        bool isAuthenticated = user.Identity?.IsAuthenticated == true;
+        if (!isAuthenticated) return "Not authorized";
+
+        var authUser = user.GetAuthUser();
         return authUser?.DisplayName ?? "Unknown user";
     }
 
     public async Task<string?> GetEmail()
     {
-        var authUser = (await _authProvider.GetAuthenticationStateAsync()).User.GetAuthUser();
+        var authState = await _authProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        bool isAuthenticated = user.Identity?.IsAuthenticated == true;
+        if (!isAuthenticated) return "Not authorized";
+
+        var authUser = user.GetAuthUser();
         return authUser?.Email;
     }
 }

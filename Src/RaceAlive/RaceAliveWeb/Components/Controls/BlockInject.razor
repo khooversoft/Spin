@@ -1,0 +1,88 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+<AuthorizeView>
+    <Authorized>
+        <MudStack Row=true Wrap=Wrap.Wrap AlignItems=AlignItems.Center Spacing=5>
+            @foreach (var item in _authorizedItems)
+            {
+                switch (item)
+                {
+                    case ContentItem v:
+                        <BlockToolBar Title=@v.Title OnDelete=OnDelete>
+                            @v.Content
+                        </BlockToolBar>
+                        break;
+
+                    case ImageItem v:
+                        <BlockImageBlock Header=@v.Title ImageUrl=@v.ImageUrl Width="360px">
+                            @v.Content
+                        </BlockImageBlock>
+                        break;
+                }
+            }
+        </MudStack>
+
+    </Authorized>
+    <NotAuthorized>
+        @foreach (var item in _notAuthorizedItems)
+        {
+            switch (item)
+            {
+                case ContentItem v:
+                    <BlockContent Title=@v.Title>
+                        @v.Content
+                    </BlockContent>
+                    break;
+                case ImageItem v:
+                    <BlockImageBlock Header=@v.Title ImageUrl=@v.ImageUrl>
+                        @v.Content
+                    </BlockImageBlock>
+                    break;
+            }
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private IReadOnlyList<IContentItem> _authorizedItems = new List<IContentItem>
+    {
+        new ContentItem("Message", @<text>You have message, Visit <a href="https://racealive.com/messages" style="color:blue">messages</a></text>),
+        new ContentItem("Invited", @<text>You have been invited to Sam's group, Visit <a href="https://racealive.com/friends" style="color:blue">friends</a></text>),
+        new ImageItem("Welcome", "images/ManRunningToward.png", false, @<text>Come see us at <a href="https://racealive.com" style="color:blue">racealive.com</a></text>),
+        new ImageItem("Training Camp", "images/MarathonTraingCamp.jpg", false, @<text>
+    Get ready to train smarter, run stronger, and connect with a community that shares your passion.
+    Whether you're aiming for your first marathon or a new personal best, this camp will guide you every
+    step of the way—with expert coaching, structured workouts, and plenty of motivation.
+    Let’s hit the ground running. Your journey starts now!
+</text>),
+    };
+
+    private IReadOnlyList<IContentItem> _notAuthorizedItems = new List<IContentItem>
+    {
+        new ContentItem("Welcome", @<text>Come see us at <a href="https://racealive.com" class="text-primary">racealive.com</a></text>),
+        new ImageItem("Training Event", "images/MarathonEvent.jpg", false, @<text>
+    Whether you're chasing a personal best, tackling your first 26.2 miles,
+    or simply looking to train smarter and stronger, you've just taken a powerful
+    step toward your goal. This camp is designed to equip you with the tools,
+    knowledge, and community support to help you cross that finish line with confidence.
+    Over the coming weeks, you'll train alongside passionate runners, guided
+    by experienced coaches and supported by a team that understands the journey.
+    From endurance-building long runs to recovery strategies, nutrition tips, and mental preparation,
+    every session is crafted to elevate your performance.
+    But this camp is more than just miles and workouts—it's about connection.
+    You'll meet fellow runners who share your drive, swap stories, celebrate progress,
+    and push through challenges together. Because training for a marathon isn’t just physical—it’s a mindset, and here, you're never alone.
+    So lace up, lean in, and let’s make every stride count. Your marathon
+    journey starts now!
+</text>),
+    };
+
+    private interface IContentItem { }
+
+    private record ContentItem(string Title, RenderFragment Content) : IContentItem;
+    private record ImageItem(string Title, string ImageUrl, bool ImageRight, RenderFragment Content) : IContentItem;
+
+    protected override void OnInitialized() => base.OnInitialized();
+
+    private void OnDelete() { }
+}

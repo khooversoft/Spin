@@ -1,0 +1,57 @@
+﻿@if( Width == null )
+{
+    <MudCard Style=@_cardStyleWithFlex>
+        @if(Header.IsNotEmpty())
+        {
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">@Header</MudText>
+            </MudCardHeader>
+        }
+        <MudCardMedia Image=@ImageUrl />
+        <MudCardContent>
+            @ChildContent
+        </MudCardContent>
+    </MudCard>
+}
+else
+{
+    <MudStack Row=true Wrap=Wrap.Wrap AlignItems=AlignItems.Center>
+        <MudPaper Elevation="3" Outlined=false Square=false MaxWidth=@Width MinWidth=@Width MaxHeight=@_minHeight MinHeight=@_minHeight>
+            @if (Header.IsNotEmpty())
+            {
+                <MudText Typo="Typo.h6" Style="padding: 0px 10px 0px 5px">@Header</MudText>
+            }
+
+            <div style="margin: 10px">
+                @ChildContent
+            </div>
+        </MudPaper>
+
+        <MudCard Style=@_cardStyle>
+            <MudCardMedia Image=@ImageUrl />
+        </MudCard>
+    </MudStack>
+}
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+    [Parameter] public string ImageUrl { get; set; } = null!;
+    [Parameter] public string? Header { get; set; }
+    [Parameter] public string? Width { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        ImageUrl.NotEmpty();
+    }
+
+    private string _minHeight => ((int)(_width * 0.75)).ToString() + "px";
+    private int _width => int.Parse(new string(Width!.Where(x => char.IsDigit(x)).ToArray()));
+
+    private string _cardStyle => Width switch
+    {
+        string v => $"width:{v};margin-top:20px",
+        _ => "margin-top:20px"
+    };
+
+    private string _cardStyleWithFlex => "margin-top:20px;flex: 1;min-width: 0";
+}
