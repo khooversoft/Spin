@@ -50,16 +50,21 @@ public static class StringToolExtensions
     }
 
     /// <summary>
-    /// Match input against wilcard pattern
+    /// Match input against wildcard pattern
     /// </summary>
     /// <param name="pattern"></param>
     /// <param name="input"></param>
+    /// <param name="useContains">if no wildcard characters, use contains instead of equals</param>
     /// <returns></returns>
-    public static bool Like(this string? input, string? pattern)
+    public static bool Like(this string? input, string? pattern, bool useContains = false)
     {
         if (input.IsEmpty() || pattern.IsEmpty()) return false;
 
-        if (!pattern.Any(x => x == '*' || x == '?')) return StringComparer.OrdinalIgnoreCase.Equals(input, pattern);
+        if (!pattern.Any(x => x == '*' || x == '?')) return useContains switch
+        {
+            false => StringComparer.OrdinalIgnoreCase.Equals(input, pattern),
+            true => input.Contains(pattern, StringComparison.OrdinalIgnoreCase),
+        };
 
         var builder = new StringBuilder("^");
 
@@ -78,27 +83,6 @@ public static class StringToolExtensions
         bool result = new Regex(builder.ToString(), RegexOptions.IgnoreCase).IsMatch(input);
         return result;
     }
-
-    /// <summary>
-    /// Match using files globbing support
-    /// </summary>
-    /// <param name="files"></param>
-    /// <param name="patterns"></param>
-    /// <returns>list of items that match</returns>
-    //public static IReadOnlyList<string> Match(this IEnumerable<string> files, params string[] patterns)
-    //{
-    //    files.NotNull();
-    //    if (files.Count() == 0 || patterns.Length == 0) return ImmutableArray<string>.Empty;
-
-    //    Matcher matcher = new();
-    //    patterns.ForEach(x => matcher.AddInclude(x));
-
-    //    var matchResult = matcher.Match(files);
-    //    if (!matchResult.HasMatches) return ImmutableArray<string>.Empty;
-
-    //    var result = matchResult.Files.Select(x => x.Path).ToArray();
-    //    return result.ToImmutableArray<string>();
-    //}
 
     /// <summary>
     /// Match using file globbing support

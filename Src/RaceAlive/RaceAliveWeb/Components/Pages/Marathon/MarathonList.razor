@@ -1,0 +1,139 @@
+﻿@using RaceAliveWeb.Application
+@using RaceAliveWeb.Components.Controls
+@using RaceAlive.sdk;
+@using System.Collections.Frozen
+
+<MudDataGrid T="MarathonScheduleModel"
+             Items="List"
+             Dense="true"
+             Hover="true"
+             Bordered="false"
+             Elevation="0"
+             Striped=true
+             RowClick="RowClickEvent"
+             RowStyleFunc="GetRowStyle"
+             SortMode="SortMode.Multiple"
+             ColumnResizeMode="ResizeMode.Container"
+             Filterable=ShowFilters
+             FilterMode="DataGridFilterMode.ColumnFilterMenu"
+             @ref=_grid>
+
+    <Columns>
+        <PropertyColumn Property="x => x.Date" Title="Date" Format="yyyy-MM-dd" Sortable="true" />
+        <PropertyColumn Property="x => x.Name" Title="Name" Sortable="true" />
+
+        <PropertyColumn Property="x => x.Description" Title="Description" Sortable="true">
+            <CellTemplate>
+                <div style="white-space: normal; word-wrap: break-word; max-width: 600px;">
+                    @context.Item.Description
+                </div>
+            </CellTemplate>
+        </PropertyColumn>
+
+        <PropertyColumn Property="x => x.City" Title="City" Sortable="true" />
+        <PropertyColumn Property="x => x.State" Title="State" Sortable="true" />
+        <PropertyColumn Property="x => x.CourseType" Title="Type" Sortable="true">
+            <CellTemplate>
+                @context.Item.CourseType.ToCourseTypeString()
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.PrScore" Title="PR Score" Sortable="true" />
+        <PropertyColumn Property="x => x.BqScore" Title="BQ Score" Sortable="true" />
+        <PropertyColumn Property="x => x.Finishers" Title="Finishers" Sortable="true">
+            <CellTemplate>
+                @context.Item.Finishers?.ToString("N0")
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.PercentQualified" Title="Qualified" Sortable="true">
+            <CellTemplate>
+                @((context.Item.PercentQualified ?? 0).ToString("P1"))
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.GetAverageRating()" Title="Reviews" Sortable="true">
+            <CellTemplate>
+                @if (context.Item.Reviews.Count > 0)
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <span style="display:inline-flex; cursor:pointer"
+                              title="View reviews"
+                              @onclick="() => OnReviewSelected(context.Item.Id)"
+                              @onclick:stopPropagation>
+                            <MudRating ReadOnly="true" SelectedValue="@context.Item.GetAverageRating()" MaxValue="5" Size="Size.Small" />
+                        </span>
+                        <MudText Typo="Typo.body2">(@context.Item.Reviews.Count)</MudText>
+                    </MudStack>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Dark">No reviews</MudText>
+                }
+            </CellTemplate>
+        </PropertyColumn>
+    </Columns>
+</MudDataGrid>
+
+@code {
+    [Parameter] public IReadOnlyList<MarathonScheduleModel> List { get; set; } = null!;
+    [Parameter] public EventCallback<string> OnSelect { get; set; }
+    [Parameter] public EventCallback<string> OnReviewSelect { get; set; }
+    [Parameter] public bool ShowFilters { get; set; } = false;
+    [Parameter] public string? SelectedRowId { get; set; }
+    [Parameter] public bool ShowRanking { get; set; }
+    [Parameter] public bool ShowAll { get; set; }
+
+    private MudDataGrid<MarathonScheduleModel> _grid = null!;
+
+    private static readonly FrozenSet<string> _normalColumns = new[] {
+        nameof(MarathonScheduleModel.Date),
+        nameof(MarathonScheduleModel.Name),
+        nameof(MarathonScheduleModel.City),
+        nameof(MarathonScheduleModel.State),
+        nameof(MarathonScheduleModel.CourseType),
+        nameof(MarathonScheduleModel.PrScore),
+        nameof(MarathonScheduleModel.Reviews),
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
+    private static readonly FrozenSet<string> _rankingColumns = new[] {
+        nameof(MarathonScheduleModel.Date),
+        nameof(MarathonScheduleModel.Name),
+        nameof(MarathonScheduleModel.City),
+        nameof(MarathonScheduleModel.CourseType),
+        nameof(MarathonScheduleModel.PrScore),
+        nameof(MarathonScheduleModel.BqScore),
+        nameof(MarathonScheduleModel.Finishers),
+        nameof(MarathonScheduleModel.PercentQualified),
+        nameof(MarathonScheduleModel.Reviews),
+    }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        foreach (var column in _grid.RenderedColumns)
+        {
+            bool show = (ShowAll, ShowRanking) switch
+            {
+                (true, _) => true,
+                (false, true) => _rankingColumns.Contains(column.PropertyName) || _rankingColumns.Contains(column.Title),
+                (false, false) => _normalColumns.Contains(column.PropertyName) || _normalColumns.Contains(column.Title),
+            };
+
+            if (show)
+                await column.ShowAsync();
+            else
+                await column.HideAsync();                
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task RowClickEvent(DataGridRowClickEventArgs<MarathonScheduleModel> e)
+    {
+        await OnSelect.InvokeAsync(e.Item.NotNull().Id);
+    }
+
+    private string GetRowStyle(MarathonScheduleModel item, int index) =>
+        SelectedRowId is not null && item.Id == SelectedRowId ? "background-color: var(--mud-palette-action-default-hover);" : string.Empty;
+
+    private async Task OnReviewSelected(string id) => await OnReviewSelect.InvokeAsync(id);
+}

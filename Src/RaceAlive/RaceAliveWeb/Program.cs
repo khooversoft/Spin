@@ -8,6 +8,7 @@ using MudBlazor.Services;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using RaceAlive.sdk;
 using RaceAliveWeb.Application;
 using RaceAliveWeb.Components;
 using Toolbox.Extensions;
@@ -85,6 +86,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddMudServices();
 builder.Services.AddTransient<AuthenticationAccess>();
+
+builder.Services.AddRaceAlive();
 
 // Authentication
 builder.Services.AddAuthentication(options =>

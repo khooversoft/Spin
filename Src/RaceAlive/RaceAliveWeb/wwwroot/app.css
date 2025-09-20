@@ -4,8 +4,30 @@
     width: auto; /* shrink to content up to max-width */
 }
 
+.block-content {
+    max-width: 360px;
+}
+
 .right-drawer-container {
     max-width: 220px;
+}
+
+.selected-row {
+    /* Emphasized background while preserving readable text */
+    background-color: var(--mud-palette-info) !important;
+    color: var(--mud-palette-info-text) !important;
+}
+
+    /* Optional: keep hover effect distinct when selected */
+    .selected-row:hover {
+        filter: brightness(1.05);
+    }
+
+/* Hide review text column on screens smaller than 960px */
+@media (max-width: 960px) {
+    .review-text-column {
+        display: none !important;
+    }
 }
 
 /* Tablet (sm & md) - slightly narrower padding */

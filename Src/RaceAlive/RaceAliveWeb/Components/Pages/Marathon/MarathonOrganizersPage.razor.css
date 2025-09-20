@@ -1,0 +1,40 @@
+.marketing-text {
+    line-height: 1.7;
+    margin-bottom: 8px;
+}
+
+.section-divider {
+    margin: 8px 0 4px 0;
+}
+
+.cta {
+    font-weight: 600;
+    color: var(--mud-palette-primary);
+    margin-top: 4px;
+}
+
+.cta-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.email-icon {
+    margin-right: 4px;
+}
+
+.response-note {
+    margin-top: 4px;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.muted {
+    color: var(--mud-palette-text-secondary);
+}

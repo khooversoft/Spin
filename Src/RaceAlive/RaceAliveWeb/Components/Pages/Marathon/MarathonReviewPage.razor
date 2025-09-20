@@ -1,0 +1,27 @@
+﻿@page "/marathonReview/{id}"
+@using RaceAlive.sdk
+@using RaceAliveWeb.Components.Controls
+
+<div class="block-container">
+    <div style="margin-bottom:10px">
+        <ReturnUrlButton ReturnUrl=@returnUrl />
+    </div>
+
+    <BlockContent Title="Marathon Reviews">
+        <MarathonReviewsList Reviews=@_model.Reviews />
+    </BlockContent>
+</div>
+
+@code {
+    [Parameter] public string id { get; set; } = null!;
+    [Parameter, SupplyParameterFromQuery] public string returnUrl { get; set; } = null!;
+    @inject MarathonScheduleClient _scheduleClient;
+    @inject NavigationManager _nav;
+
+    private MarathonScheduleModel _model = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _model = (await _scheduleClient.Get(id)).ThrowOnError().Return();
+    }
+}

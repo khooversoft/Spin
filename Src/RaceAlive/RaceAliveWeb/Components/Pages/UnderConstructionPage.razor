@@ -1,0 +1,82 @@
+﻿@page "/underConstruction"
+
+<PageTitle>Under Construction - Race Alive</PageTitle>
+
+<div class="under-construction-container">
+    <!-- Background animation -->
+    <div class="construction-bg"></div>
+    
+    <!-- Main content -->
+    <div class="construction-content">
+        <!-- Logo/Icon area -->
+        <div class="construction-icon">
+            <div class="hardhat">
+                <div class="hardhat-top"></div>
+                <div class="hardhat-brim"></div>
+                <div class="hardhat-light"></div>
+            </div>
+        </div>
+
+        <!-- Main title with animation -->
+        <div class="construction-title">
+            <h1>Under Construction</h1>
+            <div class="construction-subtitle">
+                🏃‍♂️ We're building something amazing for runners like you!
+            </div>
+        </div>
+
+        <!-- Progress bar animation -->
+        <div class="progress-container">
+            <div class="progress-label">Building Progress</div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text">75% Complete</div>
+        </div>
+
+        <!-- Feature preview cards -->
+        <div class="features-preview">
+            <div class="feature-card">
+                <div class="feature-icon">🏃‍♀️</div>
+                <h3>Race Discovery</h3>
+                <p>Find your next race with AI-powered recommendations</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Performance Tracking</h3>
+                <p>Track your training and race results with detailed analytics</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>AI Training Plans</h3>
+                <p>Personalized training plans that adapt to your goals</p>
+            </div>
+        </div>
+
+        <!-- Call to action -->
+        <div class="construction-cta">
+            <p>Want to be notified when we launch this feature?</p>
+            <MudButton Variant="Variant.Filled" 
+                      Color="Color.Primary" 
+                      StartIcon="@Icons.Material.Filled.NotificationsActive"
+                      Size="Size.Large"
+                      Class="notify-button">
+                Notify Me
+            </MudButton>
+        </div>
+
+        <!-- Back to home -->
+        <div class="back-home">
+            <MudButton Variant="Variant.Text" 
+                      Color="Color.Primary" 
+                      StartIcon="@Icons.Material.Filled.Home"
+                      Href="/">
+                Back to Home
+            </MudButton>
+        </div>
+    </div>
+</div>
+
+@code {
+
+}

@@ -1,0 +1,50 @@
+﻿@page "/marathonRankings"
+@using RaceAlive.sdk
+@using RaceAliveWeb.Components.Controls
+
+<div class="block-container">
+    <MudText Typo="Typo.h5" GutterBottom="true">Marathon Comparisons</MudText>
+    <MudText Typo="Typo.body2" GutterBottom="true">
+        Explore our comprehensive list of marathons ranked by performance, popularity,
+        and participant feedback.  Marathons ranked by key performance metrics, participant reviews,
+        and overall event quality. Use these rankings to compare races, evaluate your
+        options, and select the event that aligns best with your running goals and experience level.
+    </MudText>
+    
+    @if (!_initialized)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <BlockToolBar Title="Marathon Rankings" OnFilter=OnFilter OnSearch=OnSearch>
+            <MarathonList List=GetMarathons() OnSelect=OnRowSelect OnReviewSelect=OnReviewSelect ShowFilters=@_filter ShowRanking=true />
+        </BlockToolBar>
+    }
+</div>
+
+@code {
+    [Parameter] public string id { get; set; } = null!;
+    @inject MarathonScheduleClient _scheduleClient;
+    @inject NavigationManager _nav;
+
+    private IReadOnlyList<MarathonScheduleModel> _schedules = [];
+    private bool _initialized = false;
+    private string? _search;
+    private bool _filter = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _schedules = (await _scheduleClient.GetMarathonSchedule()).ThrowOnError().Return();
+        _initialized = true;
+    }
+
+    private IReadOnlyList<MarathonScheduleModel> GetMarathons() => _schedules
+        .Where(x => _search.IsEmpty() || x.IsMatch(_search))
+        .ToArray();
+
+    private void OnRowSelect(string id) => _nav.GotoMarathonProfile(id, NavHelper.MarathonRankingPath);
+    private void OnSearch(string? search) => _search = search;
+    private void OnReviewSelect(string id) => _nav.GotoMarathonReview(id, NavHelper.MarathonRankingPath);
+    private void OnFilter() => _filter = !_filter;
+}
