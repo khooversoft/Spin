@@ -1,0 +1,93 @@
+﻿@page "/marathonOrganizers"
+@using RaceAliveWeb.Components.Controls
+
+<BlockContainer>
+    <MudText Typo="Typo.h4" GutterBottom="true">Marathon Organizers</MudText>
+
+    <BlockContent Title="Want to put your race on every runner's radar?">
+        <MudGrid>
+            <MudItem xs="12" md="7">
+                <MudStack Spacing="3">
+                    <MudText Typo="Typo.body1" Class="marketing-text">
+                        Publishing on <strong>RaceAlive.com</strong> gets your event in front of a large audience of passionate runners who are actively searching for their next race.
+                    </MudText>
+
+                    <MudText Typo="Typo.body1" Class="marketing-text">
+                        It's the perfect way to <em>boost registrations</em> and <em>build your brand</em> in the running community.
+                    </MudText>
+
+                    <MudDivider Class="section-divider" />
+
+                    <MudText Typo="Typo.body1" Class="cta">
+                        Ready to make it happen? I'm the go-to person to get the ball rolling.
+                    </MudText>
+
+                    <MudStack Row=true>
+                        <MudText Typo="Typo.body1">Email us at...</MudText>
+
+                        <MudLink Href="mailto:businessdevelopment@RaceAlive.com"
+                                 Color="Color.Primary"
+                                 Typo="Typo.body1"
+                                 AriaLabel="Email business development">
+                            <MudIcon Icon="Icons.Material.Filled.Email" Size="Size.Small" Class="email-icon" />
+                            businessdevelopment@RaceAlive.com
+                        </MudLink>
+                    </MudStack>
+
+                    <MudAlert Severity="Severity.Info" Dense="true" Variant="Variant.Outlined" Class="response-note">
+                        We typically respond within 1 business day.
+                    </MudAlert>
+                </MudStack>
+            </MudItem>
+
+            <MudItem xs="12" md="5">
+                <MudCard Elevation="3">
+                    <MudCardHeader>
+                        <CardHeaderAvatar>
+                            <MudIcon Icon="Icons.Material.Filled.Campaign" Color="Color.Primary" />
+                        </CardHeaderAvatar>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Why partner with RaceAlive</MudText>
+                            <MudText Typo="Typo.caption" Class="muted">Benefits at a glance</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+
+                    <MudDivider />
+
+                    <MudCardContent>
+                        <div class="benefit-item">
+                            <MudIcon Icon="Icons.Material.Filled.TrendingUp" Color="Color.Primary" />
+                            <MudText Typo="Typo.body2">
+                                <strong>Increase registrations</strong> with high-intent traffic.
+                            </MudText>
+                        </div>
+
+                        <div class="benefit-item">
+                            <MudIcon Icon="Icons.Material.Filled.Groups" Color="Color.Primary" />
+                            <MudText Typo="Typo.body2">
+                                <strong>Reach engaged runners</strong> browsing marathons and training.
+                            </MudText>
+                        </div>
+
+                        <div class="benefit-item">
+                            <MudIcon Icon="Icons.Material.Filled.Verified" Color="Color.Primary" />
+                            <MudText Typo="Typo.body2">
+                                <strong>Build trust</strong> with a consistent, professional presence.
+                            </MudText>
+                        </div>
+
+                        <div class="benefit-item">
+                            <MudIcon Icon="Icons.Material.Filled.Tune" Color="Color.Primary" />
+                            <MudText Typo="Typo.body2">
+                                <strong>Targeted placement</strong> aligned to your event goals.
+                            </MudText>
+                        </div>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </BlockContent>
+</BlockContainer>
+
+@code {
+}

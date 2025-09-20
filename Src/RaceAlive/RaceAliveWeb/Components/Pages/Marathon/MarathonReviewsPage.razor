@@ -1,0 +1,30 @@
+﻿@page "/marathonReviews"
+@using RaceAlive.sdk
+@using RaceAliveWeb.Components.Controls
+
+<div class="block-container">
+    <MudText Typo="Typo.h5" GutterBottom="true">Marathons Reviews</MudText>
+
+    <BlockContent>
+        <CalendarTable List=GetMarathons() OnSelect=OnRowSelect />
+    </BlockContent>
+</div>
+
+@code {
+    @inject MarathonScheduleClient _scheduleClient;
+    @inject NavigationManager _nav;
+
+    private IReadOnlyList<MarathonScheduleModel> _schedules = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _schedules = (await _scheduleClient.GetMarathonSchedule()).ThrowOnError().Return();
+    }
+
+    private IReadOnlyList<MarathonScheduleModel> GetMarathons() => _schedules;
+
+    private void OnRowSelect(string id)
+    {
+        _nav.GotoMarathonReview(id, NavHelper.MarathonReviewsPath);
+    }
+}

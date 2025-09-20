@@ -1,0 +1,9 @@
+﻿<div class="block-container">
+    <MudStack Spacing="2">
+        @ChildContent
+    </MudStack>
+</div>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+}

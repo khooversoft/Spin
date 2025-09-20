@@ -79,7 +79,7 @@ public class RestClient
         {
             null => null,
             { Length: <= 100 } => requestPayload,
-            _ => requestPayload.Truncate(100) + "...",
+            _ => requestPayload.Truncate(100, addEllipse: true),
         };
 
         try
@@ -97,7 +97,7 @@ public class RestClient
                 requestMessage.Method,
                 response.StatusCode,
                 requestPayload,
-                (content.ToNullIfEmpty() ?? "<no content>").Truncate(100)
+                (content.ToNullIfEmpty() ?? "<no content>").Truncate(100, true)
                 );
 
             context.Location().LogTrace(

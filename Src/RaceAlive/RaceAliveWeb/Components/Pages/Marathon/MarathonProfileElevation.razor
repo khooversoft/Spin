@@ -1,0 +1,41 @@
+﻿@using RaceAlive.sdk
+@using RaceAliveWeb.Components.Controls
+
+<BlockContent Title=@_model.Name>
+    @if (_labels.Length > 0)
+    {
+        <MudChart ChartType="ChartType.Bar"
+                  ChartSeries="@_feetSeries"
+                  XAxisLabels="@_labels"
+                  AxisChartOptions=@_axisChartOptions
+                  Width="100%" />
+    }
+    else
+    {
+        <MudText>No elevation data available.</MudText>
+    }
+</BlockContent>
+
+@code {
+    [CascadingParameter] public MarathonScheduleModel _model { get; set; } = null!;
+
+    private string[] _labels = [];
+    private List<ChartSeries> _feetSeries = [];
+    private AxisChartOptions _axisChartOptions = new AxisChartOptions
+    {
+       XAxisLabelRotation = 90,
+    };
+
+    protected override void OnParametersSet()
+    {
+        var elevation = _model?.Elevation;
+
+        if (elevation is { Count: > 0 })
+        {
+            _labels = elevation.Select(m => m.Id).ToArray();
+            _feetSeries = new List<ChartSeries> {
+                new ChartSeries { Name = "", Data = elevation.Select(m => (double)m.Feet).ToArray() }
+            };
+        }
+    }
+}

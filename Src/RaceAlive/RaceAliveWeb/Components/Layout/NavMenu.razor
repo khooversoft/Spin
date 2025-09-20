@@ -6,30 +6,30 @@
 <MudNavMenu>
     <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
     <MudNavGroup Title="Marathon" Expanded="true">
-        <MudNavLink Href="/Calendar" Match="NavLinkMatch.Prefix">Calendar</MudNavLink>
-        <MudNavLink Href="/Search" Match="NavLinkMatch.Prefix">Search</MudNavLink>
-        <MudNavLink Href="/Rankings" Match="NavLinkMatch.Prefix">Rankings</MudNavLink>
-        <MudNavLink Href="/Reviews" Match="NavLinkMatch.Prefix">Reviews</MudNavLink>
-        <MudNavLink Href="/Organizers" Match="NavLinkMatch.Prefix">Organizers</MudNavLink>
+        <MudNavLink Href=@NavHelper.MarathonCalendarPath Match="NavLinkMatch.Prefix">Calendar</MudNavLink>
+        <MudNavLink Href=@NavHelper.MarathonSearchPath Match="NavLinkMatch.Prefix">Search</MudNavLink>
+        <MudNavLink Href=@NavHelper.MarathonRankingPath Match="NavLinkMatch.Prefix">Rankings</MudNavLink>
+        <MudNavLink Href=@NavHelper.MarathonReviewsPath Match="NavLinkMatch.Prefix">Reviews</MudNavLink>
+        <MudNavLink Href=@NavHelper.MarathonOrganizersPath Match="NavLinkMatch.Prefix">Organizers</MudNavLink>
     </MudNavGroup>
     <MudNavGroup Title="Train" Expanded="true">
-        <MudNavLink Href="/Explore" Match="NavLinkMatch.Prefix">Explore</MudNavLink>
-        <MudNavLink Href="/Tracking" Match="NavLinkMatch.Prefix">Tracking Progress</MudNavLink>
-        <MudNavLink Href="/Insights" Match="NavLinkMatch.Prefix">Performance Insights</MudNavLink>
-        <MudNavLink Href="/Training" Match="NavLinkMatch.Prefix">Training</MudNavLink>
-        <MudNavLink Href="/Plan" Match="NavLinkMatch.Prefix">Plan</MudNavLink>
+        <MudNavLink Href="/explore" Match="NavLinkMatch.Prefix">Explore</MudNavLink>
+        <MudNavLink Href="/tracking" Match="NavLinkMatch.Prefix">Tracking Progress</MudNavLink>
+        <MudNavLink Href="/insights" Match="NavLinkMatch.Prefix">Performance Insights</MudNavLink>
+        <MudNavLink Href="/training" Match="NavLinkMatch.Prefix">Training</MudNavLink>
+        <MudNavLink Href="/plan" Match="NavLinkMatch.Prefix">Plan</MudNavLink>
     </MudNavGroup>
     <MudNavGroup Title="Explore" Expanded="true">
-        <MudNavLink Href="/Map" Match="NavLinkMatch.Prefix">Map</MudNavLink>
-        <MudNavLink Href="/Routes" Match="NavLinkMatch.Prefix">Routes</MudNavLink>
-        <MudNavLink Href="/Travel" Match="NavLinkMatch.Prefix">Logging and Transportation</MudNavLink>
-        <MudNavLink Href="/Interest" Match="NavLinkMatch.Prefix">Points of Interest</MudNavLink>
+        <MudNavLink Href="/map" Match="NavLinkMatch.Prefix">Map</MudNavLink>
+        <MudNavLink Href="/routes" Match="NavLinkMatch.Prefix">Routes</MudNavLink>
+        <MudNavLink Href="/travel" Match="NavLinkMatch.Prefix">Logging and Transportation</MudNavLink>
+        <MudNavLink Href="/interest" Match="NavLinkMatch.Prefix">Points of Interest</MudNavLink>
     </MudNavGroup>
     <MudNavGroup Title="Complete" Expanded="true">
-        <MudNavLink Href="/Leader" Match="NavLinkMatch.Prefix">Leaderboards</MudNavLink>
-        <MudNavLink Href="/Friends" Match="NavLinkMatch.Prefix">Friends and Groups</MudNavLink>
-        <MudNavLink Href="/Achievements" Match="NavLinkMatch.Prefix">Achievements</MudNavLink>
-        <MudNavLink Href="/Challenges" Match="NavLinkMatch.Prefix">Challenges</MudNavLink>
+        <MudNavLink Href="/leader" Match="NavLinkMatch.Prefix">Leaderboards</MudNavLink>
+        <MudNavLink Href="/friends" Match="NavLinkMatch.Prefix">Friends and Groups</MudNavLink>
+        <MudNavLink Href="/achievements" Match="NavLinkMatch.Prefix">Achievements</MudNavLink>
+        <MudNavLink Href="/challenges" Match="NavLinkMatch.Prefix">Challenges</MudNavLink>
     </MudNavGroup>
     <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
 </MudNavMenu>

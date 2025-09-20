@@ -1,0 +1,33 @@
+﻿@using RaceAlive.sdk
+
+<MudDataGrid T="MarathonReview"
+             Items="@Reviews"
+             Dense="true"
+             Hover="true"
+             Bordered="false"
+             Elevation="0"
+             Striped=true
+             SortMode="SortMode.Multiple"
+             ColumnResizeMode="ResizeMode.Container">
+
+    <Columns>
+        <PropertyColumn Property="x => x.Name" Title="Reviewer Name" />
+        <PropertyColumn Property="x => x.Text" Title="Review" Class="review-text-column">
+            <CellTemplate>
+                <div style="white-space: normal; word-wrap: break-word; max-width: 600px;">
+                    @context.Item.Text
+                </div>
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.Rating" Title="Rating" Sortable="true">
+            <CellTemplate>
+                <MudRating ReadOnly="true" SelectedValue="@context.Item.Rating" MaxValue="5" Size="Size.Small" />
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.SubmittedOn" Title="Submitted On" Format="yyyy-MM-dd HH:mm" />
+    </Columns>
+</MudDataGrid>
+
+@code {
+    [Parameter] public IReadOnlyList<MarathonReview> Reviews { get; set; } = null!;
+}

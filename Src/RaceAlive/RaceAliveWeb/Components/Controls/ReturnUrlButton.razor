@@ -1,0 +1,10 @@
+﻿@if (ReturnUrl.IsNotEmpty())
+{
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href=@ReturnUrl StartIcon="@Icons.Material.Outlined.ArrowBack">
+        Back
+    </MudButton>
+}
+
+@code {
+    [Parameter] public string ReturnUrl { get; set; } = null!;
+}

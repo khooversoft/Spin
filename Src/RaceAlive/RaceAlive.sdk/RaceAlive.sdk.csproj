@@ -10,4 +10,8 @@
     <Folder Include="Records\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Toolbox\Toolbox.csproj" />
+  </ItemGroup>
+
 </Project>

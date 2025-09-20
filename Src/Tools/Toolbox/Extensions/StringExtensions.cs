@@ -91,14 +91,23 @@ public static class StringExtensions
     /// </summary>
     /// <param name="subject">string or null</param>
     /// <param name="maxLength">max length allowed, must be positive or defaults to 0</param>
+    /// <param name="addEllipse">add ... to end of string if truncated</param>
     /// <returns>truncate string if required</returns>
     [DebuggerStepThrough]
     [return: NotNullIfNotNull(nameof(subject))]
-    public static string? Truncate(this string? subject, int maxLength) => subject switch
+    public static string? Truncate(this string? subject, int maxLength, bool addEllipse = false)
     {
-        null => null,
-        string v => v[..Math.Min(v.Length, Math.Max(maxLength, 0))],
-    };
+        maxLength.Assert(x => x >= 0, "maxLength must be positive");
+
+        return subject switch
+        {
+            null => null,
+            _ when maxLength == 0 => string.Empty,
+            string v when v.Length <= maxLength => v,
+            string v when addEllipse => v[..Math.Min(v.Length, maxLength - 3)] + "...",
+            string v => v[..Math.Min(v.Length, maxLength)],
+        };
+    }
 
     /// <summary>
     /// Primary used for logging secrets, just the first and last part of the secret is returned

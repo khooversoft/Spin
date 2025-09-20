@@ -1,0 +1,63 @@
+﻿@page "/marathonCalendar"
+@using RaceAlive.sdk
+@using RaceAliveWeb.Components.Controls
+
+<div class="block-container">
+    <MudText Typo="Typo.h5" GutterBottom="true">Marathon Calendar</MudText>
+
+    @if (!_initialized)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+    }
+    else
+    {
+        <MudTextField @bind-Value=@_searchString
+                      Placeholder="search"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Medium"
+                      Immediate=true
+                      Clearable=true />
+
+        <BlockContent Title="Featured">
+            <CalendarTable List=GetFeatureMarathons() OnSelect=OnRowSelect SelectedRowId=@_id />
+        </BlockContent>
+
+        <BlockContent Title="Within 60 days" >
+            <CalendarTable List=GetLastMarathons() OnSelect=OnRowSelect SelectedRowId=@_id />
+        </BlockContent>
+    }
+</div>
+
+@code {
+    @inject MarathonScheduleClient _scheduleClient;
+    @inject NavigationManager _nav;
+
+    private IReadOnlyList<MarathonScheduleModel> _schedules = [];
+
+    private bool _initialized = false;
+    private string? _id;
+    private string _searchString = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _schedules = (await _scheduleClient.GetMarathonSchedule()).ThrowOnError().Return();
+        _initialized = true;
+    }
+
+    private IReadOnlyList<MarathonScheduleModel> GetFeatureMarathons() => _schedules
+        .Where(x => x.FeatureRace)
+        .Where(x => _searchString.IsEmpty() || x.IsMatch(_searchString))
+        .ToArray();
+
+    private IReadOnlyList<MarathonScheduleModel> GetLastMarathons() => _schedules
+        .Where(x => x.Date < DateTime.UtcNow.AddDays(60))
+        .Where(x => _searchString.IsEmpty() || x.IsMatch(_searchString))
+        .ToArray();
+
+    private void OnRowSelect(string id)
+    {
+        _id = id;
+        _nav.GotoMarathonProfile(id, NavHelper.MarathonCalendarPath);
+    }
+}

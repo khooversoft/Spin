@@ -1,0 +1,15 @@
+﻿<MudPaper Elevation="3" Outlined=true Square=false Style="margin-top:20px">
+    @if (Title.IsNotEmpty())
+    {
+        <MudText Typo="Typo.h6" Style="padding: 0px 10px 0px 5px">@Title</MudText>
+    }
+
+    <div style="margin: 10px">
+        @ChildContent
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+    [Parameter] public string? Title { get; set; }
+}

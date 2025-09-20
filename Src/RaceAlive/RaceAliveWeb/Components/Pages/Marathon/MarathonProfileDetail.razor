@@ -1,0 +1,126 @@
+﻿@using RaceAlive.sdk
+@using RaceAliveWeb.Components.Controls
+
+<BlockContent Title=@_model.Name>
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Name"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@(_model.Name ?? string.Empty)" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Date"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@_model.Date.ToString("yyyy-MM-dd")" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="City"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@(_model.City ?? string.Empty)" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="State"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@(_model.State ?? string.Empty)" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudTextField Label="Description"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Lines="3"
+                          Value="@(_model.Description ?? string.Empty)" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Course Type"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@_model.CourseType.ToCourseTypeString()" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="PR Score"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@(_model.PrScore ?? "N/A")" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Finishers"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@(_model.Finishers?.ToString("N0") ?? "N/A")" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Percent Qualified"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@((_model.PercentQualified ?? 0).ToString("P1"))" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Marathon Site"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@(_model.MarathonSiteUri ?? string.Empty)" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Reviews URL"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@(_model.ReviewsUri ?? string.Empty)" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField Label="Elevation Chart URL"
+                          Variant="Variant.Text"
+                          ReadOnly="true"
+                          FullWidth="true"
+                          Value="@(_model.ElevationChartUri ?? string.Empty)" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" class="d-flex align-center">
+            <MudCheckBox Label="Feature Race" Disabled="true" @bind-Value="@_model.FeatureRace" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" class="d-flex align-center">
+            <div class="d-flex flex-column">
+                <MudText Typo="Typo.body2" Class="mb-2">Average Rating (@GetReviewCount() reviews)</MudText>
+                <MudRating SelectedValue="@GetAverageRating()" ReadOnly=true MaxValue="5" />
+            </div>
+        </MudItem>
+    </MudGrid>
+</BlockContent>
+
+@code {
+    [CascadingParameter] public MarathonScheduleModel _model { get; set; } = null!;
+
+    private int GetAverageRating()
+    {
+        if (_model.Reviews == null || !_model.Reviews.Any()) return 0;
+        return (int)Math.Round(_model.Reviews.Average(r => r.Rating));
+    }
+
+    private int GetReviewCount() => _model.Reviews?.Count ?? 0;
+}
