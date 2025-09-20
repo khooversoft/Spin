@@ -9,10 +9,10 @@ public static class NavHelper
     public static string MarathonCalendarPath => "/marathonCalendar";
     public static string MarathonSearchPath => "/marathonSearch";
     public static string MarathonProfilePath => "/marathonProfile";
-    public static string MarathonReviewsPath => "/marathonReviews";
     public static string MarathonRankingPath => "/marathonRankings";
     public static string MarathonReviewPath => "/marathonReview";
     public static string MarathonOrganizersPath => "/marathonOrganizers";
+    public static string UnderConstructionPath => "/underConstruction";
 
     public static void GotoCalendar(this NavigationManager nav) => nav.NotNull().NavigateTo(MarathonCalendarPath);
 

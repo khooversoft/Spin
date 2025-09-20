@@ -81,23 +81,7 @@
                           Variant="Variant.Text"
                           ReadOnly="true"
                           FullWidth="true"
-                          Value="@(_model.MarathonSiteUri ?? string.Empty)" />
-        </MudItem>
-
-        <MudItem xs="12" sm="6">
-            <MudTextField Label="Reviews URL"
-                          Variant="Variant.Text"
-                          ReadOnly="true"
-                          FullWidth="true"
-                          Value="@(_model.ReviewsUri ?? string.Empty)" />
-        </MudItem>
-
-        <MudItem xs="12" sm="6">
-            <MudTextField Label="Elevation Chart URL"
-                          Variant="Variant.Text"
-                          ReadOnly="true"
-                          FullWidth="true"
-                          Value="@(_model.ElevationChartUri ?? string.Empty)" />
+                          Value="@(_model.MarathonSiteUrl ?? string.Empty)" />
         </MudItem>
 
         <MudItem xs="12" sm="6" class="d-flex align-center">

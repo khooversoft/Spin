@@ -3,10 +3,16 @@
 @using RaceAliveWeb.Components.Controls
 
 <div class="block-container">
-    <MudText Typo="Typo.h5" GutterBottom="true">Search Marathons</MudText>
+    <MudText Typo="Typo.h5" GutterBottom="true">Find Your Next Finish Line!</MudText>
+    <MudText Typo="Typo.body2" GutterBottom="true">
+        Looking for your perfect race? Whether you’re chasing a PR,
+        exploring a new city, or just want an unforgettable running experience,
+        our Marathon Search makes it easy. Filter by location, date,
+        terrain, and more.
+    </MudText>
 
-    <BlockToolBar OnSearch=OnSearch>
-        <CalendarTable List=GetMarathons() OnSelect=OnRowSelect SelectedRowId=@_id />
+    <BlockToolBar title="Search Marathons" OnSearch=OnSearch OnFilter=OnFilter>
+        <MarathonList List=GetMarathons() OnSelect=OnRowSelect SelectedRowId=@_id OnReviewSelect=OnReviewSelect ShowFilters=@_filter ShowAll=true />
     </BlockToolBar>
 </div>
 
@@ -18,6 +24,7 @@
 
     private string? _id;
     private string? _search;
+    private bool _filter = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -34,9 +41,8 @@
         _nav.GotoMarathonProfile(id, NavHelper.MarathonSearchPath);
     }
 
-    private Task OnSearch(string? search)
-    {
-        _search = search;
-        return Task.CompletedTask;
-    }
+    private void OnSearch(string? search) => _search = search;
+    private void OnReviewSelect(string id) => _nav.GotoMarathonReview(id, NavHelper.MarathonSearchPath);
+    private void OnFilter() => _filter = !_filter;
 }
+

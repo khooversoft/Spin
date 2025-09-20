@@ -1,41 +1,55 @@
-﻿<MudPaper Elevation="3" Outlined=true Square=false Style="margin-top:20px">
-    @if (Title.IsNotEmpty())
-    {
-        <MudText Typo="Typo.h6" Style="padding: 0px 10px 0px 5px">@Title</MudText>
-    }
+﻿
 
-    @if (ShowTooBar)
-    {
-        <MudToolBar Dense=true Gutters=false>
-            @if (OnAdd.HasDelegate)
-            {
-                <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OnAddClicked" Disabled=DisableAdd />
-            }
+<MudPaper Elevation="3" Outlined=true Square=false Style="margin-top:20px">
+    <MudStack Row=true Wrap="Wrap.Wrap" AlignItems="AlignItems.Center">
 
-            @if (OnEdit.HasDelegate)
-            {
-                <MudIconButton Icon="@Icons.Material.Outlined.Edit" OnClick="OnEditClicked" Disabled=DisableEdit />
-            }
+        @if (Title.IsNotEmpty())
+        {
+            <MudText Typo="Typo.h6" Style="padding-left:10px">@Title</MudText>
+        }
 
-            @if (OnDelete.HasDelegate)
-            {
-                <MudIconButton Icon="@Icons.Material.Outlined.Delete" OnClick="OnDeleteClicked" Disabled=DisableDelete />
-            }
+        @if (ShowTooBar)
+        {
+            <MudSpacer />
 
-            @if (OnSearch.HasDelegate)
-            {
-                <MudSpacer />
-                <MudTextField @bind-Value=@_searchString
-                              Placeholder="search"
-                              Adornment="Adornment.Start"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              IconSize="Size.Medium"
-                              Immediate=true
-                              Clearable=true
-                              Disabled="DisableSearch" />
-            }
-        </MudToolBar>
-    }
+            <MudToolBar Dense=true Gutters=false>
+                @if (OnAdd.HasDelegate)
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OnAdd" Disabled=DisableAdd />
+                }
+
+                @if (OnEdit.HasDelegate)
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.Edit" OnClick="OnAdd" Disabled=DisableEdit />
+                }
+
+                @if (OnDelete.HasDelegate)
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.Delete" OnClick="OnDelete" Disabled=DisableDelete />
+                }
+
+                @if (OnFilter.HasDelegate)
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.FilterAlt" OnClick="OnFilter" Disabled=DisableDelete />
+                }
+
+                @if (OnSearch.HasDelegate)
+                {
+                    <MudSpacer />
+                    <MudTextField @bind-Value=@_searchString
+                                  Placeholder="search"
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium"
+                                  Immediate=true
+                                  Clearable=true
+                                  Disabled="DisableSearch"
+                                  FullWidth=true
+                                  Style="min-width: 600px"/>
+                }
+            </MudToolBar>
+        }
+    </MudStack>
 
     <div style="margin: 10px">
         @ChildContent
@@ -48,19 +62,16 @@
     [Parameter] public EventCallback OnEdit { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
     [Parameter] public EventCallback<string?> OnSearch { get; set; }
+    [Parameter] public EventCallback OnFilter { get; set; }
     [Parameter] public bool DisableEdit { get; set; }
     [Parameter] public bool DisableAdd { get; set; }
     [Parameter] public bool DisableDelete { get; set; }
     [Parameter] public bool DisableSearch { get; set; }
     [Parameter] public string? Title { get; set; }
 
-    private bool ShowTooBar => OnAdd.HasDelegate || OnEdit.HasDelegate || OnDelete.HasDelegate || OnSearch.HasDelegate;
+    private bool ShowTooBar => OnAdd.HasDelegate || OnEdit.HasDelegate || OnDelete.HasDelegate || OnSearch.HasDelegate || OnFilter.HasDelegate;
 
     private string _searchStringValue = string.Empty;
-
-    private async Task OnAddClicked() => await OnAdd.InvokeAsync(null);
-    private async Task OnEditClicked() => await OnEdit.InvokeAsync(null);
-    private async Task OnDeleteClicked() => await OnDelete.InvokeAsync(null);
 
     private string _searchString
     {
@@ -74,5 +85,4 @@
             }
         }
     }
-
 }

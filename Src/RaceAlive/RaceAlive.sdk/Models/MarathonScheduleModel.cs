@@ -32,9 +32,7 @@ public class MarathonScheduleModel
     public string? BqScore { get; set; }
     public int? Finishers { get; set; }
     public double? PercentQualified { get; set; }
-    public string? ElevationChartUri { get; set; }
-    public string? ReviewsUri { get; set; }
-    public string? MarathonSiteUri { get; set; }
+    public string? MarathonSiteUrl { get; set; }
     public IReadOnlyList<Marker> Elevation { get; set; } = [];
     public IReadOnlyList<MarathonReview> Reviews { get; set; } = [];
 
@@ -47,10 +45,11 @@ public class MarathonScheduleModel
         bool date = Date.ToString("yyyy-MM-dd").Like(searchTerm, true) == true;
         bool courseType = CourseType.ToCourseTypeString().Like(searchTerm, true) == true;
         bool prScore = PrScore?.Like(searchTerm, true) == true;
+        bool bqScore = BqScore?.Like(searchTerm, true) == true;
         bool finishers = Finishers?.ToString().Like(searchTerm, true) == true;
         bool percentQualified = PercentQualified?.ToString("F1").Like(searchTerm, true) == true;
 
-        return name || description || city || state || date || courseType || prScore || finishers || percentQualified;
+        return name || description || city || state || date || courseType || prScore || bqScore || finishers || percentQualified;
     }
 }
 

@@ -1,0 +1,309 @@
+.under-construction-container {
+    min-height: 100vh;
+    /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+    background: linear-gradient(135deg, #f5f5f5 0%, #dcdcdc 100%);
+    /*background: linear-gradient(135deg, #EFEFEF 0%, #dcdcdc 100%);*/
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.construction-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 2px, transparent 2px),
+        radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px, 30px 30px;
+    animation: bgMove 20s linear infinite;
+}
+
+@keyframes bgMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+.construction-content {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 3rem;
+    max-width: 800px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 2;
+}
+
+.construction-icon {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.hardhat {
+    position: relative;
+    width: 80px;
+    height: 60px;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+.hardhat-top {
+    width: 70px;
+    height: 40px;
+    background: #FFD700;
+    border-radius: 35px 35px 0 0;
+    position: relative;
+    border: 3px solid #FFA500;
+}
+
+.hardhat-brim {
+    width: 80px;
+    height: 10px;
+    background: #FFA500;
+    border-radius: 40px;
+    position: absolute;
+    bottom: 10px;
+    left: -5px;
+}
+
+.hardhat-light {
+    width: 15px;
+    height: 10px;
+    background: #FF4444;
+    border-radius: 50%;
+    position: absolute;
+    top: 15px;
+    left: 28px;
+    animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    25%, 75% { opacity: 0.3; }
+}
+
+.construction-title h1 {
+    font-size: 3rem;
+    color: #333;
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+    animation: slideInDown 1s ease-out;
+}
+
+.construction-subtitle {
+    font-size: 1.3rem;
+    color: #666;
+    margin-bottom: 2rem;
+    animation: slideInUp 1s ease-out 0.3s both;
+}
+
+.progress-label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(45deg, #4CAF50, #81C784);
+    border-radius: 10px;
+    animation: progressFill 2s ease-out 1s both;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: progressShine 1.5s ease-in-out infinite;
+}
+
+.progress-text {
+    margin-top: 0.5rem;
+    font-weight: 600;
+    color: #4CAF50;
+    font-size: 1.1rem;
+}
+
+@keyframes progressFill {
+    to { width: 75%; }
+}
+
+@keyframes progressShine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.features-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+    animation: slideInUp 1s ease-out 0.9s both;
+}
+
+.feature-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 1.5rem;
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border-color: #667eea;
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.feature-card h3 {
+    color: #333;
+    font-size: 1.1rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.feature-card p {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.construction-cta {
+    margin: 2rem 0;
+    animation: slideInUp 1s ease-out 1.2s both;
+}
+
+.construction-cta p {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.notify-button {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.back-home {
+    margin-top: 2rem;
+    animation: slideInUp 1s ease-out 1.5s both;
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translate3d(0, -100%, 0);
+        visibility: visible;
+    }
+
+    to {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translate3d(0, 100%, 0);
+        visibility: visible;
+    }
+    to {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translate3d(-100%, 0, 0);
+        visibility: visible;
+    }
+    to {
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .construction-content {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+    }
+
+    .construction-title h1 {
+        font-size: 2.5rem;
+    }
+
+    .construction-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .features-preview {
+        grid-template-columns: 1fr;
+    }
+
+    .construction-crane {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .construction-title h1 {
+        font-size: 2rem;
+    }
+
+    .hardhat {
+        width: 60px;
+        height: 45px;
+    }
+
+    .hardhat-top {
+        width: 55px;
+        height: 30px;
+    }
+
+    .hardhat-brim {
+        width: 60px;
+        height: 8px;
+        left: -2.5px;
+    }
+}

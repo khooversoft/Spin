@@ -1,0 +1,77 @@
+﻿@page "/marathonCalendar"
+@using RaceAlive.sdk
+@using RaceAliveWeb.Components.Controls
+
+<div class="block-container">
+    <MudText Typo="Typo.h5" GutterBottom="true">Featured & Upcoming Marathons</MudText>
+    <MudText Typo="Typo.body2" GutterBottom="true">
+        Discover top-rated races and upcoming events happening within the next 60 days.
+        Whether you’re planning your next challenge or looking for a last-minute opportunity,
+        this curated list helps you stay on track and make the most of your running goals.
+    </MudText>
+
+    <div style="margin-top:10px">
+        @if (!_initialized)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+        }
+        else
+        {
+            <MudTextField @bind-Value=@_searchString
+                          Placeholder="search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Immediate=true
+                          Clearable=true />
+
+            <BlockToolBar Title="Featured" OnFilter=OnFeatureFilter>
+                <MarathonList List=GetFeatureMarathons() OnSelect=OnRowSelect SelectedRowId=@_id OnReviewSelect=OnReviewSelect ShowFilters=@_filterFeature />
+            </BlockToolBar>
+
+            <BlockToolBar Title="Within 60 days" OnFilter=On60Filter>
+                <MarathonList List=GetLastMarathons() OnSelect=OnRowSelect SelectedRowId=@_id OnReviewSelect=OnReviewSelect ShowFilters=@_filter60 />
+            </BlockToolBar>
+        }
+    </div>
+</div>
+
+@code {
+    @inject MarathonScheduleClient _scheduleClient;
+    @inject NavigationManager _nav;
+
+    private IReadOnlyList<MarathonScheduleModel> _schedules = [];
+
+    private bool _initialized = false;
+    private bool _filterFeature = false;
+    private bool _filter60 = false;
+    private string? _id;
+    private string _searchString = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _schedules = (await _scheduleClient.GetMarathonSchedule()).ThrowOnError().Return();
+        _initialized = true;
+    }
+
+    private IReadOnlyList<MarathonScheduleModel> GetFeatureMarathons() => _schedules
+        .Where(x => x.FeatureRace)
+        .Where(x => _searchString.IsEmpty() || x.IsMatch(_searchString))
+        .ToArray();
+
+    private IReadOnlyList<MarathonScheduleModel> GetLastMarathons() => _schedules
+        .Where(x => x.Date < DateTime.UtcNow.AddDays(60))
+        .Where(x => _searchString.IsEmpty() || x.IsMatch(_searchString))
+        .ToArray();
+
+    private void OnRowSelect(string id)
+    {
+        _id = id;
+        _nav.GotoMarathonProfile(id, NavHelper.MarathonCalendarPath);
+    }
+
+    private void OnReviewSelect(string id) => _nav.GotoMarathonReview(id, NavHelper.MarathonCalendarPath);
+
+    private void OnFeatureFilter() => _filterFeature = !_filterFeature;
+    private void On60Filter() => _filter60 = !_filter60;
+}
