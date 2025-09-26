@@ -1,6 +1,6 @@
 ﻿
 
-<MudPaper Elevation="3" Outlined=true Square=false Style="margin-top:20px">
+<MudPaper Elevation="3" Outlined=true Square=false Style="margin-top:20px" Width="100%">
     <MudStack Row=true Wrap="Wrap.Wrap" AlignItems="AlignItems.Center">
 
         @if (Title.IsNotEmpty())
@@ -15,22 +15,22 @@
             <MudToolBar Dense=true Gutters=true>
                 @if (OnAdd.HasDelegate)
                 {
-                    <MudIconButton Icon="@Icons.Material.Outlined.Add" Variant="Variant.Outlined" OnClick="OnAdd" Disabled=DisableAdd Style=@_style />
+                    <MudIconButton Icon="@Icons.Material.Outlined.Add" OnClick="OnAdd" Disabled=DisableAdd Style=@_style />
                 }
 
                 @if (OnEdit.HasDelegate)
                 {
-                    <MudIconButton Icon="@Icons.Material.Outlined.Edit" Variant="Variant.Outlined" OnClick="OnAdd" Disabled=DisableEdit Style=@_style />
+                    <MudIconButton Icon="@Icons.Material.Outlined.Edit" OnClick="OnAdd" Disabled=DisableEdit Style=@_style />
                 }
 
                 @if (OnDelete.HasDelegate)
                 {
-                    <MudIconButton Icon="@Icons.Material.Outlined.Delete" Variant="Variant.Outlined" OnClick="OnDelete" Disabled=DisableDelete Style=@_style />
+                    <MudIconButton Icon="@Icons.Material.Outlined.Delete" OnClick="OnDelete" Disabled=DisableDelete Style=@_style />
                 }
 
                 @if (OnFilter.HasDelegate)
                 {
-                    <MudIconButton Icon="@Icons.Material.Outlined.FilterAlt" Variant="Variant.Outlined" OnClick="OnFilter" Disabled=DisableDelete Style=@_style />
+                    <MudIconButton Icon="@Icons.Material.Outlined.FilterAlt" OnClick="OnFilter" Disabled=DisableDelete Style=@_style />
                 }
 
                 @if (OnSearch.HasDelegate)
@@ -66,6 +66,7 @@
     [Parameter] public bool DisableDelete { get; set; }
     [Parameter] public bool DisableSearch { get; set; }
     [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Width { get; set; }
 
     private const string _style = "margin: 0px 5px;width:24px;height:24px";
 

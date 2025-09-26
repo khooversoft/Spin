@@ -1,0 +1,52 @@
+﻿@page "/about"
+@using MudBlazor
+
+<MudText Typo="Typo.h4" GutterBottom="true">About Race Alive</MudText>
+
+<MudGrid Style="margin-top:20px">
+    <MudItem xs="12" sm="12" md="4" lg="4">
+        <MudImage Src="RaceAliveCompanyLogo.png"
+                  Alt="Race Alive Company Logo"
+                  Height="300"
+                  Style="width: 100%; max-width: 300px;" />
+    </MudItem>
+
+    <MudItem xs="12" sm="12" md="8" lg="8">
+        <MudStack Style="margin:20px">
+            <MudText Typo="Typo.body1" GutterBottom="true">
+                Welcome to Race Alive—a place for runners, triathletes, and endurance junkies who want to push their limits and have fun doing it.
+            </MudText>
+            <MudStack Row=true AlignItems="AlignItems.Center">
+                <MudImage Src="AI-icon.png"
+                          Alt="AI Icon"
+                          Style="max-height: 64px; margin-right: 8px;" />
+                <MudText Typo="Typo.h5" GutterBottom="true">AI Powered Training</MudText>
+            </MudStack>
+            <MudText Typo="Typo.body1" GutterBottom="true">
+                We're building something new: a community-driven platform that combines AI-powered training tools with the energy of people who love to race.
+                Whether you're chasing your first marathon finish or your next Ironman, we want to help you train smarter and stay motivated.
+            </MudText>
+        </MudStack>
+    </MudItem>
+</MudGrid>
+
+<MudText style="margin-top:20px" Typo="Typo.h5" GutterBottom="true">Why We're Here</MudText>
+<MudText Typo="Typo.body1" GutterBottom="true">
+    Because training alone can be tough. We're creating a space where you can connect, share, and learn—and where technology actually helps you become the best version of yourself.
+</MudText>
+
+<MudText style="margin-top:20px" Typo="Typo.h5" GutterBottom="true">We're Just Getting Started</MudText>
+<MudText Typo="Typo.body1" GutterBottom="true">
+    Race Alive is a startup on a mission, and we want you to be part of it. Your feedback, ideas, and passion will shape the future together.
+</MudText>
+<MudText Typo="Typo.body1" GutterBottom="true">
+    Drop us your ideas, join the conversation, and help shape the future of endurance sports.
+</MudText>
+
+<MudButton Style="margin:20px" Variant="Variant.Filled" Color="Color.Primary" Href="/feedback">
+    Share Your Feedback →
+</MudButton>
+
+@code {
+
+}

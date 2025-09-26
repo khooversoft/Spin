@@ -1,0 +1,28 @@
+﻿@page "/feedback"
+@using RaceAlive.sdk.Models
+
+<MudText Typo="Typo.h5">Feedback Form</MudText>
+<MudStack Spacing="2" Class="mt-4">
+    <MudTextField Label="Subject" @bind-Value="_model.Subject" Placeholder="Enter subject" Variant="Variant.Outlined" />
+    <MudTextField Label="Feedback" @bind-Value="_model.Text" Placeholder="Enter your feedback" Variant="Variant.Outlined" Lines="6" />
+    <MudTextField Label="Contact Email" @bind-Value="_model.ContactEmail" Placeholder="Enter your email" Variant="Variant.Outlined" Style="max-width: 300px;" />
+</MudStack>
+<MudStack Row="true" Spacing="2" Class="mt-4">
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitFeedback">Submit</MudButton>
+    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="CancelFeedback">Cancel</MudButton>
+</MudStack>
+
+@code {
+    private FeedbackModel _model { get; set; } = new FeedbackModel();
+
+    private void SubmitFeedback()
+    {
+        // Handle feedback submission logic here
+    }
+
+    private void CancelFeedback()
+    {
+        // Handle cancel logic here
+        _model = new FeedbackModel(); // Reset the form
+    }
+}

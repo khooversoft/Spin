@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Graph;
-using Toolbox.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
