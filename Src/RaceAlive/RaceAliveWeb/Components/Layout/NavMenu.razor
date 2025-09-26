@@ -5,7 +5,13 @@
 
 <MudNavMenu>
     <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
-    <MudNavGroup Title="Marathon" Expanded="true">
+    <MudNavLink Href=@NavHelper.MarathonCalendarPath Match="NavLinkMatch.Prefix">Calendar</MudNavLink>
+    <MudNavLink Href=@NavHelper.MarathonSearchPath Match="NavLinkMatch.Prefix">Search</MudNavLink>
+    <MudNavLink Href=@NavHelper.MarathonRankingPath Match="NavLinkMatch.Prefix">Rankings</MudNavLink>
+    <MudNavLink Href=@NavHelper.MarathonOrganizersPath Match="NavLinkMatch.Prefix">Organizers</MudNavLink>
+    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
+    
+    @*     <MudNavGroup Title="Marathon" Expanded="true">
         <MudNavLink Href=@NavHelper.MarathonCalendarPath Match="NavLinkMatch.Prefix">Calendar</MudNavLink>
         <MudNavLink Href=@NavHelper.MarathonSearchPath Match="NavLinkMatch.Prefix">Search</MudNavLink>
         <MudNavLink Href=@NavHelper.MarathonRankingPath Match="NavLinkMatch.Prefix">Rankings</MudNavLink>
@@ -30,5 +36,5 @@
         <MudNavLink Href=@NavHelper.UnderConstructionPath Match="NavLinkMatch.Prefix">Achievements</MudNavLink>
         <MudNavLink Href=@NavHelper.UnderConstructionPath Match="NavLinkMatch.Prefix">Challenges</MudNavLink>
     </MudNavGroup>
-    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
+ *@
 </MudNavMenu>

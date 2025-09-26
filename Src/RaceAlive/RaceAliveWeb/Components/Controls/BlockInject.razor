@@ -2,21 +2,21 @@
 
 <AuthorizeView>
     <Authorized>
-        <MudStack Row=true Wrap=Wrap.Wrap AlignItems=AlignItems.Center Spacing=5>
+        <MudStack Wrap=Wrap.Wrap AlignItems=AlignItems.Center Spacing=5>
             @foreach (var item in _authorizedItems)
             {
                 switch (item)
                 {
                     case ContentItem v:
-                        <BlockToolBar Title=@v.Title OnDelete=OnDelete>
+                        <BlockToolBar Title=@v.Title OnDelete=OnDelete Width="100%">
                             @v.Content
                         </BlockToolBar>
                         break;
 
                     case ImageItem v:
-                        <BlockImageBlock Header=@v.Title ImageUrl=@v.ImageUrl Width="360px">
+                        <BlockImage Header=@v.Title ImageUrl=@v.ImageUrl Width="360px">
                             @v.Content
-                        </BlockImageBlock>
+                        </BlockImage>
                         break;
                 }
             }
@@ -34,9 +34,9 @@
                     </BlockContent>
                     break;
                 case ImageItem v:
-                    <BlockImageBlock Header=@v.Title ImageUrl=@v.ImageUrl>
+                    <BlockImage Header=@v.Title ImageUrl=@v.ImageUrl>
                         @v.Content
-                    </BlockImageBlock>
+                    </BlockImage>
                     break;
             }
         }
@@ -64,16 +64,7 @@
     Whether you're chasing a personal best, tackling your first 26.2 miles,
     or simply looking to train smarter and stronger, you've just taken a powerful
     step toward your goal. This camp is designed to equip you with the tools,
-    knowledge, and community support to help you cross that finish line with confidence.
-    Over the coming weeks, you'll train alongside passionate runners, guided
-    by experienced coaches and supported by a team that understands the journey.
-    From endurance-building long runs to recovery strategies, nutrition tips, and mental preparation,
-    every session is crafted to elevate your performance.
-    But this camp is more than just miles and workouts—it's about connection.
-    You'll meet fellow runners who share your drive, swap stories, celebrate progress,
-    and push through challenges together. Because training for a marathon isn’t just physical—it’s a mindset, and here, you're never alone.
-    So lace up, lean in, and let’s make every stride count. Your marathon
-    journey starts now!
+    knowledge. Your marathon starts now!
 </text>),
     };
 
