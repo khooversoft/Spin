@@ -7,8 +7,16 @@
     padding: 0 8px;
     box-sizing: border-box;
     border-radius: 3px;
+    min-width:180px;
     transform: translateX(-25px); /* Move 20px to the left */
 }
+
+@media (max-width: 960px) {
+    .nav-drawer-header {
+        transform: translateX(-18px);
+    }
+}
+
 
 .nav-drawer-title {
     color: inherit; /* Inherit white (or appropriate) text */
