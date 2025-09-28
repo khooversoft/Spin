@@ -1,15 +1,15 @@
-﻿<div class="nav-drawer-header">
+﻿@* <div class="nav-drawer-header">
     <img src="RaceAliveCompanyLogo.png" alt="Race Alive" class="nav-logo" />
     <span class="mud-typography-h6 nav-drawer-title">Race Alive</span>
-</div>
+</div> *@
 
 <MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
-    <MudNavLink Href=@NavHelper.MarathonCalendarPath Match="NavLinkMatch.Prefix">Calendar</MudNavLink>
-    <MudNavLink Href=@NavHelper.MarathonSearchPath Match="NavLinkMatch.Prefix">Search</MudNavLink>
-    <MudNavLink Href=@NavHelper.MarathonRankingPath Match="NavLinkMatch.Prefix">Rankings</MudNavLink>
-    <MudNavLink Href=@NavHelper.MarathonOrganizersPath Match="NavLinkMatch.Prefix">Organizers</MudNavLink>
-    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.Home" Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.CalendarMonth" Href=@NavHelper.MarathonCalendarPath Match="NavLinkMatch.Prefix">Calendar</MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.Search" Href=@NavHelper.MarathonSearchPath Match="NavLinkMatch.Prefix">Search</MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.Score" Href=@NavHelper.MarathonRankingPath Match="NavLinkMatch.Prefix">Rankings</MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.People" Href=@NavHelper.MarathonOrganizersPath Match="NavLinkMatch.Prefix">Organizers</MudNavLink>
+    <MudNavLink Icon="@Icons.Material.Filled.Abc" Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
     
     @*     <MudNavGroup Title="Marathon" Expanded="true">
         <MudNavLink Href=@NavHelper.MarathonCalendarPath Match="NavLinkMatch.Prefix">Calendar</MudNavLink>

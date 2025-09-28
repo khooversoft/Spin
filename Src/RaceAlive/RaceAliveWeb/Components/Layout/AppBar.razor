@@ -2,8 +2,19 @@
 @using RaceAliveWeb.Application
 @using MudBlazor
 
-<MudAppBar Color="Color.Transparent" Elevation="0">
-    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => ToggleDrawer())" />
+<MudAppBar Color="Color.Transparent" Elevation="0" Fixed=true Dense=true>
+    <div class="nav-drawer-header">
+        <img src="RaceAliveCompanyLogo.png" alt="Race Alive" class="nav-logo" />
+        <span class="mud-typography-h6 nav-drawer-title">Race Alive</span>
+    </div>
+
+    <MudIconButton
+        Style="margin-left: 30px"
+        Icon="@Icons.Material.Filled.Menu"
+        Color="Color.Inherit"
+        Edge="Edge.Start"
+        OnClick="@((e) => ToggleDrawer())"
+        />
 
     @if (!DrawerOpen)
     {

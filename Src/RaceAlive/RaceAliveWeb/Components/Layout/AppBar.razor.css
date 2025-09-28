@@ -1,4 +1,4 @@
-.nav-drawer-header {
+﻿.nav-drawer-header {
     background-color: #FD5E53;
     color: black;
     display: flex;
@@ -6,6 +6,8 @@
     min-height: 56px; /* Matches default app bar height */
     padding: 0 8px;
     box-sizing: border-box;
+    border-radius: 3px;
+    transform: translateX(-25px); /* Move 20px to the left */
 }
 
 .nav-drawer-title {

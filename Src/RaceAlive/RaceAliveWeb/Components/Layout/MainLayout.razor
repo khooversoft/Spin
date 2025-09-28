@@ -6,8 +6,10 @@
 <MudLayout>
     <AppBar DrawerOpen="@_drawerOpen" DrawerToggle="DrawerToggle" OnDarkMode="OnDarkMode" IsDarkMode=_isDarkMode />
     <MudDrawer @bind-Open="_drawerOpen"
-               Variant="DrawerVariant.Responsive"
-               Breakpoint="Breakpoint.Md">
+               Variant="DrawerVariant.Mini"
+               Breakpoint="Breakpoint.None"
+               OpenMiniOnHover="true"
+               ClipMode="DrawerClipMode.Always">
         <NavMenu />
     </MudDrawer>
     <MudMainContent Class="main-body">
@@ -24,7 +26,7 @@
 </div>
 
 @code {
-    bool _drawerOpen = true;
+    bool _drawerOpen = false;
     bool _isDarkMode = false;
 
     private void DrawerToggle(bool state) => _drawerOpen = state;
