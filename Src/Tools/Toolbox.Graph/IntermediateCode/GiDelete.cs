@@ -40,7 +40,7 @@ internal static class GiDeleteTool
 
         while (interContext.Cursor.TryPeekValue(out var nextToken))
         {
-            if (nextToken.MetaSyntaxName == "term") break;
+            if (nextToken.Name == "term") break;
 
             var result = _call
                 .Select(x => x(interContext))

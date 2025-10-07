@@ -39,15 +39,15 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "full-join" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -64,16 +64,16 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "full-join" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -90,19 +90,19 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "full-join" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "full-join" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -120,19 +120,19 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "left-join" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "full-join" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -149,22 +149,22 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("a2"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("a3"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "full-join" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("a2"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "full-join" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("a3"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -181,23 +181,23 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("return"), MetaSyntaxName = "return-sym" },
-            new SyntaxPair { Token = new TokenValue("entity"), MetaSyntaxName = "dataName" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "dataName" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "full-join" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "full-join" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("return"), Name = "return-sym" },
+            new SyntaxPair { Token = new TokenValue("entity"), Name = "dataName" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("data"), Name = "dataName" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -214,19 +214,19 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "full-join" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "full-join" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "left-join" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();

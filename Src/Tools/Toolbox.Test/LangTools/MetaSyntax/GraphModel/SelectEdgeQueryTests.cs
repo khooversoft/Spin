@@ -79,7 +79,7 @@ public class SelectEdgeQueryTests : TestBase
                             MetaSyntaxName = "edge-spec",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+                                new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tags",
@@ -90,12 +90,12 @@ public class SelectEdgeQueryTests : TestBase
                                             MetaSyntaxName = "tag",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                                new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
                                             },
                                         },
                                     },
                                 },
-                                new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+                                new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
                             },
                         },
                     },
@@ -110,9 +110,9 @@ public class SelectEdgeQueryTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -143,7 +143,7 @@ public class SelectEdgeQueryTests : TestBase
                             MetaSyntaxName = "edge-spec",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+                                new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tags",
@@ -154,12 +154,12 @@ public class SelectEdgeQueryTests : TestBase
                                             MetaSyntaxName = "tag",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                                new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
                                             },
                                         },
                                     },
                                 },
-                                new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+                                new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
                             },
                         },
                         new SyntaxTree
@@ -177,7 +177,7 @@ public class SelectEdgeQueryTests : TestBase
                                             MetaSyntaxName = "_join-1-OrGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                                                new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
                                             },
                                         },
                                     },
@@ -197,7 +197,7 @@ public class SelectEdgeQueryTests : TestBase
                                                     MetaSyntaxName = "node-spec",
                                                     Children = new ISyntaxTree[]
                                                     {
-                                                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                                                        new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
                                                         new SyntaxTree
                                                         {
                                                             MetaSyntaxName = "tags",
@@ -208,12 +208,12 @@ public class SelectEdgeQueryTests : TestBase
                                                                     MetaSyntaxName = "tag",
                                                                     Children = new ISyntaxTree[]
                                                                     {
-                                                                        new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                                                        new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
                                                                     },
                                                                 },
                                                             },
                                                         },
-                                                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                                                        new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
                                                     },
                                                 },
                                             },
@@ -234,13 +234,13 @@ public class SelectEdgeQueryTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -271,7 +271,7 @@ public class SelectEdgeQueryTests : TestBase
                             MetaSyntaxName = "edge-spec",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+                                new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tags",
@@ -282,12 +282,12 @@ public class SelectEdgeQueryTests : TestBase
                                             MetaSyntaxName = "tag",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "symbol" },
+                                                new SyntaxPair { Token = new TokenValue("label"), Name = "symbol" },
                                             },
                                         },
                                     },
                                 },
-                                new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+                                new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
                             },
                         },
                         new SyntaxTree
@@ -305,7 +305,7 @@ public class SelectEdgeQueryTests : TestBase
                                             MetaSyntaxName = "_join-1-OrGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                                                new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
                                             },
                                         },
                                     },
@@ -325,7 +325,7 @@ public class SelectEdgeQueryTests : TestBase
                                                     MetaSyntaxName = "node-spec",
                                                     Children = new ISyntaxTree[]
                                                     {
-                                                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                                                        new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
                                                         new SyntaxTree
                                                         {
                                                             MetaSyntaxName = "tags",
@@ -336,12 +336,12 @@ public class SelectEdgeQueryTests : TestBase
                                                                     MetaSyntaxName = "tag",
                                                                     Children = new ISyntaxTree[]
                                                                     {
-                                                                        new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                                                        new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
                                                                     },
                                                                 },
                                                             },
                                                         },
-                                                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                                                        new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
                                                     },
                                                 },
                                             },
@@ -362,13 +362,13 @@ public class SelectEdgeQueryTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("label"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -399,7 +399,7 @@ public class SelectEdgeQueryTests : TestBase
                             MetaSyntaxName = "edge-spec",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
+                                new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tags",
@@ -410,12 +410,12 @@ public class SelectEdgeQueryTests : TestBase
                                             MetaSyntaxName = "tag",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "symbol" },
+                                                new SyntaxPair { Token = new TokenValue("label"), Name = "symbol" },
                                             },
                                         },
                                     },
                                 },
-                                new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
+                                new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
                             },
                         },
                         new SyntaxTree
@@ -433,7 +433,7 @@ public class SelectEdgeQueryTests : TestBase
                                             MetaSyntaxName = "_join-1-OrGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                                                new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
                                             },
                                         },
                                     },
@@ -453,7 +453,7 @@ public class SelectEdgeQueryTests : TestBase
                                                     MetaSyntaxName = "node-spec",
                                                     Children = new ISyntaxTree[]
                                                     {
-                                                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                                                        new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
                                                         new SyntaxTree
                                                         {
                                                             MetaSyntaxName = "tags",
@@ -464,21 +464,21 @@ public class SelectEdgeQueryTests : TestBase
                                                                     MetaSyntaxName = "tag",
                                                                     Children = new ISyntaxTree[]
                                                                     {
-                                                                        new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
+                                                                        new SyntaxPair { Token = new TokenValue("key"), Name = "symbol" },
                                                                         new SyntaxTree
                                                                         {
                                                                             MetaSyntaxName = "_tag-3-OptionGroup",
                                                                             Children = new ISyntaxTree[]
                                                                             {
-                                                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                                                                new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
+                                                                                new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                                                                new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
                                                                             },
                                                                         },
                                                                     },
                                                                 },
                                                             },
                                                         },
-                                                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                                                        new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
                                                     },
                                                 },
                                             },
@@ -499,15 +499,15 @@ public class SelectEdgeQueryTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("label"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("key"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();

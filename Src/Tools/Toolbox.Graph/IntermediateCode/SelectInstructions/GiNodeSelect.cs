@@ -55,7 +55,7 @@ internal static class GiNodeSelectTool
 
         if (!interContext.Cursor.TryGetValue(out var rightBracket) || rightBracket.Token.Value != ")") return (StatusCode.NotFound, "not found ')'");
 
-        if (interContext.Cursor.TryPeekValue(out var aliasValue) && aliasValue.MetaSyntaxName == "alias")
+        if (interContext.Cursor.TryPeekValue(out var aliasValue) && aliasValue.Name == "alias")
         {
             interContext.Cursor.MoveNext();
             alias = aliasValue.Token.Value;

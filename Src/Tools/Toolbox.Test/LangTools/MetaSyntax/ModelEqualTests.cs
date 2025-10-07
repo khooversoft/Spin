@@ -36,8 +36,8 @@ public class ModelEqualTests
         var t2 = new TokenValue("a", 10);
         (t1 == t2).BeTrue();
 
-        var v1 = new SyntaxPair { Token = t1, MetaSyntaxName = "hello" };
-        var v2 = new SyntaxPair { Token = t2, MetaSyntaxName = "hello" };
+        var v1 = new SyntaxPair { Token = t1, Name = "hello" };
+        var v2 = new SyntaxPair { Token = t2, Name = "hello" };
         (v1 == v2).BeTrue();
     }
 
@@ -49,8 +49,8 @@ public class ModelEqualTests
         (t1 == t2).BeTrue();
         t1.Assert(x => x == t2);
 
-        var v1 = new SyntaxPair { Token = t1, MetaSyntaxName = "hello" };
-        var v2 = new SyntaxPair { Token = t2, MetaSyntaxName = "hello" };
+        var v1 = new SyntaxPair { Token = t1, Name = "hello" };
+        var v2 = new SyntaxPair { Token = t2, Name = "hello" };
         (v1 == v2).BeTrue();
 
         var st1 = new SyntaxTree
@@ -74,10 +74,10 @@ public class ModelEqualTests
         (t1 == t2).BeTrue();
         t1.Assert(x => x == t2);
 
-        var v1 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
-        var v12 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
-        var v2 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
-        var v22 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
+        var v1 = new SyntaxPair { Token = new TokenValue("a", 10), Name = "hello" };
+        var v12 = new SyntaxPair { Token = new TokenValue("a", 10), Name = "hello" };
+        var v2 = new SyntaxPair { Token = new TokenValue("a", 10), Name = "hello" };
+        var v22 = new SyntaxPair { Token = new TokenValue("a", 10), Name = "hello" };
         (v1 == v2).BeTrue();
 
         var st1 = new SyntaxTree
@@ -115,10 +115,10 @@ public class ModelEqualTests
         (t1 == t2).BeTrue();
         t1.Assert(x => x == t2);
 
-        var v1 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
-        var v12 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
-        var v2 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello" };
-        var v22 = new SyntaxPair { Token = new TokenValue("a", 10), MetaSyntaxName = "hello2" };
+        var v1 = new SyntaxPair { Token = new TokenValue("a", 10), Name = "hello" };
+        var v12 = new SyntaxPair { Token = new TokenValue("a", 10), Name = "hello" };
+        var v2 = new SyntaxPair { Token = new TokenValue("a", 10), Name = "hello" };
+        var v22 = new SyntaxPair { Token = new TokenValue("a", 10), Name = "hello2" };
         (v1 == v2).BeTrue();
 
         var st1 = new SyntaxTree

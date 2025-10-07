@@ -37,8 +37,8 @@ public class TerminalTests
                     MetaSyntaxName = "alias",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("3"), MetaSyntaxName = "number" },
-                        new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+                        new SyntaxPair { Token = new TokenValue("3"), Name = "number" },
+                        new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
                     },
                 },
             },
@@ -51,8 +51,8 @@ public class TerminalTests
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("3"), MetaSyntaxName = "number" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("3"), Name = "number" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

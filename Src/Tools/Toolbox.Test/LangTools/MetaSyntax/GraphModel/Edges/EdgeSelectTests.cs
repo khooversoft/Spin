@@ -38,11 +38,11 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -59,22 +59,22 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("from"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("to"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k2"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("type"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("from"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("to"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k2"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("type"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("label"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -91,16 +91,16 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("key"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -117,12 +117,12 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("label"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();

@@ -19,7 +19,7 @@ public class Json
         ReadCommentHandling = JsonCommentHandling.Skip,
         Converters =
         {
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, true),
             new ImmutableByteArrayConverter(),
         },
     };
@@ -31,7 +31,7 @@ public class Json
         ReadCommentHandling = JsonCommentHandling.Skip,
         Converters =
         {
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase),
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, true),
             new ImmutableByteArrayConverter(),
         },
     };
@@ -40,6 +40,11 @@ public class Json
     {
         PropertyNameCaseInsensitive = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
+        Converters =
+        {
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, true),
+            new ImmutableByteArrayConverter(),
+        },
     };
 
     public T? Deserialize<T>(string subject) => JsonSerializer.Deserialize<T>(subject, JsonSerializerOptions);

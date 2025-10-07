@@ -37,11 +37,11 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -58,11 +58,11 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -79,15 +79,15 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym"},
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair {Token = new TokenValue("delete"), Name = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "left-join" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -104,16 +104,16 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym"},
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair {Token = new TokenValue("delete"), Name = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "left-join" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -130,19 +130,19 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym"},
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair {Token = new TokenValue("delete"), Name = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "left-join" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "left-join" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -159,22 +159,22 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue("a2"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("a3"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "left-join" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue("a2"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "left-join" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("a3"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -191,19 +191,19 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym"},
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "left-join" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair {Token = new TokenValue("delete"), Name = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "left-join" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "left-join" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();

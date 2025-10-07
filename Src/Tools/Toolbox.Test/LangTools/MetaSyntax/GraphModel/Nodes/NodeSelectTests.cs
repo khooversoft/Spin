@@ -37,11 +37,11 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -58,15 +58,15 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("return"), MetaSyntaxName = "return-sym" },
-            new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "dataName" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("entity"), MetaSyntaxName = "dataName" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("return"), Name = "return-sym" },
+            new SyntaxPair { Token = new TokenValue("data"), Name = "dataName" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("entity"), Name = "dataName" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -83,20 +83,20 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue("return"), MetaSyntaxName = "return-sym" },
-            new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "dataName" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("entity"), MetaSyntaxName = "dataName" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("key"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue("return"), Name = "return-sym" },
+            new SyntaxPair { Token = new TokenValue("data"), Name = "dataName" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("entity"), Name = "dataName" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -113,12 +113,12 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("select"), MetaSyntaxName = "select-sym" },
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("label"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("select"), Name = "select-sym" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("label"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();

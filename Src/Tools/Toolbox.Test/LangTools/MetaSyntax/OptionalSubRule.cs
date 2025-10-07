@@ -46,7 +46,7 @@ public class OptionalSubRule : TestBase
                     MetaSyntaxName = "select",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("sym"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("sym"), Name = "symbol" },
                     },
                 },
             },
@@ -59,7 +59,7 @@ public class OptionalSubRule : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("sym"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("sym"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

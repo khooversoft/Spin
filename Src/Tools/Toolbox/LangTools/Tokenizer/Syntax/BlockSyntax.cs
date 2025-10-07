@@ -11,20 +11,18 @@ public class BlockSyntax : ITokenSyntax
     {
         StartSignal = blockSignal;
         StopSignal = blockSignal;
-        Priority = 1;
     }
 
     public BlockSyntax(char startSignal, char stopSignal)
     {
         StartSignal = startSignal;
         StopSignal = stopSignal;
-        Priority = 1;
     }
 
     public char StartSignal { get; }
     public char StopSignal { get; }
 
-    public int Priority { get; }
+    public int Priority => 1;
 
     public int? Match(ReadOnlySpan<char> span)
     {

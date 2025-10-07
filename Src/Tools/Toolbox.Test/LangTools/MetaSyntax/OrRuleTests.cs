@@ -50,7 +50,7 @@ public class OrRuleTests : TestBase
                             MetaSyntaxName = "_addCommand-1-OrGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
+                                new SyntaxPair { Token = new TokenValue("node"), Name = "node-sym" },
                             },
                         },
                     },
@@ -65,7 +65,7 @@ public class OrRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
+            new SyntaxPair { Token = new TokenValue("node"), Name = "node-sym" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -96,7 +96,7 @@ public class OrRuleTests : TestBase
                             MetaSyntaxName = "_addCommand-1-OrGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("edge"), MetaSyntaxName = "edge-sym" },
+                                new SyntaxPair { Token = new TokenValue("edge"), Name = "edge-sym" },
                             },
                         },
                     },
@@ -111,7 +111,7 @@ public class OrRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("edge"), MetaSyntaxName = "edge-sym" },
+            new SyntaxPair { Token = new TokenValue("edge"), Name = "edge-sym" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

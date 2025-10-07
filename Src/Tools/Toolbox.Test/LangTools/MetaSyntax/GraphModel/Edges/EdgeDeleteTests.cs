@@ -37,11 +37,11 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -58,11 +58,11 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("person"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("person"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -79,13 +79,13 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("key"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -102,21 +102,21 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("delete"), MetaSyntaxName = "delete-sym" },
-            new SyntaxPair { Token = new TokenValue("["), MetaSyntaxName = "open-bracket" },
-            new SyntaxPair { Token = new TokenValue("from"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("to"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("type"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue("]"), MetaSyntaxName = "close-bracket" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
+            new SyntaxPair { Token = new TokenValue("["), Name = "open-bracket" },
+            new SyntaxPair { Token = new TokenValue("from"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("to"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("type"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue("]"), Name = "close-bracket" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
     };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();

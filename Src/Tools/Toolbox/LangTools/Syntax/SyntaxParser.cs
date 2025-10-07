@@ -212,7 +212,7 @@ public class SyntaxParser
         switch (current)
         {
             case var v when isTokenMatch(v.Value):
-                tree.Children.Add(new SyntaxPair { Token = v, MetaSyntaxName = terminal.Name });
+                tree.Children.Add(new SyntaxPair { Token = v, Name = terminal.Name });
                 context.LogDebug("ProcessTerminal: Add Terminal: token=[{token}], terminal=[{terminal}]", v.GetDebuggerDisplay(), terminal.GetDebuggerDisplay());
                 scope.Cancel();
                 return StatusCode.OK;

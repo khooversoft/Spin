@@ -13,7 +13,7 @@ internal static class GiFullJoinTool
     {
         using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
 
-        if (!interContext.Cursor.TryGetValue(out var fullJoin) || fullJoin.MetaSyntaxName != "full-join") return (StatusCode.NotFound, "full-join");
+        if (!interContext.Cursor.TryGetValue(out var fullJoin) || fullJoin.Name != "full-join") return (StatusCode.NotFound, "full-join");
 
         scope.Cancel();
         return new GiFullJoin();

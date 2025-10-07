@@ -76,7 +76,7 @@ public class RepeatDelimiterTests : TestBase
                             MetaSyntaxName = "node-spec",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                                new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tags",
@@ -87,15 +87,15 @@ public class RepeatDelimiterTests : TestBase
                                             MetaSyntaxName = "tag",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                                new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                                             },
                                         },
                                     },
                                 },
-                                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                                new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+                        new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
                     },
                 },
             },
@@ -108,10 +108,10 @@ public class RepeatDelimiterTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -142,7 +142,7 @@ public class RepeatDelimiterTests : TestBase
                             MetaSyntaxName = "node-spec",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                                new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tags",
@@ -153,21 +153,21 @@ public class RepeatDelimiterTests : TestBase
                                             MetaSyntaxName = "tag",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
+                                                new SyntaxPair { Token = new TokenValue("key"), Name = "symbol" },
                                                 new SyntaxTree
                                                 {
                                                     MetaSyntaxName = "_tag-3-OptionGroup",
                                                     Children = new ISyntaxTree[]
                                                     {
-                                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                                        new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
+                                                        new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                                        new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
                                                     },
                                                 },
                                             },
                                         },
                                     },
                                 },
-                                new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                                new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
                             },
                         },
                         new SyntaxTree
@@ -180,15 +180,15 @@ public class RepeatDelimiterTests : TestBase
                                     MetaSyntaxName = "entity-data",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "name" },
-                                        new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
-                                        new SyntaxPair { Token = new BlockToken("'data section'", '\'', '\'', 16), MetaSyntaxName = "base64" },
-                                        new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
+                                        new SyntaxPair { Token = new TokenValue("data"), Name = "name" },
+                                        new SyntaxPair { Token = new TokenValue("{"), Name = "open-brace" },
+                                        new SyntaxPair { Token = new BlockToken("'data section'", '\'', '\'', 16), Name = "base64" },
+                                        new SyntaxPair { Token = new TokenValue("}"), Name = "close-brace" },
                                     },
                                 },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+                        new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
                     },
                 },
             },
@@ -201,16 +201,16 @@ public class RepeatDelimiterTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "name" },
-            new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
-            new SyntaxPair { Token = new BlockToken("'data section'", '\'', '\'', 16), MetaSyntaxName = "base64" },
-            new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("key"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("data"), Name = "name" },
+            new SyntaxPair { Token = new TokenValue("{"), Name = "open-brace" },
+            new SyntaxPair { Token = new BlockToken("'data section'", '\'', '\'', 16), Name = "base64" },
+            new SyntaxPair { Token = new TokenValue("}"), Name = "close-brace" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

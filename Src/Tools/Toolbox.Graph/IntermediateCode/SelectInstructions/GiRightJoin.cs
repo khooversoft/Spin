@@ -13,7 +13,7 @@ internal static class GiRightJoinTool
     {
         using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
 
-        if (!interContext.Cursor.TryGetValue(out var leftJoin) || leftJoin.MetaSyntaxName != "right-join") return (StatusCode.NotFound, "right-join");
+        if (!interContext.Cursor.TryGetValue(out var leftJoin) || leftJoin.Name != "right-join") return (StatusCode.NotFound, "right-join");
 
         scope.Cancel();
         return new GiRightJoin();

@@ -63,7 +63,7 @@ public class NodeSpecStatement : TestBase
                     MetaSyntaxName = "node-spec",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                        new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "tags",
@@ -74,12 +74,12 @@ public class NodeSpecStatement : TestBase
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
                                     },
                                 },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                        new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
                     },
                 },
             },
@@ -92,9 +92,9 @@ public class NodeSpecStatement : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -120,7 +120,7 @@ public class NodeSpecStatement : TestBase
                     MetaSyntaxName = "node-spec",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                        new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "tags",
@@ -131,18 +131,18 @@ public class NodeSpecStatement : TestBase
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
                                     },
                                 },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                        new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "_node-spec-7-OptionGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
+                                new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
                             },
                         },
                     },
@@ -157,10 +157,10 @@ public class NodeSpecStatement : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("*"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("a1"), MetaSyntaxName = "alias" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("*"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("a1"), Name = "alias" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -186,7 +186,7 @@ public class NodeSpecStatement : TestBase
                     MetaSyntaxName = "node-spec",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                        new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "tags",
@@ -197,12 +197,12 @@ public class NodeSpecStatement : TestBase
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                                     },
                                 },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                        new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
                     },
                 },
             },
@@ -215,9 +215,9 @@ public class NodeSpecStatement : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -243,7 +243,7 @@ public class NodeSpecStatement : TestBase
                     MetaSyntaxName = "node-spec",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                        new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "tags",
@@ -254,21 +254,21 @@ public class NodeSpecStatement : TestBase
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("key"), Name = "symbol" },
                                         new SyntaxTree
                                         {
                                             MetaSyntaxName = "_tag-3-OptionGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                                new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
+                                                new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
                                             },
                                         },
                                     },
                                 },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                        new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
                     },
                 },
             },
@@ -281,11 +281,11 @@ public class NodeSpecStatement : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("key"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -311,7 +311,7 @@ public class NodeSpecStatement : TestBase
                     MetaSyntaxName = "node-spec",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
+                        new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "tags",
@@ -322,14 +322,14 @@ public class NodeSpecStatement : TestBase
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("key"), Name = "symbol" },
                                         new SyntaxTree
                                         {
                                             MetaSyntaxName = "_tag-3-OptionGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                                new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
+                                                new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
                                             },
                                         },
                                     },
@@ -339,26 +339,26 @@ public class NodeSpecStatement : TestBase
                                     MetaSyntaxName = "_tags-3-RepeatGroup",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                        new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
                                         new SyntaxTree
                                         {
                                             MetaSyntaxName = "tag",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                                new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
                                             },
                                         },
                                     },
                                 },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
+                        new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "_node-spec-7-OptionGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("a2"), MetaSyntaxName = "alias" },
+                                new SyntaxPair { Token = new TokenValue("a2"), Name = "alias" },
                             },
                         },
                     },
@@ -373,14 +373,14 @@ public class NodeSpecStatement : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("("), MetaSyntaxName = "open-param" },
-            new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(")"), MetaSyntaxName = "close-param" },
-            new SyntaxPair { Token = new TokenValue("a2"), MetaSyntaxName = "alias" },
+            new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
+            new SyntaxPair { Token = new TokenValue("key"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
+            new SyntaxPair { Token = new TokenValue("a2"), Name = "alias" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

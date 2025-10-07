@@ -14,6 +14,12 @@ public static class InterLangTool
         GiEdgeTool.Build,
         GiSelectTool.Build,
         GiDeleteTool.Build,
+        GiDeleteTool.Build,
+        GiGrantTool.Build,
+        //GiGrantSelectTool.Build,
+        GiGroupTool.Build,
+        GiSelectObjectTool.Build,
+        //GiGroupSelectTool.Build,
     ];
 
     public static Option<IReadOnlyList<IGraphInstruction>> Build(IEnumerable<SyntaxPair> syntaxPairs)
@@ -23,7 +29,7 @@ public static class InterLangTool
 
         while (interContext.Cursor.TryPeekValue(out var nextToken))
         {
-            if (nextToken.MetaSyntaxName == "term")
+            if (nextToken.Name == "term")
             {
                 interContext.Cursor.MoveNext();
                 continue;
@@ -86,13 +92,13 @@ public static class InterLangTool
 
         while (interContext.Cursor.TryPeekValue(out var nextValue))
         {
-            if (nextValue.MetaSyntaxName == "comma")
+            if (nextValue.Name == "comma")
             {
                 interContext.Cursor.MoveNext();
                 continue;
             }
 
-            if (nextValue.MetaSyntaxName != "tagKey" && nextValue.MetaSyntaxName != "key-value") break;
+            if (nextValue.Name != "tagKey" && nextValue.Name != "key-value") break;
 
             var kv = GetKeyValue(interContext, false);
             if (kv.IsError()) break;
@@ -115,7 +121,7 @@ public static class InterLangTool
         {
             if (IsGroupBreak(nextValue)) break;
 
-            if (nextValue.MetaSyntaxName == "comma")
+            if (nextValue.Name == "comma")
             {
                 interContext.Cursor.MoveNext();
                 continue;
@@ -148,7 +154,7 @@ public static class InterLangTool
         {
             if (IsGroupBreak(nextValue)) break;
 
-            if (nextValue.MetaSyntaxName == "comma")
+            if (nextValue.Name == "comma")
             {
                 interContext.Cursor.MoveNext();
                 continue;
@@ -187,7 +193,7 @@ public static class InterLangTool
         {
             if (IsGroupBreak(nextValue)) break;
 
-            if (nextValue.MetaSyntaxName == "comma")
+            if (nextValue.Name == "comma")
             {
                 interContext.Cursor.MoveNext();
                 continue;
@@ -219,7 +225,7 @@ public static class InterLangTool
         {
             if (IsGroupBreak(nextValue)) break;
 
-            if (nextValue.MetaSyntaxName == "comma")
+            if (nextValue.Name == "comma")
             {
                 interContext.Cursor.MoveNext();
                 continue;
@@ -256,7 +262,7 @@ public static class InterLangTool
 
     internal static bool IsGroupBreak(SyntaxPair syntaxPair) => syntaxPair switch
     {
-        { MetaSyntaxName: "term" } => true,
+        { Name: "term" } => true,
         var v => GraphLanguageTool.GetMetaSyntaxRoot().IsReserveWord(v.Token.Value),
     };
 }

@@ -58,9 +58,4 @@ public static class ObjectExtensions
         ms.Seek(0, SeekOrigin.Begin);
         return MD5.Create().ComputeHash(ms);
     }
-
-    public static KeyValuePair<TKey, TValue> ToKeyValuePair<TKey, TValue>(this TValue obj, TKey key) => new KeyValuePair<TKey, TValue>(key, obj.NotNull());
-
-    public static KeyValuePair<TKey, TValue> ToKeyValuePair<TKey, TValue>(this TValue obj, Func<TValue, TKey> getKey) =>
-        new KeyValuePair<TKey, TValue>(getKey(obj.NotNull()), obj);
 }

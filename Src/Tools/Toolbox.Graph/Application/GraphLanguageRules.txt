@@ -41,6 +41,28 @@ toKey-value             = name ;
 edgeType-sym            = 'type' ;
 edgeType-value          = name ;
 
+grant-sym               = 'grant' ;
+revoke-sym              = 'revoke' ;
+reader-sym              = 'reader' ;
+for-sym                 = 'for' ;
+on-sym                  = 'on' ;
+to-sym                  = 'to' ;
+from-sym                = 'from' ;
+contributor-sym         = 'contributor' ;
+owner-sym               = 'owner' ;
+group-sym               = 'group' ;
+name-sym                = 'name' ;
+role-sym                = 'role' ;
+principal-sym           = 'principal' ;
+member-sym              = 'member' ;
+where-sym               = 'where' ;
+principalIdentifier     = name ;
+nameIdentifier          = name ;
+group-name              = name ;
+object-name             = name ;
+attribute-name          = name ;
+object-value            = name ;
+
 index-sym               = 'index' ;
 indexKey                = regex '^[a-zA-Z\-][a-zA-Z0-9\-\.]*$' ;
 indexes                 = [ index-sym, indexKey, { comma, indexKey } ];
@@ -56,14 +78,30 @@ tokey-data              = toKey-sym, equal, toKey-value ;
 fromkey-data            = fromKey-sym, equal, fromKey-value ;
 edgetype-data           = edgeType-sym, equal, edgeType-value ;
 
-command                 = ( add-sym | set-sym ) ;
+// Node commands
 select-node             = open-param, tag, { comma, tag }, close-param, [ alias ] ;
 select-edge             = open-bracket, tag, { comma, tag }, close-bracket, [ alias ] ;
+add-set-option          = ( add-sym | set-sym ) ;
 
-node-add-command        = command, node-sym, key-sym, equal, key-value, set-data, indexes, fk, term ;
+node-add-command        = add-set-option, node-sym, key-sym, equal, key-value, set-data, indexes, fk, term ;
 node-delete-command     = delete-sym, node-sym, [ ifexist ], key-sym, equal, key-value, term ;
-edge-add-command        = command, edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
+edge-add-command        = add-set-option, edge-sym, fromkey-data, comma, tokey-data, comma, edgetype-data, set-tags, term ;
 edge-delete-command     = delete-sym, edge-sym, [ ifexist ], fromkey-data, comma, tokey-data, comma, edgetype-data, term ;
 
 select-command          = select-sym, ( select-node | select-edge ), { ( left-join | full-join | right-join ), ( select-node | select-edge ) }, [ return-data ], term ;
 delete-command          = delete-sym, ( select-node | select-edge ), { ( left-join | full-join | right-join ), ( select-node | select-edge ) }, term ;
+
+
+// Grant and revoke security commands
+grant-command-option    = ( grant-sym | revoke-sym ) ;
+grant-type              = ( reader-sym | contributor-sym | owner-sym ) ;
+grant-column            = ( name-sym | role-sym | principal-sym );
+grant-command           = grant-command-option, grant-type, to-sym, principalIdentifier, on-sym, nameIdentifier, term ;         // [ grant | revoke ] reader to user1 on user:user1 ;
+
+// Group command
+group-property-option   = ( name-sym | member-sym );
+group-command           = add-set-option, principalIdentifier, to-sym, group-name, group-sym, term ;                            // [ add | set  ] user1 to admins group ;
+group-command-delete    = delete-sym, principalIdentifier, from-sym, group-name, group-sym, term ;                              // delete user1 from admins group ;
+
+// General system data query
+select-object           = select_sym, object-name, where-sym, attribute-name, equal, object-value, term ;                       // select {objectName} where {attributeName] = {objectValue}

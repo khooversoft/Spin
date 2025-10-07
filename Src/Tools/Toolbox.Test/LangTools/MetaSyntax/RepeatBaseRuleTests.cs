@@ -45,7 +45,7 @@ public class RepeatBaseRuleTests : TestBase
                     MetaSyntaxName = "array",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                     },
                 },
             },
@@ -58,7 +58,7 @@ public class RepeatBaseRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -84,14 +84,14 @@ public class RepeatBaseRuleTests : TestBase
                     MetaSyntaxName = "array",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "_array-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-                                new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+                                new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
                             },
                         },
                     },
@@ -106,9 +106,9 @@ public class RepeatBaseRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -134,14 +134,14 @@ public class RepeatBaseRuleTests : TestBase
                     MetaSyntaxName = "array",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "_array-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-                                new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+                                new SyntaxPair { Token = new TokenValue("v1"), Name = "symbol" },
                             },
                         },
                         new SyntaxTree
@@ -149,8 +149,8 @@ public class RepeatBaseRuleTests : TestBase
                             MetaSyntaxName = "_array-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-                                new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+                                new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
                             },
                         },
                     },
@@ -165,11 +165,11 @@ public class RepeatBaseRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("v1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

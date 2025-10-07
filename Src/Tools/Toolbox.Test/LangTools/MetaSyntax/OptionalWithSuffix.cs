@@ -46,7 +46,7 @@ public class OptionalWithSuffix : TestBase
                     MetaSyntaxName = "join",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
                     },
                 },
             },
@@ -59,7 +59,7 @@ public class OptionalWithSuffix : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -95,12 +95,12 @@ public class OptionalWithSuffix : TestBase
                                     MetaSyntaxName = "_join-1-OptionGroup-1-OrGroup",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                                        new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
                                     },
                                 },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
                     },
                 },
             },
@@ -113,8 +113,8 @@ public class OptionalWithSuffix : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
-            new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
+            new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -150,12 +150,12 @@ public class OptionalWithSuffix : TestBase
                                     MetaSyntaxName = "_join-1-OptionGroup-1-OrGroup",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
+                                        new SyntaxPair { Token = new TokenValue("<->"), Name = "join-inner" },
                                     },
                                 },
                             },
                         },
-                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
                     },
                 },
             },
@@ -168,8 +168,8 @@ public class OptionalWithSuffix : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
-            new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "join-inner" },
+            new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

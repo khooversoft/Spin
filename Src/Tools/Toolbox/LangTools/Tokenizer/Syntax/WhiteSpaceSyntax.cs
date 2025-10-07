@@ -6,7 +6,7 @@
 /// </summary>
 public class WhiteSpaceSyntax : ITokenSyntax
 {
-    public int Priority { get; }
+    public int Priority => 0;
 
     public IToken CreateToken(ReadOnlySpan<char> span, int index) => new TokenValue(" ", index);
 

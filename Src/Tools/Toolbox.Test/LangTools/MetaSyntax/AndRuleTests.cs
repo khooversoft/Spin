@@ -62,11 +62,11 @@ public class AndRuleTests : TestBase
                     MetaSyntaxName = "entity-data",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("alias"), MetaSyntaxName = "symbol" },
-                        new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
-                        new SyntaxPair { Token = new TokenValue("hello"), MetaSyntaxName = "base64" },
-                        new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
-                        new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+                        new SyntaxPair { Token = new TokenValue("alias"), Name = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("{"), Name = "open-brace" },
+                        new SyntaxPair { Token = new TokenValue("hello"), Name = "base64" },
+                        new SyntaxPair { Token = new TokenValue("}"), Name = "close-brace" },
+                        new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
                     },
                 },
             },
@@ -79,11 +79,11 @@ public class AndRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("alias"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
-            new SyntaxPair { Token = new TokenValue("hello"), MetaSyntaxName = "base64" },
-            new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("alias"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("{"), Name = "open-brace" },
+            new SyntaxPair { Token = new TokenValue("hello"), Name = "base64" },
+            new SyntaxPair { Token = new TokenValue("}"), Name = "close-brace" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -109,11 +109,11 @@ public class AndRuleTests : TestBase
                     MetaSyntaxName = "entity-data",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "symbol" },
-                        new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
-                        new SyntaxPair { Token = new BlockToken("'this is a test'", '\'', '\'', 7), MetaSyntaxName = "base64" },
-                        new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
-                        new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+                        new SyntaxPair { Token = new TokenValue("data"), Name = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("{"), Name = "open-brace" },
+                        new SyntaxPair { Token = new BlockToken("'this is a test'", '\'', '\'', 7), Name = "base64" },
+                        new SyntaxPair { Token = new TokenValue("}"), Name = "close-brace" },
+                        new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
                     },
                 },
             },
@@ -126,11 +126,11 @@ public class AndRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
-            new SyntaxPair { Token = new BlockToken("'this is a test'", '\'', '\'', 7), MetaSyntaxName = "base64" },
-            new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("data"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("{"), Name = "open-brace" },
+            new SyntaxPair { Token = new BlockToken("'this is a test'", '\'', '\'', 7), Name = "base64" },
+            new SyntaxPair { Token = new TokenValue("}"), Name = "close-brace" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

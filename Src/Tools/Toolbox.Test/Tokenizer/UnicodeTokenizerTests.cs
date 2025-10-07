@@ -6,7 +6,7 @@ namespace Toolbox.Test.Tokenizer;
 public class UnicodeTokenizerTests
 {
     [Fact]
-    public void CommonUnicoded()
+    public void CommonUnicode()
     {
         IReadOnlyList<IToken> tokens = new StringTokenizer()
             .UseCollapseWhitespace()
@@ -35,7 +35,7 @@ public class UnicodeTokenizerTests
     }
 
     [Fact]
-    public void CommonUnicodedNotEscaped()
+    public void CommonUnicodeNotEscaped()
     {
         IReadOnlyList<IToken> tokens = new StringTokenizer()
             .UseCollapseWhitespace()
@@ -60,7 +60,7 @@ public class UnicodeTokenizerTests
     }
 
     [Fact]
-    public void StandardUnicoded()
+    public void StandardUnicode()
     {
         IReadOnlyList<IToken> tokens = new StringTokenizer()
             .UseCollapseWhitespace()

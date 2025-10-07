@@ -13,7 +13,7 @@ internal static class GiLeftJoinTool
     {
         using var scope = interContext.NotNull().Cursor.IndexScope.PushWithScope();
 
-        if (!interContext.Cursor.TryGetValue(out var leftJoin) || leftJoin.MetaSyntaxName != "left-join") return (StatusCode.NotFound, "left-join");
+        if (!interContext.Cursor.TryGetValue(out var leftJoin) || leftJoin.Name != "left-join") return (StatusCode.NotFound, "left-join");
 
         scope.Cancel();
         return new GiLeftJoin();

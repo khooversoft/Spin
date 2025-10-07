@@ -5,9 +5,9 @@ namespace Toolbox.LangTools;
 public class UnicodeSyntax : ITokenSyntax
 {
     private const int _length = 6;
-    public UnicodeSyntax() => Priority = 2;
+    public UnicodeSyntax() { }
 
-    public int Priority { get; }
+    public int Priority => 2;
 
     public int? Match(ReadOnlySpan<char> span)
     {

@@ -46,7 +46,7 @@ public static class EnumerableExtensions
     /// <param name="subjects">list to operate on</param>
     /// <param name="action">action to execute</param>
     [DebuggerStepThrough]
-    public static void ForEach<T>(this IEnumerable<T> subjects, Action<T, int> action)
+    public static IEnumerable<T> ForEach<T>(this IEnumerable<T> subjects, Action<T, int> action)
     {
         subjects.NotNull();
         action.NotNull();
@@ -56,6 +56,8 @@ public static class EnumerableExtensions
         {
             action(item, index++);
         }
+
+        return subjects;
     }
 
     /// <summary>

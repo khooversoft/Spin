@@ -63,7 +63,7 @@ public class OptionalRuleOnly : TestBase
                             MetaSyntaxName = "_join-1-OrGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                                new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
                             },
                         },
                     },
@@ -78,7 +78,7 @@ public class OptionalRuleOnly : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -109,7 +109,7 @@ public class OptionalRuleOnly : TestBase
                             MetaSyntaxName = "_join-1-OrGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
+                                new SyntaxPair { Token = new TokenValue("<->"), Name = "join-inner" },
                             },
                         },
                     },
@@ -124,7 +124,7 @@ public class OptionalRuleOnly : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "join-inner" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

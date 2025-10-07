@@ -47,7 +47,7 @@ public class OptionalWithPrefix : TestBase
                     MetaSyntaxName = "select",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
                     },
                 },
             },
@@ -60,7 +60,7 @@ public class OptionalWithPrefix : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -86,7 +86,7 @@ public class OptionalWithPrefix : TestBase
                     MetaSyntaxName = "select",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "_select-3-OptionGroup",
@@ -102,7 +102,7 @@ public class OptionalWithPrefix : TestBase
                                             MetaSyntaxName = "_join-1-OrGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+                                                new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
                                             },
                                         },
                                     },
@@ -121,8 +121,8 @@ public class OptionalWithPrefix : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("->"), MetaSyntaxName = "join-left" },
+            new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("->"), Name = "join-left" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -148,7 +148,7 @@ public class OptionalWithPrefix : TestBase
                     MetaSyntaxName = "select",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "_select-3-OptionGroup",
@@ -164,7 +164,7 @@ public class OptionalWithPrefix : TestBase
                                             MetaSyntaxName = "_join-1-OrGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
+                                                new SyntaxPair { Token = new TokenValue("<->"), Name = "join-inner" },
                                             },
                                         },
                                     },
@@ -183,8 +183,8 @@ public class OptionalWithPrefix : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("first"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("<->"), MetaSyntaxName = "join-inner" },
+            new SyntaxPair { Token = new TokenValue("first"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("<->"), Name = "join-inner" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

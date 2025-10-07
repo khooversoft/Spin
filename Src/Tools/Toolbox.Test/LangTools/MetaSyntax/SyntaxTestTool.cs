@@ -65,7 +65,7 @@ internal static class SyntaxTestTool
     {
         var lines = new string[]
         {
-            $"new SyntaxPair {{ Token = {GenerateToken(pair.Token)}, MetaSyntaxName = \"{pair.MetaSyntaxName}\" }},",
+            $"new SyntaxPair {{ Token = {GenerateToken(pair.Token)}, MetaSyntaxName = \"{pair.Name}\" }},",
         };
 
         return lines;

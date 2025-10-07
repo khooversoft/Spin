@@ -52,7 +52,7 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                             },
                         },
                     },
@@ -67,7 +67,7 @@ public class RepeatRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -98,7 +98,7 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                             },
                         },
                         new SyntaxTree
@@ -106,13 +106,13 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "_tags-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
                                     },
                                 },
                             },
@@ -129,9 +129,9 @@ public class RepeatRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -162,14 +162,14 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "_tag-3-OptionGroup",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+                                        new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                        new SyntaxPair { Token = new TokenValue("v1"), Name = "tagValue" },
                                     },
                                 },
                             },
@@ -186,9 +186,9 @@ public class RepeatRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v1"), Name = "tagValue" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -219,14 +219,14 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "_tag-3-OptionGroup",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+                                        new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                        new SyntaxPair { Token = new TokenValue("v1"), Name = "tagValue" },
                                     },
                                 },
                             },
@@ -236,13 +236,13 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "_tags-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
                                     },
                                 },
                             },
@@ -259,11 +259,11 @@ public class RepeatRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -294,14 +294,14 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "_tag-3-OptionGroup",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+                                        new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                        new SyntaxPair { Token = new TokenValue("v1"), Name = "tagValue" },
                                     },
                                 },
                             },
@@ -311,20 +311,20 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "_tags-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
                                         new SyntaxTree
                                         {
                                             MetaSyntaxName = "_tag-3-OptionGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                                new SyntaxPair { Token = new TokenValue("v2"), MetaSyntaxName = "tagValue" },
+                                                new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("v2"), Name = "tagValue" },
                                             },
                                         },
                                     },
@@ -343,13 +343,13 @@ public class RepeatRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v2"), MetaSyntaxName = "tagValue" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v2"), Name = "tagValue" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -380,14 +380,14 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "_tag-3-OptionGroup",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+                                        new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                        new SyntaxPair { Token = new TokenValue("v1"), Name = "tagValue" },
                                     },
                                 },
                             },
@@ -397,20 +397,20 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "_tags-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
                                         new SyntaxTree
                                         {
                                             MetaSyntaxName = "_tag-3-OptionGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                                new SyntaxPair { Token = new TokenValue("v2"), MetaSyntaxName = "tagValue" },
+                                                new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("v2"), Name = "tagValue" },
                                             },
                                         },
                                     },
@@ -422,20 +422,20 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "_tags-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("t3"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("t3"), Name = "symbol" },
                                         new SyntaxTree
                                         {
                                             MetaSyntaxName = "_tag-3-OptionGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                                new SyntaxPair { Token = new TokenValue("v3"), MetaSyntaxName = "tagValue" },
+                                                new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("v3"), Name = "tagValue" },
                                             },
                                         },
                                     },
@@ -454,17 +454,17 @@ public class RepeatRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v2"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t3"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v3"), MetaSyntaxName = "tagValue" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v2"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t3"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v3"), Name = "tagValue" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -495,14 +495,14 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "tag",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "_tag-3-OptionGroup",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                        new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
+                                        new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                        new SyntaxPair { Token = new TokenValue("v1"), Name = "tagValue" },
                                     },
                                 },
                             },
@@ -512,13 +512,13 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "_tags-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
                                     },
                                 },
                             },
@@ -528,20 +528,20 @@ public class RepeatRuleTests : TestBase
                             MetaSyntaxName = "_tags-3-RepeatGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
+                                new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
                                 new SyntaxTree
                                 {
                                     MetaSyntaxName = "tag",
                                     Children = new ISyntaxTree[]
                                     {
-                                        new SyntaxPair { Token = new TokenValue("t3"), MetaSyntaxName = "symbol" },
+                                        new SyntaxPair { Token = new TokenValue("t3"), Name = "symbol" },
                                         new SyntaxTree
                                         {
                                             MetaSyntaxName = "_tag-3-OptionGroup",
                                             Children = new ISyntaxTree[]
                                             {
-                                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                                new SyntaxPair { Token = new TokenValue("v3"), MetaSyntaxName = "tagValue" },
+                                                new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                                new SyntaxPair { Token = new TokenValue("v3"), Name = "tagValue" },
                                             },
                                         },
                                     },
@@ -560,15 +560,15 @@ public class RepeatRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t3"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v3"), MetaSyntaxName = "tagValue" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v1"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t3"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v3"), Name = "tagValue" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

@@ -142,7 +142,7 @@ public static class MetaParser
                             continue;
 
                         default:
-                            return (StatusCode.BadRequest, pContext.ErrorMessage("Token is not a string literial or a terminal reference"));
+                            return (StatusCode.BadRequest, pContext.ErrorMessage("Token is not a string literal or a terminal reference"));
                     }
                     ;
             }

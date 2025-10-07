@@ -44,7 +44,7 @@ public class OptionalRuleTests : TestBase
                     MetaSyntaxName = "tag",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                     },
                 },
             },
@@ -57,7 +57,7 @@ public class OptionalRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();
@@ -83,14 +83,14 @@ public class OptionalRuleTests : TestBase
                     MetaSyntaxName = "tag",
                     Children = new ISyntaxTree[]
                     {
-                        new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
+                        new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
                         new SyntaxTree
                         {
                             MetaSyntaxName = "_tag-3-OptionGroup",
                             Children = new ISyntaxTree[]
                             {
-                                new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-                                new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "symbol" },
+                                new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+                                new SyntaxPair { Token = new TokenValue("v1"), Name = "symbol" },
                             },
                         },
                     },
@@ -105,9 +105,9 @@ public class OptionalRuleTests : TestBase
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "symbol" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v1"), MetaSyntaxName = "symbol" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "symbol" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v1"), Name = "symbol" },
         };
 
         Enumerable.SequenceEqual(syntaxPairs, expectedPairs).BeTrue();

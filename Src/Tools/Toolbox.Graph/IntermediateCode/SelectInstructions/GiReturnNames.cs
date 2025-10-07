@@ -32,15 +32,15 @@ internal static class GiReturnNamesTool
 
         while (interContext.Cursor.TryGetValue(out var nextToken))
         {
-            if (nextToken.MetaSyntaxName == "term")
+            if (nextToken.Name == "term")
             {
                 interContext.Cursor.Index--;
                 break;
             }
 
-            if (nextToken.MetaSyntaxName == "comma") continue;
+            if (nextToken.Name == "comma") continue;
 
-            if (nextToken.MetaSyntaxName != "dataName") return (StatusCode.BadRequest, "Expected data name");
+            if (nextToken.Name != "dataName") return (StatusCode.BadRequest, "Expected data name");
             dataNames += nextToken.Token.Value;
         }
 

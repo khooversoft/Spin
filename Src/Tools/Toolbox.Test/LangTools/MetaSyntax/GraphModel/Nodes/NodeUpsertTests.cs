@@ -38,12 +38,12 @@ public class NodeUpsertTests : TestBase<NodeUpsertTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("upsert"), MetaSyntaxName = "upsert-sym" },
-            new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
-            new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "key-sym" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "equal" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "key-value" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("upsert"), Name = "upsert-sym" },
+            new SyntaxPair { Token = new TokenValue("node"), Name = "node-sym" },
+            new SyntaxPair { Token = new TokenValue("key"), Name = "key-sym" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "equal" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "key-value" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
@@ -60,30 +60,30 @@ public class NodeUpsertTests : TestBase<NodeUpsertTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair { Token = new TokenValue("upsert"), MetaSyntaxName = "upsert-sym" },
-            new SyntaxPair { Token = new TokenValue("node"), MetaSyntaxName = "node-sym" },
-            new SyntaxPair { Token = new TokenValue("key"), MetaSyntaxName = "key-sym" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "equal" },
-            new SyntaxPair { Token = new TokenValue("k1"), MetaSyntaxName = "key-value" },
-            new SyntaxPair { Token = new TokenValue("set"), MetaSyntaxName = "set-sym" },
-            new SyntaxPair { Token = new TokenValue("t1"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("entity"), MetaSyntaxName = "dataName" },
-            new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
-            new SyntaxPair { Token = new TokenValue("entityBase64"), MetaSyntaxName = "base64" },
-            new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t2"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue("="), MetaSyntaxName = "_tag-3-OptionGroup-1" },
-            new SyntaxPair { Token = new TokenValue("v3"), MetaSyntaxName = "tagValue" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("t3"), MetaSyntaxName = "tagKey" },
-            new SyntaxPair { Token = new TokenValue(","), MetaSyntaxName = "comma" },
-            new SyntaxPair { Token = new TokenValue("data"), MetaSyntaxName = "dataName" },
-            new SyntaxPair { Token = new TokenValue("{"), MetaSyntaxName = "open-brace" },
-            new SyntaxPair { Token = new TokenValue("base64"), MetaSyntaxName = "base64" },
-            new SyntaxPair { Token = new TokenValue("}"), MetaSyntaxName = "close-brace" },
-            new SyntaxPair { Token = new TokenValue(";"), MetaSyntaxName = "term" },
+            new SyntaxPair { Token = new TokenValue("upsert"), Name = "upsert-sym" },
+            new SyntaxPair { Token = new TokenValue("node"), Name = "node-sym" },
+            new SyntaxPair { Token = new TokenValue("key"), Name = "key-sym" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "equal" },
+            new SyntaxPair { Token = new TokenValue("k1"), Name = "key-value" },
+            new SyntaxPair { Token = new TokenValue("set"), Name = "set-sym" },
+            new SyntaxPair { Token = new TokenValue("t1"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("entity"), Name = "dataName" },
+            new SyntaxPair { Token = new TokenValue("{"), Name = "open-brace" },
+            new SyntaxPair { Token = new TokenValue("entityBase64"), Name = "base64" },
+            new SyntaxPair { Token = new TokenValue("}"), Name = "close-brace" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t2"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue("="), Name = "_tag-3-OptionGroup-1" },
+            new SyntaxPair { Token = new TokenValue("v3"), Name = "tagValue" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("t3"), Name = "tagKey" },
+            new SyntaxPair { Token = new TokenValue(","), Name = "comma" },
+            new SyntaxPair { Token = new TokenValue("data"), Name = "dataName" },
+            new SyntaxPair { Token = new TokenValue("{"), Name = "open-brace" },
+            new SyntaxPair { Token = new TokenValue("base64"), Name = "base64" },
+            new SyntaxPair { Token = new TokenValue("}"), Name = "close-brace" },
+            new SyntaxPair { Token = new TokenValue(";"), Name = "term" },
         };
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
