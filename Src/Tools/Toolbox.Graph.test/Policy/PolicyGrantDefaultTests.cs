@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Graph.test.Policy;
@@ -31,6 +26,25 @@ public class PolicyGrantDefaultTests
         var request = new AccessRequest(AccessType.Get, "user1", "customer3");
 
         grantControl.HasAccess(request).BeTrue();
+    }
+
+    [Fact]
+    public void EqualNotEqual()
+    {
+        var v1 = new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.NameIdentifier, "user1orGroupName");
+        var v2 = new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.NameIdentifier, "user1orGroupName");
+        (v1 == v2).BeTrue();
+        (v1 != v2).BeFalse();
+
+        var v3 = new GrantPolicy("customer12", RolePolicy.Owner | RolePolicy.NameIdentifier, "user1orGroupName");
+        (v1 == v3).BeFalse();
+        (v1 != v3).BeTrue();
+
+        var v4 = new GrantPolicy("customer1", RolePolicy.Contributor | RolePolicy.NameIdentifier, "user1orGroupName");
+        (v1 == v3).BeFalse();
+
+        var v5 = new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.NameIdentifier, "user1orGroupName-bad");
+        (v1 == v5).BeFalse();
     }
 
     [Fact]

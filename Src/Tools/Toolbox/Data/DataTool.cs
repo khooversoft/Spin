@@ -1,6 +1,4 @@
-﻿using Toolbox.Tools;
-
-namespace Toolbox.Data;
+﻿namespace Toolbox.Data;
 
 public static class DataTool
 {

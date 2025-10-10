@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Extensions;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -32,13 +27,13 @@ internal static class GiGroupTool
     {
         using var scope = ic.NotNull().Cursor.IndexScope.PushWithScope();
 
-        var command = ic.GetEnum<GiGroupCommand>("add-sym", "set-sym");
+        var command = ic.GetEnum<GiGroupCommand>("add-sym", "set-sym", "delete-sym");
         if (command.IsError()) return command.ToOptionStatus<IGraphInstruction>();
 
         var principal = ic.GetValue("principalIdentifier");
         if (principal.IsError()) return principal.ToOptionStatus<IGraphInstruction>();
 
-        var s3 = ic.IsSymbol("to-sym");
+        var s3 = ic.IsSymbol("to-sym", "from-sym");
         if (s3.IsError()) return s3.ToOptionStatus<IGraphInstruction>();
 
         var groupName = ic.GetValue("group-name");

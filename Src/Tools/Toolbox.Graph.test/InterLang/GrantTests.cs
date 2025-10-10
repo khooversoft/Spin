@@ -27,15 +27,16 @@ public class GrantTests : TestBase<NodeTests>
     }
 
 
-    //[Theory]
-    //[InlineData("add node;")]
-    //[InlineData("delete node key=k1 set t1, entity { entityBase64 }, t2=v3, -t3, t5=v5, -data;")]
-    //[InlineData("upsert node key=k1 set t1, t2=v2;")]
-    //public void FailTest(string command)
-    //{
-    //    var parse = _parser.Parse(command, _context);
-    //    parse.Status.IsError().BeTrue();
-    //}
+    [Theory]
+    [InlineData("grant reader to user1 user:user1;")]
+    [InlineData("grant user1 on user:user1;")]
+    [InlineData("grant badrole to user1 on user:user1;")]
+    [InlineData("revoke badrole to user1 on user:user1;")]
+    public void FailTest(string command)
+    {
+        var parse = _parser.Parse(command, _context);
+        parse.Status.IsError().BeTrue();
+    }
 
     [Theory]
     [InlineData("grant reader to user1 on user:user1;", GrantCommand.Grant, GrantType.Reader, "user1", "user:user1")]
@@ -47,7 +48,7 @@ public class GrantTests : TestBase<NodeTests>
     public void GrantPermission(string cmd, GrantCommand grantCmd, GrantType grantType, string user, string nameIdentifier)
     {
         var parse = _parser.Parse(cmd, _context);
-        parse.Status.IsOk().BeTrue();
+        parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);
@@ -68,12 +69,12 @@ public class GrantTests : TestBase<NodeTests>
 
     [Theory]
     [InlineData("select grant where name = group ;", "grant", "name", "group")]
-    [InlineData("select grant where role = reader ;", "grant", "name", "reader")]
-    [InlineData("select grant where principal = user:user1 ;", "name", "grant", "user:user1")]
+    [InlineData("select grant where role = reader ;", "grant", "role", "reader")]
+    [InlineData("select grant where principal = user:user1 ;", "grant", "principal", "user:user1")]
     public void SelectGrant(string cmd, string objectName, string attributeName, string value)
     {
         var parse = _parser.Parse(cmd, _context);
-        parse.Status.IsOk().BeTrue();
+        parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
         var instructions = InterLangTool.Build(syntaxPairs);

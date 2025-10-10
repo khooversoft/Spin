@@ -7,6 +7,8 @@ namespace Toolbox.Graph;
 
 public readonly struct GroupPolicy : IEquatable<GroupPolicy>
 {
+    public GroupPolicy(string nameIdentifier) => NameIdentifier = nameIdentifier.NotEmpty();
+
     [JsonConstructor]
     public GroupPolicy(string nameIdentifier, IReadOnlyList<string> members)
     {
@@ -15,7 +17,7 @@ public readonly struct GroupPolicy : IEquatable<GroupPolicy>
     }
 
     public string NameIdentifier { get; }
-    public IReadOnlyList<string> Members { get; }
+    public IReadOnlyList<string> Members { get; } = Array.Empty<string>();
 
     public override bool Equals(object? obj) => obj is GroupPolicy other && Equals(other);
     public override int GetHashCode() => HashCode.Combine(NameIdentifier, Members);

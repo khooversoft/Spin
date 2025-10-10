@@ -3,5 +3,5 @@
 public class AppProgram
 {
     public static string ServiceName = "RaceAliveWeb";
-    public static string ServiceVersion = "1.1.0";
+    public static string ServiceVersion = "1.2.0";
 }

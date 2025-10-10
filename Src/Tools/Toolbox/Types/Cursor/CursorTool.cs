@@ -22,7 +22,7 @@ public static class CursorTool
         return subject.List.Skip(startIndex)
             .Take(8)
             .Select((x, i) => $"{i + startIndex}={CursorTool.Quote(x?.ToString())}")
-            .Prepend($"Index={subject.Index}")
+            .Prepend($"Index={subject.Index}, startIndex={startIndex}")
             .Join(", ");
     }
 

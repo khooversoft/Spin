@@ -91,6 +91,9 @@ edge-delete-command     = delete-sym, edge-sym, [ ifexist ], fromkey-data, comma
 select-command          = select-sym, ( select-node | select-edge ), { ( left-join | full-join | right-join ), ( select-node | select-edge ) }, [ return-data ], term ;
 delete-command          = delete-sym, ( select-node | select-edge ), { ( left-join | full-join | right-join ), ( select-node | select-edge ) }, term ;
 
+// Add, delete, 
+
+
 
 // Grant and revoke security commands
 grant-command-option    = ( grant-sym | revoke-sym ) ;
@@ -104,4 +107,4 @@ group-command           = add-set-option, principalIdentifier, to-sym, group-nam
 group-command-delete    = delete-sym, principalIdentifier, from-sym, group-name, group-sym, term ;                              // delete user1 from admins group ;
 
 // General system data query
-select-object           = select_sym, object-name, where-sym, attribute-name, equal, object-value, term ;                       // select {objectName} where {attributeName] = {objectValue}
+select-object           = select-sym, object-name, where-sym, attribute-name, equal, object-value, term ;                       // select {objectName} where {attributeName] = {objectValue}
