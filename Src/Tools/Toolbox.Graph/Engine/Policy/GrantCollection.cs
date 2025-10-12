@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 using Toolbox.Extensions;
@@ -7,73 +8,49 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GrantCollection : IEquatable<GrantCollection>
+public class GrantCollection : ICollection<GrantPolicy>, IEquatable<GrantCollection>
 {
-    private readonly ConcurrentDictionary<string, IReadOnlyList<GrantPolicy>> _policies;
+    private readonly ConcurrentDictionary<string, IReadOnlyList<GrantPolicy>> _data;
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
 
-    public GrantCollection() => _policies = new();
+    public GrantCollection() => _data = new();
 
     [JsonConstructor]
-    public GrantCollection(IReadOnlyList<GrantPolicy> policies) => _policies = policies.NotNull()
+    public GrantCollection(IReadOnlyList<GrantPolicy> policies) => _data = policies.NotNull()
+        .ForEach(x => x.Validate().ThrowOnError())
         .GroupBy(x => x.NameIdentifier)
-        .Select(x => new KeyValuePair<string, IReadOnlyList<GrantPolicy>>(x.Key, x.ToImmutableArray()))
+        .Select(g => new KeyValuePair<string, IReadOnlyList<GrantPolicy>>(g.Key, g.ToImmutableArray()))
         .ToConcurrentDictionary();
 
-    public IReadOnlyList<GrantPolicy> this[string nameIdentifier]
-    {
-        get => _policies[nameIdentifier];
-        set => _policies[nameIdentifier] = value;
-    }
 
-    public IReadOnlyList<GrantPolicy> Policies => _policies.Values.SelectMany(x => x).ToImmutableArray();
+    public int Count => _data.Values.Sum(x => x.Count);
+    public bool IsReadOnly => false;
+    public void Clear() => _data.Clear();
+    public bool Contains(GrantPolicy item) => _data.TryGetValue(item.NameIdentifier, out var list) && list.Contains(item);
 
-    public GrantCollection Add(GrantPolicy policy)
+
+    public void Add(GrantPolicy item)
     {
-        policy.Validate().ThrowOnError();
+        item.Validate().ThrowOnError();
 
         _lock.EnterReadLock();
 
         try
         {
-            _policies.AddOrUpdate(
-                policy.NameIdentifier,
-                policy.ToEnumerable().ToImmutableArray(),
-                (_, existingPolicies) => existingPolicies.Append(policy).ToImmutableArray()
-                );
+            _data.AddOrUpdate(
+                item.NameIdentifier,
+                ImmutableArray.Create(item),
+                (_, existing) => ((ImmutableArray<GrantPolicy>)existing).Add(item)
+            );
         }
-        finally { _lock.ExitWriteLock(); }
-
-        return this;
-    }
-
-    public void Clear() => _policies.Clear();
-
-    public bool Remove(GrantPolicy policy)
-    {
-        _lock.EnterWriteLock();
-
-        try
-        {
-            if (_policies.TryGetValue(policy.NameIdentifier, out var existingPolicies))
-            {
-                var updatedPolicies = existingPolicies.Where(x => !x.Equals(policy)).ToImmutableArray();
-                if (updatedPolicies.IsEmpty) return _policies.TryRemove(policy.NameIdentifier, out _);
-
-                _policies[policy.NameIdentifier] = updatedPolicies;
-                return true;
-            }
-        }
-        finally { _lock.ExitWriteLock(); }
-
-        return false;
+        finally { _lock.ExitReadLock(); }
     }
 
     /// If a group principal has access, returns list of group names that have access if forbidden is returned
     /// 
     public Option<IReadOnlyList<string>> InPolicy(AccessRequest securityRequest)
     {
-        if (!_policies.TryGetValue(securityRequest.NameIdentifier, out var policies) || policies is null)
+        if (!_data.TryGetValue(securityRequest.NameIdentifier, out var policies) || policies is null)
         {
             return StatusCode.NotFound;
         }
@@ -101,18 +78,50 @@ public class GrantCollection : IEquatable<GrantCollection>
         return new Option<IReadOnlyList<string>>(result, StatusCode.Forbidden);
     }
 
-    public bool TryGetValue(string nameIdentifier, out IReadOnlyList<GrantPolicy>? grants) => _policies.TryGetValue(nameIdentifier, out grants);
+    public bool Remove(GrantPolicy item)
+    {
+        _lock.EnterWriteLock();
+
+        try
+        {
+            if (!_data.TryGetValue(item.NameIdentifier, out var existing)) return false;
+
+            var updated = ((ImmutableArray<GrantPolicy>)existing).Remove(item);
+            if (updated.IsEmpty) return _data.TryRemove(item.NameIdentifier, out _);
+
+            _data[item.NameIdentifier] = updated;
+            return true;
+        }
+        finally { _lock.ExitWriteLock(); }
+    }
+
+    public void CopyTo(GrantPolicy[] array, int arrayIndex)
+    {
+        array.NotNull();
+        if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+
+        foreach (var policy in _data.Values.SelectMany(x => x))
+        {
+            if (arrayIndex >= array.Length) throw new ArgumentException("Destination array is not long enough.");
+            array[arrayIndex++] = policy;
+        }
+    }
+
+    public IEnumerator<GrantPolicy> GetEnumerator() => _data.Values.SelectMany(x => x).GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public bool TryGetValue(string nameIdentifier, out IReadOnlyList<GrantPolicy>? grants) =>
+        _data.TryGetValue(nameIdentifier, out grants);
 
     public override bool Equals(object? obj) => obj is GrantCollection other && Equals(other);
-
-    public override int GetHashCode() => HashCode.Combine(_policies);
+    public override int GetHashCode() => HashCode.Combine(_data);
 
     public bool Equals(GrantCollection? other) => other is not null &&
-        _policies.Count == other._policies.Count &&
-        _policies.All(pair =>
-                    other._policies.TryGetValue(pair.Key, out var otherPolicies) &&
-                    pair.Value.SequenceEqual(otherPolicies)
-                );
+        _data.Count == other._data.Count &&
+        _data.All(pair =>
+            other._data.TryGetValue(pair.Key, out var otherPolicies) &&
+            pair.Value.SequenceEqual(otherPolicies)
+        );
 
     public static bool operator ==(GrantCollection? left, GrantCollection? right) => left?.Equals(right) ?? false;
     public static bool operator !=(GrantCollection? left, GrantCollection? right) => !left?.Equals(right) ?? false;

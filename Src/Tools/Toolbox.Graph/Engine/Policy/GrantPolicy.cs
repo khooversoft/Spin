@@ -49,7 +49,7 @@ public readonly struct GrantPolicy : IEquatable<GrantPolicy>
 
     public static IValidator<GrantPolicy> Validator { get; } = new Validator<GrantPolicy>()
         .RuleFor(x => x.NameIdentifier).NotEmpty()
-        .RuleFor(x => x.Role).ValidEnum().Must(x => x != RolePolicy.None, _ => "Role cannot be None")
+        .RuleFor(x => x.Role).Must(x => x != RolePolicy.None, _ => "Role cannot be None")
         .RuleFor(x => x.NameIdentifier).NotEmpty()
         .Build();
 }

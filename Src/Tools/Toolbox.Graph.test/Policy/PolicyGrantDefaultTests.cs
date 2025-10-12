@@ -8,7 +8,7 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void GrantPolicy_Defaults()
     {
-        var grantPolicies = new[]
+        var grantPolicies = new GrantCollection()
         {
             new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.NameIdentifier, "user1orGroupName"),
             new GrantPolicy("customer2", RolePolicy.Reader | RolePolicy.SecurityGroup, "user1orGroupName2"),
@@ -20,12 +20,18 @@ public class PolicyGrantDefaultTests
             new GroupPolicy("group2", new[] { "user3", "user4" }),
         };
 
-        var grantControl = new GrantControl(grantPolicies, groupPolicies);
+        var principals = new[]
+        {
+            new PrincipalIdentity("user:id1", "id1", "user1", "user1@domain.com", false),
+            new PrincipalIdentity("user:id2", "id2", "user2", "user2@domain.com", true),
+        };
+
+        var grantControl = new GrantControl(groupPolicies, principals);
 
         // Not protected, should have access
-        var request = new AccessRequest(AccessType.Get, "user1", "customer3");
+        var request = new AccessRequest(AccessType.Get, "user:id1", "customer3");
 
-        grantControl.HasAccess(request).BeTrue();
+        grantControl.HasAccess(request, grantPolicies).BeTrue();
     }
 
     [Fact]
@@ -50,48 +56,55 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void GrantPolicy_Validate_GetAccess()
     {
-        var grantPolicies = new[]
+        var grantPolicies = new GrantCollection()
         {
             new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.NameIdentifier, "user1"),
             new GrantPolicy("customer1", RolePolicy.Contributor | RolePolicy.NameIdentifier, "user2"),
             new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.NameIdentifier, "user3"),
         };
 
-        var grantControl = new GrantControl(grantPolicies, []);
+        var principals = new[]
+        {
+            new PrincipalIdentity("user1", "id1", "user1Name", "user1@domain.com", false),
+            new PrincipalIdentity("user2", "id2", "user2Name", "user2@domain.com", true),
+            new PrincipalIdentity("user3", "id3", "user3Name", "user2@domain.com", true),
+        };
+
+        var grantControl = new GrantControl([], principals);
 
         // Protected, but no access
-        new AccessRequest(AccessType.Get, "user_no", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Create, "user_no", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Update, "user_no", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Delete, "user_no", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.AssignRole, "user_no", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
+        new AccessRequest(AccessType.Get, "user_no", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Create, "user_no", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Update, "user_no", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Delete, "user_no", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.AssignRole, "user_no", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
 
         // Protected, should have access
-        new AccessRequest(AccessType.Get, "user1", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Create, "user1", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Update, "user1", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Delete, "user1", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.AssignRole, "user1", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
+        new AccessRequest(AccessType.Get, "user1", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Create, "user1", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Update, "user1", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Delete, "user1", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.AssignRole, "user1", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
 
         // protected, but does not should have access
-        new AccessRequest(AccessType.Get, "user2", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Create, "user2", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Update, "user2", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Delete, "user2", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.AssignRole, "user2", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
+        new AccessRequest(AccessType.Get, "user2", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Create, "user2", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Update, "user2", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Delete, "user2", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.AssignRole, "user2", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
 
         // protected, but does not should have access
-        new AccessRequest(AccessType.Get, "user3", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Create, "user3", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Update, "user3", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Delete, "user3", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.AssignRole, "user3", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
+        new AccessRequest(AccessType.Get, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Create, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Update, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Delete, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.AssignRole, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
     }
 
     [Fact]
     public void GrantPolicyGroup_Validate_GetAccess()
     {
-        var grantPolicies = new[]
+        var grantPolicies = new GrantCollection()
         {
             new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.SecurityGroup, "group1"),
             new GrantPolicy("customer1", RolePolicy.Contributor | RolePolicy.SecurityGroup, "group2"),
@@ -100,58 +113,65 @@ public class PolicyGrantDefaultTests
 
         var groupPolicies = new[]
         {
-            new GroupPolicy("group1", new[] { "user1", "user9" }),
-            new GroupPolicy("group2", new[] { "user2", "user5" }),
-            new GroupPolicy("group3", new[] { "user3", "user5" }),
-            new GroupPolicy("group4", new[] { "user4", "user6" }),
+            new GroupPolicy("group1", ["user1", "user9"]),
+            new GroupPolicy("group2", ["user2", "user5"]),
+            new GroupPolicy("group3", ["user3", "user5"]),
+            new GroupPolicy("group4", ["user4", "user6"]),
         };
 
+        var principals = new[]
+{
+            new PrincipalIdentity("user1", "user:id1", "user1", "user1@domain.com", false),
+            new PrincipalIdentity("user2", "user:id2", "user2", "user2@domain.com", true),
+            new PrincipalIdentity("user3", "user:id3", "user3", "user3@domain.com", true),
+            new PrincipalIdentity("user4", "user:id4", "user4", "user4@domain.com", true),
+        };
 
-        var grantControl = new GrantControl(grantPolicies, groupPolicies);
+        var grantControl = new GrantControl(groupPolicies, principals);
 
         // Not protected, should have access
-        new AccessRequest(AccessType.Get, "user4", "not-protected").Action(x => grantControl.HasAccess(x).BeTrue());
+        new AccessRequest(AccessType.Get, "user4", "not-protected").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
 
         // Protected, but no access
-        new AccessRequest(AccessType.Get, "user4", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Create, "user4", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Update, "user4", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Delete, "user4", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.AssignRole, "user4", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
+        new AccessRequest(AccessType.Get, "user4", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Create, "user4", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Update, "user4", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Delete, "user4", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.AssignRole, "user4", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
 
         // Protected, but no access
-        new AccessRequest(AccessType.Get, "user99", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Create, "user99", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Update, "user99", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Delete, "user99", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.AssignRole, "user99", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
+        new AccessRequest(AccessType.Get, "user99", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Create, "user99", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Update, "user99", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Delete, "user99", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.AssignRole, "user99", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
 
         // Protected, but no access
-        new AccessRequest(AccessType.Get, "user4", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Create, "user4", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Update, "user4", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Delete, "user4", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.AssignRole, "user4", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
+        new AccessRequest(AccessType.Get, "user4", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Create, "user4", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Update, "user4", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Delete, "user4", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.AssignRole, "user4", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
 
         // Protected, should have access
-        new AccessRequest(AccessType.Get, "user1", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Create, "user1", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Update, "user1", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.Delete, "user1", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
-        new AccessRequest(AccessType.AssignRole, "user1", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
+        new AccessRequest(AccessType.Get, "user1", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Create, "user1", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Update, "user1", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.Delete, "user1", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+        new AccessRequest(AccessType.AssignRole, "user1", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
 
         // Protected, should have access
-        new AccessRequest(AccessType.Get, "user2", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Create, "user2", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Update, "user2", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Delete, "user2", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.AssignRole, "user2", "customer1").Action(x => grantControl.HasAccess(x).BeFalse());
+        new AccessRequest(AccessType.Get, "user2", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Create, "user2", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Update, "user2", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Delete, "user2", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.AssignRole, "user2", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
 
         // protected, but does not should have access
-        new AccessRequest(AccessType.Get, "user3", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Create, "user3", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Update, "user3", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.Delete, "user3", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
-        new AccessRequest(AccessType.AssignRole, "user3", "customer1").Action(x => grantControl.HasAccess(x).BeTrue());
+        new AccessRequest(AccessType.Get, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Create, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Update, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.Delete, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        new AccessRequest(AccessType.AssignRole, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
     }
 }

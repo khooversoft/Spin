@@ -26,8 +26,8 @@ public record PrincipalIdentity
     }
 
     // Id - GetById e.g. 'user:9b0d4bed' - IdentityTool.GeneratedNodeKey() - this is the ID used for security
-    public string PrincipalId { get; }
-    public string NameIdentifier { get; }         // Identity provider's PK for the user
+    public string PrincipalId { get; }              // Id of the principal
+    public string NameIdentifier { get; }           // Identity provider's PK for the user
     public string UserName { get; }
     public string Email { get; }
     public bool EmailConfirmed { get; }
