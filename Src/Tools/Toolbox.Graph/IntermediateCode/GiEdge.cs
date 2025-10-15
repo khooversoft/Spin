@@ -21,7 +21,7 @@ public sealed record GiEdge : IGraphInstruction
             From == subject.From &&
             To == subject.To &&
             Type == subject.Type &&
-            Tags.DeepEqualsComparer(subject.Tags) &&
+            Tags.DeepEquals(subject.Tags) &&
             IfExist == subject.IfExist;
 
         return result;

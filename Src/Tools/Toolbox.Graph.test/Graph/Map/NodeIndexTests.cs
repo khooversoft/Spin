@@ -27,11 +27,11 @@ public class NodeIndexTests
     {
         var subject = _map.Nodes.LookupTag("name");
         subject.Count.Be(6);
-        subject.SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6"]).BeTrue();
+        subject.OrderBy(x => x).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6"]).BeTrue();
 
         var subjects = _map.Nodes.LookupTaggedNodes("name");
         subjects.Count.Be(6);
-        subjects.Select(x => x.Key).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6"]).BeTrue();
+        subjects.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3", "node4", "node5", "node6"]).BeTrue();
     }
 
     [Fact]
@@ -39,36 +39,38 @@ public class NodeIndexTests
     {
         var subject = _map.Nodes.LookupTag("lang");
         subject.Count.Be(3);
-        subject.SequenceEqual(["node3", "node5", "node7"]).BeTrue();
+        subject.OrderBy(x => x).SequenceEqual(["node3", "node5", "node7"]).BeTrue();
 
         var subjects = _map.Nodes.LookupTaggedNodes("lang");
         subjects.Count.Be(3);
-        subjects.Select(x => x.Key).SequenceEqual(["node3", "node5", "node7"]).BeTrue();
+        subjects.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node3", "node5", "node7"]).BeTrue();
     }
 
     [Fact]
     public void VerifyEdgeIndex1()
     {
-        var subject = _map.Edges.LookupTag("knows");
+        var subject = _map.Edges.LookupTag("knows").OrderBy(x => x.ToString()).ToList();
         subject.Count.Be(2);
-        subject.SequenceEqual([
+        var compareTo = new List<GraphEdgePrimaryKey>
+        {
             new GraphEdgePrimaryKey { FromKey = "node1", ToKey = "node2", EdgeType = "et1" },
             new GraphEdgePrimaryKey { FromKey = "node1", ToKey = "node3", EdgeType = "et1" },
-            ]
-        ).BeTrue();
+        };
+        subject.SequenceEqual(compareTo).BeTrue();
     }
 
     [Fact]
     public void VerifyEdgeIndex2()
     {
-        var subject = _map.Edges.LookupTag("created");
+        var subject = _map.Edges.LookupTag("created").ToHashSet();
         subject.Count.Be(3);
-        subject.SequenceEqual([
+        var compareTo = new HashSet<GraphEdgePrimaryKey>
+        {
             new GraphEdgePrimaryKey { FromKey = "node6", ToKey = "node3", EdgeType = "et1" },
             new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node5", EdgeType = "et1" },
             new GraphEdgePrimaryKey { FromKey = "node4", ToKey = "node3", EdgeType = "et1" },
-            ]
-        ).BeTrue();
+        };
+        subject.SetEquals(compareTo).BeTrue();
     }
 
     [Fact]

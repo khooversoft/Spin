@@ -6,11 +6,38 @@ namespace Toolbox.Graph.test.Policy;
 public class PolicyGrantDefaultTests
 {
     [Fact]
+    public void NoPolicy_DefaultAccess()
+    {
+        var grantPolicies = new GrantCollection()
+        {
+        };
+
+        var groupPolicies = new[]
+        {
+            new GroupPolicy("group1", new[] { "user1", "user2" }),
+            new GroupPolicy("group2", new[] { "user3", "user4" }),
+        };
+
+        var principals = new[]
+        {
+            new PrincipalIdentity("user:id1", "id1", "user1", "user1@domain.com", false),
+            new PrincipalIdentity("user:id2", "id2", "user2", "user2@domain.com", true),
+        };
+
+        var grantControl = new GrantControl(groupPolicies, principals);
+
+        // Not protected, should have access
+        var request = new AccessRequest(AccessType.Get, "user:id1", "customer3");
+
+        grantControl.HasAccess(request, grantPolicies).BeTrue();
+    }
+
+    [Fact]
     public void GrantPolicy_Defaults()
     {
         var grantPolicies = new GrantCollection()
         {
-            new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.NameIdentifier, "user1orGroupName"),
+            new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "user1orGroupName"),
             new GrantPolicy("customer2", RolePolicy.Reader | RolePolicy.SecurityGroup, "user1orGroupName2"),
         };
 
@@ -37,19 +64,19 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void EqualNotEqual()
     {
-        var v1 = new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.NameIdentifier, "user1orGroupName");
-        var v2 = new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.NameIdentifier, "user1orGroupName");
+        var v1 = new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "user1orGroupName");
+        var v2 = new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "user1orGroupName");
         (v1 == v2).BeTrue();
         (v1 != v2).BeFalse();
 
-        var v3 = new GrantPolicy("customer12", RolePolicy.Owner | RolePolicy.NameIdentifier, "user1orGroupName");
+        var v3 = new GrantPolicy("customer12", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "user1orGroupName");
         (v1 == v3).BeFalse();
         (v1 != v3).BeTrue();
 
-        var v4 = new GrantPolicy("customer1", RolePolicy.Contributor | RolePolicy.NameIdentifier, "user1orGroupName");
+        var v4 = new GrantPolicy("customer1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "user1orGroupName");
         (v1 == v3).BeFalse();
 
-        var v5 = new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.NameIdentifier, "user1orGroupName-bad");
+        var v5 = new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "user1orGroupName-bad");
         (v1 == v5).BeFalse();
     }
 
@@ -58,9 +85,9 @@ public class PolicyGrantDefaultTests
     {
         var grantPolicies = new GrantCollection()
         {
-            new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.NameIdentifier, "user1"),
-            new GrantPolicy("customer1", RolePolicy.Contributor | RolePolicy.NameIdentifier, "user2"),
-            new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.NameIdentifier, "user3"),
+            new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
+            new GrantPolicy("customer1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "user2"),
+            new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "user3"),
         };
 
         var principals = new[]

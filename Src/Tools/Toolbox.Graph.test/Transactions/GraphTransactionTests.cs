@@ -229,7 +229,7 @@ public class GraphTransactionTests
         {
             x.TypeName.Be(typeof(GraphEdge).Name);
             x.SourceName.Be(ChangeSource.Edge);
-            x.ObjectId.Be("node1->node2(default)");
+            x.ObjectId.Be("node1:node2:default");
             x.Action.Be(ChangeOperation.Add);
             x.Before.BeNull();
             x.After.NotNull();
@@ -267,7 +267,7 @@ public class GraphTransactionTests
         {
             x.TypeName.Be(typeof(GraphEdge).Name);
             x.SourceName.Be(ChangeSource.Edge);
-            x.ObjectId.Be("node3->node4(subscription)");
+            x.ObjectId.Be("node3:node4:subscription");
             x.Action.Be(ChangeOperation.Add);
             x.Before.BeNull();
             x.After.NotNull();

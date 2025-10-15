@@ -66,7 +66,7 @@ public class GraphTrxEdgeTests
         (await graphClient.ExecuteBatch(q, context)).IsOk().BeTrue();
 
         graphEngine.DataManager.GetMap().Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).BeTrue();
-        graphEngine.DataManager.GetMap().Edges.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1->node2(default)"]).BeTrue();
+        graphEngine.DataManager.GetMap().Edges.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1:node2:default"]).BeTrue();
 
         // should fail, adding node3 because it already exist
         string q2 = """
@@ -82,7 +82,7 @@ public class GraphTrxEdgeTests
         });
 
         graphEngine.DataManager.GetMap().Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).BeTrue();
-        graphEngine.DataManager.GetMap().Edges.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1->node2(default)"]).BeTrue();
+        graphEngine.DataManager.GetMap().Edges.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1:node2:default"]).BeTrue();
     }
 
     [Theory]

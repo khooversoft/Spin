@@ -8,7 +8,7 @@ public enum RolePolicy
     Reader = 0x1,
     Contributor = 0x2,
     Owner = 0x3,
-    NameIdentifier = 0x10,
+    PrincipalIdentity = 0x10,
     SecurityGroup = 0x20,
 }
 
@@ -34,7 +34,7 @@ public static class PolicyRoleTool
 
     public static RolePolicy GetRoleType(this RolePolicy role) => ((int)role & _roleTypeMask) switch
     {
-        0x10 => RolePolicy.NameIdentifier,
+        0x10 => RolePolicy.PrincipalIdentity,
         0x11 => RolePolicy.SecurityGroup,
         _ => throw new ArgumentException($"Invalid RolePolicy policy"),
     };
@@ -61,7 +61,7 @@ public static class PolicyRoleTool
             { Length: 2 } => value[0] switch
             {
                 's' when value[1] == 'g' => RolePolicy.SecurityGroup,
-                'n' when value[1] == 'i' => RolePolicy.NameIdentifier,
+                'p' when value[1] == 'i' => RolePolicy.PrincipalIdentity,
                 _ => RolePolicy.None,
             },
 
@@ -83,8 +83,8 @@ public static class PolicyRoleTool
         buffer[1] = ':';
 
         ReadOnlySpan<char> schema = role.HasFlag(RolePolicy.SecurityGroup) ?
-            "sg" : role.HasFlag(RolePolicy.NameIdentifier) ?
-            "ni" : throw new InvalidDataException("No schema");
+            "sg" : role.HasFlag(RolePolicy.PrincipalIdentity) ?
+            "pi" : throw new InvalidDataException("No schema");
 
         schema.CopyTo(buffer.Slice(2));
 

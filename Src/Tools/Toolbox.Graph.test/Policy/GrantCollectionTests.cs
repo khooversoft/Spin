@@ -13,7 +13,7 @@ public class GrantCollectionTests
         subject.IsReadOnly.BeFalse();
 
         subject.TryGetValue("does-not-exist", out var _).BeFalse();
-        subject.Contains(new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.NameIdentifier, "u1")).BeFalse();
+        subject.Contains(new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1")).BeFalse();
 
         subject.ToList().Count.Be(0);
     }
@@ -22,14 +22,14 @@ public class GrantCollectionTests
     public void Add_Contains_TryGetValue()
     {
         var subject = new GrantCollection();
-        var p = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.NameIdentifier, "u1");
+        var p = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
 
         subject.Add(p);
 
         subject.Count.Be(1);
         subject.Contains(p).BeTrue();
 
-        subject.TryGetValue("n1", out var list).BeTrue();
+        subject.TryGetValue("u1", out var list).BeTrue();
         list.NotNull();
         list.Count.Be(1);
         list.Contains(p).BeTrue();
@@ -40,9 +40,9 @@ public class GrantCollectionTests
     {
         var subject = new GrantCollection();
 
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.NameIdentifier, "u1");
-        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.NameIdentifier, "u2");
-        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.NameIdentifier, "u3");
+        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
+        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u1");
+        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "u2");
 
         subject.Add(p1);
         subject.Add(p2);
@@ -50,13 +50,13 @@ public class GrantCollectionTests
 
         subject.Count.Be(3);
 
-        subject.TryGetValue("n1", out var g1).BeTrue();
+        subject.TryGetValue("u1", out var g1).BeTrue();
         g1.NotNull();
         g1.Count.Be(2);
         g1.Contains(p1).BeTrue();
         g1.Contains(p2).BeTrue();
 
-        subject.TryGetValue("n2", out var g2).BeTrue();
+        subject.TryGetValue("u2", out var g2).BeTrue();
         g2.NotNull();
         g2.Count.Be(1);
         g2.Contains(p3).BeTrue();
@@ -67,9 +67,9 @@ public class GrantCollectionTests
     {
         var subject = new GrantCollection();
 
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.NameIdentifier, "u1");
-        var p2 = new GrantPolicy("n2", RolePolicy.Contributor | RolePolicy.NameIdentifier, "u2");
-        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.NameIdentifier, "u3");
+        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
+        var p2 = new GrantPolicy("n2", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2");
+        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "u2");
 
         subject.Add(p1);
         subject.Add(p2);
@@ -79,17 +79,17 @@ public class GrantCollectionTests
 
         subject.Remove(p1).BeTrue();
         subject.Count.Be(2);
-        subject.TryGetValue("n1", out var _).BeFalse();
+        subject.TryGetValue("u1", out var _).BeFalse();
 
         subject.Remove(p2).BeTrue();
         subject.Count.Be(1);
-        subject.TryGetValue("n2", out var g2).BeTrue();
-        g2.Count.Be(1);
+        subject.TryGetValue("u2", out var g2).BeTrue();
+        g2!.Count.Be(1);
         g2.Contains(p3).BeTrue();
 
         subject.Remove(p3).BeTrue();
         subject.Count.Be(0);
-        subject.TryGetValue("n2", out var _).BeFalse();
+        subject.TryGetValue("u2", out var _).BeFalse();
 
         subject.Remove(p3).BeFalse();
     }
@@ -99,9 +99,9 @@ public class GrantCollectionTests
     {
         var subject = new GrantCollection();
 
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.NameIdentifier, "u1");
-        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.NameIdentifier, "u2");
-        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.NameIdentifier, "u3");
+        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
+        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2");
+        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "u3");
 
         subject.Add(p1);
         subject.Add(p2);
@@ -141,7 +141,7 @@ public class GrantCollectionTests
     public void CopyTo_Throws_On_BadArgs()
     {
         var subject = new GrantCollection();
-        subject.Add(new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.NameIdentifier, "u1"));
+        subject.Add(new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1"));
 
         Assert.Throws<ArgumentOutOfRangeException>(() => subject.CopyTo(new GrantPolicy[1], -1));
         Assert.Throws<ArgumentException>(() => subject.CopyTo(new GrantPolicy[0], 0));
@@ -152,9 +152,9 @@ public class GrantCollectionTests
     {
         var subject = new GrantCollection();
 
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.NameIdentifier, "u1");
-        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.NameIdentifier, "u2");
-        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.NameIdentifier, "u3");
+        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
+        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2");
+        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "u3");
 
         subject.Add(p1);
         subject.Add(p2);
@@ -171,8 +171,8 @@ public class GrantCollectionTests
     [Fact]
     public void Equality_SameContent()
     {
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.NameIdentifier, "u1");
-        var p2 = new GrantPolicy("n2", RolePolicy.Contributor | RolePolicy.NameIdentifier, "u2");
+        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
+        var p2 = new GrantPolicy("n2", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2");
 
         var a = new GrantCollection(new[] { p1, p2 });
         var b = new GrantCollection(new[] { p1, p2 });
@@ -188,8 +188,8 @@ public class GrantCollectionTests
     [Fact]
     public void Equality_DifferentOrderWithinGroup_NotEqual()
     {
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.NameIdentifier, "u1");
-        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.NameIdentifier, "u2");
+        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
+        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2");
 
         var a = new GrantCollection(new[] { p1, p2 });
         var b = new GrantCollection(new[] { p2, p1 }); // reversed order within same key
@@ -204,8 +204,8 @@ public class GrantCollectionTests
     {
         var subject = new GrantCollection();
 
-        subject.Add(new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.NameIdentifier, "u1"));
-        subject.Add(new GrantPolicy("n2", RolePolicy.Contributor | RolePolicy.NameIdentifier, "u2"));
+        subject.Add(new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1"));
+        subject.Add(new GrantPolicy("n2", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2"));
 
         subject.Count.Be(2);
 

@@ -1,5 +1,7 @@
 # Graph Language Syntax
 
+Graph language name: **EntangleQL**
+
 ## Basics
 1. A 'tag' is a key or key value pair i.e. 'key' or 'key=value'.
 1. Tags are multiple 'tag' separated by a comma.

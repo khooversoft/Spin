@@ -1,29 +1,27 @@
 ﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Toolbox.Tools;
 
 namespace Toolbox.Data;
 
 /// <summary>
-/// The InvertedIndex<TKey, TReferenceKey> class is a thread-safe, generic data structure designed
-/// to map keys (TKey) to a set of reference keys (TReferenceKey). It is commonly used in scenarios 
-/// where you need to efficiently look up relationships between entities, such as indexing or graph-based applications.
+/// Thread-safe inverted index mapping TKey -> set of TReferenceKey using
+/// ConcurrentDictionary for both outer and per-key inner maps (set semantics via inner keys).
+/// Optimized for high concurrency without global locks.
 /// </summary>
-/// <typeparam name="TKey">Lookup key</typeparam>
-/// <typeparam name="TReferenceKey">reference key</typeparam>
 public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey, TReferenceKey>>
     where TKey : notnull
     where TReferenceKey : notnull
 {
-    private readonly object _lock = new object();
-    private readonly Dictionary<TKey, HashSet<TReferenceKey>> _index;
+    private readonly ConcurrentDictionary<TKey, ConcurrentDictionary<TReferenceKey, byte>> _index;
 
     public InvertedIndex(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TReferenceKey>? referenceComparer = null)
     {
         KeyComparer = keyComparer.EqualityComparerFor();
         ReferenceComparer = referenceComparer.EqualityComparerFor();
 
-        _index = new Dictionary<TKey, HashSet<TReferenceKey>>(KeyComparer);
+        _index = new ConcurrentDictionary<TKey, ConcurrentDictionary<TReferenceKey, byte>>(KeyComparer);
     }
 
     public int Count => _index.Count;
@@ -31,88 +29,67 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
     public IEqualityComparer<TKey>? KeyComparer { get; }
     public IEqualityComparer<TReferenceKey>? ReferenceComparer { get; }
 
-    public void Clear()
-    {
-        lock (_lock)
-        {
-            _index.Clear();
-        }
-    }
+    public void Clear() => _index.Clear();
 
-    public IReadOnlyList<TReferenceKey> Get(TKey key)
-    {
-        lock (_lock)
-        {
-            return _index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys) switch
-            {
-                true => pkeys.ToImmutableArray(),
-                false => Array.Empty<TReferenceKey>(),
-            };
-        }
-    }
+    public IReadOnlyList<TReferenceKey> Get(TKey key) => _index.TryGetValue(key, out var inner)
+        ? inner.Keys.ToImmutableArray()
+        : Array.Empty<TReferenceKey>();
 
     public bool TryGetValue(TKey key, out IReadOnlyList<TReferenceKey>? value)
     {
-        value = null;
-
-        lock (_lock)
+        if (_index.TryGetValue(key, out var inner))
         {
-            if (_index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys))
-            {
-                value = pkeys.ToImmutableArray();
-                return true;
-            }
-
-            return false;
+            value = inner.Keys.ToImmutableArray();
+            return true;
         }
+
+        value = null;
+        return false;
     }
 
     public InvertedIndex<TKey, TReferenceKey> Set(TKey key, TReferenceKey referenceKey)
     {
-        lock (_lock)
-        {
-            if (_index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys))
-            {
-                pkeys.Add(referenceKey);
-                return this;
-            }
-
-            _index.Add(key, new HashSet<TReferenceKey>(new[] { referenceKey }, ReferenceComparer));
-            return this;
-        }
+        var inner = _index.GetOrAdd(key, k => new ConcurrentDictionary<TReferenceKey, byte>());
+        inner.TryAdd(referenceKey, 0);
+        return this;
     }
 
     public IReadOnlyList<TReferenceKey> Remove(TKey key)
     {
-        lock (_lock)
+        if (_index.TryRemove(key, out var inner))
         {
-            if (!_index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys)) return Array.Empty<TReferenceKey>();
-
-            _index.Remove(key);
-            return pkeys.ToImmutableArray();
+            return inner.Keys.ToImmutableArray();
         }
+
+        return Array.Empty<TReferenceKey>();
     }
 
     public bool Remove(TKey key, TReferenceKey referenceKey)
     {
-        lock (_lock)
+        if (!_index.TryGetValue(key, out var inner)) return false;
+
+        var removed = inner.TryRemove(referenceKey, out _);
+
+        // Cleanup empty inner map; remove only if the same instance (avoid races).
+        if (removed && inner.IsEmpty)
         {
-            if (!_index.TryGetValue(key, out HashSet<TReferenceKey>? pkeys)) return false;
-
-            bool deleted = pkeys.Remove(referenceKey);
-            if (pkeys.Count == 0) _index.Remove(key);
-
-            return deleted;
+            _index.TryRemove(new KeyValuePair<TKey, ConcurrentDictionary<TReferenceKey, byte>>(key, inner));
         }
+
+        return removed;
     }
 
     public IEnumerator<KeyValuePair<TKey, TReferenceKey>> GetEnumerator()
     {
-        foreach (var item in _index)
+        // Enumerations over ConcurrentDictionary are thread-safe and represent a moment-in-time snapshot.
+        foreach (var kv in _index)
         {
-            foreach (var refItem in item.Value)
+            var key = kv.Key;
+            var inner = kv.Value;
+
+            foreach (var refKey in inner.Keys)
             {
-                yield return new KeyValuePair<TKey, TReferenceKey>(item.Key, refItem);
+                yield return new KeyValuePair<TKey, TReferenceKey>(key, refKey);
             }
         }
     }

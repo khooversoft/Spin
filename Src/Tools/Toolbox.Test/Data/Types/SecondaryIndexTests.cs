@@ -78,9 +78,20 @@ public class SecondaryIndexTests
             pkeyInput.Length.Assert(x => x > 0, x => $"{x} must be > 0");
             index.Count().Be(pkeyInput.Length);
 
-            var shouldMatch = pkeyInput.Select(x => new KeyValuePair<int, Guid>(key, x)).OrderBy(x => x.Key).ToArray();
+            var shouldMatch = pkeyInput
+                .Select(x => new KeyValuePair<int, Guid>(key, x))
+                .OrderBy(x => x.Key)
+                .ThenBy(x => x.Value)
+                .ToArray();
+
             shouldMatch.Length.Be(pkeyInput.Length);
-            index.OrderBy(x => x.Key).ToArray().SequenceEqual(shouldMatch).BeTrue();
+
+            index
+                .OrderBy(x => x.Key)
+                .ThenBy(x => x.Value)
+                .ToArray()
+                .SequenceEqual(shouldMatch)
+                .BeTrue();
 
             var keys = index.LookupPrimaryKey(shuffle.Peek());
             keys.Count.Be(1);

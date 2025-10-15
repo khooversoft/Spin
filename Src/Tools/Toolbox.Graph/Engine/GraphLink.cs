@@ -23,30 +23,6 @@ public static class GraphDataLinkTool
 {
     public static Option Validate(this GraphLink subject) => GraphLink.Validator.Validate(subject).ToOptionStatus();
 
-    public static bool DeepEquals(this IEnumerable<KeyValuePair<string, GraphLink>> source, IEnumerable<KeyValuePair<string, GraphLink>> target)
-    {
-        if (source == null && target == null) return true;
-        if (source == null || target == null) return false;
-
-        var sourceList = source.OrderBy(x => x.Key).ToArray();
-        var targetList = target.OrderBy(x => x.Key).ToArray();
-        if (sourceList.Length != targetList.Length) return false;
-
-        var zip = sourceList.Zip(targetList, (x, y) => (source: x, target: y));
-        var isEqual = zip.All(x => x.source.Key.Equals(x.target.Key, StringComparison.OrdinalIgnoreCase) switch
-        {
-            false => false,
-            true => (x.source.Value, x.target.Value) switch
-            {
-                (null, null) => true,
-                (GraphLink s1, GraphLink s2) => (s1 == s2),
-                _ => false,
-            }
-        });
-
-        return isEqual;
-    }
-
     public static string ToDataMapString(this IEnumerable<KeyValuePair<string, GraphLink>> subject) => subject.NotNull()
         .OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
         .Select(x => $"{x.Key}={x.Value}")

@@ -15,8 +15,8 @@ public class GrantControl : IEquatable<GrantControl>
 
     public GrantControl(IReadOnlyList<GroupPolicy> securityGroups, IReadOnlyList<PrincipalIdentity> principalIdentities)
     {
-        Principals = new PrincipalCollection(principalIdentities);
-        Groups = new GroupCollection(securityGroups);
+        Principals = [.. principalIdentities];
+        Groups = [.. securityGroups];
     }
 
     public PrincipalCollection Principals { get; init; } = new();
@@ -28,11 +28,12 @@ public class GrantControl : IEquatable<GrantControl>
         if (!Principals.Contains(securityRequest.PrincipalIdentifier)) return false;
 
         // Check if user is directly in policy
-        var policyOption = grantCollections.InPolicy(securityRequest);
-        if (policyOption.IsOk() || policyOption.IsNotFound()) return true;
+        var groupsOption = grantCollections.InPolicy(securityRequest);
+        if (groupsOption.IsOk()) return true;
+        if (groupsOption.IsUnauthorized()) return false;
 
-        // Returns a list of group names that are in policy
-        var groupNames = policyOption.Return();
+        // User not found, check to see if user is in a group that is in policy
+        var groupNames = groupsOption.Return();
         return groupNames.Any(x => Groups.InGroup(x, securityRequest.PrincipalIdentifier));
     }
 

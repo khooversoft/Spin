@@ -38,17 +38,7 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
     public bool Contains(GroupPolicy item) =>
         _groups.TryGetValue(item.NameIdentifier, out var existing) && existing == item;
 
-    public void CopyTo(GroupPolicy[] array, int arrayIndex)
-    {
-        array.NotNull();
-        if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex));
 
-        foreach (var item in _groups.Values)
-        {
-            if (arrayIndex >= array.Length) throw new ArgumentException("Destination array is not long enough.");
-            array[arrayIndex++] = item;
-        }
-    }
 
     public bool Remove(GroupPolicy group) => _groups.TryRemove(group.NameIdentifier, out _);
 
@@ -60,6 +50,18 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
     {
         if (TryGetGroup(groupIdentifier, out var group)) return group.Members.Contains(principalIdentifier);
         return false;
+    }
+
+    public void CopyTo(GroupPolicy[] array, int arrayIndex)
+    {
+        array.NotNull();
+        if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+
+        foreach (var item in _groups.Values)
+        {
+            if (arrayIndex >= array.Length) throw new ArgumentException("Destination array is not long enough.");
+            array[arrayIndex++] = item;
+        }
     }
 
     public IEnumerator<GroupPolicy> GetEnumerator() => _groups.Values.GetEnumerator();

@@ -364,12 +364,12 @@ public class NodeForeignKeyTests
                     y.Count.Be(2);
                     y.OrderBy(x => x.ToKey).ToArray().Action(z =>
                     {
-                        y[0].FromKey.Be("node8");
-                        y[0].ToKey.Be("email:name1@domain.com");
-                        y[0].EdgeType.Be("email");
-                        y[1].FromKey.Be("node8");
-                        y[1].ToKey.Be("email:name2@domain.com");
-                        y[1].EdgeType.Be("email");
+                        z[0].FromKey.Be("node8");
+                        z[0].ToKey.Be("email:name1@domain.com");
+                        z[0].EdgeType.Be("email");
+                        z[1].FromKey.Be("node8");
+                        z[1].ToKey.Be("email:name2@domain.com");
+                        z[1].EdgeType.Be("email");
                     });
                 });
             });
@@ -621,12 +621,12 @@ public class NodeForeignKeyTests
                     y.Count.Be(2);
                     y.OrderBy(x => x.ToKey).ToArray().Action(z =>
                     {
-                        y[0].FromKey.Be("node8");
-                        y[0].ToKey.Be("email:name1@domain.com");
-                        y[0].EdgeType.Be("email");
-                        y[1].FromKey.Be("node8");
-                        y[1].ToKey.Be("email:name2@domain.com");
-                        y[1].EdgeType.Be("email");
+                        z[0].FromKey.Be("node8");
+                        z[0].ToKey.Be("email:name1@domain.com");
+                        z[0].EdgeType.Be("email");
+                        z[1].FromKey.Be("node8");
+                        z[1].ToKey.Be("email:name2@domain.com");
+                        z[1].EdgeType.Be("email");
                     });
                 });
             });

@@ -4,7 +4,6 @@ using Toolbox.Tools;
 namespace Toolbox.Graph.test.Policy;
 public class GrantControlTests
 {
-
     [Fact]
     public void GrantControl_Serialization_RoundTrip()
     {
@@ -30,5 +29,4 @@ public class GrantControlTests
         (deserializedPolicy != default).BeTrue();
         (grantControl == deserializedPolicy).BeTrue();
     }
-
 }

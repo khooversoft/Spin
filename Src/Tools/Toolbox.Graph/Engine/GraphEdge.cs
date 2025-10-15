@@ -13,7 +13,6 @@ public enum EdgeDirection
     Directed,
 }
 
-
 [DebuggerDisplay("FromKey={FromKey}, ToKey={ToKey}, EdgeType={EdgeType}, Tags={TagsString}")]
 public sealed record GraphEdge : IGraphCommon
 {
@@ -28,30 +27,19 @@ public sealed record GraphEdge : IGraphCommon
         this.Validate().ThrowOnError("Edge is invalid");
     }
 
-    public GraphEdge(string fromKey, string toKey, string edgeType, IReadOnlyDictionary<string, string?> tags, DateTime? createdDate)
+    [JsonConstructor]
+    public GraphEdge(string fromKey, string toKey, string edgeType, IReadOnlyDictionary<string, string?>? tags, DateTime createdDate)
     {
         FromKey = fromKey.NotEmpty();
         ToKey = toKey.NotEmpty();
         EdgeType = edgeType.NotEmpty();
-        Tags = tags?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, string?>.Empty;
-        CreatedDate = createdDate ?? DateTime.UtcNow;
+        Tags = (tags ?? FrozenDictionary<string, string?>.Empty).ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+        CreatedDate = createdDate == default ? DateTime.UtcNow : createdDate;
 
         this.Validate().ThrowOnError("Edge is invalid");
     }
 
-    [JsonConstructor]
-    public GraphEdge(string fromKey, string toKey, string edgeType, IReadOnlyDictionary<string, string?> tags, DateTime createdDate)
-    {
-        FromKey = fromKey.NotNull();
-        ToKey = toKey.NotNull();
-        EdgeType = edgeType.NotEmpty();
-        Tags = tags.NotNull().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-        CreatedDate = createdDate;
-
-        this.Validate().ThrowOnError("Edge is invalid");
-    }
-
-    public string Key => $"{FromKey}->{ToKey}({EdgeType})";
+    [JsonIgnore] public string Key => $"{FromKey}:{ToKey}:{EdgeType}";
     public string FromKey { get; }
     public string ToKey { get; }
     public string EdgeType { get; }
@@ -63,16 +51,38 @@ public sealed record GraphEdge : IGraphCommon
         FromKey.EqualsIgnoreCase(subject.FromKey) &&
         ToKey.EqualsIgnoreCase(subject.ToKey) &&
         EdgeType.EqualsIgnoreCase(subject.EdgeType) &&
-        Tags.DeepEqualsComparer(subject.Tags) &&
+        Tags.DeepEquals(subject.Tags) &&
         CreatedDate == subject.CreatedDate;
 
-    public override int GetHashCode() => HashCode.Combine(FromKey, ToKey, EdgeType, CreatedDate);
+    public override int GetHashCode()
+    {
+        var hc = new HashCode();
+        hc.Add(FromKey, StringComparer.OrdinalIgnoreCase);
+        hc.Add(ToKey, StringComparer.OrdinalIgnoreCase);
+        hc.Add(EdgeType, StringComparer.OrdinalIgnoreCase);
+
+        // Order-independent fold of Tags to keep consistency with Equals without sorting
+        if (Tags.Count > 0)
+        {
+            int tagsHash = 0;
+            foreach (var kvp in Tags)
+            {
+                int keyHash = StringComparer.OrdinalIgnoreCase.GetHashCode(kvp.Key);
+                int valueHash = kvp.Value is null ? 0 : StringComparer.Ordinal.GetHashCode(kvp.Value);
+                tagsHash ^= HashCode.Combine(keyHash, valueHash);
+            }
+            hc.Add(tagsHash);
+        }
+
+        hc.Add(CreatedDate);
+        return hc.ToHashCode();
+    }
 
     public override string ToString() => $"{{ FromKey={FromKey} -> ToKey={ToKey} ({EdgeType}) }}";
 
     public static IValidator<GraphEdge> Validator { get; } = new Validator<GraphEdge>()
-        .RuleFor(x => x.FromKey).NotNull()
-        .RuleFor(x => x.ToKey).NotNull()
+        .RuleFor(x => x.FromKey).NotEmpty()
+        .RuleFor(x => x.ToKey).NotEmpty()
         .RuleFor(x => x.EdgeType).NotEmpty()
         .RuleForObject(x => x).Must(x => !x.FromKey.EqualsIgnoreCase(x.ToKey), _ => "From and to keys cannot be the same")
         .RuleFor(x => x.Tags).NotNull()
