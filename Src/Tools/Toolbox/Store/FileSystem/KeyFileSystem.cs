@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Store;
@@ -7,10 +8,14 @@ namespace Toolbox.Store;
 
 public class KeyFileSystem<T> : IFileSystem<T>
 {
-    public KeyFileSystem() { }
-    public KeyFileSystem(string? basePath) => BasePath = basePath;
+    private readonly FileSystemConfig<T> _config;
 
-    public string? BasePath { get; init; } = null!;
+    public KeyFileSystem() { }
+    public KeyFileSystem(FileSystemConfig<T> config) => _config = config;
+
+    public string? BasePath => _config.BasePath;
+    public string Serialize(T subject) => _config.Serialize(subject);
+    public T? Deserialize(string data) => _config.Deserialize(data);
     public FileSystemType SystemType { get; } = FileSystemType.Key;
 
     public string PathBuilder(string key) => PathBuilder(key, typeof(T).Name);

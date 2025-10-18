@@ -14,15 +14,10 @@ public static class ListStoreStartup
 
         var builder = new ListStoreBuilder<T>(services);
         config?.Invoke(builder);
+        var fileSystemConfig = builder.GetFileSystemConfig();
 
-        services.TryAddTransient<IListFileSystem<T>>(services => builder.BasePath switch
-        {
-            null => ActivatorUtilities.CreateInstance<ListFileSystem<T>>(services),
-            string basePath => ActivatorUtilities.CreateInstance<ListFileSystem<T>>(services, basePath),
-        });
-
+        services.TryAddTransient<IListFileSystem<T>>(services => ActivatorUtilities.CreateInstance<ListFileSystem<T>>(services, fileSystemConfig));
         services.AddTransient<ListStore<T>>();
-
         services.AddTransient<IListStore<T>>(services =>
         {
             IListStore<T> listStore = services.GetRequiredService<ListStore<T>>();

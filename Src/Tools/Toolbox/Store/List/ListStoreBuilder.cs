@@ -12,10 +12,15 @@ public record ListStoreBuilder<T>
     public ListStoreBuilder(IServiceCollection services) => Services = services;
 
     public string? BasePath { get; set; } = null!;
+    public Func<string, T?>? Deserializer { get; set; } = null!;
+    public Func<T, string>? Serializer { get; set; } = null!;
     public IServiceCollection Services { get; }
 
     public void Add(Func<IServiceProvider, IListStoreProvider<T>> handler) => _handlers.Add(handler.NotNull());
     public void Add<P>() where P : class, IListStoreProvider<T> => _handlers.Add(service => service.GetRequiredService<P>());
+    public void AddSerializer(Func<T, string>? serializer) => Serializer = serializer;
+    public void AddDeserializer(Func<string, T?>? deserializer) => Deserializer = deserializer;
+    public FileSystemConfig<T> GetFileSystemConfig() => new(BasePath, Deserializer, Serializer);
 
     public Option<IListStoreProvider<T>> BuildHandlers(IServiceProvider serviceProvider, IListStore<T> storeProvider)
     {

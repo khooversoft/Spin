@@ -14,23 +14,16 @@ public static class KeyStoreStartup
 
         var builder = new KeyStoreBuilder<T>(services);
         config?.Invoke(builder);
+        var fileSystemConfig = builder.GetFileSystemConfig();
 
         switch (fileSystemType)
         {
             case FileSystemType.Key:
-                services.TryAddSingleton<IFileSystem<T>>(services => builder.BasePath switch
-                {
-                    null => ActivatorUtilities.CreateInstance<KeyFileSystem<T>>(services),
-                    string basePath => ActivatorUtilities.CreateInstance<KeyFileSystem<T>>(services, basePath),
-                });
+                services.TryAddSingleton<IFileSystem<T>>(services => ActivatorUtilities.CreateInstance<KeyFileSystem<T>>(services, fileSystemConfig));
                 break;
 
             case FileSystemType.Hash:
-                services.TryAddSingleton<IFileSystem<T>>(services => builder.BasePath switch
-                {
-                    null => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services),
-                    string basePath => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services, basePath),
-                });
+                services.TryAddSingleton<IFileSystem<T>>(services => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services, fileSystemConfig));
                 break;
 
             default: throw new ArgumentException($"Unsupported FileSystemType: {fileSystemType}", nameof(fileSystemType));
@@ -50,23 +43,16 @@ public static class KeyStoreStartup
 
         var builder = new KeyStoreBuilder<T>(services, name);
         config?.Invoke(builder);
+        var fileSystemConfig = builder.GetFileSystemConfig();
 
         switch (fileSystemType)
         {
             case FileSystemType.Key:
-                services.TryAddKeyedSingleton<IFileSystem<T>>(name, (services, _) => builder.BasePath switch
-                {
-                    null => ActivatorUtilities.CreateInstance<KeyFileSystem<T>>(services),
-                    string basePath => ActivatorUtilities.CreateInstance<KeyFileSystem<T>>(services, basePath),
-                });
+                services.TryAddKeyedSingleton<IFileSystem<T>>(name, (services, _) => ActivatorUtilities.CreateInstance<KeyFileSystem<T>>(services, fileSystemConfig));
                 break;
 
             case FileSystemType.Hash:
-                services.TryAddKeyedSingleton<IFileSystem<T>>(name, (services, _) => builder.BasePath switch
-                {
-                    null => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services),
-                    string basePath => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services, basePath),
-                });
+                services.TryAddKeyedSingleton<IFileSystem<T>>(name, (services, _) => ActivatorUtilities.CreateInstance<HashFileSystem<T>>(services, fileSystemConfig));
                 break;
 
             default: throw new ArgumentException($"Unsupported FileSystemType: {fileSystemType}", nameof(fileSystemType));

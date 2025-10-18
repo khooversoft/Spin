@@ -4,6 +4,34 @@ using Toolbox.Tools;
 
 namespace Toolbox.Store;
 
+public readonly struct FileSystemConfig<T>
+{
+    // Cache default delegates per closed generic T to avoid per-instance allocations.
+    private static readonly Func<string, T?> s_defaultDeserializer = static s => s.ToObject<T>();
+    private static readonly Func<T, string> s_defaultSerializer = static s => s.ToJson();
+
+    // Ensure a parameterless construction path initializes non-null delegates.
+    public FileSystemConfig()
+    {
+        BasePath = null;
+        Deserialize = s_defaultDeserializer;
+        Serialize = s_defaultSerializer;
+    }
+
+    public FileSystemConfig(string? basePath, Func<string, T?>? deserializer, Func<T, string>? serializer)
+    {
+        BasePath = basePath;
+        Deserialize = deserializer ?? s_defaultDeserializer;
+        Serialize = serializer ?? s_defaultSerializer;
+    }
+
+    public string? BasePath { get; }
+    public Func<string, T?> Deserialize { get; }
+    public Func<T, string> Serialize { get; }
+}
+
+
+
 public record KeyStoreBuilder<T>
 {
     private readonly IList<Func<IServiceProvider, IKeyStore<T>>> _handlers = new List<Func<IServiceProvider, IKeyStore<T>>>();
@@ -13,10 +41,17 @@ public record KeyStoreBuilder<T>
 
     public string? KeyedName { get; }
     public string? BasePath { get; set; } = null!;
+    public Func<string, T?>? Deserializer { get; set; } = null!;
+    public Func<T, string>? Serializer { get; set; } = null!;
+
     public IServiceCollection Services { get; }
 
     public void Add(Func<IServiceProvider, IKeyStore<T>> handler) => _handlers.Add(handler.NotNull());
     public void Add<TService>() where TService : class, IKeyStore<T> => _handlers.Add(service => GetService<TService>(service));
+    public void AddSerializer(Func<T, string>? serializer) => Serializer = serializer;
+    public void AddDeserializer(Func<string, T?>? deserializer) => Deserializer = deserializer;
+
+    public FileSystemConfig<T> GetFileSystemConfig() => new(BasePath, Deserializer, Serializer);
 
     public IKeyStore<T> BuildHandlers(IServiceProvider services)
     {

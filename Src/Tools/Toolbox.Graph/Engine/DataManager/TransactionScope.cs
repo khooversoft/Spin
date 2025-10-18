@@ -104,7 +104,6 @@ public static class TransactionScopeExtensions
     public static void NodeChange(this TransactionScope subject, GraphNode currentNode, GraphNode updatedNode) =>
         subject.Enqueue<GraphNode>(ChangeSource.Node, currentNode.Key, ChangeOperation.Delete, currentNode.ToDataETag(), updatedNode.ToDataETag());
 
-
     public static void EdgeAdd(this TransactionScope subject, GraphEdge newNode) =>
         subject.Enqueue<GraphEdge>(ChangeSource.Edge, newNode.Key, ChangeOperation.Add, null, newNode.ToDataETag());
 
@@ -123,8 +122,6 @@ public static class TransactionScopeExtensions
 
     public static void DataChange(this TransactionScope subject, string fileId, DataETag currentNode, DataETag updatedNode) =>
         subject.Enqueue<DataETag>(ChangeSource.Data, fileId, ChangeOperation.Delete, currentNode, updatedNode);
-
-
 
     private static void Enqueue<T>(this TransactionScope subject, string sourceName, string objectId, string action, DataETag? before, DataETag? after)
     {

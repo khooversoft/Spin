@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Extensions;
 using Toolbox.Models;
 using Toolbox.Store;
@@ -27,6 +28,8 @@ public static class GraphStartup
         {
             config.BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}";
             config.AddKeyStore();
+            config.Serializer = x => JsonSerializer.Serialize(x, GraphJsonContext.Default.GraphSerialization);
+            config.Deserializer = x => JsonSerializer.Deserialize(x, GraphJsonContext.Default.GraphSerialization);
         });
 
         services.AddKeyStore<DataETag>(FileSystemType.Hash, config =>

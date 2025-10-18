@@ -1,4 +1,7 @@
-﻿namespace Toolbox.Store;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
+
+namespace Toolbox.Store;
 
 // Hash index: {hash}/{hash}/{key}.{typeName}.json
 // Key index: {typeName}/{key}.{typeName}.json
@@ -18,11 +21,12 @@ public interface IFileSystem<T>
     public FileSystemType SystemType { get; }
     string PathBuilder(string key);
     string BuildSearch(string? key = null, string? pattern = null);
+    string Serialize(T subject);
+    T? Deserialize(string data);
 }
 
 public interface IListFileSystem<T> : IFileSystem<T>
 {
-    string PathBuilder(string key, DateTime timeIndex);
     DateTime ExtractTimeIndex(string path);
 }
 

@@ -18,7 +18,7 @@ public sealed record GraphNode : IGraphCommon
         Indexes = SplitValues(indexes);
         ForeignKeys = TagsTool.Parse(foreignKeys).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
-        IReadOnlyCollection<string> SplitValues(string? value) => value switch
+        static IReadOnlyCollection<string> SplitValues(string? value) => value switch
         {
             null => FrozenSet<string>.Empty,
 

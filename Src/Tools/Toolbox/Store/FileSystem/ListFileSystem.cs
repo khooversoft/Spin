@@ -1,25 +1,27 @@
-﻿namespace Toolbox.Store;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
+
+namespace Toolbox.Store;
 
 // List index: {key}/yyyyMM/{key}-yyyyMMdd.{typeName}.json
 // ListSecond index: {key}/yyyyMM/{key}-yyyyMMdd.{typeName}.json
 
 public class ListFileSystem<T> : IListFileSystem<T>
 {
-    public ListFileSystem() { }
-    public ListFileSystem(string? basePath) => BasePath = basePath;
+    private readonly FileSystemConfig<T> _config;
 
-    public string? BasePath { get; } = null!;
+    public ListFileSystem() { }
+    public ListFileSystem(FileSystemConfig<T> config) => _config = config;
+
+    public string? BasePath => _config.BasePath;
+    public string Serialize(T subject) => _config.Serialize(subject);
+    public T? Deserialize(string data) => _config.Deserialize(data);
     public FileSystemType SystemType { get; } = FileSystemType.List;
 
     public virtual string PathBuilder(string key)
     {
         DateTime now = DateTime.UtcNow;
         return $"{this.CreatePathPrefix()}{key}/{now:yyyyMM}/{key}-{now:yyyyMMdd}.{typeof(T).Name}.json".ToLowerInvariant();
-    }
-
-    public virtual string PathBuilder(string key, DateTime date)
-    {
-        return $"{this.CreatePathPrefix()}{key}/{date:yyyyMM}/{key}-{date:yyyyMMdd-HHmmss}.{typeof(T).Name}.json".ToLowerInvariant();
     }
 
     public string BuildSearch(string? key = null, string? pattern = null)
@@ -42,16 +44,11 @@ public class ListFileSystem<T> : IListFileSystem<T>
 public class ListSecondFileSystem<T> : ListFileSystem<T>
 {
     public ListSecondFileSystem() { }
-    public ListSecondFileSystem(string basePath) : base(basePath) { }
+    public ListSecondFileSystem(FileSystemConfig<T> config) : base(config) { }
 
     public override string PathBuilder(string key)
     {
         DateTime now = DateTime.UtcNow;
         return $"{this.CreatePathPrefix()}{key}/{now:yyyyMM}/{key}-{now:yyyyMMdd-HHmmss}.{typeof(T).Name}.json".ToLowerInvariant();
-    }
-
-    public override string PathBuilder(string key, DateTime date)
-    {
-        return $"{this.CreatePathPrefix()}{key}/{date:yyyyMM}/{key}-{date:yyyyMMdd-HHmmss}.{typeof(T).Name}.json".ToLowerInvariant();
     }
 }

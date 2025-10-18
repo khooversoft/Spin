@@ -72,6 +72,7 @@ public static class DataETagExtensions
     public static DataETag WithHash(this DataETag data) => new DataETag(data.Data, data.ToHash());
     public static DataETag WithETag(this DataETag data, string eTag) => new DataETag(data.Data, eTag.NotEmpty());
 
+    // TODO: Verify performance
     public static T ToObject<T>(this DataETag data) => (typeof(T) == typeof(DataETag)) switch
     {
         true => (T)(object)data,

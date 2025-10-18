@@ -76,8 +76,8 @@ public class GraphDbRoundTripTests
 
             GraphSerialization readRec = x.Return().ToObject<GraphSerialization>();
             readRec.NotNull();
-            readRec.Nodes.Count.Be(count);
-            readRec.Edges.Count.Be(count - 1);
+            readRec.Nodes.Count().Be(count);
+            readRec.Edges.Count().Be(count - 1);
 
             var expectedMap = new GraphMap();
             Enumerable.Range(0, count).ForEach(x => expectedMap.Add(new GraphNode($"node-{x}")));
