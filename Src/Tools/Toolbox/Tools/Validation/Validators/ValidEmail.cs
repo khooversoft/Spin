@@ -12,7 +12,7 @@ public class ValidEmail<T> : ValidatorBase<T, string>
 public class ValidEmailOption<T> : ValidatorBase<T, string?>
 {
     public ValidEmailOption(IPropertyRule<T, string?> rule, string errorMessage)
-        : base(rule, errorMessage, StandardValidation.IsEmail)
+        : base(rule, errorMessage, x => x == null || StandardValidation.IsEmail(x))
     {
     }
 }

@@ -19,7 +19,7 @@ public static partial class PartitionSchemas
             _ => ExtractDateWithSecondsString().Match(path) switch
             {
                 { Success: true } v2 => parseExactSeconds(v2.Groups[1].Value),
-                _ => throw new ArgumentException("Invalid format path={path}", path),
+                _ => throw new ArgumentException($"Invalid format path={path}", nameof(path)),
             }
         };
 

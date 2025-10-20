@@ -3,7 +3,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
-public interface IValidator<T>
+public interface IValidator<in T>
 {
     Option<IValidatorResult> Validate(T subject);
 }
@@ -71,29 +71,41 @@ public class Validator<T> : IValidator<T>
 
     public Option<IValidatorResult> Validate(T subject)
     {
-        var result = new ValidatorResult
+        var errors = new List<IValidatorResult>();
+
+        foreach (var rule in _rules)
         {
-            Errors = _rules
-                .SelectMany(x => x.Validate(subject) switch
+            var result = rule.Validate(subject);
+            if (!result.HasValue) continue;
+
+            var value = result.Return();
+            if (value is ValidatorError ve)
+            {
+                errors.Add(ve);
+            }
+            else if (value is ValidatorResult vr)
+            {
+                var nested = vr.GetErrors();
+                if (nested.Count != 0)
                 {
-                    var o when o.HasValue => o.Return() switch
-                    {
-                        ValidatorError v => new[] { v },
-                        ValidatorResult v => v.GetErrors(),
+                    foreach (var e in nested) errors.Add(e);
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException($"Invalid IValidateResult class, type={value.GetType().FullName}");
+            }
+        }
 
-                        var v => throw new InvalidOperationException($"Invalid IValidateResult class, type={v.GetType().FullName}"),
-                    },
-
-                    _ => Array.Empty<ValidatorError>(),
-
-                })
-                .ToArray()
+        var final = new ValidatorResult
+        {
+            Errors = errors.ToArray(),
         };
 
-        return result.Errors switch
+        return final.Errors switch
         {
-            { Count: 0 } => new Option<IValidatorResult>(result, StatusCode.OK, result.ToString()),
-            var v => new Option<IValidatorResult>(result, StatusCode.BadRequest, result.ToString())
+            { Count: 0 } => new Option<IValidatorResult>(final, StatusCode.OK, final.ToString()),
+            _ => new Option<IValidatorResult>(final, StatusCode.BadRequest, final.ToString()),
         };
     }
 }

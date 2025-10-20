@@ -13,7 +13,7 @@ public class ValidName<T> : ValidatorBase<T, string>
 public class ValidNameOption<T> : ValidatorBase<T, string?>
 {
     public ValidNameOption(IPropertyRule<T, string?> rule, string errorMessage)
-        : base(rule, errorMessage, x => IdPatterns.IsName(x))
+        : base(rule, errorMessage, x => x == null || IdPatterns.IsName(x))
     {
     }
 }

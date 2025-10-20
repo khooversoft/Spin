@@ -13,7 +13,8 @@ namespace Toolbox.Graph;
 internal class TagIndex<TPrimaryKey> where TPrimaryKey : notnull
 {
     private readonly SecondaryIndex<string, TPrimaryKey> _index;
-    public TagIndex(IEqualityComparer<TPrimaryKey>? primaryKeyComparer = null) => _index = new SecondaryIndex<string, TPrimaryKey>(StringComparer.OrdinalIgnoreCase, primaryKeyComparer);
+    public TagIndex(IEqualityComparer<TPrimaryKey>? primaryKeyComparer = null) =>
+        _index = new SecondaryIndex<string, TPrimaryKey>(StringComparer.OrdinalIgnoreCase, primaryKeyComparer);
 
     public void Clear() => _index.Clear();
     public bool Remove(TPrimaryKey primaryKey) => _index.RemovePrimaryKey(primaryKey);
@@ -24,6 +25,6 @@ internal class TagIndex<TPrimaryKey> where TPrimaryKey : notnull
     {
         _index.RemovePrimaryKey(primaryKey);
 
-        tags.NotNull().ForEach(x => _index.Set(x.Key, primaryKey));
+        foreach (var item in tags.NotNull()) _index.Set(item.Key, primaryKey);
     }
 }

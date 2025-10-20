@@ -11,6 +11,16 @@ public sealed class StructureLineBuilder
 
     public static StructureLineBuilder Start() => new();
 
+    // Convenience: message with no args, avoids params array allocation.
+    public StructureLineBuilder Add(string? message)
+    {
+        if (message.IsEmpty()) return this;
+
+        if (_messageBuilder.Length > 0) _messageBuilder.Append(", ");
+        _messageBuilder.Append(message);
+        return this;
+    }
+
     public StructureLineBuilder Add(string? message, object? value)
     {
         if (message.IsEmpty()) return this;
@@ -18,23 +28,21 @@ public sealed class StructureLineBuilder
         if (_messageBuilder.Length > 0) _messageBuilder.Append(", ");
         _messageBuilder.Append(message);
 
+        // Preserve existing behavior: skip null so mismatches are detected in Build().
         if (value != null) _allArgs.Add(value);
 
         return this;
     }
 
-    public StructureLineBuilder Add(string? message, params IEnumerable<object?>? args)
+    // Fix: accept normal params array and flatten into the args list.
+    public StructureLineBuilder Add(string? message, params object?[] args)
     {
         if (message.IsEmpty()) return this;
 
         if (_messageBuilder.Length > 0) _messageBuilder.Append(", ");
-
         _messageBuilder.Append(message);
 
-        if (args != null)
-        {
-            foreach (var arg in args) _allArgs.Add(arg);
-        }
+        if (args is { Length: > 0 }) _allArgs.AddRange(args);
 
         return this;
     }

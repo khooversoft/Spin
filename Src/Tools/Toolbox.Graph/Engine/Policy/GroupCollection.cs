@@ -21,7 +21,16 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
     public GroupPolicy this[string nameIdentifier]
     {
         get => _groups[nameIdentifier];
-        set => _groups[nameIdentifier] = value.Action(x => x.Validate().ThrowOnError());
+        set
+        {
+            value.Validate().ThrowOnError();
+            if( value.NameIdentifier != nameIdentifier)
+            {
+                throw new ArgumentException($"GroupPolicy NameIdentifier '{value.NameIdentifier}' does not match indexer key '{nameIdentifier}'");
+            }
+
+            _groups[nameIdentifier] = value;
+        }
     }
 
     public int Count => _groups.Count;
@@ -34,12 +43,7 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
     }
 
     public void Clear() => _groups.Clear();
-
-    public bool Contains(GroupPolicy item) =>
-        _groups.TryGetValue(item.NameIdentifier, out var existing) && existing == item;
-
-
-
+    public bool Contains(GroupPolicy item) => _groups.TryGetValue(item.NameIdentifier, out var existing) && existing == item;
     public bool Remove(GroupPolicy group) => _groups.TryRemove(group.NameIdentifier, out _);
 
     // Convenience helpers
@@ -69,15 +73,39 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
 
     // Equality
     public override bool Equals(object? obj) => obj is GroupCollection other && Equals(other);
-    public override int GetHashCode() => HashCode.Combine(_groups);
 
-    public bool Equals(GroupCollection? other) => other is not null &&
-        _groups.Count == other._groups.Count &&
-        _groups.All(pair =>
-            other._groups.TryGetValue(pair.Key, out var otherGroups) &&
-            pair.Value == otherGroups
-        );
+    // Order-independent hash code based on content; consistent with Equals
+    public override int GetHashCode()
+    {
+        var hash = 0;
+        foreach (var pair in _groups)
+        {
+            // Combine key/value then xor to make order-independent
+            hash ^= HashCode.Combine(pair.Key, pair.Value);
+        }
+        return hash;
+    }
 
-    public static bool operator ==(GroupCollection? left, GroupCollection? right) => left?.Equals(right) ?? false;
-    public static bool operator !=(GroupCollection? left, GroupCollection? right) => !left?.Equals(right) ?? false;
+    public bool Equals(GroupCollection? other)
+    {
+        if (other == null) return false;
+        if( ReferenceEquals(this, other)) return true;
+        if( _groups.Count != other._groups.Count) return false;
+
+        foreach(var item in _groups)
+        {
+            if (!other._groups.TryGetValue(item.Key, out var otherGroup)) return false;
+            if (item.Value != otherGroup) return false;
+        }
+
+        return true;
+    }
+
+    public static bool operator ==(GroupCollection? left, GroupCollection? right)
+    {
+        if (left is null) return right is null;
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(GroupCollection? left, GroupCollection? right) => !(left == right);
 }

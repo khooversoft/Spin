@@ -22,13 +22,21 @@ public readonly struct GroupPolicy : IEquatable<GroupPolicy>
     public override bool Equals(object? obj) => obj is GroupPolicy other && Equals(other);
     public override int GetHashCode() => HashCode.Combine(NameIdentifier, Members);
 
-    public bool Equals(GroupPolicy other) =>
-        NameIdentifier == other.NameIdentifier &&
-        Members.Count == other.Members.Count &&
-        Members.SequenceEqual(other.Members);
+    public bool Equals(GroupPolicy other)
+    {
+        if (!string.Equals(NameIdentifier, other.NameIdentifier, StringComparison.Ordinal)) return false;
+
+        var leftMembers = Members ?? Array.Empty<string>();
+        var rightMembers = other.Members ?? Array.Empty<string>();
+
+        if (ReferenceEquals(leftMembers, rightMembers)) return true;
+        if (leftMembers.Count != rightMembers.Count) return false;
+
+        return leftMembers.SequenceEqual(rightMembers);
+    }
 
     public static bool operator ==(GroupPolicy left, GroupPolicy right) => left.Equals(right);
-    public static bool operator !=(GroupPolicy left, GroupPolicy right) => !left.Equals(right);
+    public static bool operator !=(GroupPolicy left, GroupPolicy right) => !(left == right);
 
     public static IValidator<GroupPolicy> Validator { get; } = new Validator<GroupPolicy>()
         .RuleFor(x => x.NameIdentifier).NotEmpty()

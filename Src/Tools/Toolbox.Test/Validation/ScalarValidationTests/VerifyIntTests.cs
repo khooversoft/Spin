@@ -42,4 +42,47 @@ public class VerifyIntTests
             v2.NotNull();
         });
     }
+
+    [Fact]
+    public void Be_Fails_And_NotBe_Succeeds()
+    {
+        Verify.Throw<ArgumentException>(() =>
+        {
+            int v = 1;
+            v.Be(2);
+        });
+
+        int v2 = 1;
+        v2.NotBe(2);
+    }
+
+    [Fact]
+    public void Be_Fails_And_NotBe_Succeeds_Nullable()
+    {
+        Verify.Throw<ArgumentException>(() =>
+        {
+            int? v = 1;
+            v.Be(2);
+        });
+
+        int? v2 = 1;
+        v2.NotBe(2);
+    }
+
+    [Fact]
+    public void NotNull_Succeeds()
+    {
+        int? v = 0;
+        v.NotNull();
+    }
+
+    [Fact]
+    public void BeNull_Fails_WhenHasValue()
+    {
+        Verify.Throw<ArgumentException>(() =>
+        {
+            int? v = 1;
+            v.BeNull();
+        });
+    }
 }

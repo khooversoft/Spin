@@ -30,11 +30,13 @@ public record PropertyRule<T, TProperty> : IPropertyRule<T, TProperty>
     {
         TProperty property = GetValue(subject);
 
-        return Validators
-            .Select(x => x.Validate(subject, property))
-            .Where(x => x.HasValue)
-            .Select(x => x.Return())
-            .FirstOrDefaultOption();
+        foreach (var v in Validators)
+        {
+            var r = v.Validate(subject, property);
+            if (r.HasValue) return r; // early exit on first failure
+        }
+
+        return Option<IValidatorResult>.None;
     }
 };
 
@@ -47,19 +49,22 @@ public record PropertyCollectionRule<T, TProperty> : IPropertyRule<T, TProperty>
     public Option<IValidatorResult> Validate(T subject)
     {
         IEnumerable<TProperty> properties = GetValue(subject);
-
         var list = new List<IValidatorResult>();
 
         foreach (var item in properties)
         {
-            var result = Validators
-                .Select(x => x.Validate(subject, item))
-                .Where(x => x.HasValue)
-                .Select(x => x.Return())
-                .FirstOrDefaultOption();
-
-            if (result.HasValue) list.Add(result.Return());
+            foreach (var v in Validators)
+            {
+                var r = v.Validate(subject, item);
+                if (r.HasValue)
+                {
+                    list.Add(r.Return());
+                    break; // first error per item
+                }
+            }
         }
+
+        if (list.Count == 0) return Option<IValidatorResult>.None;
 
         return new ValidatorResult
         {

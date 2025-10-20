@@ -1,4 +1,7 @@
-﻿using Toolbox.Data;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -276,5 +279,224 @@ public class SecondaryIndexTests
             index.LookupPrimaryKey(item.Value).Count.Be(shuffle.Where(x => x.Value == item.Value).Count());
         }
         while (shuffle.Count > 0);
+    }
+
+    // NEW: Clear, Remove(key), RemovePrimaryKey, indexer coverage
+    [Fact]
+    public void SecondaryIndex_ClearAndRemoveVariants_AndIndexerTest()
+    {
+        var index = new SecondaryIndex<int, int>();
+
+        // Add 3 keys with varying cardinality
+        index.Set(1, 100).Set(1, 101).Set(2, 200).Set(3, 300).Set(3, 301).Set(3, 302);
+
+        // Indexer returns read-only list; verify contents
+        var k1 = index[1];
+        k1.Count.Be(2);
+        k1.OrderBy(x => x).SequenceEqual(new[] { 100, 101 }).BeTrue();
+
+        var k2 = index[2];
+        k2.Count.Be(1);
+        k2[0].Be(200);
+
+        var kMissing = index[999];
+        kMissing.Count.Be(0);
+
+        // Remove by key
+        index.Remove(2).BeTrue();
+        index.Lookup(2).Count.Be(0);
+        index.LookupPrimaryKey(200).Count.Be(0);
+        index.Count.Be(2); // keys: 1,3
+
+        // Remove by primary key
+        index.RemovePrimaryKey(301).BeTrue();
+        index.LookupPrimaryKey(301).Count.Be(0);
+        index.Lookup(3).OrderBy(x => x).SequenceEqual(new[] { 300, 302 }).BeTrue();
+
+        // Clear everything
+        index.Clear();
+        index.Count.Be(0);
+        index.Count().Be(0);
+        index.Lookup(1).Count.Be(0);
+        index.LookupPrimaryKey(300).Count.Be(0);
+    }
+
+    // NEW: Duplicate Set should be idempotent (no duplicate pairs)
+    [Fact]
+    public void SecondaryIndex_DuplicateSet_IsIdempotent()
+    {
+        var index = new SecondaryIndex<string, Guid>();
+        var key = "K";
+        var p = Guid.NewGuid();
+
+        index.Set(key, p).Set(key, p).Set(key, p);
+
+        index.Count.Be(1);
+        index.Count().Be(1);
+        index.Lookup(key).Count.Be(1);
+        index.Lookup(key)[0].Assert(x => x == p);
+
+        var ks = index.LookupPrimaryKey(p);
+        ks.Count.Be(1);
+        ks[0].Be(key);
+    }
+
+    // NEW: Custom comparers on both key and primary key
+    [Fact]
+    public void SecondaryIndex_CustomComparers_CaseInsensitive()
+    {
+        var index = new SecondaryIndex<string, string>(StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase);
+
+        index.Set("User", "ID-001");
+        index.Set("user", "id-001"); // same using case-insensitive comparers
+
+        index.Count.Be(1);
+        index.Count().Be(1);
+
+        index.Lookup("USER").Single().Be("ID-001");
+        index.LookupPrimaryKey("Id-001").Single().Be("User"); // original casing may vary; comparer must unify mapping
+    }
+
+    // NEW: Concurrency stress: mixed adds/removes/lookups under parallel load
+    [Fact]
+    public async Task SecondaryIndex_Concurrent_ReadWrite_Stress()
+    {
+        var index = new SecondaryIndex<int, int>();
+
+        // small domains to increase contention/cross-links
+        const int keyDomain = 64;
+        const int pkeyDomain = 64;
+
+        int WorkerCount = Math.Max(4, Environment.ProcessorCount / 2);
+        int OpsPerWorker = 10_000;
+
+        var rnd = new Random(12345);
+        //int NextKey() => rnd.Next(keyDomain);
+        //int NextP() => rnd.Next(pkeyDomain);
+
+        var tasks = Enumerable.Range(0, WorkerCount).Select(worker => Task.Run(() =>
+        {
+            var lr = new Random(12345 + worker); // deterministic per worker
+
+            for (int i = 0; i < OpsPerWorker; i++)
+            {
+                int k = lr.Next(keyDomain);
+                int p = lr.Next(pkeyDomain);
+
+                switch (i % 6)
+                {
+                    case 0:
+                    case 1:
+                        index.Set(k, p);
+                        break;
+                    case 2:
+                        index.Remove(k, p);
+                        break;
+                    case 3:
+                        index.Remove(k);
+                        break;
+                    case 4:
+                        index.RemovePrimaryKey(p);
+                        break;
+                    case 5:
+                        // Reads
+                        _ = index.Lookup(k).Count;
+                        _ = index.LookupPrimaryKey(p).Count;
+                        break;
+                }
+            }
+        }));
+
+        await Task.WhenAll(tasks);
+
+        // Validate invariants after all operations complete (no concurrency at this point)
+        ValidateInvariants(index);
+    }
+
+    // NEW: Enumeration must be safe while writes occur (snapshot semantics)
+    [Fact]
+    public async Task SecondaryIndex_Concurrent_Enumeration_SnapshotSafe()
+    {
+        var index = new SecondaryIndex<int, int>();
+
+        // Seed some data
+        for (int k = 0; k < 16; k++)
+        {
+            for (int p = 0; p < 4; p++) index.Set(k, k * 10 + p);
+        }
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+
+        // Writers
+        var writer = Task.Run(async () =>
+        {
+            var r = new Random(8675309);
+            while (!cts.IsCancellationRequested)
+            {
+                int k = r.Next(0, 64);
+                int p = r.Next(0, 64);
+                switch (r.Next(4))
+                {
+                    case 0: index.Set(k, p); break;
+                    case 1: index.Remove(k, p); break;
+                    case 2: index.Remove(k); break;
+                    case 3: index.RemovePrimaryKey(p); break;
+                }
+                await Task.Yield();
+            }
+        }, cts.Token);
+
+        // Enumerator reader: ensure no exceptions and finite progress
+        int enumerations = 0;
+        var reader = Task.Run(async () =>
+        {
+            while (!cts.IsCancellationRequested)
+            {
+                // Should not throw or hang
+                var snapshot = index.ToArray(); // forces enumeration snapshot
+                // light internal consistency of the snapshot itself
+                snapshot.Length.Be(snapshot.Distinct().Count());
+                enumerations++;
+                await Task.Yield();
+            }
+        }, cts.Token);
+
+        await Task.Delay(1000);
+        cts.Cancel();
+        await Task.WhenAll(Task.WhenAll(writer.ContinueWith(_ => { })), Task.WhenAll(reader.ContinueWith(_ => { })));
+
+        enumerations.Assert(x => x > 0, x => $"{x} must be > 0");
+        // Final invariant check after stopping writers
+        ValidateInvariants(index);
+    }
+
+    private static void ValidateInvariants<TKey, TP>(SecondaryIndex<TKey, TP> index)
+        where TKey : notnull
+        where TP : notnull
+    {
+        // Snapshot pairs
+        var pairs = index.ToArray();
+
+        // Count of pairs
+        pairs.Length.Be(index.Count());
+
+        // Distinct key count equals index.Count
+        pairs.Select(x => x.Key).Distinct().Count().Be(index.Count);
+
+        // For each key, Lookups should match snapshot groups
+        foreach (var group in pairs.GroupBy(x => x.Key))
+        {
+            var expected = group.Select(x => x.Value).OrderBy(x => x).ToArray();
+            var actual = index.Lookup(group.Key).OrderBy(x => x).ToArray();
+            expected.SequenceEqual(actual).BeTrue();
+        }
+
+        // For each primary key, reverse lookup should match snapshot groups
+        foreach (var group in pairs.GroupBy(x => x.Value))
+        {
+            var expected = group.Select(x => x.Key).OrderBy(x => x).ToArray();
+            var actual = index.LookupPrimaryKey(group.Key).OrderBy(x => x).ToArray();
+            expected.SequenceEqual(actual).BeTrue();
+        }
     }
 }

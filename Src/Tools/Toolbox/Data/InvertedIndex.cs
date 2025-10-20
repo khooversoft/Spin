@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Threading;
 using Toolbox.Tools;
 
 namespace Toolbox.Data;
@@ -9,12 +10,20 @@ namespace Toolbox.Data;
 /// Thread-safe inverted index mapping TKey -> set of TReferenceKey using
 /// ConcurrentDictionary for both outer and per-key inner maps (set semantics via inner keys).
 /// Optimized for high concurrency without global locks.
+/// 
+/// Per-key synchronization avoids races between Set / Remove(key) / Remove(key, ref),
+/// and a global RW gate ensures Clear does not interleave with mutating operations.
+/// Lock ordering: always take the global gate first, then the per-key lock.
 /// </summary>
 public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey, TReferenceKey>>
     where TKey : notnull
     where TReferenceKey : notnull
 {
     private readonly ConcurrentDictionary<TKey, ConcurrentDictionary<TReferenceKey, byte>> _index;
+    private readonly ConcurrentDictionary<TKey, object> _locks;
+
+    // Global gate: Clear() takes write; Set/Remove take read. Reads (Get/TryGetValue/Enumerator) stay lock-free.
+    private readonly ReaderWriterLockSlim _gate = new(LockRecursionPolicy.NoRecursion);
 
     public InvertedIndex(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TReferenceKey>? referenceComparer = null)
     {
@@ -22,6 +31,7 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
         ReferenceComparer = referenceComparer.EqualityComparerFor();
 
         _index = new ConcurrentDictionary<TKey, ConcurrentDictionary<TReferenceKey, byte>>(KeyComparer);
+        _locks = new ConcurrentDictionary<TKey, object>(KeyComparer);
     }
 
     public int Count => _index.Count;
@@ -29,7 +39,22 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
     public IEqualityComparer<TKey>? KeyComparer { get; }
     public IEqualityComparer<TReferenceKey>? ReferenceComparer { get; }
 
-    public void Clear() => _index.Clear();
+    public void Clear()
+    {
+        // Exclusively block all Set/Remove while clearing.
+        _gate.EnterWriteLock();
+        try
+        {
+            // No need to loop per-key: with the write lock held there are no concurrent mutators,
+            // and no per-key locks can be held (since mutators must first acquire the read lock).
+            _index.Clear();
+            _locks.Clear();
+        }
+        finally
+        {
+            _gate.ExitWriteLock();
+        }
+    }
 
     public IReadOnlyList<TReferenceKey> Get(TKey key) => _index.TryGetValue(key, out var inner)
         ? inner.Keys.ToImmutableArray()
@@ -49,39 +74,80 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
 
     public InvertedIndex<TKey, TReferenceKey> Set(TKey key, TReferenceKey referenceKey)
     {
-        var inner = _index.GetOrAdd(key, k => new ConcurrentDictionary<TReferenceKey, byte>());
-        inner.TryAdd(referenceKey, 0);
-        return this;
+        // Gate read side: allows concurrency among mutators but blocks when Clear holds write.
+        _gate.EnterReadLock();
+        try
+        {
+            var sync = _locks.GetOrAdd(key, static _ => new object());
+            lock (sync)
+            {
+                var inner = _index.GetOrAdd(key, _ => new ConcurrentDictionary<TReferenceKey, byte>(ReferenceComparer));
+                inner.TryAdd(referenceKey, 0);
+            }
+            return this;
+        }
+        finally
+        {
+            _gate.ExitReadLock();
+        }
     }
 
     public IReadOnlyList<TReferenceKey> Remove(TKey key)
     {
-        if (_index.TryRemove(key, out var inner))
+        _gate.EnterReadLock();
+        try
         {
-            return inner.Keys.ToImmutableArray();
-        }
+            var sync = _locks.GetOrAdd(key, static _ => new object());
+            lock (sync)
+            {
+                if (!_index.TryRemove(key, out var inner))
+                {
+                    // If already removed, also clear any stale lock object if present.
+                    _locks.TryRemove(key, out _);
+                    return Array.Empty<TReferenceKey>();
+                }
 
-        return Array.Empty<TReferenceKey>();
+                var removed = inner.Keys.ToImmutableArray();
+                _locks.TryRemove(key, out _);
+                return removed;
+            }
+        }
+        finally
+        {
+            _gate.ExitReadLock();
+        }
     }
 
     public bool Remove(TKey key, TReferenceKey referenceKey)
     {
-        if (!_index.TryGetValue(key, out var inner)) return false;
-
-        var removed = inner.TryRemove(referenceKey, out _);
-
-        // Cleanup empty inner map; remove only if the same instance (avoid races).
-        if (removed && inner.IsEmpty)
+        _gate.EnterReadLock();
+        try
         {
-            _index.TryRemove(new KeyValuePair<TKey, ConcurrentDictionary<TReferenceKey, byte>>(key, inner));
-        }
+            var sync = _locks.GetOrAdd(key, static _ => new object());
+            lock (sync)
+            {
+                if (!_index.TryGetValue(key, out var inner)) return false;
 
-        return removed;
+                var removed = inner.TryRemove(referenceKey, out _);
+
+                if (removed && inner.IsEmpty)
+                {
+                    _index.TryRemove(key, out _);
+                    _locks.TryRemove(key, out _);
+                }
+
+                return removed;
+            }
+        }
+        finally
+        {
+            _gate.ExitReadLock();
+        }
     }
 
     public IEnumerator<KeyValuePair<TKey, TReferenceKey>> GetEnumerator()
     {
-        // Enumerations over ConcurrentDictionary are thread-safe and represent a moment-in-time snapshot.
+        // Snapshot-style enumeration over concurrent structures.
         foreach (var kv in _index)
         {
             var key = kv.Key;

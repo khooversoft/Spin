@@ -136,4 +136,91 @@ public class PolicyTests
         (a1 == b).BeFalse();
         (a1 == c).BeFalse();
     }
+
+    [Fact]
+    public void GrantPolicy_JsonConstructor_WithRoleNumeric()
+    {
+        // Arrange & Act
+        var policy = new GrantPolicy("name1", 17, "user1"); // 17 = Reader | PrincipalIdentity
+        
+        // Assert
+        policy.NameIdentifier.Be("name1");
+        policy.Role.Be(RolePolicy.Reader | RolePolicy.PrincipalIdentity);
+        policy.RoleNumeric.Be(17);
+        policy.PrincipalIdentifier.Be("user1");
+    }
+
+    [Fact]
+    public void GrantPolicy_JsonConstructor_InvalidRole_Throws()
+    {
+        // Role.None = 0 is invalid
+        Assert.Throws<ArgumentException>(() => new GrantPolicy("name", 0, "user"));
+    }
+
+    [Fact]
+    public void GrantPolicy_Validator_ValidatesCorrectly()
+    {
+        var validPolicy = new GrantPolicy("name", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user");
+        validPolicy.Validate().BeOk();
+    }
+
+    [Fact]
+    public void GrantPolicy_Properties_ReturnsCorrectValues()
+    {
+        var policy = new GrantPolicy("testNode", RolePolicy.Contributor | RolePolicy.SecurityGroup, "group1");
+        
+        policy.NameIdentifier.Be("testNode");
+        policy.Role.Be(RolePolicy.Contributor | RolePolicy.SecurityGroup);
+        policy.PrincipalIdentifier.Be("group1");
+    }
+
+    [Fact]
+    public void GrantPolicy_Parse_AllRoleCombinations()
+    {
+        // Test all valid role combinations
+        var testCases = new[]
+        {
+            ("name:r:pi:user", RolePolicy.Reader | RolePolicy.PrincipalIdentity),
+            ("name:c:pi:user", RolePolicy.Contributor | RolePolicy.PrincipalIdentity),
+            ("name:o:pi:user", RolePolicy.Owner | RolePolicy.PrincipalIdentity),
+            ("name:r:sg:group", RolePolicy.Reader | RolePolicy.SecurityGroup),
+            ("name:c:sg:group", RolePolicy.Contributor | RolePolicy.SecurityGroup),
+            ("name:o:sg:group", RolePolicy.Owner | RolePolicy.SecurityGroup),
+        };
+
+        foreach (var (encoded, expectedRole) in testCases)
+        {
+            var parsed = GrantPolicy.Parse(encoded);
+            parsed.Role.Be(expectedRole);
+        }
+    }
+
+    [Fact]
+    public void GrantPolicy_Parse_SpecialCharactersInIdentifiers()
+    {
+        // Test with special characters that might be problematic
+        var policy = new GrantPolicy("node-123_test", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user@domain.com");
+        var encoded = policy.Encode();
+        var parsed = GrantPolicy.Parse(encoded);
+        
+        (parsed == policy).BeTrue();
+    }
+
+    [Fact]
+    public void GrantPolicy_Parse_TooManyColons()
+    {
+        Assert.Throws<ArgumentException>(() => GrantPolicy.Parse("name:o:pi:user:extra"));
+    }
+
+    [Fact]
+    public void GrantPolicy_Parse_EmptyString()
+    {
+        Assert.Throws<ArgumentException>(() => GrantPolicy.Parse(""));
+    }
+
+    [Fact]
+    public void GrantPolicy_Parse_NullString()
+    {
+        Assert.Throws<ArgumentException>(() => GrantPolicy.Parse(null!));
+    }
 }

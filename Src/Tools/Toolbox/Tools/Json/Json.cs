@@ -1,51 +1,84 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Toolbox.Tools;
 
 /// <summary>
-/// Provides json services using .net core JSON
+/// Provides JSON services using System.Text.Json
 /// </summary>
 public class Json
 {
     public static Json Default { get; } = new Json();
 
-    public static JsonSerializerOptions JsonSerializerFormatOption { get; } = new JsonSerializerOptions
+    // Use consistent document options for JsonNode.Parse to match serializer tolerance
+    private static readonly JsonDocumentOptions s_docOptions = new JsonDocumentOptions
     {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        Converters =
-        {
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, true),
-            new ImmutableByteArrayConverter(),
-        },
+        CommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
     };
 
-    public static JsonSerializerOptions JsonSerializerOptions { get; } = new JsonSerializerOptions
-    {
-        PropertyNameCaseInsensitive = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        Converters =
-        {
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, true),
-            new ImmutableByteArrayConverter(),
-        },
-    };
+    // Default resolver required before calling MakeReadOnly() on JsonSerializerOptions in .NET 8+
+    private static readonly IJsonTypeInfoResolver s_resolver = new DefaultJsonTypeInfoResolver();
 
-    public static JsonSerializerOptions PascalOptions { get; } = new JsonSerializerOptions
+    public static JsonSerializerOptions JsonSerializerFormatOption { get; } = CreateIndentedOptions();
+    public static JsonSerializerOptions JsonSerializerOptions { get; } = CreateDefaultOptions();
+    public static JsonSerializerOptions PascalOptions { get; } = CreatePascalOptions();
+
+    private static JsonSerializerOptions CreateDefaultOptions()
     {
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        Converters =
+        var o = new JsonSerializerOptions
         {
-            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, true),
-            new ImmutableByteArrayConverter(),
-        },
-    };
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true),
+                new ImmutableByteArrayConverter(),
+            },
+            TypeInfoResolver = s_resolver,
+        };
+        o.MakeReadOnly();
+        return o;
+    }
+
+    private static JsonSerializerOptions CreateIndentedOptions()
+    {
+        var o = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true),
+                new ImmutableByteArrayConverter(),
+            },
+            TypeInfoResolver = s_resolver,
+        };
+        o.MakeReadOnly();
+        return o;
+    }
+
+    private static JsonSerializerOptions CreatePascalOptions()
+    {
+        var o = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true),
+                new ImmutableByteArrayConverter(),
+            },
+            TypeInfoResolver = s_resolver,
+        };
+        o.MakeReadOnly();
+        return o;
+    }
 
     public T? Deserialize<T>(string subject) => JsonSerializer.Deserialize<T>(subject, JsonSerializerOptions);
     public string Serialize<T>(T subject) => JsonSerializer.Serialize(subject, JsonSerializerOptions);
@@ -59,11 +92,12 @@ public class Json
         nodeName.NotEmpty();
         nodeJson.NotEmpty();
 
-        JsonObject sourceJsonObject = JsonNode.Parse(sourceJson).NotNull().AsObject();
+        JsonObject sourceJsonObject = JsonNode.Parse(sourceJson, default, s_docOptions).NotNull().AsObject();
 
-        if (sourceJsonObject.TryGetPropertyValue(nodeName, out var _)) sourceJsonObject.Remove(nodeName);
+        // Remove if exists (Remove returns false if not present, no need to check)
+        sourceJsonObject.Remove(nodeName);
 
-        JsonObject jsonObject = JsonObject.Parse(nodeJson).NotNull().AsObject();
+        JsonObject jsonObject = JsonNode.Parse(nodeJson, default, s_docOptions).NotNull().AsObject();
         sourceJsonObject.Add(nodeName, jsonObject);
 
         return sourceJsonObject.ToJsonString(JsonSerializerOptions);
@@ -74,9 +108,11 @@ public class Json
         sourceJson.NotEmpty();
         nodeName.NotEmpty();
 
-        JsonObject sourceJsonObject = JsonNode.Parse(sourceJson).NotNull().AsObject();
+        JsonObject sourceJsonObject = JsonNode.Parse(sourceJson, default, s_docOptions).NotNull().AsObject();
 
-        if (!sourceJsonObject.TryGetPropertyValue(nodeName, out var node)) throw new ArgumentException($"Cannot find nodeName={nodeName}");
+        if (!sourceJsonObject.TryGetPropertyValue(nodeName, out var node))
+            throw new ArgumentException($"Cannot find nodeName={nodeName}");
+
         sourceJsonObject.Remove(nodeName);
 
         string nodeJson = node.NotNull().ToJsonString(JsonSerializerOptions).NotEmpty();

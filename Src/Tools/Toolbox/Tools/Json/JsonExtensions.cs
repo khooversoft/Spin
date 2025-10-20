@@ -40,7 +40,7 @@ public static class JsonExtensions
         }
         catch (Exception ex)
         {
-            context.Location().LogError(ex, "Json serialzation error");
+            context.Location().LogError(ex, "Json serialization error");
             return string.Empty;
         }
     }

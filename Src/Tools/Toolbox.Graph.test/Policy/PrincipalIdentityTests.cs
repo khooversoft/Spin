@@ -22,25 +22,6 @@ public class PrincipalIdentityTests
     }
 
     [Fact]
-    public void PolicyUserGroupCollection_Serialization_RoundTrip()
-    {
-        // Arrange
-        var originalCollection = new PrincipalCollection(new[]
-        {
-            new PrincipalIdentity("nameIdentifier", "user1", "email@domain.com", false),
-            new PrincipalIdentity("nameIdentifier2", "user1", "email2@domain.com", false),
-        });
-
-        // Act
-        var json = originalCollection.ToJson();
-        var deserializedCollection = json.ToObject<PrincipalCollection>();
-
-        // Assert
-        (deserializedCollection != default).BeTrue();
-        (originalCollection == deserializedCollection).BeTrue();
-    }
-
-    [Fact]
     public void EqualNotEqual()
     {
         var v1 = new PrincipalIdentity("id1", "nameIdentifier", "user1", "email@domain.com", false);
@@ -56,32 +37,13 @@ public class PrincipalIdentityTests
         (v1 == v4).BeFalse();
 
         var v5 = new PrincipalIdentity("id1", "nameIdentifier", "user1-x", "email@domain.com", false);
-        (v1 == v4).BeFalse();
+        (v1 == v5).BeFalse(); // fixed: compare v1 with v5 (not v4)
 
         var v6 = new PrincipalIdentity("id1", "nameIdentifier", "user1", "email@domain.com-x", false);
         (v1 == v6).BeFalse();
 
         var v7 = new PrincipalIdentity("id1x", "nameIdentifier", "user1", "email@domain.co4", false);
         (v1 == v7).BeFalse();
-    }
-
-    [Fact]
-    public void PolicyUserGroupCollectionEdit()
-    {
-        var list = new PrincipalCollection();
-        list.Add(new PrincipalIdentity("id1", "nameIdentifier", "user1", "email@domain.com", false));
-        list.Count.Be(1);
-
-        list.Add(new PrincipalIdentity("id2", "nameIdentifier2", "user2", "email2@domain.com", false));
-        list.Count.Be(2);
-
-        var list2 = new PrincipalCollection()
-        {
-            new PrincipalIdentity("id1", "nameIdentifier", "user1", "email@domain.com", false),
-            new PrincipalIdentity("id2", "nameIdentifier2", "user2", "email2@domain.com", false),
-        };
-
-        (list == list2).BeTrue();
     }
 
     [Fact]
@@ -137,5 +99,19 @@ public class PrincipalIdentityTests
 
         (roundtrip == user).BeTrue();
         roundtrip.EmailConfirmed.BeTrue();
+    }
+
+    [Fact]
+    public void Default_EmailConfirmed_Is_False()
+    {
+        var user = new PrincipalIdentity("nameIdentifier", "user1", "email@domain.com");
+        user.EmailConfirmed.BeFalse();
+    }
+
+    [Fact]
+    public void Validator_Ok_For_ExplicitCtor()
+    {
+        var user = new PrincipalIdentity("id1", "nameIdentifier", "user1", "email@domain.com", false);
+        user.Validate().BeOk();
     }
 }

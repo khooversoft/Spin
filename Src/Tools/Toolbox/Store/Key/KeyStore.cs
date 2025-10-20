@@ -146,7 +146,7 @@ public class KeyStore<T> : IKeyStore<T>
         context.With(_logger);
 
         string path = _fileSystem.PathBuilder(key);
-        context.LogDebug("Acquiring lock path={path}", path);
+        context.LogDebug("Releasing lock path={path}", path);
 
         var resultOption = await _lockManager.ReleaseLock(path, context);
         if (resultOption.IsError()) resultOption.LogStatus(context, "Failed to acquire lock for path={path}", [path]);

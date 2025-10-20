@@ -58,4 +58,31 @@ public class VerifyStringTests
             v2.NotBe("hello");
         });
     }
+
+    [Fact]
+    public void NotBe_Succeeds_WhenDifferent()
+    {
+        string v1 = "hello";
+        v1.NotBe("world");
+    }
+
+    [Fact]
+    public void BeNull_Fails_WhenNotNull()
+    {
+        Verify.Throw<ArgumentException>(() =>
+        {
+            string? v = "value";
+            v.BeNull();
+        });
+    }
+
+    [Fact]
+    public void NotEmpty_Fails_For_EmptyString()
+    {
+        Verify.Throw<ArgumentException>(() =>
+        {
+            string v = "";
+            v.NotEmpty();
+        });
+    }
 }

@@ -16,32 +16,53 @@ public class PrincipalCollection : IEquatable<PrincipalCollection>, ICollection<
 
     public PrincipalCollection(IEnumerable<PrincipalIdentity> principals)
     {
-        _principals = principals.NotNull()
-            .ForEach(x => x.Validate().ThrowOnError())
-            .ToConcurrentDictionary(x => x.PrincipalId);
+        var items = principals.NotNull().ToArray();
+        foreach (var p in items) p.Validate().ThrowOnError();
 
-        _nameIdentityIndex = principals.NotNull()
-            .ForEach(x => x.Validate().ThrowOnError())
-            .ToConcurrentDictionary(x => x.NameIdentifier);
+        // Build both indices from the same validated snapshot to avoid re-enumeration races.
+        _principals = items.ToConcurrentDictionary(x => x.PrincipalId);
+        _nameIdentityIndex = items.ToConcurrentDictionary(x => x.NameIdentifier);
     }
 
     public int Count => _principals.Count;
-    public void Clear() => _principals.Clear();
-    public bool IsReadOnly => false;
-    public bool Contains(string principalId) => _principals.ContainsKey(principalId);
-    public bool Contains(PrincipalIdentity item) => _principals.TryGetValue(item.PrincipalId, out var existing) && existing == item;
-    public bool TryGetValue(string principalId, out PrincipalIdentity principalIdentity) => _principals.TryGetValue(principalId, out principalIdentity!);
-    public bool TryGetByNameIdentifier(string nameIdentifier, out PrincipalIdentity principalIdentity) => _nameIdentityIndex.TryGetValue(nameIdentifier, out principalIdentity!);
 
+    public void Clear()
+    {
+        _lock.EnterWriteLock();
+        try
+        {
+            _principals.Clear();
+            _nameIdentityIndex.Clear();
+        }
+        finally { _lock.ExitWriteLock(); }
+    }
+
+    public bool IsReadOnly => false;
+
+    public bool Contains(string principalId) => _principals.ContainsKey(principalId);
+
+    public bool Contains(PrincipalIdentity item) =>
+        _principals.TryGetValue(item.NotNull().PrincipalId, out var existing) && existing == item;
+
+    public bool TryGetValue(string principalId, out PrincipalIdentity principalIdentity) =>
+        _principals.TryGetValue(principalId.NotEmpty(), out principalIdentity!);
+
+    public bool TryGetByNameIdentifier(string nameIdentifier, out PrincipalIdentity principalIdentity) =>
+        _nameIdentityIndex.TryGetValue(nameIdentifier.NotEmpty(), out principalIdentity!);
 
     public void Add(PrincipalIdentity principal)
     {
         principal.Validate().ThrowOnError();
 
         _lock.EnterWriteLock();
-
         try
         {
+            // If replacing an existing principal with a different NameIdentifier, remove the old name index entry.
+            if (_principals.TryGetValue(principal.PrincipalId, out var existing) && existing.NameIdentifier != principal.NameIdentifier)
+            {
+                _nameIdentityIndex.TryRemove(existing.NameIdentifier, out _);
+            }
+
             _principals[principal.PrincipalId] = principal;
             _nameIdentityIndex[principal.NameIdentifier] = principal;
         }
@@ -49,19 +70,19 @@ public class PrincipalCollection : IEquatable<PrincipalCollection>, ICollection<
     }
 
     public bool Remove(PrincipalIdentity item) => Remove(item.NotNull().PrincipalId);
+
     public bool Remove(string principalId)
     {
         principalId.NotEmpty();
 
         _lock.EnterWriteLock();
-
         try
         {
-            var result = _principals.TryRemove(principalId, out var principalIdentity);
-            if (!result || principalIdentity is null) return false;
+            var removed = _principals.TryRemove(principalId, out var principalIdentity);
+            if (!removed || principalIdentity is null) return false;
 
-            result = _nameIdentityIndex.TryRemove(principalIdentity.NameIdentifier, out _);
-            return result;
+            _nameIdentityIndex.TryRemove(principalIdentity.NameIdentifier, out _);
+            return true;
         }
         finally { _lock.ExitWriteLock(); }
     }
@@ -74,31 +95,53 @@ public class PrincipalCollection : IEquatable<PrincipalCollection>, ICollection<
         array.NotNull();
         if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex));
 
-        foreach (var item in _principals.Values)
-        {
-            if (arrayIndex >= array.Length) throw new ArgumentException("Destination array is not long enough.");
-            array[arrayIndex++] = item;
-        }
+        // Snapshot to avoid partial copies and race with writers.
+        var snapshot = _principals.Values.ToArray();
+
+        if (array.Length - arrayIndex < snapshot.Length)
+            throw new ArgumentException("Destination array is not long enough.");
+
+        Array.Copy(snapshot, 0, array, arrayIndex, snapshot.Length);
     }
 
     public override bool Equals(object? obj) => obj is PrincipalCollection other && Equals(other);
 
     public bool Equals(PrincipalCollection? other)
     {
-        var result = other is not null &&
-            _principals.Count == other._principals.Count &&
-            _principals.All(pair =>
-            {
-                var t1 = other._principals.TryGetValue(pair.Key, out var otherValue);
-                var t2 = pair.Value == otherValue;
-                return t1 && t2;
-            });
+        if (ReferenceEquals(this, other)) return true;
+        if (other is null) return false;
 
-        return result;
+        // Snapshot our entries once; compare against other's live view.
+        var ours = _principals.ToArray();
+        if (other.Count != ours.Length) return false;
+
+        foreach (var pair in ours)
+        {
+            if (!other._principals.TryGetValue(pair.Key, out var otherValue)) return false;
+            if (pair.Value != otherValue) return false;
+        }
+
+        return true;
     }
 
-    public override int GetHashCode() => HashCode.Combine(_principals);
+    public override int GetHashCode()
+    {
+        // Order-independent, content-based hash. Snapshot to avoid races.
+        var snapshot = _principals.ToArray();
 
-    public static bool operator ==(PrincipalCollection? left, PrincipalCollection? right) => left?.Equals(right) ?? false;
-    public static bool operator !=(PrincipalCollection? left, PrincipalCollection? right) => !left?.Equals(right) ?? false;
+        var acc = 0;
+        foreach (var kv in snapshot)
+        {
+            // Combine key and value hash; XOR makes it order-independent.
+            acc ^= HashCode.Combine(kv.Key, kv.Value);
+        }
+
+        // Include count to distinguish empty/non-empty with same XOR.
+        return HashCode.Combine(acc, snapshot.Length);
+    }
+
+    public static bool operator ==(PrincipalCollection? left, PrincipalCollection? right) =>
+        ReferenceEquals(left, right) || (left is not null && left.Equals(right));
+
+    public static bool operator !=(PrincipalCollection? left, PrincipalCollection? right) => !(left == right);
 }

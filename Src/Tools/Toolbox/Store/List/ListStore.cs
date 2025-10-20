@@ -27,7 +27,8 @@ public class ListStore<T> : IListStore<T>
         string path = _fileSystem.PathBuilder(key);
         context.LogDebug("Appending key={key}, listType={listType}, path={path}, dataCount={dataCount}", key, typeof(T).Name, path, dataItems.Length);
 
-        string json = dataItems.Aggregate(string.Empty, (a, x) => a += x + Environment.NewLine);
+        // FIX: Use string.Join instead of O(n^2) aggregation
+        string json = string.Join(Environment.NewLine, dataItems) + Environment.NewLine;
         DataETag dataEtag = json.ToDataETag();
 
         var detailsOption = await _fileStore.File(path).Append(dataEtag, context);
@@ -41,7 +42,9 @@ public class ListStore<T> : IListStore<T>
         key.NotEmpty();
         context.LogDebug("Delete: Deleting list key={key}", key);
 
-        var clearOption = await _fileStore.ClearFolder(key, context);
+        // FIX: Include filesystem base path prefix for correct folder clear
+        string folder = $"{_fileSystem.CreatePathPrefix()}{key}";
+        var clearOption = await _fileStore.ClearFolder(folder, context);
         return clearOption;
     }
 
@@ -53,7 +56,8 @@ public class ListStore<T> : IListStore<T>
         pattern.NotEmpty();
         context.LogDebug("Get: Getting list items, pattern={pattern}", pattern);
 
-        string searchPattern = _fileSystem.BuildSearch(key);
+        // FIX: honor pattern in search
+        string searchPattern = _fileSystem.BuildSearch(key, pattern);
         IReadOnlyList<IStorePathDetail> searchList = (await _fileStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
         return await ReadList(pattern, context, searchList);
     }
@@ -62,8 +66,8 @@ public class ListStore<T> : IListStore<T>
     {
         context.LogDebug("Getting history, key={key}, timeIndex={timeIndex}", key, timeIndex);
 
-        string pattern = _fileSystem.BuildSearch(key);
-        IReadOnlyList<IStorePathDetail> searchList = (await _fileStore.Search(pattern, context)).OrderBy(x => x.Path).ToArray();
+        string searchPattern = _fileSystem.BuildSearch(key);
+        IReadOnlyList<IStorePathDetail> searchList = (await _fileStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
 
         var indexedList = searchList
             .Select((x, i) => (index: i, dir: x, active: _fileSystem.ExtractTimeIndex(x.Path) >= timeIndex))
@@ -76,7 +80,7 @@ public class ListStore<T> : IListStore<T>
             .Select(x => x.dir)
             .ToArray();
 
-        return await ReadList(pattern, context, list);
+        return await ReadList(searchPattern, context, list);
     }
 
     public async Task<IReadOnlyList<IStorePathDetail>> Search(string key, string pattern, ScopeContext context)

@@ -18,7 +18,22 @@ public class GrantCollection : ICollection<GrantPolicy>, IEquatable<GrantCollect
     [JsonConstructor]
     public GrantCollection(IReadOnlyList<GrantPolicy> policies)
     {
-        _grantPolicies = policies.GroupBy(x => x).Select(x => x.First()).ToImmutableArray();
+        if (policies.Count == 0)
+        {
+            _grantPolicies = ImmutableArray<GrantPolicy>.Empty;
+            return;
+        }
+
+        var seen = new HashSet<GrantPolicy>(policies.Count);
+        var builder = ImmutableArray.CreateBuilder<GrantPolicy>(policies.Count);
+
+        for (int i = 0; i < policies.Count; i++)
+        {
+            var p = policies[i];
+            if (seen.Add(p)) builder.Add(p);
+        }
+
+        _grantPolicies = builder.MoveToImmutable();
     }
 
     public int Count => _grantPolicies.Length;

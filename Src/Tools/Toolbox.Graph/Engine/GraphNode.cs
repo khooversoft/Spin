@@ -64,6 +64,7 @@ public sealed record GraphNode : IGraphCommon
     public IReadOnlyDictionary<string, GraphLink> DataMap { get; } = FrozenDictionary<string, GraphLink>.Empty;
     public IReadOnlyCollection<string> Indexes { get; } = FrozenSet<string>.Empty;
     public IReadOnlyDictionary<string, string?> ForeignKeys { get; } = FrozenDictionary<string, string?>.Empty;
+    public GrantCollection Grants { get; init; } = new();
     [JsonIgnore] public string TagsString => Tags.ToTagsString();
     [JsonIgnore] public string DataMapString => DataMap.ToDataMapString();
     [JsonIgnore] public string IndexesString => Indexes.Join(',');
@@ -88,7 +89,8 @@ public sealed record GraphNode : IGraphCommon
     {
         var hash = new HashCode();
 
-        hash.Add(Key, StringComparer.Ordinal);
+        // Must match Equals' case-insensitive key comparison
+        hash.Add(Key, StringComparer.OrdinalIgnoreCase);
         hash.Add(CreatedDate);
 
         // Tags: order-independent, case-insensitive keys

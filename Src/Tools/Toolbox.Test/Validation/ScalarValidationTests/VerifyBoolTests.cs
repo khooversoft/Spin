@@ -83,4 +83,30 @@ public class VerifyBoolTests
             v2.BeFalse();
         });
     }
+
+    [Fact]
+    public void NotBe_Bool()
+    {
+        bool v1 = true;
+        v1.BeTrue();
+
+        Verify.Throw<ArgumentException>(() =>
+        {
+            bool v2 = true;
+            v2.BeFalse();
+        });
+    }
+
+    [Fact]
+    public void NotBe_NullableBool()
+    {
+        bool? v1 = true;
+        v1.BeTrue();
+
+        Verify.Throw<ArgumentException>(() =>
+        {
+            bool? v2 = true;
+            v2.BeFalse();
+        });
+    }
 }

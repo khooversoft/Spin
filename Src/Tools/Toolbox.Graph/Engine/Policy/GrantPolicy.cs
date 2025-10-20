@@ -70,10 +70,11 @@ public static class GrantPolicyTool
         Span<int> colonPositions = stackalloc int[3];
         int colonCount = 0;
 
-        for (int i = 0; i < span.Length && colonCount < 3; i++)
+        for (int i = 0; i < span.Length && colonCount < 4; i++)
         {
             if (span[i] == ':')
             {
+                if (colonCount >= 3) throw new ArgumentException(schemaErrorMsg);
                 colonPositions[colonCount++] = i;
             }
         }

@@ -41,9 +41,11 @@ public class GrantControl : IEquatable<GrantControl>
     public override int GetHashCode() => HashCode.Combine(Principals, Groups);
 
     public bool Equals(GrantControl? other) => other is not null &&
-        Principals == other.Principals &&
-        Groups == other.Groups;
+        Principals.Equals(other.Principals) &&
+        Groups.Equals(other.Groups);
 
-    public static bool operator ==(GrantControl? left, GrantControl? right) => left?.Equals(right) ?? false;
-    public static bool operator !=(GrantControl? left, GrantControl? right) => !left?.Equals(right) ?? false;
+    public static bool operator ==(GrantControl? left, GrantControl? right) => 
+        left is null ? right is null : left.Equals(right);
+    
+    public static bool operator !=(GrantControl? left, GrantControl? right) => !(left == right);
 }

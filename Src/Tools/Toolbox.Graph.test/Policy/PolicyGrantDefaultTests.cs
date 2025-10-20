@@ -201,4 +201,133 @@ public class PolicyGrantDefaultTests
         new AccessRequest(AccessType.Delete, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
         new AccessRequest(AccessType.AssignRole, "user3", "customer1").Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
     }
+
+    // Missing: User not in Principals collection
+    [Fact]
+    public void UnknownPrincipal_DeniedAccess()
+    {
+        var grantPolicies = new GrantCollection()
+        {
+            new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
+        };
+        
+        var principals = new[]
+        {
+            new PrincipalIdentity("user1", "id1", "user1", "user1@domain.com", false),
+        };
+        
+        var grantControl = new GrantControl([], principals);
+        
+        // User exists in policy butnot in principals - should be denied
+        new AccessRequest(AccessType.Get, "unknown-user", "customer1")
+            .Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+    }
+
+    // Missing: User has both direct and group-based access
+    [Fact]
+    public void MixedAccess_DirectAndGroup()
+    {
+        var grantPolicies = new GrantCollection()
+        {
+            new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
+            new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.SecurityGroup, "group1"),
+        };
+        
+        var groupPolicies = new[]
+        {
+            new GroupPolicy("group1", ["user1"]),
+        };
+        
+        var principals = new[]
+        {
+            new PrincipalIdentity("user1", "id1", "user1", "user1@domain.com", false),
+        };
+        
+        var grantControl = new GrantControl(groupPolicies, principals);
+        
+        // Should have highest privilege (Owner via group)
+        new AccessRequest(AccessType.AssignRole, "user1", "customer1")
+            .Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+    }
+
+    // Missing: User access to different resources
+    [Fact]
+    public void MultipleResources_DifferentAccess()
+    {
+        var grantPolicies = new GrantCollection()
+        {
+            new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "user1"),
+            new GrantPolicy("customer2", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
+        };
+        
+        var principals = new[]
+        {
+            new PrincipalIdentity("user1", "id1", "user1", "user1@domain.com", false),
+        };
+        
+        var grantControl = new GrantControl([], principals);
+        
+        // Owner on customer1
+        new AccessRequest(AccessType.Delete, "user1", "customer1")
+            .Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+        
+        // Only Reader on customer2
+        new AccessRequest(AccessType.Delete, "user1", "customer2")
+            .Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+    }
+
+    // Missing: Tests for GrantControl.Equals, GetHashCode, operators
+    [Fact]
+    public void GrantControl_Equality()
+    {
+        var principals = new[] { new PrincipalIdentity("user1", "id1", "user1", "user1@domain.com", false) };
+        var groups = new[] { new GroupPolicy("group1", ["user1"]) };
+        
+        var gc1 = new GrantControl(groups, principals);
+        var gc2 = new GrantControl(groups, principals);
+        
+        (gc1 == gc2).BeTrue();
+        gc1.Equals(gc2).BeTrue();
+        gc1.GetHashCode().Be(gc2.GetHashCode());
+    }
+
+    // Missing: Empty principals, empty groups, both empty
+    [Fact]
+    public void EmptyPrincipals_DeniedAccess()
+    {
+        var grantPolicies = new GrantCollection()
+        {
+            new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
+        };
+        
+        var grantControl = new GrantControl([], []);
+        
+        new AccessRequest(AccessType.Get, "user1", "customer1")
+            .Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
+    }
+
+    // Missing: User belongs to multiple groups with different access levels
+    [Fact]
+    public void UserInMultipleGroups_HighestAccess()
+    {
+        var grantPolicies = new GrantCollection()
+        {
+            new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.SecurityGroup, "group1"),
+            new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.SecurityGroup, "group2"),
+        };
+        
+        var groupPolicies = new[]
+        {
+            new GroupPolicy("group1", ["user1"]),
+            new GroupPolicy("group2", ["user1"]),
+        };
+        
+        var principals = new[] { new PrincipalIdentity("user1", "id1", "user1", "user1@domain.com", false) };
+        
+        var grantControl = new GrantControl(groupPolicies, principals);
+        
+        // Should get highest access level (Owner)
+        new AccessRequest(AccessType.AssignRole, "user1", "customer1")
+            .Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
+    }
 }

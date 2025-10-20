@@ -229,4 +229,84 @@ public class StructureLineBuilderTests
                 .Build();
         });
     }
+
+    [Fact]
+    public void EmptyMessageAndNullAreIgnored_NoLeadingComma()
+    {
+        var result = StructureLineBuilder.Start()
+            .Add("")          // no-op
+            .Add(null)        // no-op
+            .Add("value={value}", 1)
+            .Build();
+
+        result.Message.Be("value={value}");
+        result.Args.Action(x =>
+        {
+            x.Length.Be(1);
+            x[0].NotNull().Cast<int>().Be(1);
+        });
+
+        result.GetVariables().SequenceEqual(["value"]).BeTrue();
+        result.BuildStringFormat().Be("value={0}");
+        result.Format().Be("value=1");
+    }
+
+    [Fact]
+    public void NullValueForPlaceholderShouldFailOnBuild()
+    {
+        Verify.Throw<ArgumentException>(() =>
+        {
+            var _ = StructureLineBuilder.Start()
+                .Add("value={value}", (object?)null)  // placeholder exists, arg is null => unbalanced
+                .Build();
+        });
+    }
+
+    [Fact]
+    public void VariableOrderIsPreservedAcrossSegments()
+    {
+        var result = StructureLineBuilder.Start()
+            .Add("a={a}", 1)
+            .Add("b={b}, c={c}", 2, 3)
+            .Build();
+
+        result.Message.Be("a={a}, b={b}, c={c}");
+        var vars = result.GetVariables();
+
+        vars.SequenceEqual(["a", "b", "c"]).BeTrue();
+        vars.Count.Be(3);
+
+        result.Args.Action(x =>
+        {
+            x.Length.Be(3);
+            x[0].NotNull().Cast<int>().Be(1);
+            x[1].NotNull().Cast<int>().Be(2);
+            x[2].NotNull().Cast<int>().Be(3);
+        });
+
+        result.BuildStringFormat().Be("a={0}, b={1}, c={2}");
+        result.Format().Be("a=1, b=2, c=3");
+    }
+
+    [Fact]
+    public void AppendMessageOnlyThenMore_UsesMessageOnlyOverload()
+    {
+        string fmt = "this is a test";
+
+        var result = StructureLineBuilder.Start()
+            .Add(fmt) // message-only overload (no array allocation)
+            .Add("traceId={traceId}", "this.trace.id")
+            .Build();
+
+        result.Message.Be(fmt + ", traceId={traceId}");
+        result.Args.Action(x =>
+        {
+            x.Length.Be(1);
+            x[0].NotNull().Cast<string>().Be("this.trace.id");
+        });
+
+        result.GetVariables().SequenceEqual(["traceId"]).BeTrue();
+        result.BuildStringFormat().Be("this is a test, traceId={0}");
+        result.Format().Be("this is a test, traceId=this.trace.id");
+    }
 }

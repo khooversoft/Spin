@@ -25,13 +25,13 @@ public class ValidDateTimeOption<T> : ValidatorBase<T, DateTime?>
 
 public static class ValidDateTimeTool
 {
-    public static Rule<T, DateTime> ValidDateTime<T>(this Rule<T, DateTime> rule, string errorMessage = "Valid DateTime is required, range 1900-01-01 to 2100-01-01")
+    public static Rule<T, DateTime> ValidDateTime<T>(this Rule<T, DateTime> rule, string errorMessage = "Valid DateTime is required, range 1900-01-01 to 2199-12-31")
     {
         rule.PropertyRule.Validators.Add(new ValidDateTime<T>(rule.PropertyRule, errorMessage));
         return rule;
     }
 
-    public static Rule<T, DateTime?> ValidDateTimeOption<T>(this Rule<T, DateTime?> rule, string errorMessage = "Valid DateTime is required, range 1900-01-01 to 2100-01-01")
+    public static Rule<T, DateTime?> ValidDateTimeOption<T>(this Rule<T, DateTime?> rule, string errorMessage = "Valid DateTime is required, range 1900-01-01 to 2199-12-31")
     {
         rule.PropertyRule.Validators.Add(new ValidDateTimeOption<T>(rule.PropertyRule, errorMessage));
         return rule;
