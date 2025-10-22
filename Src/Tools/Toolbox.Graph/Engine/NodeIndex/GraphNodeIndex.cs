@@ -59,7 +59,8 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
                 node.CreatedDate,
                 node.DataMap,
                 node.Indexes.RemoveDeleteCommands(),
-                node.ForeignKeys.RemoveDeleteCommands()
+                node.ForeignKeys.RemoveDeleteCommands(),
+                node.Grants
                 );
 
             if (!_index.TryAdd(newNode.Key, newNode)) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
@@ -119,8 +120,8 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
             (bool exist, GraphNode updatedNode) = _index.TryGetValue(node.Key, out GraphNode? current) switch
             {
-                false => (false, build(node.Tags.RemoveDeleteCommands(), node.Indexes.RemoveDeleteCommands(), node.ForeignKeys.RemoveDeleteCommands())),
-                true => (true, build(node.Tags.MergeAndFilter(current.Tags), node.Indexes.MergeCommands(current.Indexes), node.ForeignKeys.MergeAndFilter(current.ForeignKeys))),
+                false => (false, build(node.Tags.RemoveDeleteCommands(), node.Indexes.RemoveDeleteCommands(), node.ForeignKeys.RemoveDeleteCommands(), node.Grants)),
+                true => (true, build(node.Tags.MergeAndFilter(current.Tags), node.Indexes.MergeCommands(current.Indexes), node.ForeignKeys.MergeAndFilter(current.ForeignKeys), node.Grants)),
             };
 
             _index[node.Key] = updatedNode;
@@ -141,8 +142,8 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             return StatusCode.OK;
         }
 
-        GraphNode build(IReadOnlyDictionary<string, string?> tags, IReadOnlyCollection<string> indexes, IReadOnlyDictionary<string, string?> foreignKeys) =>
-            new GraphNode(node.Key, tags, node.CreatedDate, node.DataMap, indexes, foreignKeys);
+        GraphNode build(IReadOnlyDictionary<string, string?> tags, IReadOnlyCollection<string> indexes, IReadOnlyDictionary<string, string?> foreignKeys, IReadOnlyCollection<GrantPolicy> policies) =>
+            new GraphNode(node.Key, tags, node.CreatedDate, node.DataMap, indexes, foreignKeys, policies);
     }
 
     public IEnumerator<GraphNode> GetEnumerator() => _index.Values.GetEnumerator();

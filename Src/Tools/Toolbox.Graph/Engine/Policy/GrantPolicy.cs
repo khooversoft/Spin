@@ -1,4 +1,7 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -99,5 +102,40 @@ public static class GrantPolicyTool
         PolicyRoleTool.TryGetSchema(rolePart, out var role).BeTrue($"Invalid role '{rolePart.ToString()}'");
 
         return new GrantPolicy(nameIdentifier.ToString(), schema | role, principalIdentifier.ToString());
+    }
+
+    public static Option<IReadOnlyList<string>> InPolicy(this IReadOnlyCollection<GrantPolicy> grantPolicies, AccessRequest securityRequest)
+    {
+        if (grantPolicies.Count == 0) return StatusCode.OK;
+
+        var groupList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        bool nameIdentifierFound = false;
+        foreach (var principal in grantPolicies)
+        {
+            // grants for the right name identifier
+            if (principal.NameIdentifier != securityRequest.NameIdentifier) continue;
+            nameIdentifierFound = true;
+
+            var accessType = principal.Role.ToAccessType();
+            if ((accessType & securityRequest.AccessType) == 0) continue;
+
+            if ((principal.Role & RolePolicy.SecurityGroup) != 0)
+            {
+                groupList.Add(principal.PrincipalIdentifier);
+                continue;
+            }
+
+            if (principal.PrincipalIdentifier == securityRequest.PrincipalIdentifier) return StatusCode.OK;
+        }
+
+        switch (groupList.Count, nameIdentifierFound)
+        {
+            case (0, false): return StatusCode.OK; // name identifier not found
+            case (0, true): return StatusCode.Unauthorized; // name identifier found, but no access
+        }
+
+        var result = ImmutableArray.CreateRange(groupList);
+        return new Option<IReadOnlyList<string>>(result, StatusCode.NotFound);
     }
 }

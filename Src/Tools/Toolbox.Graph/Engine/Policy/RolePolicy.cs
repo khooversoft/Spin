@@ -75,16 +75,16 @@ public static class PolicyRoleTool
     {
         Span<char> buffer = stackalloc char[4];
 
-        buffer[0] = role.HasFlag(RolePolicy.Owner) ?
-            'o' : role.HasFlag(RolePolicy.Contributor) ?
-            'c' : role.HasFlag(RolePolicy.Reader) ?
-            'r' : throw new InvalidDataException("No role");
+        buffer[0] = role.HasFlag(RolePolicy.Owner) ? 'o' :
+            role.HasFlag(RolePolicy.Contributor) ? 'c' :
+            role.HasFlag(RolePolicy.Reader) ? 'r' :
+            throw new InvalidDataException("No role");
 
         buffer[1] = ':';
 
-        ReadOnlySpan<char> schema = role.HasFlag(RolePolicy.SecurityGroup) ?
-            "sg" : role.HasFlag(RolePolicy.PrincipalIdentity) ?
-            "pi" : throw new InvalidDataException("No schema");
+        ReadOnlySpan<char> schema = role.HasFlag(RolePolicy.SecurityGroup) ? "sg" :
+            role.HasFlag(RolePolicy.PrincipalIdentity) ? "pi" :
+            throw new InvalidDataException("No schema");
 
         schema.CopyTo(buffer.Slice(2));
 

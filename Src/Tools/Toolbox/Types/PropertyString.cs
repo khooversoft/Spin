@@ -20,11 +20,7 @@ public static class PropertyStringSchema
     public static PropertyString<string?> Tags { get; } = new PropertyString<string?>(false, [",", "="], x => x == ",", x => x switch
     {
         null => false,
-        string key => key switch
-        {
-            { Length: 1 } v when v == "*" => true,
-            var v => (v[0] == '-' || char.IsLetterOrDigit(v[0])) && v.Skip(1).All(x => char.IsLetterOrDigit(x) || _connectionStringAllowCharacters.Contains(x)),
-        },
+        string key => IsValidTagKey(key),
     });
 
     public static PropertyString<string> KeyValuePair { get; } = new PropertyString<string>(true, [",", "="], x => x == ",", x => x switch
@@ -41,19 +37,51 @@ public static class PropertyStringSchema
     public static PropertyString<string?> FileSearch { get; } = new PropertyString<string?>(false, [";", "="], x => x == ";", x => x switch
     {
         null => false,
-        string key => key.All(x => char.IsLetterOrDigit(x) || _fileSearchAllowCharacters.Contains(x)),
+        string key => IsValidFileSearchKey(key),
     });
 
-    private static bool TestKey(string key, FrozenSet<char> set) => key switch
+    private static bool TestKey(string key, FrozenSet<char> set)
     {
-        { Length: 0 } => false,
-        { Length: 1 } v when char.IsLetterOrDigit(v[0]) => true,
-        var v => char.IsLetterOrDigit(v[0]) && v.Skip(1).All(x => char.IsLetterOrDigit(x) || set.Contains(x)) switch
+        if (string.IsNullOrEmpty(key)) return false;
+        if (!char.IsLetterOrDigit(key[0])) return false;
+
+        for (int i = 1; i < key.Length; i++)
         {
-            true => true,
-            false => false,
-        },
-    };
+            char c = key[i];
+            if (!char.IsLetterOrDigit(c) && !set.Contains(c)) return false;
+        }
+
+        return true;
+    }
+
+    private static bool IsValidTagKey(string key)
+    {
+        // "*" allowed
+        if (key.Length == 1 && key[0] == '*') return true;
+        if (key.Length == 0) return false;
+
+        char c0 = key[0];
+        if (!(c0 == '-' || char.IsLetterOrDigit(c0))) return false;
+
+        for (int i = 1; i < key.Length; i++)
+        {
+            char c = key[i];
+            if (!char.IsLetterOrDigit(c) && !_tagAllowCharacters.Contains(c)) return false;
+        }
+        return true;
+    }
+
+    private static bool IsValidFileSearchKey(string key)
+    {
+        if (key.Length == 0) return false;
+
+        for (int i = 0; i < key.Length; i++)
+        {
+            char c = key[i];
+            if (!char.IsLetterOrDigit(c) && !_fileSearchAllowCharacters.Contains(c)) return false;
+        }
+        return true;
+    }
 }
 
 public class PropertyString<TValue>
@@ -68,7 +96,7 @@ public class PropertyString<TValue>
         _isValueRequired = isValueRequired;
         _tokens = tokens.ToFrozenSet();
         _isDelimiter = isDelimiter.NotNull();
-        _isValidKey = isValidKey;
+        _isValidKey = isValidKey.NotNull();
     }
 
     public Option<IReadOnlyList<KeyValuePair<string, TValue>>> Parse(string? value)
@@ -80,7 +108,7 @@ public class PropertyString<TValue>
             if (item.IsError()) return item.ToOptionStatus<IReadOnlyList<KeyValuePair<string, TValue>>>();
             KeyValuePair<string, TValue> r = item.Return();
 
-            result.Add(r.Key, r.Value);
+            if (!result.TryAdd(r.Key, r.Value)) return (StatusCode.BadRequest, $"Duplicate key={r.Key}");
         }
 
         return result.ToArray();
@@ -127,15 +155,25 @@ public class PropertyString<TValue>
 
     private bool IsKeyValid(string key) => !_isDelimiter(key) && _isValidKey(key);
 
-    private static Option<KeyValuePair<string, TValue>> ParseAssignment(Stack<IToken> tokens)
+    private Option<KeyValuePair<string, TValue>> ParseAssignment(Stack<IToken> tokens)
     {
         if (tokens.Count < 3) return (StatusCode.BadRequest, "No key=value");
-        if (tokens.Skip(1).First().Value != "=") return (StatusCode.BadRequest, "No equal '='");
 
-        string key = tokens.Pop().Value;
-        tokens.Pop(); // Remove "="
-        string value = tokens.Pop().Value;
+        var keyToken = tokens.Pop();
+        var eqToken = tokens.Pop();
 
-        return new KeyValuePair<string, TValue>(key, (TValue)(object)value);
+        if (eqToken.Value != "=")
+        {
+            tokens.Push(eqToken);
+            tokens.Push(keyToken);
+            return (StatusCode.BadRequest, "No equal '='");
+        }
+
+        var valueToken = tokens.Pop();
+
+        string key = keyToken.Value;
+        if (!IsKeyValid(key)) return (StatusCode.BadRequest, $"Invalid key={key}");
+
+        return new KeyValuePair<string, TValue>(key, (TValue)(object)valueToken.Value);
     }
 }

@@ -10,22 +10,28 @@ namespace Toolbox.Graph;
 [DebuggerDisplay("Key={Key}, Tags={TagsString}, DataMap={DataMapString}, Indexes={IndexesString}, ForeignKeys={ForeignKeysString}")]
 public sealed record GraphNode : IGraphCommon
 {
-    public GraphNode(string key, string? tags = null, string? indexes = null, string? foreignKeys = null)
+    public GraphNode(string key, string? tags = null, string? indexes = null, string? foreignKeys = null, string? grants = null)
     {
         Key = key.NotNull();
         Tags = TagsTool.Parse(tags).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
-        Indexes = SplitValues(indexes);
-        ForeignKeys = TagsTool.Parse(foreignKeys).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-
-        static IReadOnlyCollection<string> SplitValues(string? value) => value switch
+        Indexes = indexes switch
         {
             null => FrozenSet<string>.Empty,
-
             string v => v
                 .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToFrozenSet(StringComparer.OrdinalIgnoreCase),
+        };
+
+        ForeignKeys = TagsTool.Parse(foreignKeys).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+        Grants = grants switch
+        {
+            null => FrozenSet<GrantPolicy>.Empty,
+            string v => v
+                .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => GrantPolicyTool.Parse(x))
+                .ToFrozenSet(),
         };
     }
 
@@ -36,7 +42,8 @@ public sealed record GraphNode : IGraphCommon
         DateTime createdDate,
         IReadOnlyDictionary<string, GraphLink> dataMap,
         IReadOnlyCollection<string> indexes,
-        IReadOnlyDictionary<string, string?> foreignKeys
+        IReadOnlyDictionary<string, string?> foreignKeys,
+        IReadOnlyCollection<GrantPolicy> grants
         )
     {
         Key = key.NotNull();
@@ -45,17 +52,9 @@ public sealed record GraphNode : IGraphCommon
         CreatedDate = createdDate;
         DataMap = dataMap?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, GraphLink>.Empty;
 
-        Indexes = setCollection(indexes);
+        Indexes = indexes?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty;
         ForeignKeys = foreignKeys?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, string?>.Empty;
-
-        IReadOnlyCollection<string> setCollection(IReadOnlyCollection<string> value) => value switch
-        {
-            null => FrozenSet<string>.Empty,
-            var v => v
-                .Where(x => x.IsNotEmpty())
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToFrozenSet(StringComparer.OrdinalIgnoreCase),
-        };
+        Grants = grants?.ToFrozenSet() ?? FrozenSet<GrantPolicy>.Empty;
     }
 
     public string Key { get; }
@@ -64,7 +63,7 @@ public sealed record GraphNode : IGraphCommon
     public IReadOnlyDictionary<string, GraphLink> DataMap { get; } = FrozenDictionary<string, GraphLink>.Empty;
     public IReadOnlyCollection<string> Indexes { get; } = FrozenSet<string>.Empty;
     public IReadOnlyDictionary<string, string?> ForeignKeys { get; } = FrozenDictionary<string, string?>.Empty;
-    public GrantCollection Grants { get; init; } = new();
+    public IReadOnlyCollection<GrantPolicy> Grants { get; } = FrozenSet<GrantPolicy>.Empty;
     [JsonIgnore] public string TagsString => Tags.ToTagsString();
     [JsonIgnore] public string DataMapString => DataMap.ToDataMapString();
     [JsonIgnore] public string IndexesString => Indexes.Join(',');
@@ -80,7 +79,8 @@ public sealed record GraphNode : IGraphCommon
             CreatedDate == obj.CreatedDate &&
             DataMap.DeepEquals(obj.DataMap, StringComparer.OrdinalIgnoreCase) &&
             SetEqualsIgnoreCase(Indexes, obj.Indexes) &&
-            ForeignKeys.DeepEquals(obj.ForeignKeys, StringComparer.OrdinalIgnoreCase);
+            ForeignKeys.DeepEquals(obj.ForeignKeys, StringComparer.OrdinalIgnoreCase) &&
+            SetEquals(Grants, obj.Grants);
 
         return result;
     }
@@ -132,6 +132,7 @@ public sealed record GraphNode : IGraphCommon
         .RuleFor(x => x.DataMap).NotNull().Must(x => x.All(y => y.Key.IsNotEmpty() && y.Value.Validate().IsOk()), _ => "Graph link does not validate")
         .RuleFor(x => x.Indexes).NotNull().Must(x => x.All(x => x.IsNotEmpty()), _ => "Indexed data key must not be empty")
         .RuleFor(x => x.ForeignKeys).NotNull()
+        .RuleFor(x => x.Grants).NotNull()
         .Build();
 
     private static bool SetEqualsIgnoreCase(IReadOnlyCollection<string> a, IReadOnlyCollection<string> b)
@@ -146,6 +147,22 @@ public sealed record GraphNode : IGraphCommon
         }
 
         var set = new HashSet<string>(b, StringComparer.OrdinalIgnoreCase);
+        foreach (var x in a) if (!set.Contains(x)) return false;
+        return true;
+    }
+
+    private static bool SetEquals(IReadOnlyCollection<GrantPolicy> a, IReadOnlyCollection<GrantPolicy> b)
+    {
+        if (ReferenceEquals(a, b)) return true;
+        if (a.Count != b.Count) return false;
+
+        if (b is FrozenSet<GrantPolicy> fb)
+        {
+            foreach (var x in a) if (!fb.Contains(x)) return false;
+            return true;
+        }
+
+        var set = new HashSet<GrantPolicy>(b);
         foreach (var x in a) if (!set.Contains(x)) return false;
         return true;
     }

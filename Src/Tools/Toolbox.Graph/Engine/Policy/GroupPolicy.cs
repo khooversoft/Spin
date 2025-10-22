@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -13,11 +14,12 @@ public readonly struct GroupPolicy : IEquatable<GroupPolicy>
     public GroupPolicy(string nameIdentifier, IReadOnlyList<string> members)
     {
         NameIdentifier = nameIdentifier.NotEmpty();
-        Members = members.NotNull().ToImmutableArray();
+        Members = members.NotNull().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
     }
 
+    // Name of group is PK
     public string NameIdentifier { get; }
-    public IReadOnlyList<string> Members { get; } = Array.Empty<string>();
+    public IReadOnlyCollection<string> Members { get; } = FrozenSet<string>.Empty;
 
     public override bool Equals(object? obj) => obj is GroupPolicy other && Equals(other);
     public override int GetHashCode() => HashCode.Combine(NameIdentifier, Members);
@@ -31,6 +33,11 @@ public readonly struct GroupPolicy : IEquatable<GroupPolicy>
 
         if (ReferenceEquals(leftMembers, rightMembers)) return true;
         if (leftMembers.Count != rightMembers.Count) return false;
+
+        foreach(var item in leftMembers)
+        {
+            if (!rightMembers.Contains(item)) return false;
+        }
 
         return leftMembers.SequenceEqual(rightMembers);
     }

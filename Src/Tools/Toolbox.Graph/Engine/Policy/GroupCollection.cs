@@ -11,12 +11,12 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
 {
     private readonly ConcurrentDictionary<string, GroupPolicy> _groups;
 
-    public GroupCollection() => _groups = new();
+    public GroupCollection() => _groups = new(StringComparer.OrdinalIgnoreCase);
 
     [JsonConstructor]
     public GroupCollection(IReadOnlyList<GroupPolicy> groups) => _groups = groups.NotNull()
         .ForEach(x => x.Validate().ThrowOnError())
-        .ToConcurrentDictionary(x => x.NameIdentifier);
+        .ToConcurrentDictionary(x => x.NameIdentifier, StringComparer.OrdinalIgnoreCase);
 
     public GroupPolicy this[string nameIdentifier]
     {
@@ -52,7 +52,7 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
 
     public bool InGroup(string groupIdentifier, string principalIdentifier)
     {
-        if (TryGetGroup(groupIdentifier, out var group)) return group.Members.Contains(principalIdentifier);
+        if (_groups.TryGetValue(groupIdentifier, out var group)) return group.Members.Contains(principalIdentifier);
         return false;
     }
 

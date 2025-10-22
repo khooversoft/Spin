@@ -29,7 +29,16 @@ public sealed class StructureLineBuilder
         _messageBuilder.Append(message);
 
         // Preserve existing behavior: skip null so mismatches are detected in Build().
-        if (value != null) _allArgs.Add(value);
+        switch (value)
+        {
+            case IEnumerable<object> v:
+                foreach (var item in v) _allArgs.Add(v);
+                break;
+
+            default:
+                if (value != null) _allArgs.Add(value);
+                break;
+        }
 
         return this;
     }

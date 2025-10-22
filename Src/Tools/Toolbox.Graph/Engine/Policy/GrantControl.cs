@@ -22,7 +22,7 @@ public class GrantControl : IEquatable<GrantControl>
     public PrincipalCollection Principals { get; init; } = new();
     public GroupCollection Groups { get; init; } = new();
 
-    public bool HasAccess(AccessRequest securityRequest, GrantCollection grantCollections)
+    public bool HasAccess(AccessRequest securityRequest, IReadOnlyCollection<GrantPolicy> grantCollections)
     {
         // Check if user exist
         if (!Principals.Contains(securityRequest.PrincipalIdentifier)) return false;
@@ -33,8 +33,13 @@ public class GrantControl : IEquatable<GrantControl>
         if (groupsOption.IsUnauthorized()) return false;
 
         // User not found, check to see if user is in a group that is in policy
-        var groupNames = groupsOption.Return();
-        return groupNames.Any(x => Groups.InGroup(x, securityRequest.PrincipalIdentifier));
+        IReadOnlyList<string> groupNames = groupsOption.Return();
+        for (int i = 0; i < groupNames.Count; i++)
+        {
+            if (Groups.InGroup(groupNames[i], securityRequest.PrincipalIdentifier)) return true;
+        }
+
+        return false;
     }
 
     public override bool Equals(object? obj) => obj is GrantControl other && Equals(other);

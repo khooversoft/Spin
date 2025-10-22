@@ -1,216 +1,151 @@
-﻿using Toolbox.Tools;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Toolbox.Tools;
+using Toolbox.Extensions;
+using Toolbox.Types;
+using Xunit;
 
-namespace Toolbox.Graph;
+namespace Toolbox.Graph.test.Policy;
 
 public class GrantCollectionTests
 {
+    private static AccessRequest Req(AccessType at, string principal, string name) => new(at, principal, name);
+
     [Fact]
-    public void EmptyCollection_Defaults()
+    public void InPolicy_EmptyCollection_Returns_Ok()
     {
-        var subject = new GrantCollection();
+        IReadOnlyCollection<GrantPolicy> grants = Array.Empty<GrantPolicy>();
 
-        subject.Count.Be(0);
-        subject.IsReadOnly.BeFalse();
-
-        subject.TryGetValue("does-not-exist", out var _).BeFalse();
-        subject.Contains(new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1")).BeFalse();
-
-        subject.ToList().Count.Be(0);
+        var r1 = grants.InPolicy(Req(AccessType.Get, "u1", "res1"));
+        r1.IsOk().BeTrue();
     }
 
     [Fact]
-    public void Add_Contains_TryGetValue()
+    public void InPolicy_NameIdentifier_NotFound_Returns_Ok()
     {
-        var subject = new GrantCollection();
-        var p = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
-
-        subject.Add(p);
-
-        subject.Count.Be(1);
-        subject.Contains(p).BeTrue();
-
-        subject.TryGetValue("u1", out var list).BeTrue();
-        list.NotNull();
-        list.Count.Be(1);
-        list.Contains(p).BeTrue();
-    }
-
-    [Fact]
-    public void Add_Groups_By_NameIdentifier()
-    {
-        var subject = new GrantCollection();
-
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
-        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u1");
-        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "u2");
-
-        subject.Add(p1);
-        subject.Add(p2);
-        subject.Add(p3);
-
-        subject.Count.Be(3);
-
-        subject.TryGetValue("u1", out var g1).BeTrue();
-        g1.NotNull();
-        g1.Count.Be(2);
-        g1.Contains(p1).BeTrue();
-        g1.Contains(p2).BeTrue();
-
-        subject.TryGetValue("u2", out var g2).BeTrue();
-        g2.NotNull();
-        g2.Count.Be(1);
-        g2.Contains(p3).BeTrue();
-    }
-
-    [Fact]
-    public void Remove_Items_Updates_Groups()
-    {
-        var subject = new GrantCollection();
-
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
-        var p2 = new GrantPolicy("n2", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2");
-        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "u2");
-
-        subject.Add(p1);
-        subject.Add(p2);
-        subject.Add(p3);
-
-        subject.Count.Be(3);
-
-        subject.Remove(p1).BeTrue();
-        subject.Count.Be(2);
-        subject.TryGetValue("u1", out var _).BeFalse();
-
-        subject.Remove(p2).BeTrue();
-        subject.Count.Be(1);
-        subject.TryGetValue("u2", out var g2).BeTrue();
-        g2!.Count.Be(1);
-        g2.Contains(p3).BeTrue();
-
-        subject.Remove(p3).BeTrue();
-        subject.Count.Be(0);
-        subject.TryGetValue("u2", out var _).BeFalse();
-
-        subject.Remove(p3).BeFalse();
-    }
-
-    [Fact]
-    public void CopyTo_Basic_And_Offset()
-    {
-        var subject = new GrantCollection();
-
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
-        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2");
-        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "u3");
-
-        subject.Add(p1);
-        subject.Add(p2);
-        subject.Add(p3);
-
-        var expected = new HashSet<string>(StringComparer.Ordinal)
+        IReadOnlyCollection<GrantPolicy> grants = new[]
         {
-            p1.Encode(), p2.Encode(), p3.Encode()
+            new GrantPolicy("resA", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1"),
         };
 
-        // Exact size
-        var arr = new GrantPolicy[3];
-        subject.CopyTo(arr, 0);
-
-        var actual = arr
-            .Where(x => x.NameIdentifier != null)
-            .Select(x => x.Encode())
-            .ToHashSet(StringComparer.Ordinal);
-
-        actual.SetEquals(expected).BeTrue();
-
-        // With offset
-        var arr2 = new GrantPolicy[5];
-        subject.CopyTo(arr2, 1);
-
-        var actual2 = arr2
-            .Skip(1)
-            .Where(x => x.NameIdentifier != null)
-            .Select(x => x.Encode())
-            .ToHashSet(StringComparer.Ordinal);
-
-        actual2.SetEquals(expected).BeTrue();
-        (arr2[0].NameIdentifier == null).BeTrue();
+        var r = grants.InPolicy(Req(AccessType.Get, "u1", "resB"));
+        r.IsOk().BeTrue();
     }
 
     [Fact]
-    public void CopyTo_Throws_On_BadArgs()
+    public void InPolicy_Direct_User_Access_All_Roles()
     {
-        var subject = new GrantCollection();
-        subject.Add(new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1"));
+        // Reader: Get only
+        IReadOnlyCollection<GrantPolicy> reader = new[]
+        {
+            new GrantPolicy("res1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1"),
+        };
+        reader.InPolicy(Req(AccessType.Get, "u1", "res1")).IsOk().BeTrue();
+        reader.InPolicy(Req(AccessType.Create, "u1", "res1")).IsOk().BeFalse();
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => subject.CopyTo(new GrantPolicy[1], -1));
-        Assert.Throws<ArgumentException>(() => subject.CopyTo(new GrantPolicy[0], 0));
+        // Contributor: Get, Create, Update, Delete
+        IReadOnlyCollection<GrantPolicy> contributor = new[]
+        {
+            new GrantPolicy("res1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u1"),
+        };
+        contributor.InPolicy(Req(AccessType.Get, "u1", "res1")).IsOk().BeTrue();
+        contributor.InPolicy(Req(AccessType.Create, "u1", "res1")).IsOk().BeTrue();
+        contributor.InPolicy(Req(AccessType.Update, "u1", "res1")).IsOk().BeTrue();
+        contributor.InPolicy(Req(AccessType.Delete, "u1", "res1")).IsOk().BeTrue();
+        contributor.InPolicy(Req(AccessType.AssignRole, "u1", "res1")).IsOk().BeFalse();
+
+        // Owner: All including AssignRole
+        IReadOnlyCollection<GrantPolicy> owner = new[]
+        {
+            new GrantPolicy("res1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "u1"),
+        };
+        owner.InPolicy(Req(AccessType.Get, "u1", "res1")).IsOk().BeTrue();
+        owner.InPolicy(Req(AccessType.Create, "u1", "res1")).IsOk().BeTrue();
+        owner.InPolicy(Req(AccessType.Update, "u1", "res1")).IsOk().BeTrue();
+        owner.InPolicy(Req(AccessType.Delete, "u1", "res1")).IsOk().BeTrue();
+        owner.InPolicy(Req(AccessType.AssignRole, "u1", "res1")).IsOk().BeTrue();
     }
 
     [Fact]
-    public void Enumeration_Returns_All_Items()
+    public void InPolicy_Group_Access_Returns_GroupList_With_NotFound()
     {
-        var subject = new GrantCollection();
+        IReadOnlyCollection<GrantPolicy> grants = new[]
+        {
+            new GrantPolicy("res2", RolePolicy.Reader | RolePolicy.SecurityGroup, "groupR"),
+            new GrantPolicy("res2", RolePolicy.Contributor | RolePolicy.SecurityGroup, "groupW"),
+        };
 
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
-        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2");
-        var p3 = new GrantPolicy("n2", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "u3");
+        var r = grants.InPolicy(Req(AccessType.Get, "userX", "res2"));
+        r.StatusCode.Be(StatusCode.NotFound);
+        r.HasValue.BeTrue();
 
-        subject.Add(p1);
-        subject.Add(p2);
-        subject.Add(p3);
-
-        var items = subject.ToList();
-        items.Count.Be(subject.Count);
-
-        items.Contains(p1).BeTrue();
-        items.Contains(p2).BeTrue();
-        items.Contains(p3).BeTrue();
+        var groups = r.Return();
+        groups.Count.Be(2);
+        groups.Contains("groupR").BeTrue();
+        groups.Contains("groupW").BeTrue();
     }
 
     [Fact]
-    public void Equality_SameContent()
+    public void InPolicy_GroupList_Deduplicates_And_Is_CaseInsensitive()
     {
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
-        var p2 = new GrantPolicy("n2", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2");
+        IReadOnlyCollection<GrantPolicy> grants = new[]
+        {
+            new GrantPolicy("res2", RolePolicy.Reader | RolePolicy.SecurityGroup, "GroupA"),
+            new GrantPolicy("res2", RolePolicy.Reader | RolePolicy.SecurityGroup, "groupa"), // duplicate (case-insensitive)
+            new GrantPolicy("res2", RolePolicy.Reader | RolePolicy.SecurityGroup, "GroupB"),
+        };
 
-        var a = new GrantCollection(new[] { p1, p2 });
-        var b = new GrantCollection(new[] { p1, p2 });
+        var r = grants.InPolicy(Req(AccessType.Get, "userX", "res2"));
+        r.StatusCode.Be(StatusCode.NotFound);
+        var groups = r.Return();
 
-        a.Equals(b).BeTrue();
-        (a == b).BeTrue();
-        (a != b).BeFalse();
-
-        (a == null).BeFalse();
-        (a != null).BeTrue();
+        groups.Count.Be(2);
+        groups.Any(x => x.Equals("GroupA", StringComparison.OrdinalIgnoreCase)).BeTrue();
+        groups.Any(x => x.Equals("GroupB", StringComparison.OrdinalIgnoreCase)).BeTrue();
     }
 
     [Fact]
-    public void Equality_DifferentOrderWithinGroup_NotEqual()
+    public void InPolicy_NameIdentifier_Matches_But_Insufficient_Role_Returns_Unauthorized()
     {
-        var p1 = new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1");
-        var p2 = new GrantPolicy("n1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2");
+        // Only Reader granted; request AssignRole (Owner-only)
+        IReadOnlyCollection<GrantPolicy> grants = new[]
+        {
+            new GrantPolicy("resX", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1"),
+        };
 
-        var a = new GrantCollection(new[] { p1, p2 });
-        var b = new GrantCollection(new[] { p2, p1 }); // reversed order within same key
-
-        a.Equals(b).BeFalse();
-        (a == b).BeFalse();
-        (a != b).BeTrue();
+        var r = grants.InPolicy(Req(AccessType.AssignRole, "u1", "resX"));
+        r.StatusCode.Be(StatusCode.Unauthorized);
+        r.HasValue.BeFalse();
     }
 
     [Fact]
-    public void Clear_Empties_Collection()
+    public void InPolicy_Direct_User_Takes_Precedence_Over_GroupList()
     {
-        var subject = new GrantCollection();
+        // Direct user has Contributor; there are also group grants
+        IReadOnlyCollection<GrantPolicy> grants = new[]
+        {
+            new GrantPolicy("res1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u1"),
+            new GrantPolicy("res1", RolePolicy.Reader | RolePolicy.SecurityGroup, "groupR"),
+        };
 
-        subject.Add(new GrantPolicy("n1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1"));
-        subject.Add(new GrantPolicy("n2", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u2"));
+        var r = grants.InPolicy(Req(AccessType.Create, "u1", "res1"));
+        r.IsOk().BeTrue(); // returns OK immediately for direct match
+    }
 
-        subject.Count.Be(2);
+    [Fact]
+    public void InPolicy_CaseSensitive_NameIdentifier_Behavior()
+    {
+        // Implementation compares nameIdentifier with case-sensitive equality
+        IReadOnlyCollection<GrantPolicy> grants = new[]
+        {
+            new GrantPolicy("Res1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "u1"),
+        };
 
-        subject.Clear();
-        subject.Count.Be(0);
-        subject.ToList().Count.Be(0);
+        // Different case -> treated as not found -> OK
+        grants.InPolicy(Req(AccessType.Get, "u1", "res1")).IsOk().BeTrue();
+
+        // Exact match -> OK
+        grants.InPolicy(Req(AccessType.Get, "u1", "Res1")).IsOk().BeTrue();
     }
 }
