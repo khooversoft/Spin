@@ -1,5 +1,4 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 
 namespace Toolbox.Graph.test.Policy;
 
@@ -186,27 +185,6 @@ public class GroupCollectionTests
         a.Equals(b).BeFalse();
         (a == b).BeFalse();
         (a != b).BeTrue();
-    }
-
-    [Fact]
-    public void Serialization_RoundTrip()
-    {
-        var original = new GroupCollection(new[]
-        {
-            new GroupPolicy("g1", new[] { "u1", "u2" }),
-            new GroupPolicy("g2", new[] { "u3" }),
-        });
-
-        var json = original.ToJson();
-        var deserialized = json.ToObject<GroupCollection>().NotNull();
-
-        deserialized.Count.Be(2);
-        (original == deserialized).BeTrue();
-        original.Equals(deserialized).BeTrue();
-
-        deserialized.TryGetGroup("g1", out var g1).BeTrue();
-        g1.Members.Count.Be(2);
-        g1.Members.Contains("u2").BeTrue();
     }
 
     [Fact]

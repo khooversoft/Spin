@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.Frozen;
+﻿using System.Collections.Frozen;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Tools;
@@ -112,7 +107,7 @@ public class GraphNodeGrantsTests
             {
                 ["fk1"] = "v1",
             },
-            grants: new []
+            grants: new[]
             {
                 new GrantPolicy("ni1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "user1"),
                 new GrantPolicy("ni2", RolePolicy.Contributor | RolePolicy.SecurityGroup, "groupA"),

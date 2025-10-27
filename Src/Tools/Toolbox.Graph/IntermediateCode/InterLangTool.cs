@@ -16,10 +16,9 @@ public static class InterLangTool
         GiDeleteTool.Build,
         GiDeleteTool.Build,
         GiGrantTool.Build,
-        //GiGrantSelectTool.Build,
         GiGroupTool.Build,
         GiSelectObjectTool.Build,
-        //GiGroupSelectTool.Build,
+        GiUserTool.Build,
     ];
 
     public static Option<IReadOnlyList<IGraphInstruction>> Build(IEnumerable<SyntaxPair> syntaxPairs)

@@ -78,6 +78,12 @@ public class GroupTests
     }
 
     [Fact]
+    public void GroupPolicy_Constructor_NullMembers_ShouldThrow()
+    {
+        Assert.Throws<ArgumentNullException>(() => new GroupPolicy("group1", null!));
+    }
+
+    [Fact]
     public void GroupPolicy_Equals_WithNull_ShouldReturnFalse()
     {
         // Arrange
@@ -98,14 +104,14 @@ public class GroupTests
     }
 
     [Fact]
-    public void GroupPolicy_Members_OrderMatters_ShouldNotBeEqual()
+    public void GroupPolicy_Members_OrderDoesMatter_ShouldBeEqual()
     {
         // Arrange
         var group1 = new GroupPolicy("group1", new[] { "user1", "user2" });
         var group2 = new GroupPolicy("group1", new[] { "user2", "user1" });
 
         // Act & Assert
-        (group1 == group2).BeFalse();
+        (group1 == group2).BeTrue();
     }
 
     [Fact]
@@ -129,6 +135,26 @@ public class GroupTests
 
         // Assert
         result.BeOk();
+    }
+
+    [Fact]
+    public void GroupPolicy_NameIdentifier_CaseSensitive_Equality_ShouldBeFalse()
+    {
+        var g1 = new GroupPolicy("group1", new[] { "user1" });
+        var g2 = new GroupPolicy("GROUP1", new[] { "user1" });
+
+        (g1 == g2).BeFalse();
+        g1.Equals(g2).BeFalse();
+    }
+
+    [Fact]
+    public void GroupPolicy_Members_CaseDifference_ShouldBeEqual()
+    {
+        // With current implementation (SequenceEqual), casing differences make policies equal
+        var g1 = new GroupPolicy("group1", new[] { "user1" });
+        var g2 = new GroupPolicy("group1", new[] { "USER1" });
+
+        (g1 == g2).BeTrue();
     }
 
     // ============ GroupCollection Tests ============
@@ -179,6 +205,14 @@ public class GroupTests
         // Assert
         removed.BeTrue();
         (collection.Count == 0).BeTrue();
+    }
+
+    [Fact]
+    public void GroupCollection_Remove_Nonexistent_ShouldReturnFalse()
+    {
+        var collection = new GroupCollection();
+        var removed = collection.Remove(new GroupPolicy("missing"));
+        removed.BeFalse();
     }
 
     [Fact]
@@ -240,6 +274,13 @@ public class GroupTests
     }
 
     [Fact]
+    public void GroupCollection_Indexer_Get_Missing_ShouldThrow()
+    {
+        var collection = new GroupCollection();
+        Assert.Throws<KeyNotFoundException>(() => _ = collection["missing"]);
+    }
+
+    [Fact]
     public void GroupCollection_Contains_WithGroupPolicy_ShouldReturnTrue()
     {
         // Arrange
@@ -260,6 +301,25 @@ public class GroupTests
         // Act & Assert
         collection.Contains("group1").BeTrue();
         collection.Contains("group2").BeFalse();
+    }
+
+    [Fact]
+    public void GroupCollection_Contains_GroupPolicy_SameNameDifferentMembers_ShouldBeFalse()
+    {
+        var g1 = new GroupPolicy("group1", new[] { "user1" });
+        var g2 = new GroupPolicy("group1", new[] { "user2" });
+        var collection = new GroupCollection(new[] { g1 });
+
+        collection.Contains(g2).BeFalse();
+    }
+
+    [Fact]
+    public void GroupCollection_Contains_String_CaseInsensitive_ShouldReturnTrue()
+    {
+        var g1 = new GroupPolicy("group1", new[] { "user1" });
+        var collection = new GroupCollection(new[] { g1 });
+
+        collection.Contains("GROUP1").BeTrue();
     }
 
     [Fact]
@@ -292,6 +352,16 @@ public class GroupTests
     }
 
     [Fact]
+    public void GroupCollection_TryGetGroup_CaseInsensitiveKey_ShouldReturnTrue()
+    {
+        var g1 = new GroupPolicy("group1", new[] { "user1" });
+        var collection = new GroupCollection(new[] { g1 });
+
+        collection.TryGetGroup("GROUP1", out var result).BeTrue();
+        (result == g1).BeTrue();
+    }
+
+    [Fact]
     public void GroupCollection_InGroup_UserExists_ShouldReturnTrue()
     {
         // Arrange
@@ -311,6 +381,15 @@ public class GroupTests
 
         // Act & Assert
         collection.InGroup("nonexistent", "user1").BeFalse();
+    }
+
+    [Fact]
+    public void GroupCollection_InGroup_UserCaseInsensitive_ShouldReturnTrue()
+    {
+        var g1 = new GroupPolicy("group1", new[] { "user1" });
+        var collection = new GroupCollection(new[] { g1 });
+
+        collection.InGroup("group1", "USER1").BeTrue();
     }
 
     [Fact]
@@ -359,6 +438,33 @@ public class GroupTests
 
         // Act & Assert
         Assert.Throws<ArgumentException>(() => collection.CopyTo(array, 1));
+    }
+
+    [Fact]
+    public void GroupCollection_CopyTo_NullArray_ShouldThrow()
+    {
+        var g1 = new GroupPolicy("group1", new[] { "user1" });
+        var collection = new GroupCollection(new[] { g1 });
+
+        Assert.Throws<ArgumentNullException>(() => collection.CopyTo(null!, 0));
+    }
+
+    [Fact]
+    public void GroupCollection_CopyTo_ExactFit_ShouldSucceed()
+    {
+        var groups = new[]
+        {
+            new GroupPolicy("group1", new[] { "user1" }),
+            new GroupPolicy("group2", new[] { "user2" })
+        };
+        var collection = new GroupCollection(groups);
+        var array = new GroupPolicy[collection.Count];
+
+        collection.CopyTo(array, 0);
+
+        array.Length.Be(2);
+        collection.Contains(array[0]).BeTrue();
+        collection.Contains(array[1]).BeTrue();
     }
 
     [Fact]
@@ -455,5 +561,41 @@ public class GroupTests
 
         // Act & Assert
         collection.IsReadOnly.BeFalse();
+    }
+
+    [Fact]
+    public void GroupCollection_EqualCollections_ShouldHaveSameHashCode()
+    {
+        var c1 = new GroupCollection(new[]
+        {
+            new GroupPolicy("group1", new[] { "user1" }),
+            new GroupPolicy("group2", new[] { "user2" })
+        });
+
+        var c2 = new GroupCollection(new[]
+        {
+            new GroupPolicy("group2", new[] { "user2" }),
+            new GroupPolicy("group1", new[] { "user1" })
+        });
+
+        (c1 == c2).BeTrue();
+        (c1.GetHashCode() == c2.GetHashCode()).BeTrue();
+    }
+
+    [Fact]
+    public void GroupCollection_Equals_SameKeysDifferentMembers_ShouldNotBeEqual()
+    {
+        var c1 = new GroupCollection(new[]
+        {
+            new GroupPolicy("group1", new[] { "user1" })
+        });
+
+        var c2 = new GroupCollection(new[]
+        {
+            new GroupPolicy("group1", new[] { "user2" })
+        });
+
+        (c1 == c2).BeFalse();
+        c1.Equals(c2).BeFalse();
     }
 }

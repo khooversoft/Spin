@@ -38,19 +38,16 @@ internal static class GiGrantTool
         var cmd = ic.GetEnum<GrantCommand>("grant-sym", "revoke-sym");
         if (cmd.IsError()) return cmd.ToOptionStatus<IGraphInstruction>();
 
+        var principal = ic.GetValue("pi");
+        if (principal.IsError()) return principal.ToOptionStatus<IGraphInstruction>();
+
         var grantType = ic.GetEnum<GrantType>("reader-sym", "contributor-sym", "owner-sym");
         if (grantType.IsError()) return grantType.ToOptionStatus<IGraphInstruction>();
 
-        var s2 = ic.ProcessSymbols(["to-sym"]);
-        if (s2.IsError()) return s2.ToOptionStatus<IGraphInstruction>();
+        var s1 = ic.ProcessSymbols(["on-sym"]);
+        if (s1.IsError()) return s1.ToOptionStatus<IGraphInstruction>();
 
-        var principal = ic.GetValue("principalIdentifier");
-        if (principal.IsError()) return principal.ToOptionStatus<IGraphInstruction>();
-
-        var s3 = ic.ProcessSymbols(["on-sym"]);
-        if (s3.IsError()) return s3.ToOptionStatus<IGraphInstruction>();
-
-        var nameIdentifier = ic.GetValue("nameIdentifier");
+        var nameIdentifier = ic.GetValue("ni");
         if (nameIdentifier.IsError()) return nameIdentifier.ToOptionStatus<IGraphInstruction>();
 
         var term = ic.GetValue("term");

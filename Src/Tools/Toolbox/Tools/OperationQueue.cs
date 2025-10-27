@@ -6,12 +6,13 @@ namespace Toolbox.Tools;
 
 public class OperationQueue : IAsyncDisposable
 {
+    private enum RunState { None, Run, Stopped }
+
     private readonly Channel<Func<Task>> _channel;
     private readonly ILogger<OperationQueue> _logger;
     private readonly Task _processingTask;
     private readonly CancellationTokenSource _cancelToken = new();
-    private enum RunState { None, Run, Stopped }
-    private RunState _runState;
+    private volatile RunState _runState;
     private long _getEnqueueCount;
     private long _getExecuteCount;
     private long _sendEnqueueCount;
@@ -25,7 +26,7 @@ public class OperationQueue : IAsyncDisposable
         {
             FullMode = BoundedChannelFullMode.Wait,
             SingleReader = true,
-            SingleWriter = true
+            SingleWriter = false, // multiple producers can call Send/Get concurrently
         });
 
         var processContext = _logger.ToScopeContext();
@@ -47,39 +48,40 @@ public class OperationQueue : IAsyncDisposable
         _cancelToken.Dispose();
     }
 
-    public Task Drain(ScopeContext context)
+    public async Task Drain(ScopeContext context)
     {
         if (_runState != RunState.Run) throw new InvalidOperationException("Not running");
         context = context.With(_logger);
-        context.With(_logger).LogDebug("Enqueuing reader (get)");
+        context.LogDebug("Enqueuing drain marker");
+
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         Func<Task> wrapper = () =>
         {
             try
             {
-                context.Location().LogDebug("Processing reader");
+                context.Location().LogDebug("Processing drain marker");
                 tcs.SetResult();
                 return Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                context.Location().LogError(ex, "Error processing enqueued reader");
+                context.Location().LogError(ex, "Error processing drain marker");
                 tcs.SetException(ex);
                 return Task.CompletedTask;
             }
         };
 
-        context.With(_logger).LogDebug("Enqueue drain marker");
-        _channel.Writer.WriteAsync(wrapper, _cancelToken.Token).AsTask().Wait(); // Blocking enqueue
-        return tcs.Task;
+        await _channel.Writer.WriteAsync(wrapper, _cancelToken.Token);
+        await tcs.Task;
     }
 
-    public Task<T> Get<T>(Func<Task<T>> readOperation, ScopeContext context)
+    public async Task<T> Get<T>(Func<Task<T>> readOperation, ScopeContext context)
     {
         if (_runState != RunState.Run) throw new InvalidOperationException("Not running");
         context = context.With(_logger);
-        context.With(_logger).LogDebug("Enqueuing reader (get)");
+        context.LogDebug("Enqueuing reader (get)");
+
         var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         Func<Task> wrapper = async () =>
@@ -104,12 +106,11 @@ public class OperationQueue : IAsyncDisposable
             }
         };
 
-        context.With(_logger).LogDebug("Enqueue reader");
-        _channel.Writer.WriteAsync(wrapper, _cancelToken.Token).AsTask().Wait(); // Blocking enqueue
+        await _channel.Writer.WriteAsync(wrapper, _cancelToken.Token);
         Interlocked.Increment(ref _getEnqueueCount);
         LogStats(context);
 
-        return tcs.Task;
+        return await tcs.Task;
     }
 
     public async Task Send(Func<Task> sendOperation, ScopeContext context)

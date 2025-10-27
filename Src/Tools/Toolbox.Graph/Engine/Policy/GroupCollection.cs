@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
-using System.Text.Json.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -13,8 +12,7 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
 
     public GroupCollection() => _groups = new(StringComparer.OrdinalIgnoreCase);
 
-    [JsonConstructor]
-    public GroupCollection(IReadOnlyList<GroupPolicy> groups) => _groups = groups.NotNull()
+    public GroupCollection(IEnumerable<GroupPolicy> groups) => _groups = groups.NotNull()
         .ForEach(x => x.Validate().ThrowOnError())
         .ToConcurrentDictionary(x => x.NameIdentifier, StringComparer.OrdinalIgnoreCase);
 
@@ -24,7 +22,7 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
         set
         {
             value.Validate().ThrowOnError();
-            if( value.NameIdentifier != nameIdentifier)
+            if (value.NameIdentifier != nameIdentifier)
             {
                 throw new ArgumentException($"GroupPolicy NameIdentifier '{value.NameIdentifier}' does not match indexer key '{nameIdentifier}'");
             }
@@ -69,7 +67,7 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
     }
 
     public IEnumerator<GroupPolicy> GetEnumerator() => _groups.Values.GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => _groups.Values.GetEnumerator();
 
     // Equality
     public override bool Equals(object? obj) => obj is GroupCollection other && Equals(other);
@@ -89,10 +87,10 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
     public bool Equals(GroupCollection? other)
     {
         if (other == null) return false;
-        if( ReferenceEquals(this, other)) return true;
-        if( _groups.Count != other._groups.Count) return false;
+        if (ReferenceEquals(this, other)) return true;
+        if (_groups.Count != other._groups.Count) return false;
 
-        foreach(var item in _groups)
+        foreach (var item in _groups)
         {
             if (!other._groups.TryGetValue(item.Key, out var otherGroup)) return false;
             if (item.Value != otherGroup) return false;

@@ -1,7 +1,4 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Tools;
-
-namespace Toolbox.Store;
+﻿namespace Toolbox.Store;
 
 // Hash index: {hash}/{hash}/{key}.{typeName}.json
 // Key index: {typeName}/{key}.{typeName}.json

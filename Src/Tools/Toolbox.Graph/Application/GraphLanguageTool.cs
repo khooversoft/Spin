@@ -15,7 +15,11 @@ public static class GraphLanguageTool
     {
         string schema = ReadGraphLanguageRules();
         _root = MetaParser.ParseRules(schema);
-        _root.Assert(x => x.StatusCode.IsOk(), "Failed tp parse meta syntax");
+        if (_root.StatusCode.IsError())
+        {
+            throw new ArgumentException("Failed to parse meta syntax: " + _root.Error);
+        }
+
         _parse = new SyntaxParser(_root);
     }
 

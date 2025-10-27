@@ -8,10 +8,6 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void NoPolicy_DefaultAccess()
     {
-        var grantPolicies = new GrantCollection()
-        {
-        };
-
         var groupPolicies = new[]
         {
             new GroupPolicy("group1", new[] { "user1", "user2" }),
@@ -29,13 +25,13 @@ public class PolicyGrantDefaultTests
         // Not protected, should have access
         var request = new AccessRequest(AccessType.Get, "user:id1", "customer3");
 
-        grantControl.HasAccess(request, grantPolicies).BeTrue();
+        grantControl.HasAccess(request, []).BeTrue();
     }
 
     [Fact]
     public void GrantPolicy_Defaults()
     {
-        var grantPolicies = new GrantCollection()
+        var grantPolicies = new[]
         {
             new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "user1orGroupName"),
             new GrantPolicy("customer2", RolePolicy.Reader | RolePolicy.SecurityGroup, "user1orGroupName2"),
@@ -83,7 +79,7 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void GrantPolicy_Validate_GetAccess()
     {
-        var grantPolicies = new GrantCollection()
+        var grantPolicies = new[]
         {
             new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
             new GrantPolicy("customer1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "user2"),
@@ -131,7 +127,7 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void GrantPolicyGroup_Validate_GetAccess()
     {
-        var grantPolicies = new GrantCollection()
+        var grantPolicies = new[]
         {
             new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.SecurityGroup, "group1"),
             new GrantPolicy("customer1", RolePolicy.Contributor | RolePolicy.SecurityGroup, "group2"),
@@ -206,19 +202,19 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void UnknownPrincipal_DeniedAccess()
     {
-        var grantPolicies = new GrantCollection()
+        var grantPolicies = new[]
         {
             new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
         };
-        
+
         var principals = new[]
         {
             new PrincipalIdentity("user1", "id1", "user1", "user1@domain.com", false),
         };
-        
+
         var grantControl = new GrantControl([], principals);
-        
-        // User exists in policy butnot in principals - should be denied
+
+        // User exists in policy but not in principals - should be denied
         new AccessRequest(AccessType.Get, "unknown-user", "customer1")
             .Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
     }
@@ -227,24 +223,24 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void MixedAccess_DirectAndGroup()
     {
-        var grantPolicies = new GrantCollection()
+        var grantPolicies = new[]
         {
             new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
             new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.SecurityGroup, "group1"),
         };
-        
+
         var groupPolicies = new[]
         {
             new GroupPolicy("group1", ["user1"]),
         };
-        
+
         var principals = new[]
         {
             new PrincipalIdentity("user1", "id1", "user1", "user1@domain.com", false),
         };
-        
+
         var grantControl = new GrantControl(groupPolicies, principals);
-        
+
         // Should have highest privilege (Owner via group)
         new AccessRequest(AccessType.AssignRole, "user1", "customer1")
             .Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
@@ -254,23 +250,23 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void MultipleResources_DifferentAccess()
     {
-        var grantPolicies = new GrantCollection()
+        var grantPolicies = new[]
         {
             new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "user1"),
             new GrantPolicy("customer2", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
         };
-        
+
         var principals = new[]
         {
             new PrincipalIdentity("user1", "id1", "user1", "user1@domain.com", false),
         };
-        
+
         var grantControl = new GrantControl([], principals);
-        
+
         // Owner on customer1
         new AccessRequest(AccessType.Delete, "user1", "customer1")
             .Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());
-        
+
         // Only Reader on customer2
         new AccessRequest(AccessType.Delete, "user1", "customer2")
             .Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
@@ -282,10 +278,10 @@ public class PolicyGrantDefaultTests
     {
         var principals = new[] { new PrincipalIdentity("user1", "id1", "user1", "user1@domain.com", false) };
         var groups = new[] { new GroupPolicy("group1", ["user1"]) };
-        
+
         var gc1 = new GrantControl(groups, principals);
         var gc2 = new GrantControl(groups, principals);
-        
+
         (gc1 == gc2).BeTrue();
         gc1.Equals(gc2).BeTrue();
         gc1.GetHashCode().Be(gc2.GetHashCode());
@@ -295,13 +291,13 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void EmptyPrincipals_DeniedAccess()
     {
-        var grantPolicies = new GrantCollection()
+        var grantPolicies = new[]
         {
             new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
         };
-        
+
         var grantControl = new GrantControl([], []);
-        
+
         new AccessRequest(AccessType.Get, "user1", "customer1")
             .Action(x => grantControl.HasAccess(x, grantPolicies).BeFalse());
     }
@@ -310,22 +306,23 @@ public class PolicyGrantDefaultTests
     [Fact]
     public void UserInMultipleGroups_HighestAccess()
     {
-        var grantPolicies = new GrantCollection()
+        var grantPolicies = new[]
+
         {
             new GrantPolicy("customer1", RolePolicy.Reader | RolePolicy.SecurityGroup, "group1"),
             new GrantPolicy("customer1", RolePolicy.Owner | RolePolicy.SecurityGroup, "group2"),
         };
-        
+
         var groupPolicies = new[]
         {
             new GroupPolicy("group1", ["user1"]),
             new GroupPolicy("group2", ["user1"]),
         };
-        
+
         var principals = new[] { new PrincipalIdentity("user1", "id1", "user1", "user1@domain.com", false) };
-        
+
         var grantControl = new GrantControl(groupPolicies, principals);
-        
+
         // Should get highest access level (Owner)
         new AccessRequest(AccessType.AssignRole, "user1", "customer1")
             .Action(x => grantControl.HasAccess(x, grantPolicies).BeTrue());

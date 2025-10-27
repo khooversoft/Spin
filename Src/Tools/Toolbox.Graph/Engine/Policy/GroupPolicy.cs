@@ -1,6 +1,4 @@
 ﻿using System.Collections.Frozen;
-using System.Collections.Immutable;
-using System.Text.Json.Serialization;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -8,38 +6,68 @@ namespace Toolbox.Graph;
 
 public readonly struct GroupPolicy : IEquatable<GroupPolicy>
 {
-    public GroupPolicy(string nameIdentifier) => NameIdentifier = nameIdentifier.NotEmpty();
+    private readonly FrozenSet<string> _members;
 
-    [JsonConstructor]
-    public GroupPolicy(string nameIdentifier, IReadOnlyList<string> members)
+    public GroupPolicy(string nameIdentifier)
     {
         NameIdentifier = nameIdentifier.NotEmpty();
-        Members = members.NotNull().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+        _members = FrozenSet<string>.Empty;
+    }
+
+    public GroupPolicy(string nameIdentifier, IEnumerable<string> members)
+    {
+        NameIdentifier = nameIdentifier.NotEmpty();
+        _members = members.NotNull().ToFrozenSet(StringComparer.OrdinalIgnoreCase);
     }
 
     // Name of group is PK
-    public string NameIdentifier { get; }
-    public IReadOnlyCollection<string> Members { get; } = FrozenSet<string>.Empty;
+    public string NameIdentifier { get; init; }
 
-    public override bool Equals(object? obj) => obj is GroupPolicy other && Equals(other);
-    public override int GetHashCode() => HashCode.Combine(NameIdentifier, Members);
+    public IReadOnlyCollection<string> Members
+    {
+        get => _members;
+        init => _members = value.NotNull().ToFrozenSet<string>();
+    }
+
+    public bool IsMember(string principalIdentifier) => Members.Contains(principalIdentifier.NotEmpty());
 
     public bool Equals(GroupPolicy other)
     {
         if (!string.Equals(NameIdentifier, other.NameIdentifier, StringComparison.Ordinal)) return false;
 
-        var leftMembers = Members ?? Array.Empty<string>();
-        var rightMembers = other.Members ?? Array.Empty<string>();
+        var left = Members ?? FrozenSet<string>.Empty;
+        var right = other.Members ?? FrozenSet<string>.Empty;
 
-        if (ReferenceEquals(leftMembers, rightMembers)) return true;
-        if (leftMembers.Count != rightMembers.Count) return false;
+        if (ReferenceEquals(left, right)) return true;
+        if (left.Count != right.Count) return false;
 
-        foreach(var item in leftMembers)
+        // Set equality (order-insensitive), O(n) with FrozenSet
+        foreach (var item in left)
         {
-            if (!rightMembers.Contains(item)) return false;
+            if (!right.Contains(item)) return false;
         }
 
-        return leftMembers.SequenceEqual(rightMembers);
+        return true;
+    }
+
+    public override bool Equals(object? obj) => obj is GroupPolicy other && Equals(other);
+
+    public override int GetHashCode()
+    {
+        int nameHash = StringComparer.Ordinal.GetHashCode(NameIdentifier ?? string.Empty);
+
+        // Order-insensitive aggregation for members hash
+        int membersHash = 0;
+        var set = Members;
+        if (set is not null)
+        {
+            foreach (var m in set)
+            {
+                membersHash ^= StringComparer.OrdinalIgnoreCase.GetHashCode(m);
+            }
+        }
+
+        return HashCode.Combine(nameHash, membersHash);
     }
 
     public static bool operator ==(GroupPolicy left, GroupPolicy right) => left.Equals(right);

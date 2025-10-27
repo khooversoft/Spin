@@ -1,5 +1,4 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 
 namespace Toolbox.Graph.test.Policy;
 
@@ -101,7 +100,7 @@ public class GrantControlTests
             // Note: u3 is NOT present in principals to verify pre-check failure
         };
 
-        var grants = new GrantCollection()
+        var grants = new[]
         {
             // Direct contributor for u1 on res1
             new GrantPolicy("res1", RolePolicy.Contributor | RolePolicy.PrincipalIdentity, "u1"),
@@ -127,54 +126,20 @@ public class GrantControlTests
     }
 
     [Fact]
-    public void GrantControl_Serialization_RoundTrip()
-    {
-        var groupPolicies = new[]
-        {
-            new GroupPolicy("group1", new[] { "user1", "user2" }),
-            new GroupPolicy("group2", new[] { "user3", "user4" }),
-        };
-
-        var principals = new[]
-        {
-            // Using explicit ctor to keep deterministic PrincipalId values
-            new PrincipalIdentity("id1", "user:id1", "user1", "user1@domain.com", false),
-            new PrincipalIdentity("id2", "user:id2", "user2", "user2@domain.com", true),
-        };
-
-        var grantControl = new GrantControl(groupPolicies, principals);
-
-        // Act
-        var json = grantControl.ToJson();
-        var deserialized = json.ToObject<GrantControl>();
-
-        // Assert structural equality
-        (deserialized != default).BeTrue();
-        (grantControl == deserialized).BeTrue();
-
-        // Assert content integrity
-        deserialized.NotNull();
-        deserialized.Groups.Count.Be(2);
-        deserialized.Principals.Count.Be(2);
-    }
-
-    [Fact]
     public void HasAccess_EmptyGrantCollection_Returns_True_For_Unprotected_Resources()
     {
         var principals = new[] { new PrincipalIdentity("u1", "nid1", "user1", "user1@domain.com", false) };
         var ctrl = new GrantControl([], principals);
-        var emptyGrants = new GrantCollection();
-        
-        ctrl.HasAccess(new AccessRequest(AccessType.Get, "u1", "anyResource"), emptyGrants).BeTrue();
+
+        ctrl.HasAccess(new AccessRequest(AccessType.Get, "u1", "anyResource"), []).BeTrue();
     }
 
     [Fact]
     public void HasAccess_PrincipalNotInCollection_Returns_False()
     {
         var ctrl = new GrantControl([], []);
-        var grants = new GrantCollection();
-        
-        ctrl.HasAccess(new AccessRequest(AccessType.Get, "unknownUser", "res1"), grants).BeFalse();
+
+        ctrl.HasAccess(new AccessRequest(AccessType.Get, "unknownUser", "res1"), []).BeFalse();
     }
 
     [Fact]
@@ -186,12 +151,12 @@ public class GrantControlTests
             new GroupPolicy("groupB", new[] { "u1" }),
         };
         var principals = new[] { new PrincipalIdentity("u1", "nid1", "user1", "user1@domain.com", false) };
-        
-        var grants = new GrantCollection
+
+        var grants = new[]
         {
             new GrantPolicy("res1", RolePolicy.Reader | RolePolicy.SecurityGroup, "groupB")
         };
-        
+
         var ctrl = new GrantControl(groups, principals);
         ctrl.HasAccess(new AccessRequest(AccessType.Get, "u1", "res1"), grants).BeTrue();
     }
@@ -200,13 +165,13 @@ public class GrantControlTests
     public void HasAccess_AllAccessTypes_With_Owner_Role()
     {
         var principals = new[] { new PrincipalIdentity("u1", "nid1", "user1", "user1@domain.com", false) };
-        var grants = new GrantCollection
+        var grants = new[]
         {
             new GrantPolicy("res1", RolePolicy.Owner | RolePolicy.PrincipalIdentity, "u1")
         };
-        
+
         var ctrl = new GrantControl([], principals);
-        
+
         ctrl.HasAccess(new AccessRequest(AccessType.Get, "u1", "res1"), grants).BeTrue();
         ctrl.HasAccess(new AccessRequest(AccessType.Create, "u1", "res1"), grants).BeTrue();
         ctrl.HasAccess(new AccessRequest(AccessType.Update, "u1", "res1"), grants).BeTrue();
@@ -219,7 +184,7 @@ public class GrantControlTests
     {
         var a = new GrantControl();
         var b = new GrantControl();
-        
+
         (a == b).BeTrue();
         a.GetHashCode().Be(b.GetHashCode());
     }
@@ -229,10 +194,10 @@ public class GrantControlTests
     {
         var groups = new[] { new GroupPolicy("g1", new[] { "u1" }) };
         var principals = new[] { new PrincipalIdentity("u1", "nid1", "user1", "user1@domain.com", false) };
-        
+
         var a = new GrantControl(groups, principals);
         var b = new GrantControl(groups, principals);
-        
+
         (a == b).BeTrue();
         a.GetHashCode().Be(b.GetHashCode());
     }

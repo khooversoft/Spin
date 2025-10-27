@@ -35,6 +35,25 @@ public sealed record GraphNode : IGraphCommon
         };
     }
 
+    public GraphNode(
+        string key,
+        IReadOnlyDictionary<string, string?> tags,
+        DateTime createdDate,
+        IReadOnlyDictionary<string, GraphLink> dataMap,
+        IReadOnlyCollection<string> indexes,
+        IReadOnlyDictionary<string, string?> foreignKeys
+        )
+    {
+        Key = key.NotNull();
+
+        Tags = tags?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, string?>.Empty;
+        CreatedDate = createdDate;
+        DataMap = dataMap?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, GraphLink>.Empty;
+
+        Indexes = indexes?.ToFrozenSet(StringComparer.OrdinalIgnoreCase) ?? FrozenSet<string>.Empty;
+        ForeignKeys = foreignKeys?.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase) ?? FrozenDictionary<string, string?>.Empty;
+    }
+
     [JsonConstructor]
     public GraphNode(
         string key,

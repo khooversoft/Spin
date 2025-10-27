@@ -36,8 +36,8 @@ public class GraphMap : IEnumerable<IGraphCommon>
         LoadRowsAndEdges(graphSerialization.Nodes, graphSerialization.Edges);
         LastLogSequenceNumber = graphSerialization.LastLogSequenceNumber;
 
-        foreach(var item in graphSerialization.PrincipalIdentities) GrantControl.Principals.Add(item);
-        foreach(var item in graphSerialization.SecurityGroups) GrantControl.Groups.Add(item);
+        foreach (var item in graphSerialization.PrincipalIdentities) GrantControl.Principals.Add(item);
+        foreach (var item in graphSerialization.SecurityGroups) GrantControl.Groups.Add(item);
     }
 
     public GraphMap(IEnumerable<GraphNode> nodes, IEnumerable<GraphEdge> edges, GraphMapCounter mapCounters, string? lastLsn = null)
@@ -86,8 +86,8 @@ public class GraphMap : IEnumerable<IGraphCommon>
         nodes.NotNull();
         edges.NotNull();
 
-        foreach(var node in nodes) Nodes.Add(node).ThrowOnError("Node add failed");
-        foreach(var edge in edges) Edges.Add(edge).ThrowOnError("Edge add failed");
+        foreach (var node in nodes) Nodes.Add(node).ThrowOnError("Node add failed");
+        foreach (var edge in edges) Edges.Add(edge).ThrowOnError("Edge add failed");
     }
 }
 

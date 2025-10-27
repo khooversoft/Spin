@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Extensions;
 using Toolbox.Types;
-using Xunit;
 
 namespace Toolbox.Graph.test.Policy;
 

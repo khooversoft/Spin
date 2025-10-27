@@ -21,8 +21,8 @@ public static class CursorTool
 
         return subject.List.Skip(startIndex)
             .Take(8)
-            .Select((x, i) => $"{i + startIndex}={CursorTool.Quote(x?.ToString())}")
-            .Prepend($"Index={subject.Index}, startIndex={startIndex}")
+            .Select((x, i) => $"{CursorTool.Quote(x?.ToString())}")
+            .Prepend($"Token='{CursorTool.Quote(subject.List[subject.Index]?.ToString())}', Index={subject.Index}, startIndex={startIndex}")
             .Join(", ");
     }
 

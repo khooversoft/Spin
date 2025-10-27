@@ -1,5 +1,4 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Types;
+﻿using Toolbox.Types;
 
 namespace Toolbox.Tools;
 

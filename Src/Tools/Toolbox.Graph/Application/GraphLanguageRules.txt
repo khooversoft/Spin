@@ -25,12 +25,14 @@ full-join               = '<->' ;
 
 set-sym                 = 'set' ;
 add-sym                 = 'add' ;
+update-sym              = 'update' ;
 select-sym              = 'select' ;
 delete-sym              = 'delete' ;
 return-sym              = 'return' ;
 node-sym                = 'node' ;
 edge-sym                = 'edge' ;
 ifexist                 = 'ifexist' ;
+where-sym               = 'where' ;
 
 key-sym                 = 'key' ;
 key-value               = name ;
@@ -42,6 +44,7 @@ edgeType-sym            = 'type' ;
 edgeType-value          = name ;
 
 grant-sym               = 'grant' ;
+grants-sym              = 'grants' ;
 revoke-sym              = 'revoke' ;
 reader-sym              = 'reader' ;
 for-sym                 = 'for' ;
@@ -51,13 +54,17 @@ from-sym                = 'from' ;
 contributor-sym         = 'contributor' ;
 owner-sym               = 'owner' ;
 group-sym               = 'group' ;
+groups-sym              = 'groups' ;
 name-sym                = 'name' ;
 role-sym                = 'role' ;
 principal-sym           = 'principal' ;
 member-sym              = 'member' ;
-where-sym               = 'where' ;
-principalIdentifier     = name ;
-nameIdentifier          = name ;
+user-sym                = 'user' ;
+users-sym               = 'users' ;
+pi-sym                  = 'pi' ;
+ni-sym                  = 'ni' ;
+pi                      = name ;
+ni                      = name ;
 group-name              = name ;
 object-name             = name ;
 attribute-name          = name ;
@@ -91,20 +98,28 @@ edge-delete-command     = delete-sym, edge-sym, [ ifexist ], fromkey-data, comma
 select-command          = select-sym, ( select-node | select-edge ), { ( left-join | full-join | right-join ), ( select-node | select-edge ) }, [ return-data ], term ;
 delete-command          = delete-sym, ( select-node | select-edge ), { ( left-join | full-join | right-join ), ( select-node | select-edge ) }, term ;
 
-// Add, delete, 
+// User
+// add user user1 set ni={v2}, name={v3}, email={v4}, emailConfirmed={v5}  ;
+// delete user user1;
+user-opr                = ( add-sym | update-sym ) ;
+user-set-command        = user-opr, user-sym, pi, set-tags, term ;
+user-delete-command     = delete-sym, user-sym, pi, term ;
 
-
-
-// Grant and revoke security commands
-grant-command-option    = ( grant-sym | revoke-sym ) ;
+// Grant and revoke security commands  
+//  grant user1 reader on user:user1 ;
+//  revoke user1 contributor on user:user1 ;
+grant-opr               = ( grant-sym | revoke-sym ) ;
 grant-type              = ( reader-sym | contributor-sym | owner-sym ) ;
-grant-column            = ( name-sym | role-sym | principal-sym );
-grant-command           = grant-command-option, grant-type, to-sym, principalIdentifier, on-sym, nameIdentifier, term ;         // [ grant | revoke ] reader to user1 on user:user1 ;
+grant-command           = grant-opr, pi, grant-type, on-sym, ni, term ;                                                         // [ grant | revoke ] user1 reader on user:user1 ;
 
 // Group command
-group-property-option   = ( name-sym | member-sym );
-group-command           = add-set-option, principalIdentifier, to-sym, group-name, group-sym, term ;                            // [ add | set  ] user1 to admins group ;
-group-command-delete    = delete-sym, principalIdentifier, from-sym, group-name, group-sym, term ;                              // delete user1 from admins group ;
+//  add user1 to admins group ;
+//  delete user1 from admins group;
+//  delete admins group ;
+group-command-add       = add-sym, pi, to-sym, group-name, group-sym, term ;                                                    // add user1 to admins group ;
+group-command-delete    = delete-sym, pi, from-sym, group-name, group-sym, term ;                                               // delete user1 from admins group ;
+group-delete-command    = delete-sym, group-name, group-sym, term ;                                                             // delete admins group ;
 
 // General system data query
-select-object           = select-sym, object-name, where-sym, attribute-name, equal, object-value, term ;                       // select {objectName} where {attributeName] = {objectValue}
+//  select-sym object where columnName = object-value ;
+select-mgnt             = select-sym, object-name, where-sym, attribute-name, equal, object-value, term ;                       

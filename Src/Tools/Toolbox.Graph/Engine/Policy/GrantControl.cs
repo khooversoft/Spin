@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using System.Text.Json.Serialization;
+using Toolbox.Extensions;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
@@ -8,14 +9,16 @@ namespace Toolbox.Graph;
 /// 
 /// Security groups - list or user that have the same access
 /// 
+/// Not deserializable
 /// </summary>
 public class GrantControl : IEquatable<GrantControl>
 {
     public GrantControl() { }
 
-    public GrantControl(IReadOnlyList<GroupPolicy> securityGroups, IReadOnlyList<PrincipalIdentity> principalIdentities)
+    [JsonConstructor]
+    public GrantControl(IReadOnlyList<GroupPolicy> securityGroups, IReadOnlyList<PrincipalIdentity> principals)
     {
-        Principals = [.. principalIdentities];
+        Principals = [.. principals];
         Groups = [.. securityGroups];
     }
 
@@ -49,8 +52,8 @@ public class GrantControl : IEquatable<GrantControl>
         Principals.Equals(other.Principals) &&
         Groups.Equals(other.Groups);
 
-    public static bool operator ==(GrantControl? left, GrantControl? right) => 
+    public static bool operator ==(GrantControl? left, GrantControl? right) =>
         left is null ? right is null : left.Equals(right);
-    
+
     public static bool operator !=(GrantControl? left, GrantControl? right) => !(left == right);
 }

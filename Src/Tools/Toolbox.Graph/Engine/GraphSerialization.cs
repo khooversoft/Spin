@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Graph;
@@ -39,7 +38,8 @@ public static class GraphSerializationTool
         return data.FromSerialization();
     }
 
-    public static GraphMap FromSerialization(this GraphSerialization subject) => new GraphMap(subject.Nodes, subject.Edges);
+    public static GraphMap FromSerialization(this GraphSerialization subject) =>
+        new GraphMap(subject, new GraphMapCounter());
 
     public static GraphMap FromSerialization(this GraphSerialization subject, GraphMapCounter mapCounters) =>
         new GraphMap(subject, mapCounters);

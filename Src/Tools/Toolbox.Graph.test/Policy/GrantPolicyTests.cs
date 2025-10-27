@@ -3,7 +3,7 @@ using Toolbox.Tools;
 
 namespace Toolbox.Graph.test.Policy;
 
-public class PolicyTests
+public class GrantPolicyTests
 {
     [Fact]
     public void GrantPolicy_Serialization_RoundTrip()
@@ -39,21 +39,20 @@ public class PolicyTests
     public void GrantPolicyCollection_Serialization_RoundTrip()
     {
         // Arrange
-        var originalCollection = new GrantCollection(new[]
+        var originalCollection = new[]
         {
             new GrantPolicy("customerNumber", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user1"),
             new GrantPolicy("orderNumber", RolePolicy.Contributor | RolePolicy.SecurityGroup, "group1"),
-        });
+        };
 
         // Act
         var json = originalCollection.ToJson();
-        GrantCollection deserializedCollection = json.ToObject<GrantCollection>().NotNull();
+        var deserializedCollection = json.ToObject<IReadOnlyList<GrantPolicy>>().NotNull();
 
         // Assert
         deserializedCollection.NotNull();
         deserializedCollection.Count.Be(2);
-        (originalCollection == deserializedCollection).BeTrue();
-        (originalCollection.Equals(deserializedCollection)).BeTrue();
+        originalCollection.SequenceEqual(deserializedCollection).BeTrue();
     }
 
     // ---- GrantPolicy specific tests ----
@@ -142,7 +141,7 @@ public class PolicyTests
     {
         // Arrange & Act
         var policy = new GrantPolicy("name1", 17, "user1"); // 17 = Reader | PrincipalIdentity
-        
+
         // Assert
         policy.NameIdentifier.Be("name1");
         policy.Role.Be(RolePolicy.Reader | RolePolicy.PrincipalIdentity);
@@ -168,7 +167,7 @@ public class PolicyTests
     public void GrantPolicy_Properties_ReturnsCorrectValues()
     {
         var policy = new GrantPolicy("testNode", RolePolicy.Contributor | RolePolicy.SecurityGroup, "group1");
-        
+
         policy.NameIdentifier.Be("testNode");
         policy.Role.Be(RolePolicy.Contributor | RolePolicy.SecurityGroup);
         policy.PrincipalIdentifier.Be("group1");
@@ -202,7 +201,7 @@ public class PolicyTests
         var policy = new GrantPolicy("node-123_test", RolePolicy.Reader | RolePolicy.PrincipalIdentity, "user@domain.com");
         var encoded = policy.Encode();
         var parsed = GrantPolicy.Parse(encoded);
-        
+
         (parsed == policy).BeTrue();
     }
 

@@ -36,14 +36,14 @@ public class OperationQueueTests
         var queue = new ConcurrentQueue<int>();
         await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 100);
 
-        await Enumerable.Range(0, count).ForEachAsync(async x =>
+        foreach (var x in Enumerable.Range(0, count))
         {
             await operationQueue.Send(() =>
             {
                 queue.Enqueue(x);
                 return Task.CompletedTask;
             }, _context);
-        });
+        }
 
         await operationQueue.Complete(_context);
         queue.Count.Be(count);
@@ -133,5 +133,131 @@ public class OperationQueueTests
             queue.Enqueue(value);
             return value;
         }
+    }
+
+    // Drain should flush all work enqueued before it returns.
+    [Fact]
+    public async Task DrainFlushesPendingOperations()
+    {
+        var queue = new ConcurrentQueue<int>();
+        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
+
+        foreach (var x in Enumerable.Range(0, 50))
+        {
+            await operationQueue.Send(() =>
+            {
+                queue.Enqueue(x);
+                return Task.CompletedTask;
+            }, _context);
+        }
+
+        await operationQueue.Drain(_context);
+        queue.Count.Be(50);
+
+        foreach (var x in Enumerable.Range(50, 50))
+        {
+            await operationQueue.Send(() =>
+            {
+                queue.Enqueue(x);
+                return Task.CompletedTask;
+            }, _context);
+        }
+
+        await operationQueue.Drain(_context);
+        queue.Count.Be(100);
+
+        await operationQueue.Complete(_context);
+    }
+
+    // After Complete -> Send/Get/Drain throw; Complete can be called multiple times.
+    [Fact]
+    public async Task SendGetAndDrainThrowWhenNotRunningAndCompleteIsIdempotent()
+    {
+        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
+
+        await operationQueue.Complete(_context);
+        await operationQueue.Complete(_context); // idempotent
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            operationQueue.Send(() => Task.CompletedTask, _context));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            operationQueue.Get(() => Task.FromResult(42), _context));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            operationQueue.Drain(_context));
+    }
+
+    // Exception in Send is swallowed by the queue; subsequent work continues.
+    [Fact]
+    public async Task SendExceptionDoesNotStopProcessing()
+    {
+        var queue = new ConcurrentQueue<int>();
+        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
+
+        await operationQueue.Send(() =>
+        {
+            queue.Enqueue(1);
+            return Task.CompletedTask;
+        }, _context);
+
+        await operationQueue.Send(() => throw new ApplicationException("boom"), _context);
+
+        await operationQueue.Send(() =>
+        {
+            queue.Enqueue(2);
+            return Task.CompletedTask;
+        }, _context);
+
+        await operationQueue.Complete(_context);
+
+        queue.Count.Be(2);
+        queue.Contains(1).BeTrue();
+        queue.Contains(2).BeTrue();
+    }
+
+    // Exception in Get propagates, but queue keeps running for subsequent operations.
+    [Fact]
+    public async Task GetExceptionPropagatesAndDoesNotStopProcessing()
+    {
+        var queue = new ConcurrentQueue<int>();
+        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            operationQueue.Get<int>(() => throw new InvalidOperationException("bad read"), _context));
+
+        await operationQueue.Send(() =>
+        {
+            queue.Enqueue(999);
+            return Task.CompletedTask;
+        }, _context);
+
+        await operationQueue.Complete(_context);
+
+        queue.Contains(999).BeTrue();
+        queue.Count.Be(1);
+    }
+
+    // Small capacity exercises back-pressure; all items should be processed.
+    [Fact]
+    public async Task BackpressureWithSmallCapacityProcessesAll()
+    {
+        int total = 10_000;
+        int processed = 0;
+
+        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 4);
+
+        await Enumerable.Range(0, total).ForEachAsync(async _ =>
+        {
+            await operationQueue.Send(() =>
+            {
+                Interlocked.Increment(ref processed);
+                return Task.CompletedTask;
+            }, _context);
+        });
+
+        await operationQueue.Complete(_context);
+
+        processed.Be(total);
     }
 }
