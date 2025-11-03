@@ -52,26 +52,77 @@ public class PrincipalCollection : IEquatable<PrincipalCollection>, ICollection<
 
     public void Add(PrincipalIdentity principal)
     {
+        _lock.EnterWriteLock();
+        try
+        {
+            _principals.TryAdd(principal.NotNull().PrincipalId, principal).Assert(x => x == true, "Principal already exist");
+            _nameIdentityIndex.TryAdd(principal.NameIdentifier, principal).Assert(x => x == true, "Principal already exist in nameIdentity index");
+        }
+        finally { _lock.ExitWriteLock(); }
+    }
+
+    public bool Remove(PrincipalIdentity item)
+    {
+        _lock.EnterWriteLock();
+        try
+        {
+            bool removed = _principals.TryRemove(item.PrincipalId, out var _);
+            _nameIdentityIndex.TryRemove(item.NameIdentifier, out _);
+            return removed;
+        }
+        finally { _lock.ExitWriteLock(); }
+    }
+
+    internal Option AddUser(PrincipalIdentity principal, GraphTrxContext? trxContext)
+    {
         principal.Validate().ThrowOnError();
 
         _lock.EnterWriteLock();
         try
         {
-            // If replacing an existing principal with a different NameIdentifier, remove the old name index entry.
-            if (_principals.TryGetValue(principal.PrincipalId, out var existing) && existing.NameIdentifier != principal.NameIdentifier)
-            {
-                _nameIdentityIndex.TryRemove(existing.NameIdentifier, out _);
-            }
+            if (_principals.TryGetValue(principal.PrincipalId, out var existing)) return (StatusCode.Conflict, $"Principal with ID '{principal.PrincipalId}' already exists.");
 
             _principals[principal.PrincipalId] = principal;
             _nameIdentityIndex[principal.NameIdentifier] = principal;
+
+            trxContext?.TransactionScope.PrincipalAdd(principal);
+            return StatusCode.OK;
         }
         finally { _lock.ExitWriteLock(); }
     }
 
-    public bool Remove(PrincipalIdentity item) => Remove(item.NotNull().PrincipalId);
+    internal Option UpdateUser(GiUser giUser, GraphTrxContext? trxContext)
+    {
+        giUser.NotNull().PrincipalId.NotEmpty();
 
-    public bool Remove(string principalId)
+        _lock.EnterWriteLock();
+        try
+        {
+            if (!_principals.TryGetValue(giUser.PrincipalId, out var existing)) return (StatusCode.NotFound, $"Principal with ID '{giUser.PrincipalId}' not found.");
+
+            if (existing.NameIdentifier != giUser.NameIdentifier)
+            {
+                _nameIdentityIndex.TryRemove(existing.NameIdentifier, out _);
+            }
+
+            var newPrincipal = existing with
+            {
+                NameIdentifier = giUser.NameIdentifier ?? existing.NameIdentifier,
+                UserName = giUser.UserName ?? existing.UserName,
+                Email = giUser.Email ?? existing.Email,
+                EmailConfirmed = giUser.EmailConfirmed == true || existing.EmailConfirmed,
+            };
+
+            _principals[giUser.PrincipalId] = newPrincipal;
+            _nameIdentityIndex[giUser.NameIdentifier.NotEmpty()] = newPrincipal;
+
+            trxContext?.TransactionScope.PrincipalUpdate(newPrincipal, existing);
+            return StatusCode.OK;
+        }
+        finally { _lock.ExitWriteLock(); }
+    }
+
+    internal Option RemoveUser(string principalId, GraphTrxContext? trxContext)
     {
         principalId.NotEmpty();
 
@@ -79,10 +130,11 @@ public class PrincipalCollection : IEquatable<PrincipalCollection>, ICollection<
         try
         {
             var removed = _principals.TryRemove(principalId, out var principalIdentity);
-            if (!removed || principalIdentity is null) return false;
+            if (!removed || principalIdentity is null) return (StatusCode.NotFound, $"Principal with ID '{principalId}' not found.");
 
             _nameIdentityIndex.TryRemove(principalIdentity.NameIdentifier, out _);
-            return true;
+            trxContext?.TransactionScope.PrincipalDelete(principalIdentity);
+            return StatusCode.OK;
         }
         finally { _lock.ExitWriteLock(); }
     }

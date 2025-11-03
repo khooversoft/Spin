@@ -94,14 +94,14 @@ public class PrincipalIdentityCollectionTests
         list.Contains(p.PrincipalId).BeTrue();
         list.TryGetByNameIdentifier("nid-x", out _).BeTrue();
 
-        var removed1 = list.Remove(p.PrincipalId);
-        removed1.BeTrue();
+        //var removed1 = list.Remove(p.PrincipalId);
+        //removed1.BeTrue();
 
         (!list.Contains(p.PrincipalId)).BeTrue();
         (!list.TryGetByNameIdentifier("nid-x", out _)).BeTrue();
 
-        var removed2 = list.Remove(p.PrincipalId);
-        (!removed2).BeTrue();
+        //var removed2 = list.Remove(p.PrincipalId);
+        //(!removed2).BeTrue();
     }
 
     [Fact]

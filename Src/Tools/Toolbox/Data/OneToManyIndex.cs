@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Toolbox.Tools;
 
 namespace Toolbox.Data;
@@ -14,29 +15,29 @@ namespace Toolbox.Data;
 /// and a global RW gate ensures Clear does not interleave with mutating operations.
 /// Lock ordering: always take the global gate first, then the per-key lock.
 /// </summary>
-public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey, TReferenceKey>>
+public class OneToManyIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey, TReferenceKey>>
     where TKey : notnull
     where TReferenceKey : notnull
 {
-    private readonly ConcurrentDictionary<TKey, ConcurrentDictionary<TReferenceKey, byte>> _index;
+    private readonly ConcurrentDictionary<TKey, ConcurrentHashSet<TReferenceKey>> _index;
     private readonly ConcurrentDictionary<TKey, object> _locks;
+    public IEqualityComparer<TKey>? _keyComparer { get; }
+    public IEqualityComparer<TReferenceKey>? _referenceComparer { get; }
 
     // Global gate: Clear() takes write; Set/Remove take read. Reads (Get/TryGetValue/Enumerator) stay lock-free.
     private readonly ReaderWriterLockSlim _gate = new(LockRecursionPolicy.NoRecursion);
 
-    public InvertedIndex(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TReferenceKey>? referenceComparer = null)
+    public OneToManyIndex(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TReferenceKey>? referenceComparer = null)
     {
-        KeyComparer = keyComparer.EqualityComparerFor();
-        ReferenceComparer = referenceComparer.EqualityComparerFor();
+        _keyComparer = keyComparer.EqualityComparerFor();
+        _referenceComparer = referenceComparer.EqualityComparerFor();
 
-        _index = new ConcurrentDictionary<TKey, ConcurrentDictionary<TReferenceKey, byte>>(KeyComparer);
-        _locks = new ConcurrentDictionary<TKey, object>(KeyComparer);
+        _index = new ConcurrentDictionary<TKey, ConcurrentHashSet<TReferenceKey>>(_keyComparer);
+        _locks = new ConcurrentDictionary<TKey, object>(_keyComparer);
     }
 
     public int Count => _index.Count;
     public IReadOnlyList<TReferenceKey> this[TKey key] => Get(key);
-    public IEqualityComparer<TKey>? KeyComparer { get; }
-    public IEqualityComparer<TReferenceKey>? ReferenceComparer { get; }
 
     public void Clear()
     {
@@ -55,15 +56,17 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
         }
     }
 
+    public bool ContainsKey(TKey item) => _index.ContainsKey(item);
+
     public IReadOnlyList<TReferenceKey> Get(TKey key) => _index.TryGetValue(key, out var inner)
-        ? inner.Keys.ToImmutableArray()
+        ? inner.ToImmutableArray()
         : Array.Empty<TReferenceKey>();
 
-    public bool TryGetValue(TKey key, out IReadOnlyList<TReferenceKey>? value)
+    public bool TryGetValue(TKey key, [NotNullWhen(true)] out IReadOnlyList<TReferenceKey>? value)
     {
         if (_index.TryGetValue(key, out var inner))
         {
-            value = inner.Keys.ToImmutableArray();
+            value = inner.ToImmutableArray();
             return true;
         }
 
@@ -71,7 +74,7 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
         return false;
     }
 
-    public InvertedIndex<TKey, TReferenceKey> Set(TKey key, TReferenceKey referenceKey)
+    public OneToManyIndex<TKey, TReferenceKey> Set(TKey key, TReferenceKey referenceKey)
     {
         // Gate read side: allows concurrency among mutators but blocks when Clear holds write.
         _gate.EnterReadLock();
@@ -80,8 +83,8 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
             var sync = _locks.GetOrAdd(key, static _ => new object());
             lock (sync)
             {
-                var inner = _index.GetOrAdd(key, _ => new ConcurrentDictionary<TReferenceKey, byte>(ReferenceComparer));
-                inner.TryAdd(referenceKey, 0);
+                var inner = _index.GetOrAdd(key, _ => new ConcurrentHashSet<TReferenceKey>(_referenceComparer));
+                inner.TryAdd(referenceKey);
             }
             return this;
         }
@@ -106,7 +109,7 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
                     return Array.Empty<TReferenceKey>();
                 }
 
-                var removed = inner.Keys.ToImmutableArray();
+                var removed = inner.ToImmutableArray();
                 _locks.TryRemove(key, out _);
                 return removed;
             }
@@ -127,8 +130,7 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
             {
                 if (!_index.TryGetValue(key, out var inner)) return false;
 
-                var removed = inner.TryRemove(referenceKey, out _);
-
+                var removed = inner.TryRemove(referenceKey);
                 if (removed && inner.IsEmpty)
                 {
                     _index.TryRemove(key, out _);
@@ -152,7 +154,7 @@ public class InvertedIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey,
             var key = kv.Key;
             var inner = kv.Value;
 
-            foreach (var refKey in inner.Keys)
+            foreach (var refKey in inner)
             {
                 yield return new KeyValuePair<TKey, TReferenceKey>(key, refKey);
             }

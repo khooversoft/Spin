@@ -113,6 +113,18 @@ public static class TransactionScopeExtensions
     public static void EdgeChange(this TransactionScope subject, GraphEdge currentNode, GraphEdge updatedNode) =>
         subject.Enqueue<GraphEdge>(ChangeSource.Edge, currentNode.Key, ChangeOperation.Delete, currentNode.ToDataETag(), updatedNode.ToDataETag());
 
+    public static void PrincipalAdd(this TransactionScope subject, PrincipalIdentity newPrincipal) =>
+        subject.Enqueue<PrincipalIdentity>(ChangeSource.Principal, newPrincipal.PrincipalId, ChangeOperation.Add, null, newPrincipal.ToDataETag());
+
+    public static void PrincipalUpdate(this TransactionScope subject, PrincipalIdentity currentPrincipal, PrincipalIdentity updatedPrincipal) =>
+        subject.Enqueue<PrincipalIdentity>(ChangeSource.Principal, currentPrincipal.PrincipalId, ChangeOperation.Delete, currentPrincipal.ToDataETag(), updatedPrincipal.ToDataETag());
+
+    public static void PrincipalDelete(this TransactionScope subject, PrincipalIdentity currentPrincipal) =>
+        subject.Enqueue<PrincipalIdentity>(ChangeSource.Principal, currentPrincipal.PrincipalId, ChangeOperation.Delete, currentPrincipal.ToDataETag(), null);
+
+    public static void GroupAdd(this TransactionScope subject, GroupPolicy newGroup) =>
+        subject.Enqueue<GroupPolicy>(ChangeSource.Group, newGroup.NameIdentifier, ChangeOperation.Add, null, newGroup.ToDataETag());
+
 
     public static void DataAdd(this TransactionScope subject, string fileId, DataETag newData) =>
         subject.Enqueue<DataETag>(ChangeSource.Data, fileId, ChangeOperation.Add, null, newData);

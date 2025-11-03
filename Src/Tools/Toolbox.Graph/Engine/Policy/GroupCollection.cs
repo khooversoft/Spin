@@ -40,6 +40,19 @@ public class GroupCollection : ICollection<GroupPolicy>, IEquatable<GroupCollect
         _groups[group.NameIdentifier] = group;
     }
 
+    public void AddUser(string nameIdentifier, string principalIdentifier, GraphTrxContext? trxContext = null)
+    {
+        if (_groups.TryGetValue(nameIdentifier, out var group))
+        {
+            var newGroup = group.Append(principalIdentifier);
+            _groups[nameIdentifier] = newGroup;
+            trxContext?.TransactionScope.GroupAdd(newGroup);
+            return;
+        }
+
+        //group.AddUser(principalIdentifier, trxContext);
+    }
+
     public void Clear() => _groups.Clear();
     public bool Contains(GroupPolicy item) => _groups.TryGetValue(item.NameIdentifier, out var existing) && existing == item;
     public bool Remove(GroupPolicy group) => _groups.TryRemove(group.NameIdentifier, out _);

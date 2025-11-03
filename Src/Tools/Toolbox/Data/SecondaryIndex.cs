@@ -7,13 +7,13 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
     where TPrimaryKey : notnull
 {
     private readonly ReaderWriterLockSlim _rwLock = new(LockRecursionPolicy.NoRecursion);
-    private readonly InvertedIndex<TKey, TPrimaryKey> _index;
-    private readonly InvertedIndex<TPrimaryKey, TKey> _reverseLookup;
+    private readonly OneToManyIndex<TKey, TPrimaryKey> _index;
+    private readonly OneToManyIndex<TPrimaryKey, TKey> _reverseLookup;
 
     public SecondaryIndex(IEqualityComparer<TKey>? keyComparer = null, IEqualityComparer<TPrimaryKey>? primaryKeyComparer = null)
     {
-        _index = new InvertedIndex<TKey, TPrimaryKey>(keyComparer);
-        _reverseLookup = new InvertedIndex<TPrimaryKey, TKey>(primaryKeyComparer);
+        _index = new OneToManyIndex<TKey, TPrimaryKey>(keyComparer);
+        _reverseLookup = new OneToManyIndex<TPrimaryKey, TKey>(primaryKeyComparer);
     }
 
     public int Count
@@ -25,10 +25,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
             {
                 return _index.Count;
             }
-            finally
-            {
-                _rwLock.ExitReadLock();
-            }
+            finally { _rwLock.ExitReadLock(); }
         }
     }
 
@@ -41,10 +38,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
             {
                 return _index.Get(key);
             }
-            finally
-            {
-                _rwLock.ExitReadLock();
-            }
+            finally { _rwLock.ExitReadLock(); }
         }
     }
 
@@ -56,10 +50,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
             _index.Clear();
             _reverseLookup.Clear();
         }
-        finally
-        {
-            _rwLock.ExitWriteLock();
-        }
+        finally { _rwLock.ExitWriteLock(); }
     }
 
     public bool Remove(TKey key)
@@ -76,10 +67,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
             }
             return true;
         }
-        finally
-        {
-            _rwLock.ExitWriteLock();
-        }
+        finally { _rwLock.ExitWriteLock(); }
     }
 
     public bool RemovePrimaryKey(TPrimaryKey primaryKey)
@@ -96,10 +84,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
             }
             return true;
         }
-        finally
-        {
-            _rwLock.ExitWriteLock();
-        }
+        finally { _rwLock.ExitWriteLock(); }
     }
 
     public bool Remove(TKey key, TPrimaryKey primaryKey)
@@ -117,10 +102,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
                 _ => throw new InvalidOperationException($"Unbalanced indexes, index={removed1}, reverse={removed2}"),
             };
         }
-        finally
-        {
-            _rwLock.ExitWriteLock();
-        }
+        finally { _rwLock.ExitWriteLock(); }
     }
 
     public SecondaryIndex<TKey, TPrimaryKey> Set(TKey key, TPrimaryKey primaryKey)
@@ -132,10 +114,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
             _reverseLookup.Set(primaryKey, key);
             return this;
         }
-        finally
-        {
-            _rwLock.ExitWriteLock();
-        }
+        finally { _rwLock.ExitWriteLock(); }
     }
 
     public IReadOnlyList<TPrimaryKey> Lookup(TKey key)
@@ -145,10 +124,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
         {
             return _index.Get(key);
         }
-        finally
-        {
-            _rwLock.ExitReadLock();
-        }
+        finally { _rwLock.ExitReadLock(); { _rwLock.ExitReadLock(); } }
     }
 
     public IReadOnlyList<TKey> LookupPrimaryKey(TPrimaryKey pkey)
@@ -158,10 +134,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
         {
             return _reverseLookup.Get(pkey);
         }
-        finally
-        {
-            _rwLock.ExitReadLock();
-        }
+        finally { _rwLock.ExitReadLock(); }
     }
 
     public IEnumerator<KeyValuePair<TKey, TPrimaryKey>> GetEnumerator()
@@ -173,10 +146,8 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
         {
             snapshot = _index.ToList();
         }
-        finally
-        {
-            _rwLock.ExitReadLock();
-        }
+        finally { _rwLock.ExitReadLock(); }
+
         return snapshot.GetEnumerator();
     }
 

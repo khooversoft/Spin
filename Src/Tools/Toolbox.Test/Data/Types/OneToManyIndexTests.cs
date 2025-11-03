@@ -4,12 +4,12 @@ using Toolbox.Tools;
 
 namespace Toolbox.Test.Data.Types;
 
-public class InvertedIndexTests
+public class OneToManyIndexTests
 {
     [Fact]
     public void Empty()
     {
-        var set = new InvertedIndex<int, Guid>();
+        var set = new OneToManyIndex<int, Guid>();
         set.Count.Be(0);
         set.Count().Be(0);
 
@@ -22,7 +22,7 @@ public class InvertedIndexTests
         int key = 5;
         Guid refKey = Guid.NewGuid();
 
-        var set = new InvertedIndex<int, Guid>().Set(key, refKey);
+        var set = new OneToManyIndex<int, Guid>().Set(key, refKey);
 
         set.Count.Be(1);
         set.Count().Be(1);
@@ -38,7 +38,7 @@ public class InvertedIndexTests
         var keys = Enumerable.Range(0, 5).ToArray();
         Guid refKey = Guid.NewGuid();
 
-        var set = new InvertedIndex<int, Guid>();
+        var set = new OneToManyIndex<int, Guid>();
         keys.ForEach(x => set.Set(x, refKey));
 
         set.Count.Be(keys.Length);
@@ -74,7 +74,7 @@ public class InvertedIndexTests
         var key = 5;
         var refKeys = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid()).ToArray();
 
-        var set = new InvertedIndex<int, Guid>();
+        var set = new OneToManyIndex<int, Guid>();
         refKeys.ForEach(x => set.Set(key, x));
 
         set.Count.Be(1);
@@ -110,7 +110,7 @@ public class InvertedIndexTests
             .SelectMany(x => x)
             .ToArray();
 
-        var set = new InvertedIndex<int, Guid>();
+        var set = new OneToManyIndex<int, Guid>();
         baseSet.ForEach(x => set.Set(x.Key, x.Value));
 
         set.Count.Be(keys.Length);
@@ -138,7 +138,7 @@ public class InvertedIndexTests
     [Fact]
     public void Indexer_Get_TryGetValue_Clear_AndDuplicateSet()
     {
-        var set = new InvertedIndex<int, int>();
+        var set = new OneToManyIndex<int, int>();
 
         set.Set(1, 100).Set(1, 101).Set(2, 200).Set(3, 300).Set(3, 300); // duplicate should be ignored
 
@@ -190,7 +190,7 @@ public class InvertedIndexTests
     [Fact]
     public void CustomComparers_CaseInsensitive()
     {
-        var set = new InvertedIndex<string, string>(StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase);
+        var set = new OneToManyIndex<string, string>(StringComparer.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase);
 
         set.Set("User", "ID-001");
         set.Set("user", "id-001"); // should collapse to same key/ref due to case-insensitive comparers
@@ -207,7 +207,7 @@ public class InvertedIndexTests
     [Fact]
     public async Task Concurrent_ReadWrite_Stress()
     {
-        var set = new InvertedIndex<int, int>();
+        var set = new OneToManyIndex<int, int>();
 
         const int keyDomain = 64;
         const int refDomain = 64;
@@ -256,7 +256,7 @@ public class InvertedIndexTests
     [Fact]
     public async Task Concurrent_Enumeration_SnapshotSafe()
     {
-        var set = new InvertedIndex<int, int>();
+        var set = new OneToManyIndex<int, int>();
 
         // Seed
         for (int k = 0; k < 16; k++)
@@ -306,7 +306,7 @@ public class InvertedIndexTests
         ValidateInvariants(set);
     }
 
-    private static void ValidateInvariants<TKey, TR>(InvertedIndex<TKey, TR> set)
+    private static void ValidateInvariants<TKey, TR>(OneToManyIndex<TKey, TR> set)
         where TKey : notnull
         where TR : notnull
     {

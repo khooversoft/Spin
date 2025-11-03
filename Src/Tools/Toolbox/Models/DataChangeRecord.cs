@@ -17,6 +17,8 @@ public static class ChangeSource
     public const string Node = "node";
     public const string Edge = "edge";
     public const string Data = "data";
+    public const string Principal = "principal";
+    public const string Group = "group";
 }
 
 public record DataChangeRecord

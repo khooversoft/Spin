@@ -26,11 +26,11 @@ public record PrincipalIdentity
     }
 
     // Id - GetById e.g. 'user:9b0d4bed' - IdentityTool.GeneratedNodeKey() - this is the ID used for security
-    public string PrincipalId { get; }              // Id of the principal
-    public string NameIdentifier { get; }           // Identity provider's PK for the user
-    public string UserName { get; }
-    public string Email { get; }
-    public bool EmailConfirmed { get; }
+    public string PrincipalId { get; init; }              // Id of the principal
+    public string NameIdentifier { get; init; }           // Identity provider's PK for the user
+    public string UserName { get; init; }
+    public string Email { get; init; }
+    public bool EmailConfirmed { get; init; }
 
     public static IValidator<PrincipalIdentity> Validator { get; } = new Validator<PrincipalIdentity>()
         .RuleFor(x => x.PrincipalId).NotEmpty()
@@ -43,4 +43,15 @@ public record PrincipalIdentity
 public static class PrincipalIdentityTool
 {
     public static Option Validate(this PrincipalIdentity subject) => PrincipalIdentity.Validator.Validate(subject).ToOptionStatus();
+
+    public static PrincipalIdentity Update(this PrincipalIdentity subject, string? nameIdentifier, string? userName, string? email, bool? emailConfirmed)
+    {
+        return subject with
+        {
+            NameIdentifier = nameIdentifier ?? subject.NameIdentifier,
+            UserName = userName ?? subject.UserName,
+            Email = email ?? subject.Email,
+            EmailConfirmed = emailConfirmed ?? subject.EmailConfirmed,
+        };
+    }
 }

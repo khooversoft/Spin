@@ -65,6 +65,12 @@ internal static class GiUserTool
                 {
                     return (StatusCode.BadRequest, "Add user must specify valid tags for user command");
                 }
+
+                foreach (var item in tags)
+                {
+                    if (item.Value.IsEmpty()) return (StatusCode.BadRequest, $"Add user tag '{item.Key}' must have a value");
+                }
+
                 break;
 
             case UserCommand.Update:

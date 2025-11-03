@@ -82,4 +82,13 @@ public readonly struct GroupPolicy : IEquatable<GroupPolicy>
 public static class SecurityGroupTool
 {
     public static Option Validate(this GroupPolicy subject) => GroupPolicy.Validator.Validate(subject).ToOptionStatus();
+
+    public static GroupPolicy Append(this GroupPolicy subject, string principalIdentifier)
+    {
+        principalIdentifier = principalIdentifier.NotEmpty();
+        if (subject.Members.Contains(principalIdentifier)) return subject;
+
+        var newMembers = subject.Members.Append(principalIdentifier).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+        return subject with { Members = newMembers };
+    }
 }
