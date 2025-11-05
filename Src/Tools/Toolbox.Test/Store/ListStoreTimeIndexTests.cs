@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Extensions;
-using Toolbox.Models;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -67,7 +67,7 @@ public class ListStoreTimeIndexTests
                 TransactionId = Guid.NewGuid().ToString(),
                 TypeName = nameof(JournalEntry),
                 SourceName = "source",
-                ObjectId = "Test-" + count++,
+                //ObjectId = "Test-" + count++,
                 Action = "add",
                 After = entry.ToDataETag(),
             };

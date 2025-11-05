@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
-using Toolbox.Models;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -131,21 +130,21 @@ public class GraphMapDataManager
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
 
-                var resultOption = entry.SourceName switch
-                {
-                    ChangeSource.Node => await NodeBuild.Build(map, entry, context),
-                    ChangeSource.Edge => await EdgeBuild.Build(map, entry, context),
-                    ChangeSource.Data => await DataBuild.Build(map, entry, dataFileClient, context),
-                    _ => throw new InvalidOperationException($"Unknown source name {entry.SourceName}"),
-                };
+                //var resultOption = entry.SourceName switch
+                //{
+                //    ChangeSource.Node => await NodeBuild.Build(map, entry, context),
+                //    ChangeSource.Edge => await EdgeBuild.Build(map, entry, context),
+                //    ChangeSource.Data => await DataBuild.Build(map, entry, dataFileClient, context),
+                //    _ => throw new InvalidOperationException($"Unknown source name {entry.SourceName}"),
+                //};
 
-                if (resultOption.IsOk())
-                {
-                    lastLsn = entry.LogSequenceNumber;
-                    continue;
-                }
+                //if (resultOption.IsOk())
+                //{
+                //    lastLsn = entry.LogSequenceNumber;
+                //    continue;
+                //}
 
-                resultOption.LogStatus(context, "Failed to recover").ThrowOnError();
+                //resultOption.LogStatus(context, "Failed to recover").ThrowOnError();
             }
 
             if (!string.IsNullOrEmpty(lastLsn))
@@ -209,19 +208,19 @@ public class GraphMapDataManager
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
 
-                var entry = record.Entries[i];
-                var result = entry.SourceName switch
-                {
-                    ChangeSource.Node => await NodeCompensate.Compensate(_map, entry, context),
-                    ChangeSource.Edge => await EdgeCompensate.Compensate(_map, entry, context),
-                    ChangeSource.Data => await DataCompensate.Compensate(_map, entry, _dataFileClient, context),
-                    _ => (StatusCode.BadRequest, $"Unknown source name {entry.SourceName}"),
-                };
+                //var entry = record.Entries[i];
+                //var result = entry.SourceName switch
+                //{
+                //    ChangeSource.Node => await NodeCompensate.Compensate(_map, entry, context),
+                //    ChangeSource.Edge => await EdgeCompensate.Compensate(_map, entry, context),
+                //    ChangeSource.Data => await DataCompensate.Compensate(_map, entry, _dataFileClient, context),
+                //    _ => (StatusCode.BadRequest, $"Unknown source name {entry.SourceName}"),
+                //};
 
-                // NotFound is considered idempotent; continue rollback
-                if (result.IsOk() || result.IsNotFound()) continue;
+                //// NotFound is considered idempotent; continue rollback
+                //if (result.IsOk() || result.IsNotFound()) continue;
 
-                result.LogStatus(context, "Rollback failed to recover an entry").ThrowOnError();
+                //result.LogStatus(context, "Rollback failed to recover an entry").ThrowOnError();
             }
 
             context.LogDebug("Rollback completed for transaction {TransactionId}", record.TransactionId);

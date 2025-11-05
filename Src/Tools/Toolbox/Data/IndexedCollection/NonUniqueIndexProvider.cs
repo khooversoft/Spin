@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Data;
 
@@ -29,7 +28,7 @@ public class NonUniqueIndexProvider<TKey, TValue> : IIndexedCollectionProvider<T
 
     public bool TryGetValue(TKey key, [NotNullWhen(true)] out IReadOnlyList<TValue>? values)
     {
-        if( !_index.TryGetValue(key, out var list) || list.Count == 0)
+        if (!_index.TryGetValue(key, out var list) || list.Count == 0)
         {
             values = null;
             return false;

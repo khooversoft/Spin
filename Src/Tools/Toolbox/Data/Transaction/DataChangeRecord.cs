@@ -1,9 +1,8 @@
 ﻿using Toolbox.Data;
-using Toolbox.Models;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Models;
+namespace Toolbox.Data;
 
 public static class ChangeOperation
 {
@@ -24,10 +23,12 @@ public static class ChangeSource
 public record DataChangeRecord
 {
     public string TransactionId { get; init; } = null!;
+    public DateTime Date { get; init; } = DateTime.UtcNow;
     public IReadOnlyList<DataChangeEntry> Entries { get; init; } = Array.Empty<DataChangeEntry>();
 
     public static IValidator<DataChangeRecord> Validator { get; } = new Validator<DataChangeRecord>()
         .RuleFor(x => x.TransactionId).NotEmpty()
+        .RuleFor(x => x.Date).ValidDateTime()
         .RuleFor(x => x.Entries).NotNull()
         .RuleForEach(x => x.Entries).Validate(DataChangeEntry.Validator)
         .RuleForObject(x => x).Must(x => x.Entries.All(y => x.TransactionId == y.TransactionId), _ => "All entries must have the same TransactionId")
@@ -62,6 +63,7 @@ public record DataChangeEntry
 
 public static class DataChangeRecordTool
 {
+    public static Option Validate(this DataChangeEntry subject) => DataChangeEntry.Validator.Validate(subject).ToOptionStatus();
     public static Option Validate(this DataChangeRecord subject) => DataChangeRecord.Validator.Validate(subject).ToOptionStatus();
 
     public static string? GetLastLogSequenceNumber(this DataChangeRecord subject)

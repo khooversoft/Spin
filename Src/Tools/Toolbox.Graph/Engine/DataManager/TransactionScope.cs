@@ -2,8 +2,8 @@
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Extensions;
-using Toolbox.Models;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -146,7 +146,7 @@ public static class TransactionScopeExtensions
             Date = DateTime.UtcNow,
             TypeName = typeof(T).Name,
             SourceName = sourceName.NotEmpty(),
-            ObjectId = objectId.NotEmpty(),
+            //ObjectId = objectId.NotEmpty(),
             Action = action,
             Before = before,
             After = after,

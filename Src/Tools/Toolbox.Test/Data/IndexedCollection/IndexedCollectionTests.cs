@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Toolbox.Data;
+﻿using Toolbox.Data;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -209,7 +204,7 @@ public class IndexedCollectionTests
             .BeOk().Return();
 
         var ann = new TestRec { Id = 1, Name = "Ann" };   // first=A, len=3
-        var alice = new TestRec { Id = 2, Name = "Alice"}; // first=A, len=5
+        var alice = new TestRec { Id = 2, Name = "Alice" }; // first=A, len=5
         var bob = new TestRec { Id = 3, Name = "Bob" };   // first=B, len=3
 
         c.TryAdd(ann).BeTrue();
