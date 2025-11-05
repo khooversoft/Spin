@@ -30,8 +30,8 @@ public class OperationQueue : IAsyncDisposable
         });
 
         var processContext = _logger.ToScopeContext();
-        _processingTask = Task.Run(() => ProcessQueueAsync(processContext));
         _runState = RunState.Run;
+        _processingTask = Task.Run(() => ProcessQueueAsync(processContext));
     }
 
     public async Task Complete(ScopeContext context)
