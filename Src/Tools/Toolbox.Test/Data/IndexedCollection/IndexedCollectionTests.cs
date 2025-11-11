@@ -56,10 +56,12 @@ public class IndexedCollectionTests
         var second = new TestRec { Id = 1, Name = "Beta" };
         var returned = c.GetOrAdd(second);
         returned.Name.Be("Alpha"); // existing returned
+        c.TryGetValue(1, out var v).BeTrue();
+        (v == first).BeTrue();
 
         // Secondary index should still reflect original item only
         unique.TryGetValue("ALPHA", out var v1).BeTrue();
-        v1!.Id.Be(1);
+        v1.NotNull().Id.Be(1);
 
         unique.TryGetValue("beta", out var v2).BeFalse();
     }

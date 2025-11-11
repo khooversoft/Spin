@@ -59,14 +59,14 @@ public class TransactionManager
         Enqueue(entry);
     }
 
-    public TransactionRecorder GetRecorder(string sourceName)
+    public TrxRecorder GetRecorder(string sourceName)
     {
         EnsureNotFinalized();
 
         _transactionConfiguration.Providers.TryGetValue(sourceName, out var provider)
             .Assert(x => x == true, "No transaction data provider registered with name={name}", sourceName);
 
-        return new TransactionRecorder(this, sourceName);
+        return new TrxRecorder(this, sourceName);
     }
 
     public async Task<Option> Commit(ScopeContext context)
