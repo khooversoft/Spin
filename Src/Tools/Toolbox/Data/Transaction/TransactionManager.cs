@@ -11,20 +11,21 @@ public class TransactionManager
 {
     private readonly ConcurrentQueue<DataChangeEntry> _queue = new();
     private bool _isFinalized = false;
+    private readonly ConcurrentDictionary<string, ITransactionProvider> _providers = new(StringComparer.OrdinalIgnoreCase);
 
-    private readonly TransactionConfiguration _transactionConfiguration;
+    private readonly TransactionManagerOption _transactionManagerOption;
     private readonly IListStore<DataChangeRecord> _changeClient;
     private readonly LogSequenceNumber _logSequenceNumber;
     private readonly ILogger<TransactionManager> _logger;
 
     public TransactionManager(
-        TransactionConfiguration transactionProviders,
+        TransactionManagerOption transactionManagerOption,
         LogSequenceNumber logSequenceNumber,
         IListStore<DataChangeRecord> changeClient,
         ILogger<TransactionManager> logger
         )
     {
-        _transactionConfiguration = transactionProviders.NotNull();
+        _transactionManagerOption = transactionManagerOption.NotNull().Action(x => x.Validate().ThrowOnError());
         _logSequenceNumber = logSequenceNumber.NotNull();
         _changeClient = changeClient.NotNull();
         _logger = logger.NotNull();
@@ -32,38 +33,19 @@ public class TransactionManager
 
     public string TransactionId { get; } = Guid.NewGuid().ToString();
 
-    public void Enqueue(DataChangeEntry entry)
+    public TrxRecorder Register(string sourceName, ITransactionProvider provider)
     {
         EnsureNotFinalized();
-        entry.NotNull().Validate().ThrowOnError();
+        _providers.TryAdd(sourceName, provider).Assert(x => x == true, $"Provider {sourceName} already registered");
 
-        _logger.LogTrace("Enqueue Transaction Entry: {entry}", entry);
-        _queue.Enqueue(entry);
-    }
-
-    public void Enqueue<T>(string sourceName, string objectId, string action, DataETag? before, DataETag? after)
-    {
-        var entry = new DataChangeEntry
-        {
-            LogSequenceNumber = _logSequenceNumber.Next(),
-            TransactionId = TransactionId,
-            ObjectId = objectId.NotEmpty(),
-            Date = DateTime.UtcNow,
-            TypeName = typeof(T).Name,
-            SourceName = sourceName.NotEmpty(),
-            Action = action,
-            Before = before,
-            After = after,
-        };
-
-        Enqueue(entry);
+        return new TrxRecorder(this, sourceName);
     }
 
     public TrxRecorder GetRecorder(string sourceName)
     {
         EnsureNotFinalized();
 
-        _transactionConfiguration.Providers.TryGetValue(sourceName, out var provider)
+        _providers.TryGetValue(sourceName, out var provider)
             .Assert(x => x == true, "No transaction data provider registered with name={name}", sourceName);
 
         return new TrxRecorder(this, sourceName);
@@ -105,7 +87,7 @@ public class TransactionManager
 
         foreach (var journalEntry in _queue)
         {
-            _transactionConfiguration.Providers.TryGetValue(journalEntry.SourceName, out var providerInstance)
+            _transactionManagerOption.Providers.TryGetValue(journalEntry.SourceName, out var providerInstance)
                 .Assert(x => x == true, "No provider for sourceName={sourceName}", journalEntry.SourceName);
 
             var result = await providerInstance.NotNull().Rollback(journalEntry, context);
@@ -120,6 +102,33 @@ public class TransactionManager
         return StatusCode.OK;
     }
 
+    public void Enqueue(DataChangeEntry entry)
+    {
+        EnsureNotFinalized();
+        entry.NotNull().Validate().ThrowOnError();
+
+        _logger.LogTrace("Enqueue Transaction Entry: {entry}", entry);
+        _queue.Enqueue(entry);
+    }
+
+    public void Enqueue<T>(string sourceName, string objectId, string action, DataETag? before, DataETag? after)
+    {
+        var entry = new DataChangeEntry
+        {
+            LogSequenceNumber = _logSequenceNumber.Next(),
+            TransactionId = TransactionId,
+            ObjectId = objectId.NotEmpty(),
+            Date = DateTime.UtcNow,
+            TypeName = typeof(T).Name,
+            SourceName = sourceName.NotEmpty(),
+            Action = action,
+            Before = before,
+            After = after,
+        };
+
+        Enqueue(entry);
+    }
+
     private void EnsureNotFinalized() => Volatile.Read(ref _isFinalized).Assert(x => x == false, "Transaction already committed or rolled back");
     private void SealTransaction() => Interlocked.CompareExchange(ref _isFinalized, true, false).Assert(x => x == false, "Transaction already committed or rolled back");
 
@@ -128,7 +137,7 @@ public class TransactionManager
         dataChangeRecord.NotNull().Validate().ThrowOnError();
         context = context.With(_logger);
 
-        var journalOption = await _changeClient.Append(_transactionConfiguration.JournalKey, [dataChangeRecord], context);
+        var journalOption = await _changeClient.Append(_transactionManagerOption.JournalKey, [dataChangeRecord], context);
         if (journalOption.IsError()) return journalOption.LogStatus(context, "Failed to append to journal file").ToOptionStatus();
 
         return StatusCode.OK;
@@ -136,7 +145,7 @@ public class TransactionManager
 
     private async Task<Option> PrepareProviders(DataChangeRecord dataChangeRecord, ScopeContext context)
     {
-        foreach (var provider in _transactionConfiguration.ProviderList)
+        foreach (var provider in _transactionManagerOption.ProviderList)
         {
             context.LogTrace("Preparing transaction with provider={provider}", provider.Name);
 
@@ -153,7 +162,7 @@ public class TransactionManager
 
     private async Task<Option> CommitProviders(DataChangeRecord dataChangeRecord, ScopeContext context)
     {
-        foreach (var provider in _transactionConfiguration.ProviderList)
+        foreach (var provider in _transactionManagerOption.ProviderList)
         {
             context.LogTrace("Committing transaction with provider={provider}", provider.Name);
 

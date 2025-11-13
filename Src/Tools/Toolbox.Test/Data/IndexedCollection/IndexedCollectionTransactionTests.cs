@@ -52,12 +52,9 @@ public class IndexedCollectionTransactionTests
 
         var c = new IndexedCollection<int, TestRec>(x => x.Id);
 
-        var trxMgr = host.Services.GetRequiredService<TransactionManagerFactory>()
-            .EnlistTransaction("indexedCollection", c)
-            .SetJournalKey("transaction_journal")
-            .Build();
+        var trxMgr = host.Services.GetRequiredService<TransactionManager>()
+            .Register("indexedCollection", c);
 
-        var recorder = trxMgr.GetRecorder("indexedCollection");
         await trxMgr.Commit(context);
 
         var fileList = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
@@ -74,14 +71,11 @@ public class IndexedCollectionTransactionTests
 
         var c = new IndexedCollection<int, TestRec>(x => x.Id);
 
-        var trxMgr = host.Services.GetRequiredService<TransactionManagerFactory>()
-            .EnlistTransaction("indexedCollection", c)
-            .Build();
+        var trxMgr = host.Services.GetRequiredService<TransactionManager>()
+            .Register("indexedCollection", c);
 
-        var recorder = trxMgr.GetRecorder("indexedCollection");
-
-        c.TryAdd(new TestRec { Id = 1, Name = "A" }, recorder).BeTrue();
-        c.TryAdd(new TestRec { Id = 2, Name = "B" }, recorder).BeTrue();
+        c.TryAdd(new TestRec { Id = 1, Name = "A" }).BeTrue();
+        c.TryAdd(new TestRec { Id = 2, Name = "B" }).BeTrue();
 
         await trxMgr.Commit(context);
 

@@ -47,16 +47,17 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
     public IEnumerable<TValue> Values => _primaryIndex.Values;
     public bool ContainsKey(TKey key) => _primaryIndex.ContainsKey(key);
 
+    public DataChangeRecorder DataChange { get; } = new();
     public bool Remove(TKey key) => TryRemove(key, out _);
 
-    public void Clear(TrxRecorder? trxRecord = null)
+    public void Clear()
     {
         _rwLock.EnterWriteLock();
         try
         {
-            if (trxRecord != null)
+            if (DataChange.GetRecorder() != null)
             {
-                foreach (var item in _primaryIndex.Values) trxRecord.Delete(_keySelector(item), item);
+                foreach (var item in _primaryIndex.Values) DataChange.GetRecorder()?.Delete(_keySelector(item), item);
             }
 
             _primaryIndex.Clear();
@@ -68,13 +69,13 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
         }
     }
 
-    public bool TryAdd(TValue item, TrxRecorder? trxRecord = null)
+    public bool TryAdd(TValue item)
     {
         _rwLock.EnterWriteLock();
         try
         {
             if (!_primaryIndex.TryAdd(_keySelector(item), item)) return false;
-            trxRecord?.Add(_keySelector(item), item);
+            DataChange.GetRecorder()?.Add(_keySelector(item), item);
 
             foreach (var index in _secondaryIndexCollection.Providers) index.Set(item);
             return true;
@@ -82,7 +83,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
         finally { _rwLock.ExitWriteLock(); }
     }
 
-    public TValue GetOrAdd(TValue item, TrxRecorder? trxRecord = null)
+    public TValue GetOrAdd(TValue item)
     {
         _rwLock.EnterWriteLock();
         try
@@ -90,7 +91,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
             var key = _keySelector(item);
             if (_primaryIndex.TryGetValue(key, out var existing)) return existing;
 
-            trxRecord?.Add(_keySelector(item), item);
+            DataChange.GetRecorder()?.Add(_keySelector(item), item);
             _primaryIndex[key] = item;
             foreach (var index in _secondaryIndexCollection.Providers) index.Set(item);
             return item;
@@ -108,7 +109,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
         finally { _rwLock.ExitReadLock(); }
     }
 
-    public bool TryRemove(TKey key, out TValue? value, TrxRecorder? trxRecord = null)
+    public bool TryRemove(TKey key, out TValue? value)
     {
         _rwLock.EnterWriteLock();
         try
@@ -116,7 +117,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
             var result = _primaryIndex.TryRemove(key, out value);
             if (result && value != null)
             {
-                trxRecord?.Delete(key, value);
+                DataChange.GetRecorder()?.Delete(key, value);
                 foreach (var index in _secondaryIndexCollection.Providers) index.Remove(value);
             }
             return result;
@@ -124,13 +125,13 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
         finally { _rwLock.ExitWriteLock(); }
     }
 
-    public bool TryRemove(TValue item, out TValue? value, TrxRecorder? trxRecord = null) => TryRemove(_keySelector(item), out value, trxRecord);
+    public bool TryRemove(TValue item, out TValue? value) => TryRemove(_keySelector(item), out value);
 
-    public bool TryUpdate(TValue newValue, TValue currentValue, TrxRecorder? trxRecord = null)
+    public bool TryUpdate(TValue newValue, TValue currentValue)
     {
         var k1 = _keySelector(newValue);
         var k2 = _keySelector(currentValue);
-        if( k1.Equals(k2) == false)
+        if (k1.Equals(k2) == false)
         {
             throw new ArgumentException("The primary key of the new value must match the primary key of the current value for an update operation.");
         }
@@ -144,7 +145,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
             var result = _primaryIndex.TryUpdate(_keySelector(newValue), newValue, existing);
             if (result)
             {
-                trxRecord?.Update(_keySelector(newValue), currentValue, newValue);
+                DataChange.GetRecorder()?.Update(_keySelector(newValue), currentValue, newValue);
                 foreach (var index in _secondaryIndexCollection.Providers) index.Set(newValue);
             }
 
@@ -153,7 +154,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
         finally { _rwLock.ExitWriteLock(); }
     }
 
-    public void Set(TValue item, TrxRecorder? trxRecord = null)
+    public void Set(TValue item)
     {
         _rwLock.EnterWriteLock();
         try
@@ -162,12 +163,12 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
 
             _primaryIndex[_keySelector(item)] = item;
 
-            if (trxRecord != null)
+            if (DataChange.GetRecorder() != null)
             {
                 if (exist && existing != null)
-                    trxRecord.Update(_keySelector(item), existing, item);
+                    DataChange.GetRecorder()?.Update(_keySelector(item), existing, item);
                 else
-                    trxRecord.Add(_keySelector(item), item);
+                    DataChange.GetRecorder()?.Add(_keySelector(item), item);
             }
 
             foreach (var index in _secondaryIndexCollection.Providers) index.Set(item);

@@ -9,7 +9,6 @@ public static class TransactionStartup
     public static IServiceCollection AddTransactionServices(this IServiceCollection services)
     {
         services.AddTransient<TransactionManager>();
-        services.AddSingleton<TransactionManagerFactory>();
         services.TryAddSingleton<LogSequenceNumber>();
 
         return services;
