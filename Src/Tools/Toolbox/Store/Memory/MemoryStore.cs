@@ -1,16 +1,15 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public sealed class MemoryStore
+public class MemoryStore
 {
-    private record DirectoryDetail(StorePathDetail PathDetail, DataETag Data, LeaseRecord? LeaseRecord = null);
-
     private readonly ConcurrentDictionary<string, DirectoryDetail> _store = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, LeaseRecord> _leaseStore = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _lock = new object();
@@ -18,9 +17,12 @@ public sealed class MemoryStore
 
     public MemoryStore(ILogger<MemoryStore> logger) => _logger = logger.NotNull();
 
+    public DataChangeRecorder DataChangeLog { get; } = new();
+
     public Option<string> Add(string path, DataETag data, ScopeContext context)
     {
         context = context.With(_logger);
+        if( path.IsEmpty()) return (StatusCode.BadRequest, "Path is required");
         path = RemoveForwardSlash(path);
 
         if (!FileStoreTool.IsPathValid(path)) return (StatusCode.BadRequest, "Path is invalid");
@@ -33,9 +35,11 @@ public sealed class MemoryStore
 
             Option<string> result = _store.TryAdd(path, detail) switch
             {
-                true => (StatusCode.OK, detail.PathDetail.ETag.NotEmpty()),
+                true => detail.PathDetail.ETag.NotEmpty().ToOption(),
                 false => StatusCode.Conflict,
             };
+
+            if (result.IsOk()) DataChangeLog.GetRecorder()?.Add(path, detail);
 
             context.LogDebug("Add Path={path}, length={length}", path, data.Data.Length);
             return result;
@@ -46,6 +50,7 @@ public sealed class MemoryStore
     {
         context = context.With(_logger);
         path = RemoveForwardSlash(path);
+        DataChangeLog.GetRecorder().Assert(x => x == null, "Append is not supported with DataChangeRecorder");
 
         lock (_lock)
         {
@@ -104,6 +109,8 @@ public sealed class MemoryStore
                 _ => StatusCode.NotFound,
             };
 
+            if (result.IsOk()) DataChangeLog.GetRecorder()?.Delete(path, payload!);
+
             result.LogStatus(context, "Remove Path={path}, leaseId={leaseId}", [path, leaseId ?? "<no leaseId>"]);
             return result;
         }
@@ -140,20 +147,28 @@ public sealed class MemoryStore
         {
             if (IsLeased(path, leaseId)) return (StatusCode.Locked, "Path is leased");
 
-            var result = _store.AddOrUpdate(path, x => new DirectoryDetail(data.ConvertTo(x), data, null), (x, current) =>
-            {
-                var payload = current with
+            var result = _store.AddOrUpdate(path,
+                x =>
                 {
-                    Data = data,
-                    PathDetail = current.PathDetail with
+                    var p = new DirectoryDetail(data.ConvertTo(x), data, null);
+                    DataChangeLog.GetRecorder()?.Add(x, p);
+                    return p;
+                },
+                (x, current) =>
+                {
+                    var payload = current with
                     {
-                        LastModified = DateTimeOffset.UtcNow,
-                        ETag = data.ToHash(),
-                    },
-                };
+                        Data = data,
+                        PathDetail = current.PathDetail with
+                        {
+                            LastModified = DateTimeOffset.UtcNow,
+                            ETag = data.ToHash(),
+                        },
+                    };
 
-                return payload;
-            });
+                    DataChangeLog.GetRecorder()?.Update(x, current, payload);
+                    return payload;
+                });
 
             context.LogDebug("Set Path={path}, length={length}", path, data.Data.Length);
             return result.PathDetail.ETag;

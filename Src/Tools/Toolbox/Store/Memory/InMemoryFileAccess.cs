@@ -34,13 +34,14 @@ public class InMemoryFileAccess : IFileAccess
 
     private async Task<Option<IFileLeasedAccess>> InternalAcquire(TimeSpan leaseDuration, bool breakLeaseIfExist, ScopeContext context)
     {
+        context = context.With(_logger);
         if (breakLeaseIfExist) _memoryStore.BreakLease(Path, context);
 
         DateTime dt = DateTime.UtcNow + TimeSpan.FromSeconds(5);
 
         while (DateTime.UtcNow < dt)
         {
-            Option<LeaseRecord> lease = _memoryStore.AcquireLease(Path, leaseDuration, context.With(_logger));
+            Option<LeaseRecord> lease = _memoryStore.AcquireLease(Path, leaseDuration, context);
             if (lease.IsOk())
             {
                 IFileLeasedAccess access = new InMemoryLeasedAccess(lease.Return(), _memoryStore, _logger);

@@ -21,43 +21,48 @@ public class IndexedCollectionTrxProvider<TKey, TValue> : ITransactionProvider
 
     public Task<Option> Commit(DataChangeRecord dataChangeEntry, ScopeContext context)
     {
-        context.LogTrace("Committing change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
+        context.LogTrace("IndexedCollectionTrxProvider: Committing change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
         return new Option(StatusCode.OK).ToTaskResult();
     }
 
     public Task<Option> Prepare(DataChangeRecord dataChangeEntry, ScopeContext context)
     {
-        context.LogTrace("Preparing change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
-        _index.DataChangeLog.Clear();
+        context.LogTrace("IndexedCollectionTrxProvider: Preparing change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
         return new Option(StatusCode.OK).ToTaskResult();
     }
 
     public Task<Option> Rollback(DataChangeEntry dataChangeEntry, ScopeContext context)
     {
         if (dataChangeEntry.SourceName != Name) return new Option(StatusCode.OK).ToTaskResult();
-        context.LogTrace($"Rolling back change entry {dataChangeEntry}");
+        context.LogTrace("IndexedCollectionTrxProvider: Rolling back change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
 
-        _index.DataChangeLog.Clear();
-
-        switch (dataChangeEntry.Action)
+        _index.DataChangeLog.Pause(true);
+        try
         {
-            case ChangeOperation.Add:
-                {
-                    if (dataChangeEntry.After == null) return new Option(StatusCode.OK).ToTaskResult();
-                    var value = dataChangeEntry.After.Value.ToObject<TValue>();
-                    _index.Remove(value).Assert(x => x == true, $"Failed to delete {value}");
+            switch (dataChangeEntry.Action)
+            {
+                case ChangeOperation.Add:
+                    {
+                        if (dataChangeEntry.After == null) return new Option(StatusCode.OK).ToTaskResult();
+                        var value = dataChangeEntry.After.Value.ToObject<TValue>();
+                        _index.Remove(value).Assert(x => x == true, $"Failed to delete {value}");
+                        return new Option(StatusCode.OK).ToTaskResult();
+                    }
+                case ChangeOperation.Update:
+                case ChangeOperation.Delete:
+                    {
+                        if (dataChangeEntry.Before == null) return new Option(StatusCode.OK).ToTaskResult();
+                        var value = dataChangeEntry.Before.Value.ToObject<TValue>();
+                        _index.Set(value);
+                        return new Option(StatusCode.OK).ToTaskResult();
+                    }
+                default:
                     return new Option(StatusCode.OK).ToTaskResult();
-                }
-            case ChangeOperation.Update:
-            case ChangeOperation.Delete:
-                {
-                    if (dataChangeEntry.Before == null) return new Option(StatusCode.OK).ToTaskResult();
-                    var value = dataChangeEntry.Before.Value.ToObject<TValue>();
-                    _index.Set(value);
-                    return new Option(StatusCode.OK).ToTaskResult();
-                }
-            default:
-                return new Option(StatusCode.OK).ToTaskResult();
+            }
+        }
+        finally
+        {
+            _index.DataChangeLog.Pause(false);
         }
     }
 }

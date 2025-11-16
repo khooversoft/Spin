@@ -24,6 +24,8 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
         _secondaryIndexCollection = new SecondaryIndexCollection<TKey, TValue>();
     }
 
+    public DataChangeRecorder DataChangeLog { get; } = new();
+
     public TValue this[TKey key]
     {
         set
@@ -45,8 +47,6 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
     public IEnumerable<TKey> Keys => _primaryIndex.Keys;
     public IEnumerable<TValue> Values => _primaryIndex.Values;
     public bool ContainsKey(TKey key) => _primaryIndex.ContainsKey(key);
-
-    public DataChangeRecorder DataChangeLog { get; } = new();
 
     public bool Remove(TValue value) => TryRemove(_keySelector(value), out _);
 

@@ -18,7 +18,7 @@ public class MemoryStoreLeaseTests
     {
         _serviceProvider = TestApplication.CreateServiceProvider(outputHelper);
         _fileStore = _serviceProvider.GetRequiredService<IFileStore>();
-        _context = new ScopeContext(_serviceProvider.GetRequiredService<ILogger<MemoryStoreTests>>());
+        _context = new ScopeContext(_serviceProvider.GetRequiredService<ILogger<MemoryStoreFileAccessTests>>());
         _tests = new FileStoreLeasedStandardTests(() => _fileStore, _context);
     }
 
