@@ -6,8 +6,10 @@ namespace Toolbox.Data;
 
 public static class TransactionStartup
 {
-    public static IServiceCollection AddTransactionServices(this IServiceCollection services)
+    public static IServiceCollection AddTransactionServices(this IServiceCollection services, TransactionManagerOption? option = null)
     {
+        if (option != null) services.AddSingleton(option);
+
         services.AddTransient<TransactionManager>();
         services.TryAddSingleton<LogSequenceNumber>();
 

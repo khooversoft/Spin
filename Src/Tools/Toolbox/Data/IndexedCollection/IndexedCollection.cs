@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 
 namespace Toolbox.Data;
@@ -47,17 +46,18 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
     public IEnumerable<TValue> Values => _primaryIndex.Values;
     public bool ContainsKey(TKey key) => _primaryIndex.ContainsKey(key);
 
-    public DataChangeRecorder DataChange { get; } = new();
-    public bool Remove(TKey key) => TryRemove(key, out _);
+    public DataChangeRecorder DataChangeLog { get; } = new();
+
+    public bool Remove(TValue value) => TryRemove(_keySelector(value), out _);
 
     public void Clear()
     {
         _rwLock.EnterWriteLock();
         try
         {
-            if (DataChange.GetRecorder() != null)
+            if (DataChangeLog.GetRecorder() != null)
             {
-                foreach (var item in _primaryIndex.Values) DataChange.GetRecorder()?.Delete(_keySelector(item), item);
+                foreach (var item in _primaryIndex.Values) DataChangeLog.GetRecorder()?.Delete(_keySelector(item), item);
             }
 
             _primaryIndex.Clear();
@@ -75,7 +75,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
         try
         {
             if (!_primaryIndex.TryAdd(_keySelector(item), item)) return false;
-            DataChange.GetRecorder()?.Add(_keySelector(item), item);
+            DataChangeLog.GetRecorder()?.Add(_keySelector(item), item);
 
             foreach (var index in _secondaryIndexCollection.Providers) index.Set(item);
             return true;
@@ -91,7 +91,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
             var key = _keySelector(item);
             if (_primaryIndex.TryGetValue(key, out var existing)) return existing;
 
-            DataChange.GetRecorder()?.Add(_keySelector(item), item);
+            DataChangeLog.GetRecorder()?.Add(_keySelector(item), item);
             _primaryIndex[key] = item;
             foreach (var index in _secondaryIndexCollection.Providers) index.Set(item);
             return item;
@@ -117,7 +117,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
             var result = _primaryIndex.TryRemove(key, out value);
             if (result && value != null)
             {
-                DataChange.GetRecorder()?.Delete(key, value);
+                DataChangeLog.GetRecorder()?.Delete(key, value);
                 foreach (var index in _secondaryIndexCollection.Providers) index.Remove(value);
             }
             return result;
@@ -145,7 +145,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
             var result = _primaryIndex.TryUpdate(_keySelector(newValue), newValue, existing);
             if (result)
             {
-                DataChange.GetRecorder()?.Update(_keySelector(newValue), currentValue, newValue);
+                DataChangeLog.GetRecorder()?.Update(_keySelector(newValue), currentValue, newValue);
                 foreach (var index in _secondaryIndexCollection.Providers) index.Set(newValue);
             }
 
@@ -163,12 +163,12 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
 
             _primaryIndex[_keySelector(item)] = item;
 
-            if (DataChange.GetRecorder() != null)
+            if (DataChangeLog.GetRecorder() != null)
             {
                 if (exist && existing != null)
-                    DataChange.GetRecorder()?.Update(_keySelector(item), existing, item);
+                    DataChangeLog.GetRecorder()?.Update(_keySelector(item), existing, item);
                 else
-                    DataChange.GetRecorder()?.Add(_keySelector(item), item);
+                    DataChangeLog.GetRecorder()?.Add(_keySelector(item), item);
             }
 
             foreach (var index in _secondaryIndexCollection.Providers) index.Set(item);

@@ -31,29 +31,29 @@ public static class DataBuild
     {
         if (entry.After == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 
-        //var setOption = await dataFileClient.Set(entry.ObjectId, entry.After.Value, context);
-        //if (setOption.IsError())
-        //{
-        //    context.LogError("Cannot set fileId={fileId}", entry.ObjectId);
-        //    return setOption.ToOptionStatus();
-        //}
+        var setOption = await dataFileClient.Set(entry.ObjectId, entry.After.Value, context);
+        if (setOption.IsError())
+        {
+            context.LogError("Cannot set fileId={fileId}", entry.ObjectId);
+            return setOption.ToOptionStatus();
+        }
 
-        //context.LogDebug("Build: added fileId={fileId} to store, entry={entry}", entry.ObjectId, entry);
-        //map.SetLastLogSequenceNumber(entry.LogSequenceNumber);
+        context.LogDebug("Build: added fileId={fileId} to store, entry={entry}", entry.ObjectId, entry);
+        map.SetLastLogSequenceNumber(entry.LogSequenceNumber);
         return StatusCode.OK;
     }
 
     private static async Task<Option> Delete(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ScopeContext context)
     {
-        //var deleteOption = await dataFileClient.Delete(entry.ObjectId, context);
-        //if (deleteOption.IsError())
-        //{
-        //    context.LogError("Cannot delete fileId={fileId}", entry.ObjectId);
-        //    return deleteOption;
-        //}
+        var deleteOption = await dataFileClient.Delete(entry.ObjectId, context);
+        if (deleteOption.IsError())
+        {
+            context.LogError("Cannot delete fileId={fileId}", entry.ObjectId);
+            return deleteOption;
+        }
 
-        //context.LogDebug("Build: removed fileId={fileId} from store, entry={entry}", entry.ObjectId, entry);
-        //map.SetLastLogSequenceNumber(entry.LogSequenceNumber);
+        context.LogDebug("Build: removed fileId={fileId} from store, entry={entry}", entry.ObjectId, entry);
+        map.SetLastLogSequenceNumber(entry.LogSequenceNumber);
         return StatusCode.OK;
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
@@ -15,26 +14,11 @@ public static class VerifyAssert
     /// <param name="message">message</param>
     /// <returns>subject</returns>
     [DebuggerStepThrough]
-    public static T Assert<T>(
-            this T subject,
-            Func<T, bool> test,
-            string? message = null,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0,
-            [CallerArgumentExpression("subject")] string name = ""
-        )
+    public static T Assert<T>(this T subject, Func<T, bool> test, string? message = null, [CallerArgumentExpression("subject")] string name = "")
     {
         if (test(subject)) return subject;
-        var location = new CodeLocation(function, path, lineNumber, name);
-
-        var structLine = StructureLineBuilder.Start()
-            .Add(message)
-            .Add(location)
-            .Build()
-            .Format();
-
-        throw new ArgumentException(structLine);
+        message ??= $"Assertion failed for {name}";
+        throw new ArgumentException(message);
     }
 
     /// <summary>
@@ -46,26 +30,10 @@ public static class VerifyAssert
     /// <param name="getMessage">get message</param>
     /// <returns>subject</returns>
     [DebuggerStepThrough]
-    public static T Assert<T>(
-            this T subject,
-            Func<T, bool> test,
-            Func<T, string?> getMessage,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0,
-            [CallerArgumentExpression("subject")] string name = ""
-        )
+    public static T Assert<T>(this T subject, Func<T, bool> test, Func<T, string?> getMessage, [CallerArgumentExpression("subject")] string name = "")
     {
         if (test(subject)) return subject;
         getMessage.NotNull();
-        var location = new CodeLocation(function, path, lineNumber, name);
-
-        var structLine = StructureLineBuilder.Start()
-            .Add(getMessage(subject))
-            .Add(location)
-            .Build()
-            .Format();
-
-        throw new ArgumentException(structLine);
+        throw new ArgumentException(getMessage(subject));
     }
 }

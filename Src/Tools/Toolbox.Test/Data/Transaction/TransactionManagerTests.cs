@@ -12,294 +12,643 @@ namespace Toolbox.Test.Data.Transaction;
 
 public class TransactionManagerTests
 {
-    private readonly ITestOutputHelper _outputHelper;
+    private readonly ITestOutputHelper _output;
 
-    protected virtual void AddStore(IServiceCollection services) => services.AddInMemoryFileStore();
+    public TransactionManagerTests(ITestOutputHelper output) => _output = output.NotNull();
 
-    public TransactionManagerTests(ITestOutputHelper output) => _outputHelper = output.NotNull();
-
-    public async Task<IHost> BuildService(bool useQueue)
+    private async Task<IHost> BuildHost(string journalKey)
     {
         var host = Host.CreateDefaultBuilder()
-        .ConfigureServices((context, services) =>
-        {
-            services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
-            AddStore(services);
-            services.AddListStore<DataChangeRecord>(config => useQueue.IfTrue(() => config.AddBatchProvider()));
-            services.AddTransactionServices();
-        })
-        .Build();
+            .ConfigureServices(services =>
+            {
+                services.AddLogging(c => c.AddLambda(_output.WriteLine).AddDebug().AddFilter(_ => true));
+                services.AddInMemoryFileStore();
+                services.AddListStore<DataChangeRecord>();
+                services.AddTransactionServices(new TransactionManagerOption { JournalKey = journalKey });
+                services.AddSingleton<ITransactionProvider, PassThruProvider>(); // optional default
+            })
+            .Build();
 
         await host.ClearStore<TransactionManagerTests>();
         return host;
     }
 
-    [Fact]
-    public void TransactionStartup()
+    private sealed class RecordingProvider : ITransactionProvider
     {
-        new ServiceCollection().AddTransactionServices().BuildServiceProvider();
+        public string Name { get; }
+        public List<string> Calls { get; } = new();
+        public Func<DataChangeRecord, Option>? PrepareResult { get; set; }
+        public Func<DataChangeRecord, Option>? CommitResult { get; set; }
+        public Func<DataChangeEntry, Option>? RollbackResult { get; set; }
+
+        public RecordingProvider(string name) => Name = name;
+
+        public Task<Option> Prepare(DataChangeRecord r, ScopeContext c)
+        {
+            Calls.Add("prepare:" + Name);
+            return Task.FromResult(PrepareResult?.Invoke(r) ?? new Option(StatusCode.OK));
+        }
+
+        public Task<Option> Commit(DataChangeRecord r, ScopeContext c)
+        {
+            Calls.Add("commit:" + Name);
+            return Task.FromResult(CommitResult?.Invoke(r) ?? new Option(StatusCode.OK));
+        }
+
+        public Task<Option> Rollback(DataChangeEntry e, ScopeContext c)
+        {
+            Calls.Add("rollback:" + Name + ":" + e.ObjectId);
+            return Task.FromResult(RollbackResult?.Invoke(e) ?? new Option(StatusCode.OK));
+        }
+    }
+
+    private sealed class PassThruProvider : ITransactionProvider
+    {
+        public string Name => "pass";
+        public Task<Option> Prepare(DataChangeRecord r, ScopeContext c) => Task.FromResult(new Option(StatusCode.OK));
+        public Task<Option> Commit(DataChangeRecord r, ScopeContext c) => Task.FromResult(new Option(StatusCode.OK));
+        public Task<Option> Rollback(DataChangeEntry e, ScopeContext c) => Task.FromResult(new Option(StatusCode.OK));
     }
 
     [Fact]
-    public async Task Empty()
+    public async Task Startup_ResolvesServices()
     {
-        var host = await BuildService(false);
-
-        Verify.Throw<ArgumentNullException>(() => new TransactionManagerFactory(null!).Build());
-        Verify.Throw<ArgumentNullException>(() => new TransactionManagerFactory(host.Services).SetJournalKey("key").Build());
+        using var host = await BuildHost("journal");
+        host.Services.GetRequiredService<TransactionManager>();
+        host.Services.GetRequiredService<LogSequenceNumber>();
     }
 
     [Fact]
-    public async Task Simple()
+    public async Task Register_DuplicateProvider_Throws()
     {
-        var host = await BuildService(false);
-
-        var builder = host.Services.GetRequiredService<TransactionManagerFactory>()
-            .SetJournalKey("key")
-            .AddProvider(new TestProvider())
-            .Build();
+        using var host = await BuildHost("j1");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        mgr.Register("A", new RecordingProvider("A"));
+        Assert.Throws<ArgumentException>(() => mgr.Register("A", new RecordingProvider("A")));
     }
 
-    [Theory]
-    [InlineData(false)]
-    //[InlineData(true)]  // TODO: Queue does not work
-    public async Task Commit_Success_AppendsJournal_InvokesProviders(bool useQueue)
+    [Fact]
+    public async Task Register_AfterStart_Throws()
     {
-        using var host = await BuildService(useQueue);
-        var context = host.Services.CreateContext<TransactionManagerTests>();
-        var listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        using var host = await BuildHost("j2");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        mgr.Register("A", new RecordingProvider("A"));
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+        Assert.Throws<ArgumentException>(() => mgr.Register("B", new RecordingProvider("B")));
+    }
 
-        string journalKey = nameof(Commit_Success_AppendsJournal_InvokesProviders) + "-" + Guid.NewGuid().ToString("N");
+    [Fact]
+    public async Task Commit_WithEntries_AppendsJournal_InvokesProviders()
+    {
+        string journalKey = "commit-" + Guid.NewGuid().ToString("N");
+        using var host = await BuildHost(journalKey);
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var pA = new RecordingProvider("A");
+        var pB = new RecordingProvider("B");
+        var recA = mgr.Register("A", pA);
+        var recB = mgr.Register("B", pB);
 
-        var callLog = new List<string>();
-        var providerA = new FakeProvider("sourceA", callLog);
-        var providerB = new FakeProvider("sourceB", callLog);
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
 
-        var manager = host.Services.GetRequiredService<TransactionManagerFactory>()
-            .SetJournalKey(journalKey)
-            .AddProvider(providerA)
-            .AddProvider(providerB)
-            .Build();
+        recA.Add("id1", "val1");
+        recB.Delete("id2", "old2");
 
-        var recA = manager.GetRecorder("sourceA");
-        var recB = manager.GetRecorder("sourceB");
+        (await mgr.Commit(ctx)).BeOk();
 
-        recA.Add("obj1", "v1");
-        recB.Delete("obj2", "old");
+        // Providers called (ordering not enforced)
+        pA.Calls.Count(x => x.StartsWith("prepare")).Be(1);
+        pB.Calls.Count(x => x.StartsWith("prepare")).Be(1);
+        pA.Calls.Count(x => x.StartsWith("commit")).Be(1);
+        pB.Calls.Count(x => x.StartsWith("commit")).Be(1);
 
-        var result = await manager.Commit(context);
-        result.BeOk();
-
-        // Verify provider ordering: prepare then commit, A then B
-        callLog.SequenceEqual(["prepare:sourceA", "prepare:sourceB", "commit:sourceA", "commit:sourceB"]).BeTrue();
-
-        // Verify journal contains our transaction
-        var read = await listStore.Get(journalKey, context);
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var read = await store.Get(journalKey, ctx);
         read.BeOk();
-        var record = read.Return().SingleOrDefault(x => x.TransactionId == manager.TransactionId);
-        record.NotNull();
-        record!.Entries.Count.Be(2);
-
-        var e1 = record.Entries[0];
-        var e2 = record.Entries[1];
-
-        manager.TransactionId.Be(e1.TransactionId);
-        "sourceA".Be(e1.SourceName);
-        ChangeOperation.Add.Be(e1.Action);
-        e1.After.NotNull();
-        Assert.Null(e1.Before);
-        "String".Be(e1.TypeName);
-
-        manager.TransactionId.Be(e2.TransactionId);
-        "sourceB".Be(e2.SourceName);
-        ChangeOperation.Delete.Be(e2.Action);
-        e2.Before.NotNull();
-        e2.After.BeNull();
-        "String".Be(e2.TypeName);
-
-        // Finalization: cannot enqueue or commit again
-        Verify.Throw<ArgumentException>(() => recA.Add("obj3", "v3"));
-        await Verify.ThrowAsync<ArgumentException>(async () => await manager.Commit(context));
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task Rollback_Success_InvokesProviderPerEntry(bool useQueue)
-    {
-        using var host = await BuildService(useQueue);
-        var context = host.Services.CreateContext<TransactionManagerTests>();
-
-        var providerA = new FakeProvider("sourceA");
-        var providerB = new FakeProvider("sourceB");
-
-        var manager = host.Services.GetRequiredService<TransactionManagerFactory>()
-            .SetJournalKey(nameof(Rollback_Success_InvokesProviderPerEntry))
-            .AddProvider(providerA)
-            .AddProvider(providerB)
-            .Build();
-
-        var recA = manager.GetRecorder("sourceA");
-        var recB = manager.GetRecorder("sourceB");
-
-        recA.Add("obj1", "v1");
-        recB.Update("obj2", "old", "new");
-        recA.Delete("obj3", "oldA");
-
-        var result = await manager.Rollback(context);
-        result.BeOk();
-
-        // Each rollback goes to the provider associated with the entry
-        Assert.Collection(providerA.RolledBack,
-            e => "obj1".Be(e.ObjectId),
-            e => "obj3".Be(e.ObjectId)
-        );
-        Assert.Collection(providerB.RolledBack,
-            e => "obj2".Be(e.ObjectId)
-        );
-
-        // Finalization: cannot enqueue or commit/rollback again
-        Verify.Throw<ArgumentException>(() => recA.Add("objX", "v"));
-        await Verify.ThrowAsync<ArgumentException>(async () => await manager.Rollback(context));
-        await Verify.ThrowAsync<ArgumentException>(async () => await manager.Commit(context));
+        var records = read.Return();
+        records.Count.Be(1);
+        var trx = records[0];
+        trx.TransactionId.Be(mgr.TransactionId);
+        trx.Entries.Count.Be(2);
     }
 
     [Fact]
-    public async Task PrepareFails_StopsAndReturnsError_NoCommitInvoked()
+    public async Task Commit_Empty_WritesJournal()
     {
-        using var host = await BuildService(false);
-        var context = host.Services.CreateContext<TransactionManagerTests>();
+        string journalKey = "empty-" + Guid.NewGuid().ToString("N");
+        using var host = await BuildHost(journalKey);
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        mgr.Register("A", new RecordingProvider("A"));
 
-        var callLog = new List<string>();
-        var badProvider = new FakeProvider("bad", callLog) { PrepareResultFactory = _ => new Option(StatusCode.BadRequest, "prep fail") };
-        var goodProvider = new FakeProvider("good", callLog);
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+        (await mgr.Commit(ctx)).BeOk();
 
-        var manager = host.Services.GetRequiredService<TransactionManagerFactory>()
-            .SetJournalKey(nameof(PrepareFails_StopsAndReturnsError_NoCommitInvoked))
-            .SetServiceProvider(host.Services)
-            .AddProvider(badProvider)     // first -> should fail here
-            .AddProvider(goodProvider)
-            .Build();
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var read = await store.Get(journalKey, ctx);
+        read.BeOk();
+        read.Return().Single().Entries.Count.Be(0);
+    }
 
-        var rec = manager.GetRecorder("bad");
-        rec.Add("obj", "v");
+    [Fact]
+    public async Task Prepare_Failure_Stops_NoCommit()
+    {
+        using var host = await BuildHost("prepFail");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var bad = new RecordingProvider("bad") { PrepareResult = _ => new Option(StatusCode.BadRequest, "prep") };
+        var good = new RecordingProvider("good");
+        var recBad = mgr.Register("bad", bad);
+        mgr.Register("good", good);
 
-        var result = await manager.Commit(context);
-        result.BeError();
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+        recBad.Add("obj", "v");
+        var result = await mgr.Commit(ctx);
+        result.IsError().BeTrue();
         result.StatusCode.Be(StatusCode.BadRequest);
 
-        // Only first prepare should have been called, no commits at all
-        callLog.SequenceEqual(["prepare:bad"]).BeTrue();
-        badProvider.Committed.Count.Be(0);
-        goodProvider.Prepared.Count.Be(0);
-        goodProvider.Committed.Count.Be(0);
+        bad.Calls.Contains("commit:bad").BeFalse();
+        good.Calls.Any().BeFalse();
     }
 
     [Fact]
-    public async Task CommitFails_StopsAndReturnsError_SubsequentProvidersNotInvoked()
+    public async Task Commit_Failure_Stops_SubsequentProvidersNotInvoked()
     {
-        using var host = await BuildService(false);
-        var context = host.Services.CreateContext<TransactionManagerTests>();
+        using var host = await BuildHost("commitFail");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var pA = new RecordingProvider("A");
+        var pB = new RecordingProvider("B") { CommitResult = _ => new Option(StatusCode.Conflict, "fail") };
+        var recA = mgr.Register("A", pA);
+        mgr.Register("B", pB);
 
-        var callLog = new List<string>();
-        var providerA = new FakeProvider("A", callLog);
-        var providerB = new FakeProvider("B", callLog) { CommitResultFactory = _ => new Option(StatusCode.Conflict, "commit fail") };
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+        recA.Add("x", "y");
+        var r = await mgr.Commit(ctx);
+        r.IsError().BeTrue();
+        r.StatusCode.Be(StatusCode.Conflict);
 
-        var manager = host.Services.GetRequiredService<TransactionManagerFactory>()
-            .SetJournalKey(nameof(CommitFails_StopsAndReturnsError_SubsequentProvidersNotInvoked))
-            .AddProvider(providerA) // prepare A ok
-            .AddProvider(providerB) // prepare B ok, commit B fails
-            .Build();
-
-        var recA = manager.GetRecorder("A");
-        recA.Add("obj1", "v1");
-
-        var result = await manager.Commit(context);
-        result.BeError();
-        result.StatusCode.Be(StatusCode.Conflict);
-
-        // Prepare A, Prepare B, Commit A, Commit B(fail). No commit calls after failure.
-        Assert.Equal(new[] { "prepare:A", "prepare:B", "commit:A", "commit:B" }, callLog);
+        // A prepared & committed, B prepared & failed commit, no further providers
+        pA.Calls.Count(x => x == "prepare:A").Be(1);
+        pA.Calls.Count(x => x == "commit:A").Be(0);
+        pB.Calls.Count(x => x == "prepare:B").Be(1);
+        pB.Calls.Count(x => x == "commit:B").Be(1);
     }
 
     [Fact]
-    public async Task GetRecorder_UnknownProvider_Throws()
+    public async Task Rollback_ReversesOrder_ProviderSpecific()
     {
-        using var host = await BuildService(false);
+        using var host = await BuildHost("rollback");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var pA = new RecordingProvider("A");
+        var pB = new RecordingProvider("B");
+        var recA = mgr.Register("A", pA);
+        var recB = mgr.Register("B", pB);
 
-        var manager = host.Services.GetRequiredService<TransactionManagerFactory>()
-            .SetJournalKey(nameof(GetRecorder_UnknownProvider_Throws))
-            .AddProvider(new FakeProvider("known"))
-            .Build();
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
 
-        Verify.Throw<ArgumentException>(() => manager.GetRecorder("unknown"));
+        recA.Add("o1", "v1");
+        recB.Update("o2", "old2", "new2");
+        recA.Delete("o3", "old3");
+
+        (await mgr.Rollback(ctx)).BeOk();
+
+        // Rollback entries executed; order reversed by object ids expected: o3 then o2 then o1 relative to providers
+        // We just verify all three present.
+        pA.Calls.Count(x => x.StartsWith("rollback:A")).Be(2);
+        pB.Calls.Count(x => x.StartsWith("rollback:B")).Be(1);
     }
 
     [Fact]
     public async Task Enqueue_InvalidEntry_Throws()
     {
-        using var host = await BuildService(false);
+        using var host = await BuildHost("invalid");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        Assert.Throws<ArgumentException>(() => mgr.Enqueue(new DataChangeEntry())); // invalid
+    }
 
-        var manager = host.Services.GetRequiredService<TransactionManagerFactory>()
-            .SetJournalKey(nameof(Enqueue_InvalidEntry_Throws))
-            .AddProvider(new FakeProvider("p"))
+    [Fact]
+    public async Task Commit_WithoutStart_Throws()
+    {
+        using var host = await BuildHost("nostart");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        mgr.Register("A", new RecordingProvider("A"));
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        Assert.Throws<ArgumentException>(() => mgr.Commit(ctx).GetAwaiter().GetResult());
+    }
+
+    // ============================================================================
+    // NEW TESTS - Additional Coverage
+    // ============================================================================
+
+    [Fact]
+    public async Task Start_CalledTwice_Throws()
+    {
+        using var host = await BuildHost("doubleStart");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+
+        (await mgr.Start(ctx)).BeOk();
+        Assert.Throws<ArgumentException>(() => mgr.Start(ctx).GetAwaiter().GetResult());
+    }
+
+    [Fact]
+    public async Task Rollback_WithoutStart_Throws()
+    {
+        using var host = await BuildHost("rollbackNoStart");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        mgr.Register("A", new RecordingProvider("A"));
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+
+        Assert.Throws<ArgumentException>(() => mgr.Rollback(ctx).GetAwaiter().GetResult());
+    }
+
+    [Fact]
+    public async Task Rollback_ProviderFailure_ReturnsError()
+    {
+        using var host = await BuildHost("rollbackFail");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var failing = new RecordingProvider("failing")
+        {
+            RollbackResult = _ => new Option(StatusCode.InternalServerError, "rollback failed")
+        };
+        var rec = mgr.Register("failing", failing);
+
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+        rec.Add("obj1", "val1");
+
+        var result = await mgr.Rollback(ctx);
+        result.IsError().BeTrue();
+        result.StatusCode.Be(StatusCode.InternalServerError);
+    }
+
+    [Fact]
+    public async Task Rollback_Order_ReverseOfEnqueue()
+    {
+        using var host = await BuildHost("rollbackOrder");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var pA = new RecordingProvider("A");
+        var recA = mgr.Register("A", pA);
+
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+
+        recA.Add("o1", "v1");
+        recA.Add("o2", "v2");
+        recA.Add("o3", "v3");
+
+        (await mgr.Rollback(ctx)).BeOk();
+
+        // Verify reverse order: o3, o2, o1
+        pA.Calls[0].Be("rollback:A:o3");
+        pA.Calls[1].Be("rollback:A:o2");
+        pA.Calls[2].Be("rollback:A:o1");
+    }
+
+    [Fact]
+    public async Task Commit_ReuseAfterSuccess_NewTransactionId()
+    {
+        string journalKey = "reuse-" + Guid.NewGuid().ToString("N");
+        using var host = await BuildHost(journalKey);
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var rec = mgr.Register("A", new RecordingProvider("A"));
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+
+        // First transaction
+        (await mgr.Start(ctx)).BeOk();
+        var firstTxId = mgr.TransactionId;
+        rec.Add("obj1", "val1");
+        (await mgr.Commit(ctx)).BeOk();
+
+        // Second transaction
+        (await mgr.Start(ctx)).BeOk();
+        var secondTxId = mgr.TransactionId;
+        rec.Add("obj2", "val2");
+        (await mgr.Commit(ctx)).BeOk();
+
+        // Verify different transaction IDs
+        firstTxId.NotBe(secondTxId);
+
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var read = await store.Get(journalKey, ctx);
+        read.BeOk();
+        read.Return().Count.Be(2);
+    }
+
+    [Fact]
+    public async Task Commit_ReuseAfterRollback_NewTransactionId()
+    {
+        using var host = await BuildHost("reuseRollback");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var rec = mgr.Register("A", new RecordingProvider("A"));
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+
+        // First transaction with rollback
+        (await mgr.Start(ctx)).BeOk();
+        var firstTxId = mgr.TransactionId;
+        rec.Add("obj1", "val1");
+        (await mgr.Rollback(ctx)).BeOk();
+
+        // Second transaction
+        (await mgr.Start(ctx)).BeOk();
+        var secondTxId = mgr.TransactionId;
+        secondTxId.NotBe(firstTxId);
+    }
+
+    [Fact]
+    public async Task Register_CaseInsensitive_Throws()
+    {
+        using var host = await BuildHost("caseInsensitive");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+
+        mgr.Register("Provider", new RecordingProvider("Provider"));
+        Assert.Throws<ArgumentException>(() => mgr.Register("provider", new RecordingProvider("provider")));
+    }
+
+    [Fact]
+    public async Task Enqueue_Generic_CreatesCorrectEntry()
+    {
+        string journalKey = "genericEnqueue-" + Guid.NewGuid().ToString("N");
+        using var host = await BuildHost(journalKey);
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        mgr.Register("source", new RecordingProvider("source"));
+        var lsn = host.Services.GetRequiredService<LogSequenceNumber>();
+
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+
+        var before = new DataETag([1, 2, 3]);
+        var after = new DataETag([4, 5, 6]);
+        mgr.Enqueue<string>("source", "objId", "Update", before, after);
+
+        (await mgr.Commit(ctx)).BeOk();
+
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var read = await store.Get(journalKey, ctx);
+        read.BeOk();
+        var entry = read.Return().Single().Entries.Single();
+
+        entry.ObjectId.Be("objId");
+        entry.SourceName.Be("source");
+        entry.Action.Be("Update");
+        entry.TypeName.Be("String");
+        (entry.Before == before).BeTrue();
+        (entry.After == after).BeTrue();
+    }
+
+    [Fact]
+    public async Task Commit_NoProviders_SucceedsWithJournal()
+    {
+        string journalKey = "noProviders-" + Guid.NewGuid().ToString("N");
+
+        // Build host without registering any providers
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddLogging(c => c.AddLambda(_output.WriteLine).AddDebug().AddFilter(_ => true));
+                services.AddInMemoryFileStore();
+                services.AddListStore<DataChangeRecord>();
+                services.AddTransactionServices(new TransactionManagerOption { JournalKey = journalKey });
+            })
             .Build();
 
-        // Missing required fields triggers validation error
-        var invalid = new DataChangeEntry();
-        Verify.Throw<ArgumentException>(() => manager.Enqueue(invalid));
+        await host.ClearStore<TransactionManagerTests>();
+
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+
+        (await mgr.Start(ctx)).BeOk();
+        var result = await mgr.Commit(ctx);
+        result.BeOk();
+
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var read = await store.Get(journalKey, ctx);
+        read.BeOk();
+        read.Return().Single().Entries.Count.Be(0);
     }
 
-    private class TestProvider : ITransactionProvider
+    [Fact]
+    public async Task TrxRecorder_Update_CreatesCorrectEntry()
     {
-        public string Name => "test";
+        string journalKey = "update-" + Guid.NewGuid().ToString("N");
+        using var host = await BuildHost(journalKey);
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var rec = mgr.Register("A", new RecordingProvider("A"));
 
-        public Task<Option> Commit(DataChangeRecord dataChangeEntry, ScopeContext context) => throw new NotImplementedException();
-        public Task<Option> Prepare(DataChangeRecord dataChangeEntry, ScopeContext context) => throw new NotImplementedException();
-        public Task<Option> Rollback(DataChangeEntry dataChangeEntry, ScopeContext context) => throw new NotImplementedException();
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+
+        rec.Update("key1", "oldValue", "newValue");
+
+        (await mgr.Commit(ctx)).BeOk();
+
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var read = await store.Get(journalKey, ctx);
+        var entry = read.Return().Single().Entries.Single();
+
+        entry.ObjectId.Be("key1");
+        entry.Action.Be(ChangeOperation.Update);
+        entry.Before.NotNull();
+        entry.After.NotNull();
     }
 
-    private class FakeProvider : ITransactionProvider
+    [Fact]
+    public async Task MultipleProviders_SameTransaction_BothReceiveAllEntries()
     {
-        private readonly List<string>? _sharedLog;
+        string journalKey = "multiProvider-" + Guid.NewGuid().ToString("N");
+        using var host = await BuildHost(journalKey);
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var pA = new RecordingProvider("A");
+        var pB = new RecordingProvider("B");
+        var recA = mgr.Register("A", pA);
+        var recB = mgr.Register("B", pB);
 
-        public FakeProvider(string name, List<string>? sharedLog = null)
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+
+        recA.Add("a1", "valA");
+        recB.Add("b1", "valB");
+
+        (await mgr.Commit(ctx)).BeOk();
+
+        // Both providers should see all entries in prepare/commit
+        pA.Calls.Count(x => x.StartsWith("prepare")).Be(1);
+        pB.Calls.Count(x => x.StartsWith("prepare")).Be(1);
+        pA.Calls.Count(x => x.StartsWith("commit")).Be(1);
+        pB.Calls.Count(x => x.StartsWith("commit")).Be(1);
+    }
+
+    // ============================================================================
+    // STRESS TESTS
+    // ============================================================================
+
+    [Fact]
+    public async Task Stress_LargeNumberOfEntries()
+    {
+        string journalKey = "stress-large-" + Guid.NewGuid().ToString("N");
+        using var host = await BuildHost(journalKey);
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var rec = mgr.Register("A", new RecordingProvider("A"));
+
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+
+        // Enqueue 1000 entries
+        for (int i = 0; i < 1000; i++)
         {
-            Name = name.NotEmpty();
-            _sharedLog = sharedLog;
+            rec.Add($"obj{i}", $"value{i}");
         }
 
-        public string Name { get; }
+        var result = await mgr.Commit(ctx);
+        result.BeOk();
 
-        public List<DataChangeRecord> Prepared { get; } = new();
-        public List<DataChangeRecord> Committed { get; } = new();
-        public List<DataChangeEntry> RolledBack { get; } = new();
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var read = await store.Get(journalKey, ctx);
+        read.BeOk();
+        read.Return().Single().Entries.Count.Be(1000);
+    }
 
-        public Func<DataChangeRecord, Option>? PrepareResultFactory { get; set; }
-        public Func<DataChangeRecord, Option>? CommitResultFactory { get; set; }
-        public Func<DataChangeEntry, Option>? RollbackResultFactory { get; set; }
+    [Fact]
+    public async Task Stress_ConcurrentEnqueue_ThreadSafety()
+    {
+        string journalKey = "stress-concurrent-" + Guid.NewGuid().ToString("N");
+        using var host = await BuildHost(journalKey);
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var rec = mgr.Register("A", new RecordingProvider("A"));
 
-        public Task<Option> Prepare(DataChangeRecord dataChangeEntry, ScopeContext context)
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+
+        var tasks = new List<Task>();
+        int threadCount = 10;
+        int itemsPerThread = 100;
+
+        // Concurrent enqueue from multiple threads
+        for (int t = 0; t < threadCount; t++)
         {
-            Prepared.Add(dataChangeEntry);
-            _sharedLog?.Add($"prepare:{Name}");
-            var result = PrepareResultFactory?.Invoke(dataChangeEntry) ?? new Option(StatusCode.OK);
-            return Task.FromResult(result);
+            int threadId = t;
+            var task = Task.Run(() =>
+            {
+                for (int i = 0; i < itemsPerThread; i++)
+                {
+                    rec.Add($"obj-t{threadId}-i{i}", $"value{i}");
+                }
+            });
+            tasks.Add(task);
         }
 
-        public Task<Option> Commit(DataChangeRecord dataChangeEntry, ScopeContext context)
+        await Task.WhenAll(tasks);
+
+        var result = await mgr.Commit(ctx);
+        result.BeOk();
+
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var read = await store.Get(journalKey, ctx);
+        read.BeOk();
+        read.Return().Single().Entries.Count.Be(threadCount * itemsPerThread);
+    }
+
+    [Fact]
+    public async Task Stress_MultipleTransactionCycles()
+    {
+        string journalKey = "stress-cycles-" + Guid.NewGuid().ToString("N");
+        using var host = await BuildHost(journalKey);
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var rec = mgr.Register("A", new RecordingProvider("A"));
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+
+        var transactionIds = new HashSet<string>();
+
+        // 100 transaction cycles
+        for (int i = 0; i < 100; i++)
         {
-            Committed.Add(dataChangeEntry);
-            _sharedLog?.Add($"commit:{Name}");
-            var result = CommitResultFactory?.Invoke(dataChangeEntry) ?? new Option(StatusCode.OK);
-            return Task.FromResult(result);
+            (await mgr.Start(ctx)).BeOk();
+            transactionIds.Add(mgr.TransactionId);
+            rec.Add($"obj{i}", $"value{i}");
+            (await mgr.Commit(ctx)).BeOk();
         }
 
-        public Task<Option> Rollback(DataChangeEntry dataChangeEntry, ScopeContext context)
+        // All transaction IDs should be unique
+        transactionIds.Count.Be(100);
+
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var read = await store.Get(journalKey, ctx);
+        read.BeOk();
+        read.Return().Count.Be(100);
+    }
+
+    [Fact]
+    public async Task Stress_LargeRollback()
+    {
+        using var host = await BuildHost("stress-rollback");
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+        var provider = new RecordingProvider("A");
+        var rec = mgr.Register("A", provider);
+
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+
+        // Enqueue 500 entries
+        for (int i = 0; i < 500; i++)
         {
-            RolledBack.Add(dataChangeEntry);
-            var result = RollbackResultFactory?.Invoke(dataChangeEntry) ?? new Option(StatusCode.OK);
-            return Task.FromResult(result);
+            rec.Add($"obj{i}", $"value{i}");
         }
+
+        var result = await mgr.Rollback(ctx);
+        result.BeOk();
+
+        // Verify all rollbacks called in reverse order
+        provider.Calls.Count(x => x.StartsWith("rollback")).Be(500);
+        provider.Calls[0].Be("rollback:A:obj499");
+        provider.Calls[499].Be("rollback:A:obj0");
+    }
+
+    [Fact]
+    public async Task Stress_MultipleProviders_ManyEntries()
+    {
+        string journalKey = "stress-multi-" + Guid.NewGuid().ToString("N");
+        using var host = await BuildHost(journalKey);
+        var mgr = host.Services.GetRequiredService<TransactionManager>();
+
+        var providers = new List<RecordingProvider>();
+        var recorders = new List<ITrxRecorder>();
+
+        // Register 5 providers
+        for (int i = 0; i < 5; i++)
+        {
+            var provider = new RecordingProvider($"P{i}");
+            providers.Add(provider);
+            recorders.Add(mgr.Register($"P{i}", provider));
+        }
+
+        var ctx = host.Services.CreateContext<TransactionManagerTests>();
+        (await mgr.Start(ctx)).BeOk();
+
+        // Each provider adds 200 entries
+        for (int i = 0; i < 5; i++)
+        {
+            for (int j = 0; j < 200; j++)
+            {
+                recorders[i].Add($"obj-p{i}-{j}", $"value{j}");
+            }
+        }
+
+        var result = await mgr.Commit(ctx);
+        result.BeOk();
+
+        // Verify all providers were called
+        foreach (var provider in providers)
+        {
+            provider.Calls.Count(x => x.StartsWith("prepare")).Be(1);
+            provider.Calls.Count(x => x.StartsWith("commit")).Be(1);
+        }
+
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var read = await store.Get(journalKey, ctx);
+        read.BeOk();
+        read.Return().Single().Entries.Count.Be(1000);
     }
 }

@@ -2,25 +2,14 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Toolbox.Extensions;
-using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
 public static class VerifyIn
 {
     [DebuggerStepThrough]
-    public static T BeIn<T>(
-        [DisallowNull] this T subject,
-        IEnumerable<T> values,
-        string? because = null,
-        [CallerMemberName] string function = "",
-        [CallerFilePath] string path = "",
-        [CallerLineNumber] int lineNumber = 0,
-        [CallerArgumentExpression("subject")] string name = ""
-        )
+    public static T BeIn<T>([DisallowNull] this T subject, IEnumerable<T> values, string? because = null, [CallerArgumentExpression("subject")] string name = "")
     {
-        var location = new CodeLocation(function, path, lineNumber, name);
-
         bool found = values.Any(x => subject.Equals(x));
         if (!found)
         {
@@ -32,18 +21,8 @@ public static class VerifyIn
     }
 
     [DebuggerStepThrough]
-    public static IEnumerable<T> BeIn<T>(
-        this IEnumerable<T> subject,
-        IEnumerable<T> values,
-        string? because = null,
-        [CallerMemberName] string function = "",
-        [CallerFilePath] string path = "",
-        [CallerLineNumber] int lineNumber = 0,
-        [CallerArgumentExpression("subject")] string name = ""
-        )
+    public static IEnumerable<T> BeIn<T>(this IEnumerable<T> subject, IEnumerable<T> values, string? because = null, [CallerArgumentExpression("subject")] string name = "")
     {
-        var location = new CodeLocation(function, path, lineNumber, name);
-
         var intersectSet = subject.NotNull().Intersect(values.NotNull()).ToArray();
         if (intersectSet.Length == 0)
         {

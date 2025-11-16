@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -27,14 +21,44 @@ public class IndexedCollectionTrxProvider<TKey, TValue> : ITransactionProvider
 
     public Task<Option> Commit(DataChangeRecord dataChangeEntry, ScopeContext context)
     {
-        throw new NotImplementedException();
+        context.LogTrace("Committing change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
+        return new Option(StatusCode.OK).ToTaskResult();
     }
 
-    public Task<Option> Prepare(DataChangeRecord dataChangeEntry, ScopeContext context) => new Option(StatusCode.OK).ToTaskResult();
+    public Task<Option> Prepare(DataChangeRecord dataChangeEntry, ScopeContext context)
+    {
+        context.LogTrace("Preparing change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
+        _index.DataChangeLog.Clear();
+        return new Option(StatusCode.OK).ToTaskResult();
+    }
 
     public Task<Option> Rollback(DataChangeEntry dataChangeEntry, ScopeContext context)
     {
-        throw new NotImplementedException();
+        if (dataChangeEntry.SourceName != Name) return new Option(StatusCode.OK).ToTaskResult();
+        context.LogTrace($"Rolling back change entry {dataChangeEntry}");
+
+        _index.DataChangeLog.Clear();
+
+        switch (dataChangeEntry.Action)
+        {
+            case ChangeOperation.Add:
+                {
+                    if (dataChangeEntry.After == null) return new Option(StatusCode.OK).ToTaskResult();
+                    var value = dataChangeEntry.After.Value.ToObject<TValue>();
+                    _index.Remove(value).Assert(x => x == true, $"Failed to delete {value}");
+                    return new Option(StatusCode.OK).ToTaskResult();
+                }
+            case ChangeOperation.Update:
+            case ChangeOperation.Delete:
+                {
+                    if (dataChangeEntry.Before == null) return new Option(StatusCode.OK).ToTaskResult();
+                    var value = dataChangeEntry.Before.Value.ToObject<TValue>();
+                    _index.Set(value);
+                    return new Option(StatusCode.OK).ToTaskResult();
+                }
+            default:
+                return new Option(StatusCode.OK).ToTaskResult();
+        }
     }
 }
 
@@ -45,7 +69,8 @@ public static class IndexedCollectionTrxProviderExtensions
         where TValue : notnull
     {
         var provider = new IndexedCollectionTrxProvider<TKey, TValue>(sourceName, collection);
-        var reader = manager.Register(sourceName, provider);
+        var reader = manager.Register(sourceName, provider).NotNull();
+        collection.DataChangeLog.Set(reader);
         return manager;
     }
 }

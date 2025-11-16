@@ -9,9 +9,16 @@ namespace Toolbox.Data;
 
 public class TransactionManager
 {
+    private enum RunState
+    {
+        None,
+        Transaction
+    };
+
     private readonly ConcurrentQueue<DataChangeEntry> _queue = new();
-    private bool _isFinalized = false;
     private readonly ConcurrentDictionary<string, ITransactionProvider> _providers = new(StringComparer.OrdinalIgnoreCase);
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private EnumState<RunState> _runState = new(RunState.None);
 
     private readonly TransactionManagerOption _transactionManagerOption;
     private readonly IListStore<DataChangeRecord> _changeClient;
@@ -31,82 +38,35 @@ public class TransactionManager
         _logger = logger.NotNull();
     }
 
-    public string TransactionId { get; } = Guid.NewGuid().ToString();
+    public string TransactionId { get; private set; } = Guid.NewGuid().ToString();
 
-    public TrxRecorder Register(string sourceName, ITransactionProvider provider)
+    public ITrxRecorder Register(string sourceName, ITransactionProvider provider)
     {
-        EnsureNotFinalized();
+        sourceName.NotEmpty();
+        provider.NotNull();
+        _runState.Value.Assert(x => x != RunState.Transaction, "Transaction is already in progress");
+
         _providers.TryAdd(sourceName, provider).Assert(x => x == true, $"Provider {sourceName} already registered");
-
         return new TrxRecorder(this, sourceName);
     }
 
-    public TrxRecorder GetRecorder(string sourceName)
+    public Task<Option> Start(ScopeContext context)
     {
-        EnsureNotFinalized();
+        // Must succeed (true) when moving from None -> Transaction
+        _runState.TryMove(RunState.None, RunState.Transaction).Assert(x => x == true, "Transaction is already in progress");
+        _queue.Count.Assert(x => x == 0, "Transaction queue is not empty");
 
-        _providers.TryGetValue(sourceName, out var provider)
-            .Assert(x => x == true, "No transaction data provider registered with name={name}", sourceName);
-
-        return new TrxRecorder(this, sourceName);
-    }
-
-    public async Task<Option> Commit(ScopeContext context)
-    {
-        SealTransaction();
+        // Begin a fresh transaction
+        TransactionId = Guid.NewGuid().ToString();
 
         context = context.With(_logger);
-        context.LogTrace("Committing transaction with count={count}", _queue.Count);
-
-        var dataChangeRecord = new DataChangeRecord
-        {
-            TransactionId = TransactionId,
-            Entries = _queue.ToArray(),
-        };
-
-        context.LogTrace("Committing journal to store, count={count}", _queue.Count);
-        var r1 = await CommitJournal(dataChangeRecord, context);
-        if (r1.IsError()) return r1;
-
-        context.LogTrace("Prepare transaction ,with providers");
-        var r2 = await PrepareProviders(dataChangeRecord, context);
-        if (r2.IsError()) return r2;
-
-        context.LogTrace("Committing transaction with providers");
-        var r3 = await CommitProviders(dataChangeRecord, context);
-        if (r3.IsError()) return r3;
-
-        context.LogTrace("Completed committing journal to store");
-        return StatusCode.OK;
-    }
-
-    public async Task<Option> Rollback(ScopeContext context)
-    {
-        SealTransaction();
-        context = context.With(_logger);
-
-        foreach (var journalEntry in _queue)
-        {
-            _transactionManagerOption.Providers.TryGetValue(journalEntry.SourceName, out var providerInstance)
-                .Assert(x => x == true, "No provider for sourceName={sourceName}", journalEntry.SourceName);
-
-            var result = await providerInstance.NotNull().Rollback(journalEntry, context);
-            if (result.IsError())
-            {
-                context.LogError("Failed rollback transaction with sourceName={sourceName}, statusCode={statusCode}, error={error}", journalEntry.SourceName, result.StatusCode, result.Error);
-                return result;
-            }
-        }
-
-        context.LogTrace("Completed rollback");
-        return StatusCode.OK;
+        context.LogTrace("Starting transaction with id={transactionId}", TransactionId);
+        return new Option(StatusCode.OK).ToTaskResult();
     }
 
     public void Enqueue(DataChangeEntry entry)
     {
-        EnsureNotFinalized();
         entry.NotNull().Validate().ThrowOnError();
-
         _logger.LogTrace("Enqueue Transaction Entry: {entry}", entry);
         _queue.Enqueue(entry);
     }
@@ -129,8 +89,61 @@ public class TransactionManager
         Enqueue(entry);
     }
 
-    private void EnsureNotFinalized() => Volatile.Read(ref _isFinalized).Assert(x => x == false, "Transaction already committed or rolled back");
-    private void SealTransaction() => Interlocked.CompareExchange(ref _isFinalized, true, false).Assert(x => x == false, "Transaction already committed or rolled back");
+    public async Task<Option> Commit(ScopeContext context)
+    {
+        _runState.TryMove(RunState.Transaction, RunState.None).Assert(x => x == true, "Transaction is not in progress");
+
+        context = context.With(_logger);
+        context.LogTrace("Committing transaction with count={count}", _queue.Count);
+
+        var dataChangeRecord = new DataChangeRecord
+        {
+            TransactionId = TransactionId,
+            Entries = _queue.ToArray(),
+        };
+        _queue.Clear();
+
+        context.LogTrace("Committing journal to store, count={count}", _queue.Count);
+        var r1 = await CommitJournal(dataChangeRecord, context);
+        if (r1.IsError()) return r1;
+
+        context.LogTrace("Prepare transaction, with providers");
+        var r2 = await PrepareProviders(dataChangeRecord, context);
+        if (r2.IsError()) return r2;
+
+        context.LogTrace("Committing transaction with providers");
+        var r3 = await CommitProviders(dataChangeRecord, context);
+        if (r3.IsError()) return r3;
+
+        context.LogTrace("Completed committing journal to store");
+        return StatusCode.OK;
+    }
+
+    public async Task<Option> Rollback(ScopeContext context)
+    {
+        _runState.TryMove(RunState.Transaction, RunState.None).Assert(x => x == true, "Transaction is not in progress");
+        context = context.With(_logger);
+
+        // snap shot queue and clear
+        var queue = _queue.Reverse().ToArray();
+        _queue.Clear();
+
+        foreach (var journalEntry in queue)
+        {
+            _providers.TryGetValue(journalEntry.SourceName, out var providerInstance)
+                .Assert(x => x == true, "No provider for sourceName={sourceName}", journalEntry.SourceName);
+
+            var result = await providerInstance.NotNull().Rollback(journalEntry, context);
+            if (result.IsError())
+            {
+                context.LogError("Failed rollback transaction with sourceName={sourceName}, statusCode={statusCode}, error={error}", journalEntry.SourceName, result.StatusCode, result.Error);
+                return result;
+            }
+        }
+
+        context.LogTrace("Completed rollback");
+        return StatusCode.OK;
+    }
 
     private async Task<Option> CommitJournal(DataChangeRecord dataChangeRecord, ScopeContext context)
     {
@@ -145,7 +158,7 @@ public class TransactionManager
 
     private async Task<Option> PrepareProviders(DataChangeRecord dataChangeRecord, ScopeContext context)
     {
-        foreach (var provider in _transactionManagerOption.ProviderList)
+        foreach (var provider in _providers.Values)
         {
             context.LogTrace("Preparing transaction with provider={provider}", provider.Name);
 
@@ -162,7 +175,7 @@ public class TransactionManager
 
     private async Task<Option> CommitProviders(DataChangeRecord dataChangeRecord, ScopeContext context)
     {
-        foreach (var provider in _transactionManagerOption.ProviderList)
+        foreach (var provider in _providers.Values)
         {
             context.LogTrace("Committing transaction with provider={provider}", provider.Name);
 

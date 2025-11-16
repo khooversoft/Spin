@@ -124,7 +124,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
         {
             return _index.Get(key);
         }
-        finally { _rwLock.ExitReadLock(); { _rwLock.ExitReadLock(); } }
+        finally { _rwLock.ExitReadLock(); }
     }
 
     public IReadOnlyList<TKey> LookupPrimaryKey(TPrimaryKey pkey)

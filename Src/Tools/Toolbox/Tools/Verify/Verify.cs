@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Toolbox.Extensions;
-using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
@@ -54,25 +53,11 @@ public static class Verify
     /// <returns>subject</returns>
     [DebuggerStepThrough]
     [return: NotNull]
-    public static T NotNull<T>(
-            [NotNull] this T subject,
-            string? message = null,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0,
-            [CallerArgumentExpression("subject")] string name = ""
-        )
+    public static T NotNull<T>([NotNull] this T subject, string? message = null, [CallerArgumentExpression("subject")] string name = "")
     {
         if (subject != null && !EqualityComparer<T>.Default.Equals(subject, default!)) return subject;
-
-        var location = new CodeLocation(function, path, lineNumber, name);
-        var structLine = StructureLineBuilder.Start()
-            .Add(message ?? "Null object")
-            .Add(location)
-            .Build()
-            .Format();
-
-        throw new ArgumentNullException(structLine);
+        message ??= $"{name} is Null";
+        throw new ArgumentNullException(message);
     }
 
     /// <summary>
@@ -83,25 +68,11 @@ public static class Verify
     /// <param name="name">name of subject or message</param>
     /// <returns>subject</returns>
     [DebuggerStepThrough]
-    public static T BeNull<T>(
-            [NotNull] this T subject,
-            string? message = null,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0,
-            [CallerArgumentExpression("subject")] string name = ""
-        )
+    public static T BeNull<T>([NotNull] this T subject, string? message = null, [CallerArgumentExpression("subject")] string name = "")
     {
         if (subject == null && EqualityComparer<T>.Default.Equals(subject, default!)) return subject;
-
-        var location = new CodeLocation(function, path, lineNumber, name);
-        var structLine = StructureLineBuilder.Start()
-            .Add(message ?? "Not null object")
-            .Add(location)
-            .Build()
-            .Format();
-
-        throw new ArgumentNullException(structLine);
+        message ??= $"{name} not Null";
+        throw new ArgumentNullException(message);
     }
 
     /// <summary>
@@ -112,25 +83,11 @@ public static class Verify
     /// <returns>subject</returns>
     [DebuggerStepThrough]
     [return: NotNull]
-    public static string NotEmpty(
-            [NotNull] this string? subject,
-            string? message = null,
-            [CallerMemberName] string function = "",
-            [CallerFilePath] string path = "",
-            [CallerLineNumber] int lineNumber = 0,
-            [CallerArgumentExpression("subject")] string name = ""
-        )
+    public static string NotEmpty([NotNull] this string? subject, string? message = null, [CallerArgumentExpression("subject")] string name = "")
     {
         if (subject.IsNotEmpty()) return subject;
-
-        var location = new CodeLocation(function, path, lineNumber, name);
-        var structLine = StructureLineBuilder.Start()
-            .Add(message ?? "Empty or null string")
-            .Add(location)
-            .Build()
-            .Format();
-
-        throw new ArgumentNullException(structLine);
+        message ??= $"{name} is Empty or null";
+        throw new ArgumentNullException(message);
     }
 
     internal static string FormatException(string message, string? because = null)

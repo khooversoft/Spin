@@ -29,29 +29,29 @@ public static class DataCompensate
 
     private static async Task<Option> UndoAdd(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ScopeContext context)
     {
-        //var deleteOption = await dataFileClient.Delete(entry.ObjectId, context);
-        //if (deleteOption.IsError())
-        //{
-        //    context.LogError("Cannot delete fileId={fileId}");
-        //    return deleteOption;
-        //}
+        var deleteOption = await dataFileClient.Delete(entry.ObjectId, context);
+        if (deleteOption.IsError())
+        {
+            context.LogError("Cannot delete fileId={fileId}");
+            return deleteOption;
+        }
 
-        //context.LogDebug("Rollback: removed fileId={fileId} from store, entry={entry}", entry.ObjectId, entry);
+        context.LogDebug("Rollback: removed fileId={fileId} from store, entry={entry}", entry.ObjectId, entry);
         return StatusCode.OK;
     }
 
     private static async Task<Option> UndoUpdate(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ScopeContext context)
     {
-        //if (entry.Before == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
+        if (entry.Before == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 
-        //var setOption = await dataFileClient.Set(entry.ObjectId, entry.Before.Value, context);
-        //if (setOption.IsError())
-        //{
-        //    context.LogError("Cannot set fileId={fileId} to old data");
-        //    return setOption.ToOptionStatus();
-        //}
+        var setOption = await dataFileClient.Set(entry.ObjectId, entry.Before.Value, context);
+        if (setOption.IsError())
+        {
+            context.LogError("Cannot set fileId={fileId} to old data");
+            return setOption.ToOptionStatus();
+        }
 
-        //context.LogDebug("Rollback: removed fileId={fileId} from store, entry={entry}", entry.ObjectId, entry);
+        context.LogDebug("Rollback: removed fileId={fileId} from store, entry={entry}", entry.ObjectId, entry);
         return StatusCode.OK;
     }
 }
