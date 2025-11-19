@@ -11,11 +11,13 @@ public class DatalakeFileAccess : IFileAccess
 {
     private readonly ILogger _logger;
     private readonly DataLakeFileClient _fileClient;
+    private readonly DatalakeStore _datalakeStore;
 
-    public DatalakeFileAccess(DataLakeFileClient fileClient, ILogger logger)
+    public DatalakeFileAccess(DatalakeStore datalakeStore, DataLakeFileClient fileClient, ILogger logger)
     {
         _fileClient = fileClient.NotNull();
         _logger = logger.NotNull();
+        _datalakeStore = datalakeStore.NotNull();
     }
 
     public string Path => _fileClient.Path;
@@ -25,10 +27,15 @@ public class DatalakeFileAccess : IFileAccess
         var result = await _fileClient.Add(data, context);
         if (result.IsError()) return result;
 
-        return result.Return().ToString();
+        _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, data);
+        return result.Return();
     }
 
-    public Task<Option<string>> Append(DataETag data, ScopeContext context) => _fileClient.Append(data, context);
+    public Task<Option<string>> Append(DataETag data, ScopeContext context)
+    {
+        _datalakeStore.DataChangeLog.GetRecorder().Assert(x => x == null, "Append is not supported with DataChangeRecorder");
+        return _fileClient.Append(data, context);
+    }
 
     public async Task<Option> Delete(ScopeContext context)
     {
@@ -39,6 +46,14 @@ public class DatalakeFileAccess : IFileAccess
 
         try
         {
+            Option<DataETag> readOption = StatusCode.NotFound;
+
+            if (_datalakeStore.DataChangeLog.GetRecorder() != null)
+            {
+                readOption = await _fileClient.Get(context);
+                if (readOption.IsError()) return readOption.ToOptionStatus();
+            }
+
             Response<bool> response = await _fileClient.DeleteIfExistsAsync(cancellationToken: context);
 
             if (!response.Value)
@@ -47,6 +62,7 @@ public class DatalakeFileAccess : IFileAccess
                 return StatusCode.NotFound;
             }
 
+            _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
             return StatusCode.OK;
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing")
@@ -80,10 +96,29 @@ public class DatalakeFileAccess : IFileAccess
         }
     }
 
+    public async Task<Option<string>> Set(DataETag data, ScopeContext context)
+    {
+        Option<DataETag> readOption = StatusCode.NotFound;
+
+        if (_datalakeStore.DataChangeLog.GetRecorder() != null) readOption = await _fileClient.Get(context);
+
+        var setOption = await _fileClient.Set(data, context);
+        if (setOption.IsError()) return setOption;
+
+        if (_datalakeStore.DataChangeLog.GetRecorder() != null)
+        {
+            if (readOption.IsOk())
+                _datalakeStore.DataChangeLog.GetRecorder()?.Update(Path, readOption.Return(), data);
+            else
+                _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
+        }
+
+        return setOption.Return();
+    }
+
     public Task<Option<DataETag>> Get(ScopeContext context) => _fileClient.Get(context);
     public Task<Option<IStorePathDetail>> GetDetails(ScopeContext context) => _fileClient.GetPathDetail(context);
-    public Task<Option<string>> Set(DataETag data, ScopeContext context) => _fileClient.Set(data, context);
-    public Task<Option<IFileLeasedAccess>> AcquireLease(TimeSpan leaseDuration, ScopeContext context) => _fileClient.AcquireLease(leaseDuration, context);
-    public Task<Option<IFileLeasedAccess>> AcquireExclusiveLease(bool breakLeaseIfExist, ScopeContext context) => _fileClient.AcquireExclusiveLease(breakLeaseIfExist, context);
+    public Task<Option<IFileLeasedAccess>> AcquireLease(TimeSpan leaseDuration, ScopeContext context) => _fileClient.AcquireLease(_datalakeStore, leaseDuration, context);
+    public Task<Option<IFileLeasedAccess>> AcquireExclusiveLease(bool breakLeaseIfExist, ScopeContext context) => _fileClient.AcquireExclusiveLease(_datalakeStore, breakLeaseIfExist, context);
     public Task<Option> BreakLease(ScopeContext context) => DatalakeLeaseTool.Break(_fileClient, context);
 }

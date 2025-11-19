@@ -101,6 +101,7 @@ public class TransactionManager
             TransactionId = TransactionId,
             Entries = _queue.ToArray(),
         };
+
         _queue.Clear();
 
         context.LogTrace("Committing journal to store, count={count}", _queue.Count);

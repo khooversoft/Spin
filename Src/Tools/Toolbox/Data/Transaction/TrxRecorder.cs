@@ -18,22 +18,22 @@ public sealed class TrxRecorder(TransactionManager transactionManager, string so
     public void Add<K, T>(K objectId, T newValue) where K : notnull where T : notnull
     {
         var id = objectId.ToString().NotEmpty();
-        var nv = newValue.ToDataETag().WithHash();
+        var nv = newValue.ToDataETagWithHash();
         _transactionManager.Enqueue<T>(_sourceName, id, ChangeOperation.Add, null, nv);
     }
 
     public void Delete<K, T>(K objectId, T currentValue) where K : notnull where T : notnull
     {
         var id = objectId.ToString().NotEmpty();
-        var current = currentValue.ToDataETag().WithHash();
+        var current = currentValue.ToDataETagWithHash();
         _transactionManager.Enqueue<T>(_sourceName, id, ChangeOperation.Delete, current, null);
     }
 
     public void Update<K, T>(K objectId, T currentValue, T newValue) where K : notnull where T : notnull
     {
         var id = objectId.ToString().NotEmpty();
-        var nv = newValue.ToDataETag().WithHash();
-        var current = currentValue.ToDataETag().WithHash();
+        var nv = newValue.ToDataETagWithHash();
+        var current = currentValue.ToDataETagWithHash();
         _transactionManager.Enqueue<T>(_sourceName, id, ChangeOperation.Update, current, nv);
     }
 }

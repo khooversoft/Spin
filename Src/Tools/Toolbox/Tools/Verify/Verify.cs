@@ -8,7 +8,7 @@ namespace Toolbox.Tools;
 
 public static class Verify
 {
-    public static void Throw<TException>(Action action, string? because = null) where TException : Exception
+    public static void Throws<TException>(Action action, string? because = null) where TException : Exception
     {
         try
         {
@@ -26,7 +26,7 @@ public static class Verify
         throw new ArgumentException(Verify.FormatException($"Should throw ex={typeof(TException).Name}", because));
     }
 
-    public static async Task ThrowAsync<TException>(Func<Task> action, string? because = null) where TException : Exception
+    public static async Task ThrowsAsync<TException>(Func<Task> action, string? because = null) where TException : Exception
     {
         try
         {

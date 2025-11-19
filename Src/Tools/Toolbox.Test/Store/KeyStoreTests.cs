@@ -228,8 +228,6 @@ public class KeyStoreTests
         var getQueue = new ConcurrentQueue<Func<Task>>();
         var deleteQueue = new ConcurrentQueue<Func<Task>>();
 
-
-
         var totalCount = await measure("Test load", async () =>
         {
             var t1 = Task.Run(() => run("journalEntry", x => new JournalEntry(x, $"journal{x}", x + 100)));

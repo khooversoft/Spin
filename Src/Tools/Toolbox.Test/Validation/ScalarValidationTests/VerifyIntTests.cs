@@ -10,7 +10,7 @@ public class VerifyIntTests
         int v1 = 0;
         v1.Be(0);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             int v2 = 5;
             v2.NotBe(5);
@@ -23,7 +23,7 @@ public class VerifyIntTests
         int? v1 = 0;
         v1.Be(0);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             int? v2 = 5;
             v2.NotBe(5);
@@ -36,7 +36,7 @@ public class VerifyIntTests
         int? v1 = null;
         v1.BeNull();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             int? v2 = null;
             v2.NotNull();
@@ -46,7 +46,7 @@ public class VerifyIntTests
     [Fact]
     public void Be_Fails_And_NotBe_Succeeds()
     {
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             int v = 1;
             v.Be(2);
@@ -59,7 +59,7 @@ public class VerifyIntTests
     [Fact]
     public void Be_Fails_And_NotBe_Succeeds_Nullable()
     {
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             int? v = 1;
             v.Be(2);
@@ -79,7 +79,7 @@ public class VerifyIntTests
     [Fact]
     public void BeNull_Fails_WhenHasValue()
     {
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             int? v = 1;
             v.BeNull();

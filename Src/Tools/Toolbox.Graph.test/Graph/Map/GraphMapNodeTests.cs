@@ -74,7 +74,7 @@ public class GraphMapNodeTests
         map.Nodes.Count.Be(count - 1);
         map.Edges.Count.Be(0);
 
-        Verify.Throw<KeyNotFoundException>(() =>
+        Verify.Throws<KeyNotFoundException>(() =>
         {
             GraphNode node = map.Nodes[sampleKey];
         });
@@ -85,13 +85,13 @@ public class GraphMapNodeTests
     {
         GraphMap map = null!;
 
-        Verify.Throw<ArgumentException>(() => map = new GraphMap()
+        Verify.Throws<ArgumentException>(() => map = new GraphMap()
         {
             new GraphNode("Node1"),
             new GraphNode("Node1"),
         });
 
-        Verify.Throw<ArgumentException>(() => map = new GraphMap()
+        Verify.Throws<ArgumentException>(() => map = new GraphMap()
         {
             new GraphNode("Node1"),
             new GraphNode("node1"),

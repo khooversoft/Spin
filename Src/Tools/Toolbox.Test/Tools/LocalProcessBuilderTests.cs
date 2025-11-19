@@ -34,6 +34,6 @@ public class LocalProcessBuilderTests
     [InlineData("  ")]
     public void TestCommandLineParserFailure2(string? cmdLine)
     {
-        Verify.Throw<ArgumentException>(() => new LocalProcessBuilder().SetCommandLine(cmdLine!));
+        Verify.Throws<ArgumentException>(() => new LocalProcessBuilder().SetCommandLine(cmdLine!));
     }
 }

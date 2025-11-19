@@ -212,7 +212,7 @@ public class StructureLineBuilderTests
     [Fact]
     public void UnbalancedShouldFailOnBuild()
     {
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             var result = StructureLineBuilder.Start()
                 .Add("no variable", "oops")
@@ -221,7 +221,7 @@ public class StructureLineBuilderTests
                 .Build();
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             var result = StructureLineBuilder.Start()
                 .Add("traceId={traceId}", "this.trace.id", 1)
@@ -254,7 +254,7 @@ public class StructureLineBuilderTests
     [Fact]
     public void NullValueForPlaceholderShouldFailOnBuild()
     {
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             var _ = StructureLineBuilder.Start()
                 .Add("value={value}", (object?)null)  // placeholder exists, arg is null => unbalanced

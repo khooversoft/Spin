@@ -15,17 +15,17 @@ public static class DatalakeLeaseTool
     private const string _blobNotFoundText = "BlobNotFound";
     private static readonly TimeSpan _leaseRetryDuration = TimeSpan.FromSeconds(5);
 
-    public static async Task<Option<IFileLeasedAccess>> AcquireLease(this DataLakeFileClient fileClient, TimeSpan leaseDuration, ScopeContext context)
+    public static async Task<Option<IFileLeasedAccess>> AcquireLease(this DataLakeFileClient fileClient, DatalakeStore datalakeStore, TimeSpan leaseDuration, ScopeContext context)
     {
-        var acquireOption = await fileClient.InternalAcquire(leaseDuration, context);
+        var acquireOption = await fileClient.InternalAcquire(datalakeStore, leaseDuration, context);
         return acquireOption;
     }
 
-    public static async Task<Option<IFileLeasedAccess>> AcquireExclusiveLease(this DataLakeFileClient fileClient, bool breakLeaseIfExist, ScopeContext context)
+    public static async Task<Option<IFileLeasedAccess>> AcquireExclusiveLease(this DataLakeFileClient fileClient, DatalakeStore datalakeStore, bool breakLeaseIfExist, ScopeContext context)
     {
         var leaseDuration = TimeSpan.FromSeconds(-1);
 
-        var acquireOption = await fileClient.InternalAcquire(leaseDuration, context);
+        var acquireOption = await fileClient.InternalAcquire(datalakeStore, leaseDuration, context);
         if (acquireOption.IsOk()) return acquireOption;
         if (acquireOption.IsLocked() && !breakLeaseIfExist) return acquireOption;
 
@@ -33,7 +33,7 @@ public static class DatalakeLeaseTool
         var breakOption = await fileClient.Break(context);
         if (breakOption.IsError()) return breakOption.ToOptionStatus<IFileLeasedAccess>();
 
-        acquireOption = await fileClient.InternalAcquire(leaseDuration, context);
+        acquireOption = await fileClient.InternalAcquire(datalakeStore, leaseDuration, context);
         return acquireOption;
     }
 
@@ -62,7 +62,7 @@ public static class DatalakeLeaseTool
         }
     }
 
-    private static async Task<Option<IFileLeasedAccess>> InternalAcquire(this DataLakeFileClient fileClient, TimeSpan leaseDuration, ScopeContext context)
+    private static async Task<Option<IFileLeasedAccess>> InternalAcquire(this DataLakeFileClient fileClient, DatalakeStore datalakeStore, TimeSpan leaseDuration, ScopeContext context)
     {
         fileClient.NotNull();
 
@@ -70,7 +70,7 @@ public static class DatalakeLeaseTool
         if (leaseOption.IsError()) return leaseOption.ToOptionStatus<IFileLeasedAccess>();
 
         DataLakeLeaseClient leaseClient = leaseOption.Return();
-        return new DatalakeLeasedAccess(fileClient, leaseClient, context.Logger);
+        return new DatalakeLeasedAccess(datalakeStore, fileClient, leaseClient, context.Logger);
     }
 
     internal static async Task<Option<DataLakeLeaseClient>> InternalAcquireLease(this DataLakeFileClient fileClient, TimeSpan leaseDuration, ScopeContext context)

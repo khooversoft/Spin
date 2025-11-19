@@ -191,27 +191,46 @@ public class LockManagerSharedTests
         ManualResetEventSlim manualEvent = new ManualResetEventSlim();
         ConcurrentQueue<Entity> queue = new ConcurrentQueue<Entity>();
 
-        CancellationTokenSource tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        // Deterministic iteration counts
+        const int sharedIterations = 30;
+        const int directIterations = 30;
 
-        // Acquire shared lock
+        // Acquire initial shared lock to create the file (zero bytes), then release
         (await lockManager.ProcessLock(path, LockMode.Shared, context)).BeOk();
+        (await lockManager.ReleaseLock(path, context)).BeOk();
 
-        Task sharedWriteTask = Task.Run(async () => await ReadWriteShare(manualEvent, lockManager, path, queue, tokenSource.Token, context));
-        Task readWriteTask = Task.Run(async () => await ReadWrite(manualEvent, fileStore, path, queue, tokenSource.Token, context));
+        Task sharedWriteTask = Task.Run(async () => await ReadWriteShare(
+            manualEvent, lockManager, path, queue, sharedIterations, context));
+
+        Task readWriteTask = Task.Run(async () => await ReadWrite(
+            manualEvent, fileStore, path, queue, directIterations, context));
+
         manualEvent.Set();
 
         await Task.WhenAll(sharedWriteTask, readWriteTask);
 
-        // Verify lock is released
+        // Ensure no lingering lock
         (await lockManager.IsLocked(path, context)).BeOk().Return().BeFalse();
 
+        // Clean up
         (await fileStore.File(path).Delete(context)).BeOk();
 
-        queue.Count.Assert(x => x > 0, "Queue should have items");
-        var summary = queue.Select(x => x.Age < 2000 ? 0 : 1).GroupBy(x => x).ToArray();
-        summary.Length.Be(2);
-        summary[0].Count().Assert(x => x > 10, "1000 missed");
-        summary[1].Count().Assert(x => x > 10, "2000 missed");
+        // Validate counts: each iteration enqueues one entity (plus possible error entities)
+        queue.Count.Assert(x => x >= sharedIterations + directIterations, "Queue should contain all iterations");
+
+        var summary = queue
+            .Where(x => !x.Failed)
+            .Select(x => x.Age < 2000 ? 0 : 1)
+            .GroupBy(x => x)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        summary.Count.Be(2);
+        summary[0].Be(sharedIterations);
+        summary[1].Be(directIterations);
+
+        // Optional: ensure error rate is zero (or very low)
+        var failures = queue.Count(x => x.Failed);
+        failures.Assert(x => x == 0, $"Failures detected: {failures}");
     }
 
     private static async Task ReadWriteShare(
@@ -219,40 +238,45 @@ public class LockManagerSharedTests
         LockManager lockManager,
         string path,
         ConcurrentQueue<Entity> queue,
-        CancellationToken token,
+        int iterations,
         ScopeContext context
         )
     {
-        // Wait for the semaphore to be released
         manualEvent.Wait();
-        context.LogDebug("Released to run");
+        context.LogDebug("Released shared writer to run");
 
-        int index = 0;
-        while (!token.IsCancellationRequested)
+        for (int index = 0; index < iterations; index++)
         {
-            var entity = new Entity("Test-ReadWriteWithSharedLock-1", 1000 + index++);
+            var entity = new Entity("Test-ReadWriteWithSharedLock-1", 1000 + index);
 
+            // Acquire/release each iteration with safety
             (await lockManager.ProcessLock(path, LockMode.Shared, context)).BeOk();
 
-            // Try to write while holding a shared lock
-            var access = lockManager.GetReadWriteAccess(path, context);
-            (await access.Set(entity.ToDataETag(), context)).BeOk();
-
-            (await access.Get(context)).Action(x =>
+            try
             {
-                x.BeOk();
-                DataETag data = x.Return();
-                data.Data.Length.Assert(x => x > 0, $"Data should not be empty, index={index}");
-                var readEntity = data.ToObject<Entity>();
-                (readEntity == entity).BeTrue();
-            });
+                // Shared read/write access while holding shared lock
+                var access = lockManager.GetReadWriteAccess(path, context);
+                (await access.Set(entity.ToDataETag(), context)).BeOk();
 
-            queue.Enqueue(entity);
+                (await access.Get(context)).Action(x =>
+                {
+                    x.BeOk();
+                    DataETag data = x.Return();
+                    data.Data.Length.Assert(v => v > 0, $"Data should not be empty, index={index}");
+                    var readEntity = data.ToObject<Entity>();
+                    (readEntity == entity).BeTrue();
+                });
 
-            (await lockManager.ReleaseLock(path, context)).BeOk();
+                queue.Enqueue(entity);
+                context.LogDebug("Shared writer iteration={index}", index);
+            }
+            finally
+            {
+                // Always release even if assertion fails
+                (await lockManager.ReleaseLock(path, context)).BeOk();
+            }
 
-            context.LogDebug("Write share, index={index}", index);
-            await Task.Delay(TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(500)));
+            await Task.Delay(TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(50, 150)));
         }
     }
 
@@ -261,19 +285,25 @@ public class LockManagerSharedTests
         IFileStore fileStore,
         string path,
         ConcurrentQueue<Entity> queue,
-        CancellationToken token,
+        int iterations,
         ScopeContext context
         )
     {
         manualEvent.Wait();
-        context.LogDebug("Released to run");
+        context.LogDebug("Released direct writer to run");
 
-        int index = 0;
-        while (!token.IsCancellationRequested)
+        for (int index = 0; index < iterations; index++)
         {
-            var entity = new Entity("Test-ReadWriteWithSharedLock-2", 2000 + index++);
+            var entity = new Entity("Test-ReadWriteWithSharedLock-2", 2000 + index);
 
-            await WaitForTool.WaitFor(async () => (await fileStore.File(path).Set(entity.ToDataETag(), context)).IsOk(), TimeSpan.FromSeconds(10));
+            // Attempt to write until not locked (deterministic max attempts)
+            for (int attempt = 0; attempt < 20; attempt++)
+            {
+                var setResult = await fileStore.File(path).Set(entity.ToDataETag(), context);
+                if (setResult.IsOk()) break;
+                if (attempt == 19) setResult.BeOk(); // Force failure visibility
+                await Task.Delay(10);
+            }
 
             (await fileStore.File(path).Get(context)).Action(x =>
             {
@@ -281,23 +311,24 @@ public class LockManagerSharedTests
                 var data = x.Return();
                 if (data.Data.Length == 0)
                 {
-                    context.LogWarning("ReadWriteWithSharedLock-2: Data length is zero, index={index}", index);
-                    queue.Enqueue(new Entity("Test-ReadWriteWithSharedLock-2 - zero data", 2000 + index - 1, true));
+                    context.LogWarning("Direct writer zero data, index={index}", index);
+                    queue.Enqueue(new Entity("Test-ReadWriteWithSharedLock-2 - zero data", 2000 + index, true));
                     return;
                 }
 
                 var readEntity = data.ToObject<Entity>();
                 if (readEntity != entity)
                 {
-                    context.LogWarning("ReadWriteWithSharedLock-2: Read entity does not match written entity, index={index}, readEntity={readEntity}, writtenEntity={entity}", index, readEntity, entity);
-                    queue.Enqueue(new Entity("Test-ReadWriteWithSharedLock-2 - not equal", 2000 + index - 1, true));
+                    context.LogWarning("Direct writer mismatch, index={index}, readEntity={readEntity}, writtenEntity={entity}", index, readEntity, entity);
+                    queue.Enqueue(new Entity("Test-ReadWriteWithSharedLock-2 - not equal", 2000 + index, true));
+                    return;
                 }
+
+                queue.Enqueue(entity);
             });
 
-            queue.Enqueue(entity);
-
-            context.LogDebug("Write, index={index}", index);
-            await Task.Delay(TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(500)));
+            context.LogDebug("Direct writer iteration={index}", index);
+            await Task.Delay(TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(50, 150)));
         }
     }
 }

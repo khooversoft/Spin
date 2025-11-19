@@ -12,7 +12,7 @@ public class VerifyStringTests
         v1.NotNull();
         v1.NotEmpty();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             string v2 = "hello";
             v2.NotBe("hello");
@@ -26,19 +26,19 @@ public class VerifyStringTests
         v1.Be(null);
         v1.BeNull();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             string? v2 = null;
             v2.NotBe(null);
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             string? v2 = null;
             v2.NotNull();
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             string? v2 = null;
             v2.NotEmpty();
@@ -52,7 +52,7 @@ public class VerifyStringTests
         v1.Be("hello");
         v1.NotEmpty();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             string? v2 = "hello";
             v2.NotBe("hello");
@@ -69,7 +69,7 @@ public class VerifyStringTests
     [Fact]
     public void BeNull_Fails_WhenNotNull()
     {
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             string? v = "value";
             v.BeNull();
@@ -79,7 +79,7 @@ public class VerifyStringTests
     [Fact]
     public void NotEmpty_Fails_For_EmptyString()
     {
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             string v = "";
             v.NotEmpty();

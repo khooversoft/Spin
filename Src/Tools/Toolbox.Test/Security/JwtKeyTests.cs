@@ -53,7 +53,7 @@ public class JwtKeyTests
 
         token.NotEmpty();
 
-        Verify.Throw<SecurityTokenValidationException>(() =>
+        Verify.Throws<SecurityTokenValidationException>(() =>
         {
             new JwtTokenParserBuilder()
             .SetPrincipleSignature(principle2)

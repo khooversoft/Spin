@@ -148,7 +148,9 @@ public class OneToManyIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey
     public IEnumerator<KeyValuePair<TKey, TReferenceKey>> GetEnumerator()
     {
         // Snapshot-style enumeration over concurrent structures.
-        foreach (var kv in _index)
+        var snapShot = _index.ToArray();
+
+        foreach (var kv in snapShot)
         {
             var key = kv.Key;
             var inner = kv.Value;

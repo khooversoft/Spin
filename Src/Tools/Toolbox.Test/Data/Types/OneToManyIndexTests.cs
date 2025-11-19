@@ -1,4 +1,6 @@
-﻿using Toolbox.Data;
+﻿using System.Security.Cryptography;
+using System.Threading.Tasks.Dataflow;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
@@ -256,6 +258,7 @@ public class OneToManyIndexTests
     [Fact]
     public async Task Concurrent_Enumeration_SnapshotSafe()
     {
+        const int iterations = 1000;
         var set = new OneToManyIndex<int, int>();
 
         // Seed
@@ -264,41 +267,41 @@ public class OneToManyIndexTests
             for (int v = 0; v < 4; v++) set.Set(k, k * 10 + v);
         }
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-
-        var writer = Task.Run(async () =>
+        var block = new ActionBlock<Func<Task>>(async item =>
         {
-            var r = new Random(8675309);
-            while (!cts.IsCancellationRequested)
+            await item();
+        },
+        new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 5 }
+        );
+
+        int enumerations = 0;
+        foreach (var item in Enumerable.Range(0, iterations))
+        {
+            await block.SendAsync(async () =>
             {
-                int k = r.Next(0, 64);
-                int v = r.Next(0, 64);
-                switch (r.Next(3))
+                int k = RandomNumberGenerator.GetInt32(64);
+                int v = RandomNumberGenerator.GetInt32(64);
+                switch (RandomNumberGenerator.GetInt32(3))
                 {
                     case 0: set.Set(k, v); break;
                     case 1: set.Remove(k, v); break;
                     case 2: set.Remove(k); break;
                 }
                 await Task.Yield();
-            }
-        }, cts.Token);
 
-        int enumerations = 0;
-        var reader = Task.Run(async () =>
-        {
-            while (!cts.IsCancellationRequested)
+            });
+
+            await block.SendAsync(async () =>
             {
-                // Should not throw or hang and should not contain duplicates
                 var snapshot = set.ToArray();
                 snapshot.Length.Be(snapshot.Distinct().Count());
                 enumerations++;
                 await Task.Yield();
-            }
-        }, cts.Token);
+            });
+        }
 
-        await Task.Delay(1000);
-        cts.Cancel();
-        await Task.WhenAll(Task.WhenAll(writer.ContinueWith(_ => { })), Task.WhenAll(reader.ContinueWith(_ => { })));
+        block.Complete();
+        await block.Completion;
 
         enumerations.Assert(x => x > 0, x => $"{x} must be > 0");
 

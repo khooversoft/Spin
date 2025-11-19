@@ -121,6 +121,7 @@ public class ConcurrentSequence<T> : ICollection<T>, IDisposable
     {
         // Snapshot for lock-free iteration after copy; preserves insertion order
         T[] snapshot;
+
         _lock.EnterReadLock();
         try
         {

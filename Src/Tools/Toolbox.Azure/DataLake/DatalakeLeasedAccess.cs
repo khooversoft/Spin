@@ -14,21 +14,47 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
     private readonly DataLakeLeaseClient _leaseClient;
     private readonly ILogger _logger;
     private readonly DataLakeFileClient _fileClient;
+    private readonly DatalakeStore _datalakeStore;
     private bool _disposed = false;
 
-    public DatalakeLeasedAccess(DataLakeFileClient fileClient, DataLakeLeaseClient leaseClient, ILogger logger)
+    public DatalakeLeasedAccess(DatalakeStore datalakeStore, DataLakeFileClient fileClient, DataLakeLeaseClient leaseClient, ILogger logger)
     {
         _fileClient = fileClient.NotNull();
         _leaseClient = leaseClient.NotNull();
         _logger = logger.NotNull();
+        _datalakeStore = datalakeStore;
     }
 
     public string Path => _fileClient.Path;
     public string LeaseId => _leaseClient.LeaseId.NotEmpty();
 
-    public Task<Option<string>> Append(DataETag data, ScopeContext context) => _fileClient.Append(this, data, context);
+    public Task<Option<string>> Append(DataETag data, ScopeContext context)
+    {
+        _datalakeStore.DataChangeLog.GetRecorder().Assert(x => x == null, "Append is not supported with DataChangeRecorder");
+        return _fileClient.Append(this, data, context);
+    }
+
     public Task<Option<DataETag>> Get(ScopeContext context) => _fileClient.Get(this, context);
-    public Task<Option<string>> Set(DataETag data, ScopeContext context) => _fileClient.Set(this, data, context);
+
+    public async Task<Option<string>> Set(DataETag data, ScopeContext context)
+    {
+        Option<DataETag> readOption = StatusCode.NotFound;
+
+        if (_datalakeStore.DataChangeLog.GetRecorder() != null) readOption = await _fileClient.Get(context);
+
+        var setOption = await _fileClient.Set(data, context);
+        if (setOption.IsError()) return setOption;
+
+        if (_datalakeStore.DataChangeLog.GetRecorder() != null)
+        {
+            if (readOption.IsOk())
+                _datalakeStore.DataChangeLog.GetRecorder()?.Update(Path, readOption.Return(), data);
+            else
+                _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
+        }
+
+        return setOption.Return();
+    }
 
     public async Task<Option> Renew(ScopeContext context)
     {

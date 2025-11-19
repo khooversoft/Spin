@@ -10,7 +10,7 @@ public class VerifyLongTests
         long v1 = 0;
         v1.Be(0);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             long v2 = 5;
             v2.NotBe(5);
@@ -23,7 +23,7 @@ public class VerifyLongTests
         long? v1 = 0;
         v1.Be(0);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             long? v2 = 5;
             v2.NotBe(5);
@@ -33,7 +33,7 @@ public class VerifyLongTests
     [Fact]
     public void Be_Fails_And_NotBe_Succeeds()
     {
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             long v = 1;
             v.Be(2);
@@ -46,7 +46,7 @@ public class VerifyLongTests
     [Fact]
     public void Be_Fails_And_NotBe_Succeeds_Nullable()
     {
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             long? v = 1;
             v.Be(2);
@@ -62,7 +62,7 @@ public class VerifyLongTests
         long? v1 = 1;
         v1.NotNull();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             long? v2 = 1;
             v2.BeNull();
@@ -71,7 +71,7 @@ public class VerifyLongTests
         long? v3 = null;
         v3.BeNull();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             long? v4 = null;
             v4.NotNull();

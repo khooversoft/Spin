@@ -36,7 +36,7 @@ public class IndexedCollectionTrxProvider<TKey, TValue> : ITransactionProvider
         if (dataChangeEntry.SourceName != Name) return new Option(StatusCode.OK).ToTaskResult();
         context.LogTrace("IndexedCollectionTrxProvider: Rolling back change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
 
-        _index.DataChangeLog.Pause(true);
+        _index.DataChangeLog.Pause();
         try
         {
             switch (dataChangeEntry.Action)
@@ -62,7 +62,7 @@ public class IndexedCollectionTrxProvider<TKey, TValue> : ITransactionProvider
         }
         finally
         {
-            _index.DataChangeLog.Pause(false);
+            _index.DataChangeLog.Resume();
         }
     }
 }

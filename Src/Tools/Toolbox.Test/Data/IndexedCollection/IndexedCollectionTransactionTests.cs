@@ -475,7 +475,7 @@ public class IndexedCollectionTransactionTests
     }
 
     [Fact]
-    public async Task TransactionFinalization_AllowsNewTransactions()
+    public async Task TransactionCommit_AllowsAdditionalEntriesButFailsWhenStarted()
     {
         using var host = await BuildService();
         var context = host.Services.CreateContext<IndexedCollectionTransactionTests>();
@@ -496,68 +496,61 @@ public class IndexedCollectionTransactionTests
         c.ContainsKey(1).BeTrue();
         c.ContainsKey(2).BeTrue();
 
-        // Reusing the same manager for another commit should throw (finalized).
-        await Verify.ThrowAsync<ArgumentException>(async () => await trxMgr1.Commit(context));
-        await Verify.ThrowAsync<ArgumentException>(async () => await trxMgr1.Rollback(context));
+        // Reusing the same manager for another commit should work.
+        await Verify.ThrowsAsync<ArgumentException>(async () => await trxMgr1.Commit(context));
+        await Verify.ThrowsAsync<ArgumentException>(async () => await trxMgr1.Rollback(context));
 
         // Start a new transaction manager instance and register recorder again
-        var trxMgr2 = host.Services.GetRequiredService<TransactionManager>()
+        await Verify.ThrowsAsync<ArgumentException>(async () => await trxMgr1.Start(context));
+    }
+
+    [Fact]
+    public async Task TransactionFinalization_AllowsNewTransactions()
+    {
+        using var host = await BuildService();
+        var context = host.Services.CreateContext<IndexedCollectionTransactionTests>();
+
+        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+
+        // Start first transaction
+        var trxMgr1 = host.Services.GetRequiredService<TransactionManager>()
             .Register("indexedCollection", c);
 
-        await trxMgr2.Start(context);
+        await trxMgr1.Start(context);
+
+        c.TryAdd(new TestRec { Id = 1, Name = "A" }).BeTrue();
+        await trxMgr1.Commit(context);
+
+        c.ContainsKey(1).BeTrue();
+
+        // Reusing the same manager for another commit should work.
+        await Verify.ThrowsAsync<ArgumentException>(async () => await trxMgr1.Commit(context));
+        await Verify.ThrowsAsync<ArgumentException>(async () => await trxMgr1.Rollback(context));
+
+        // Start a new transaction manager instance and register recorder again
+        await trxMgr1.Start(context);
+
+        c.TryAdd(new TestRec { Id = 2, Name = "B" }).BeTrue();
+        c.ContainsKey(1).BeTrue();
+        c.ContainsKey(2).BeTrue();
 
         // No new mutations; commit should capture changes since recorder was set (i.e., item 2 is not captured earlier, so it won't be in trx1; only trx2 will capture operations done after registration)
-        await trxMgr2.Commit(context);
+        await trxMgr1.Commit(context);
 
         // Verify journal has two records (one per transaction)
         var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         var records = (await store.Get("transaction_journal", context)).Return();
 
         records.Count.Be(2);
+        records[0].Entries.Count.Be(1);
+        records[1].Entries.Count.Be(1);
 
-        // First record: item 1 added
-        records[0].Entries.Select(e => (e.ObjectId, e.Action)).SequenceEqual(new[] { ("1", ChangeOperation.Add) }).BeTrue();
-
-        // Second record: since we didn't mutate after registering trxMgr2, there should be zero entries
-        // If you want to capture item 2 into trxMgr2, move adding item 2 AFTER registering trxMgr2.
-        records[1].Entries.Count.Be(0);
-    }
-
-    [Fact]
-    public async Task MultipleTransactions_SequentialCommits_AppendTwoJournalRecords()
-    {
-        using var host = await BuildService();
-        var context = host.Services.CreateContext<IndexedCollectionTransactionTests>();
-        var c = new IndexedCollection<int, TestRec>(x => x.Id);
-
-        // Txn 1
-        var tm1 = host.Services.GetRequiredService<TransactionManager>()
-            .Register("indexedCollection", c);
-
-        await tm1.Start(context);
-
-        c.TryAdd(new TestRec { Id = 10, Name = "T1" }).BeTrue();
-        await tm1.Commit(context);
-
-        // Txn 2 (new manager)
-        var tm2 = host.Services.GetRequiredService<TransactionManager>()
-            .Register("indexedCollection", c);
-
-        await tm2.Start(context);
-
-        c.TryAdd(new TestRec { Id = 11, Name = "T2" }).BeTrue();
-        await tm2.Commit(context);
-
-        // Verify journal has both transactions appended
-        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        var records = (await store.Get("transaction_journal", context)).Return();
-
-        records.Count.Be(2);
-        records[0].Entries.Select(e => (e.ObjectId, e.Action)).SequenceEqual(new[] { ("10", ChangeOperation.Add) }).BeTrue();
-        records[1].Entries.Select(e => (e.ObjectId, e.Action)).SequenceEqual(new[] { ("11", ChangeOperation.Add) }).BeTrue();
-
-        // Collection contains both items
-        c.Keys.OrderBy(x => x).SequenceEqual(new[] { 10, 11 }).BeTrue();
+        // Check data
+        records
+            .SelectMany(x => x.Entries)
+            .Select(e => (e.ObjectId, e.Action))
+            .SequenceEqual([("1", ChangeOperation.Add), ("2", ChangeOperation.Add)])
+            .BeTrue();
     }
 
     [Fact]
@@ -578,14 +571,10 @@ public class IndexedCollectionTransactionTests
 
         c.ContainsKey(20).BeFalse();
 
-        // Txn 2: commit
-        var tm2 = host.Services.GetRequiredService<TransactionManager>()
-            .Register("indexedCollection", c);
-
-        await tm2.Start(context);
+        await tm1.Start(context);
 
         c.TryAdd(new TestRec { Id = 21, Name = "CommitMe" }).BeTrue();
-        await tm2.Commit(context);
+        await tm1.Commit(context);
 
         var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         var records = (await store.Get("transaction_journal", context)).Return();
@@ -594,6 +583,39 @@ public class IndexedCollectionTransactionTests
         records[0].Entries.Select(e => (e.ObjectId, e.Action)).SequenceEqual(new[] { ("21", ChangeOperation.Add) }).BeTrue();
 
         c.Keys.SequenceEqual(new[] { 21 }).BeTrue();
+    }
+
+    [Fact]
+    public async Task MultipleTransactions_SequentialCommits_AppendTwoJournalRecords()
+    {
+        using var host = await BuildService();
+        var context = host.Services.CreateContext<IndexedCollectionTransactionTests>();
+        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+
+        // Txn 1
+        var tm1 = host.Services.GetRequiredService<TransactionManager>()
+            .Register("indexedCollection", c);
+
+        await tm1.Start(context);
+
+        c.TryAdd(new TestRec { Id = 10, Name = "T1" }).BeTrue();
+        await tm1.Commit(context);
+
+        await tm1.Start(context);
+
+        c.TryAdd(new TestRec { Id = 11, Name = "T2" }).BeTrue();
+        await tm1.Commit(context);
+
+        // Verify journal has both transactions appended
+        var store = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var records = (await store.Get("transaction_journal", context)).Return();
+
+        records.Count.Be(2);
+        records[0].Entries.Select(e => (e.ObjectId, e.Action)).SequenceEqual(new[] { ("10", ChangeOperation.Add) }).BeTrue();
+        records[1].Entries.Select(e => (e.ObjectId, e.Action)).SequenceEqual(new[] { ("11", ChangeOperation.Add) }).BeTrue();
+
+        // Collection contains both items
+        c.Keys.OrderBy(x => x).SequenceEqual(new[] { 10, 11 }).BeTrue();
     }
 
     [Fact]
@@ -621,7 +643,7 @@ public class IndexedCollectionTransactionTests
             .Register("indexedCollection", c);
 
         await trxMgr.Start(context);
-        await Verify.ThrowAsync<ArgumentException>(async () => await trxMgr.Start(context));
+        await Verify.ThrowsAsync<ArgumentException>(async () => await trxMgr.Start(context));
     }
 
     [Fact]
@@ -634,7 +656,7 @@ public class IndexedCollectionTransactionTests
         var trxMgr = host.Services.GetRequiredService<TransactionManager>()
             .Register("indexedCollection", c);
 
-        await Verify.ThrowAsync<ArgumentException>(async () => await trxMgr.Commit(context));
+        await Verify.ThrowsAsync<ArgumentException>(async () => await trxMgr.Commit(context));
     }
 
     [Fact]
@@ -649,7 +671,7 @@ public class IndexedCollectionTransactionTests
         trxMgr.Register("c1", c1);
         await trxMgr.Start(context);
 
-        Verify.Throw<ArgumentException>(() => trxMgr.Register("c2", c2));
+        Verify.Throws<ArgumentException>(() => trxMgr.Register("c2", c2));
     }
 
     [Fact]
@@ -661,15 +683,14 @@ public class IndexedCollectionTransactionTests
 
         var trxMgr1 = host.Services.GetRequiredService<TransactionManager>()
             .Register("c", c);
+
         await trxMgr1.Start(context);
         var id1 = trxMgr1.TransactionId;
         await trxMgr1.Commit(context);
 
-        var trxMgr2 = host.Services.GetRequiredService<TransactionManager>()
-            .Register("c", c);
-        await trxMgr2.Start(context);
-        var id2 = trxMgr2.TransactionId;
-        await trxMgr2.Commit(context);
+        await trxMgr1.Start(context);
+        var id2 = trxMgr1.TransactionId;
+        await trxMgr1.Commit(context);
 
         id1.NotBe(id2);
     }

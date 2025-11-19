@@ -121,7 +121,7 @@ public class GroupTests
         Action result = () => new GroupPolicy("", new[] { "user1" });
 
         // Assert
-        Verify.Throw<ArgumentException>(result);
+        Verify.Throws<ArgumentException>(result);
     }
 
     [Fact]

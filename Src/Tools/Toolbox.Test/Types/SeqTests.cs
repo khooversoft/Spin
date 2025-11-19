@@ -11,22 +11,22 @@ public class SeqTests
         var seq = new Seq<int>();
         seq.Count.Be(0);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             seq.First();
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             seq.Last();
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             seq.Next();
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             seq.Back();
         });
@@ -42,14 +42,14 @@ public class SeqTests
         seq.Count.Be(1);
         seq.Next().Be(1);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             seq.Next();
         });
 
         seq.Back().Be(1);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             seq.Back();
         });
@@ -67,14 +67,14 @@ public class SeqTests
         seq.End();
         seq.Back().Be(1);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             seq.Back();
         });
 
         seq.Next().Be(1);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             seq.Next();
         });
@@ -88,7 +88,7 @@ public class SeqTests
         seq.Next().Be(1);
         seq.Next().Be(2);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             seq.Next();
         });
@@ -96,7 +96,7 @@ public class SeqTests
         seq.Back().Be(2);
         seq.Back().Be(1);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             seq.Back();
         });

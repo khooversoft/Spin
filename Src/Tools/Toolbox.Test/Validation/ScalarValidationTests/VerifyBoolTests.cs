@@ -11,13 +11,13 @@ public class VerifyBoolTests
         v1.Be(true);
         v1.BeTrue();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             bool v2 = false;
             v2.Be(true);
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             bool v2 = false;
             v2.BeTrue();
@@ -31,13 +31,13 @@ public class VerifyBoolTests
         v1.Be(false);
         v1.BeFalse();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             bool v2 = true;
             v2.Be(false);
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             bool v2 = true;
             v2.BeFalse();
@@ -51,13 +51,13 @@ public class VerifyBoolTests
         v1.Be(true);
         v1.BeTrue();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             bool? v2 = false;
             v2.Be(true);
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             bool? v2 = false;
             v2.BeTrue();
@@ -71,13 +71,13 @@ public class VerifyBoolTests
         v1.Be(false);
         v1.BeFalse();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             bool? v2 = true;
             v2.Be(false);
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             bool? v2 = true;
             v2.BeFalse();
@@ -90,7 +90,7 @@ public class VerifyBoolTests
         bool v1 = true;
         v1.BeTrue();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             bool v2 = true;
             v2.BeFalse();
@@ -103,7 +103,7 @@ public class VerifyBoolTests
         bool? v1 = true;
         v1.BeTrue();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             bool? v2 = true;
             v2.BeFalse();

@@ -51,10 +51,26 @@ public static class DataETagExtensions
     public static DataETag ToDataETag<T>(this T value, string? currentETag = null)
     {
         value.NotNull();
-
         if (value is DataETag dataTag) return dataTag;
 
-        var bytes = value switch
+        var bytes = value.ConvertToBytes();
+        return new DataETag(bytes, currentETag);
+    }
+
+    public static DataETag ToDataETagWithHash<T>(this T value)
+    {
+        value.NotNull();
+        if (value is DataETag dataTag) return dataTag;
+
+        var bytes = value.ConvertToBytes();
+        return new DataETag(bytes, bytes.ToHexHash());
+    }
+
+    private static byte[] ConvertToBytes<T>(this T value)
+    {
+        value.NotNull();
+
+        return value switch
         {
             null => throw new ArgumentNullException("value"),
             IEnumerable<DataETag> => throw new ArgumentException("No array are allowed"),
@@ -63,8 +79,6 @@ public static class DataETagExtensions
             Memory<byte> v => v.ToArray(),
             var v => v.ToJson().ToBytes(),
         };
-
-        return new DataETag(bytes, currentETag);
     }
 
     public static DataETag StripETag(this DataETag data) => new DataETag([.. data.Data]);

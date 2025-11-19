@@ -14,13 +14,13 @@ public class VerifyOptionTests
         Option<string> v2 = StatusCode.OK;
         v2.Be(StatusCode.OK);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             Option v3 = StatusCode.BadRequest;
             v3.Be(StatusCode.OK);
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             Option<string> v3 = StatusCode.BadRequest;
             v3.Be(StatusCode.OK);
@@ -36,13 +36,13 @@ public class VerifyOptionTests
         Option<string> v2 = StatusCode.OK;
         v2.NotBe(StatusCode.BadRequest);
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             Option v3 = StatusCode.BadRequest;
             v3.NotBe(StatusCode.BadRequest);
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             Option<string> v3 = StatusCode.BadRequest;
             v3.NotBe(StatusCode.BadRequest);
@@ -58,13 +58,13 @@ public class VerifyOptionTests
         Option<string> v2 = StatusCode.OK;
         v2.BeOk();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             Option v2 = StatusCode.BadRequest;
             v2.BeOk();
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             Option<string> v3 = StatusCode.BadRequest;
             v3.BeOk();
@@ -80,13 +80,13 @@ public class VerifyOptionTests
         Option<string> v2 = StatusCode.NotFound;
         v2.BeError();
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             Option v2 = StatusCode.OK;
             v2.BeError();
         });
 
-        Verify.Throw<ArgumentException>(() =>
+        Verify.Throws<ArgumentException>(() =>
         {
             Option<int> v2 = StatusCode.OK;
             v2.BeError();

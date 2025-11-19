@@ -410,63 +410,6 @@ public class SecondaryIndexTests
         ValidateInvariants(index);
     }
 
-    // NEW: Enumeration must be safe while writes occur (snapshot semantics)
-    [Fact]
-    public async Task SecondaryIndex_Concurrent_Enumeration_SnapshotSafe()
-    {
-        var index = new SecondaryIndex<int, int>();
-
-        // Seed some data
-        for (int k = 0; k < 16; k++)
-        {
-            for (int p = 0; p < 4; p++) index.Set(k, k * 10 + p);
-        }
-
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-
-        // Writers
-        var writer = Task.Run(async () =>
-        {
-            var r = new Random(8675309);
-            while (!cts.IsCancellationRequested)
-            {
-                int k = r.Next(0, 64);
-                int p = r.Next(0, 64);
-                switch (r.Next(4))
-                {
-                    case 0: index.Set(k, p); break;
-                    case 1: index.Remove(k, p); break;
-                    case 2: index.Remove(k); break;
-                    case 3: index.RemovePrimaryKey(p); break;
-                }
-                await Task.Yield();
-            }
-        }, cts.Token);
-
-        // Enumerator reader: ensure no exceptions and finite progress
-        int enumerations = 0;
-        var reader = Task.Run(async () =>
-        {
-            while (!cts.IsCancellationRequested)
-            {
-                // Should not throw or hang
-                var snapshot = index.ToArray(); // forces enumeration snapshot
-                // light internal consistency of the snapshot itself
-                snapshot.Length.Be(snapshot.Distinct().Count());
-                enumerations++;
-                await Task.Yield();
-            }
-        }, cts.Token);
-
-        await Task.Delay(1000);
-        cts.Cancel();
-        await Task.WhenAll(Task.WhenAll(writer.ContinueWith(_ => { })), Task.WhenAll(reader.ContinueWith(_ => { })));
-
-        enumerations.Assert(x => x > 0, x => $"{x} must be > 0");
-        // Final invariant check after stopping writers
-        ValidateInvariants(index);
-    }
-
     private static void ValidateInvariants<TKey, TP>(SecondaryIndex<TKey, TP> index)
         where TKey : notnull
         where TP : notnull

@@ -72,9 +72,9 @@ public class ConcurrentSequenceTests
     {
         var seq = new ConcurrentSequence<int>(new[] { 1, 2, 3 });
 
-        Verify.Throw<ArgumentNullException>(() => seq.CopyTo(null!, 0));
-        Verify.Throw<ArgumentOutOfRangeException>(() => seq.CopyTo(new int[3], -1));
-        Verify.Throw<ArgumentException>(() => seq.CopyTo(new int[4], 2)); // not enough room
+        Verify.Throws<ArgumentNullException>(() => seq.CopyTo(null!, 0));
+        Verify.Throws<ArgumentOutOfRangeException>(() => seq.CopyTo(new int[3], -1));
+        Verify.Throws<ArgumentException>(() => seq.CopyTo(new int[4], 2)); // not enough room
     }
 
     [Fact]
@@ -113,6 +113,9 @@ public class ConcurrentSequenceTests
         var seq = new ConcurrentSequence<int>(Enumerable.Range(0, 1_000));
         var enumerated = 0;
 
+        // Take the enumerator BEFORE starting mutation to ensure we get a 1,000-item snapshot
+        var enumerator = seq.GetEnumerator();
+
         // Start a background mutator that adds elements while we iterate
         var mutate = Task.Run(() =>
         {
@@ -124,8 +127,8 @@ public class ConcurrentSequenceTests
             }
         });
 
-        // Take a snapshot enumerator and iterate it while mutation happens
-        foreach (var _ in seq)
+        // Iterate the snapshot while mutation happens
+        while (enumerator.MoveNext())
         {
             enumerated++;
             // encourage interleaving
@@ -162,8 +165,8 @@ public class ConcurrentSequenceTests
         seq.Dispose();
 
         // Any operation that touches the lock should throw ObjectDisposedException
-        Verify.Throw<ObjectDisposedException>(() => { var _ = seq.Count; });
-        Verify.Throw<ObjectDisposedException>(() => seq.Add(4));
-        Verify.Throw<ObjectDisposedException>(() => { foreach (var _ in seq) { } });
+        Verify.Throws<ObjectDisposedException>(() => { var _ = seq.Count; });
+        Verify.Throws<ObjectDisposedException>(() => seq.Add(4));
+        Verify.Throws<ObjectDisposedException>(() => { foreach (var _ in seq) { } });
     }
 }
