@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
@@ -150,7 +145,7 @@ public class MemoryStoreTransactionTests
 
         const string path = "test/update/file1.txt";
         var originalData = new DataETag("original data".ToBytes());
-        
+
         // Add initial data outside transaction
         memoryStore.Add(path, originalData, context).BeOk();
 
@@ -179,7 +174,7 @@ public class MemoryStoreTransactionTests
 
         const string path = "test/update/rollback.txt";
         var originalData = new DataETag("original data".ToBytes());
-        
+
         // Add initial data outside transaction
         memoryStore.Add(path, originalData, context).BeOk();
 
@@ -212,7 +207,7 @@ public class MemoryStoreTransactionTests
 
         const string path = "test/delete/file1.txt";
         var data = new DataETag("data to delete".ToBytes());
-        
+
         // Add initial data
         memoryStore.Add(path, data, context).BeOk();
 
@@ -238,7 +233,7 @@ public class MemoryStoreTransactionTests
 
         const string path = "test/delete/rollback.txt";
         var originalData = new DataETag("data to restore".ToBytes());
-        
+
         // Add initial data
         memoryStore.Add(path, originalData, context).BeOk();
 
@@ -449,7 +444,7 @@ public class MemoryStoreTransactionTests
         var journalResult = await journalStore.Get("transaction_journal", context);
         journalResult.BeOk();
         var journals = journalResult.Return();
-        
+
         var matchingJournal = journals.FirstOrDefault(j => j.TransactionId == transactionId);
         matchingJournal.NotNull();
         matchingJournal.Entries.Count.Be(1);
@@ -469,7 +464,7 @@ public class MemoryStoreTransactionTests
 
         trxManager.Register("memory", memoryStore);
         await trxManager.Start(context);
-        
+
         var result = await trxManager.Commit(context);
         result.BeOk();
     }
@@ -483,7 +478,7 @@ public class MemoryStoreTransactionTests
         var context = host.Services.CreateContext<MemoryStoreTransactionTests>();
 
         const string path = "test/edge/nonexistent.txt";
-        
+
         trxManager.Register("memory", memoryStore);
         await trxManager.Start(context);
 

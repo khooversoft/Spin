@@ -40,9 +40,9 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
     {
         Option<DataETag> readOption = StatusCode.NotFound;
 
-        if (_datalakeStore.DataChangeLog.GetRecorder() != null) readOption = await _fileClient.Get(context);
+        if (_datalakeStore.DataChangeLog.GetRecorder() != null) readOption = await _fileClient.Get(this, context);
 
-        var setOption = await _fileClient.Set(data, context);
+        var setOption = await _fileClient.Set(this, data, context);
         if (setOption.IsError()) return setOption;
 
         if (_datalakeStore.DataChangeLog.GetRecorder() != null)

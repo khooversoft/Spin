@@ -22,7 +22,7 @@ public class MemoryStore
     public Option<string> Add(string path, DataETag data, ScopeContext context)
     {
         context = context.With(_logger);
-        if( path.IsEmpty()) return (StatusCode.BadRequest, "Path is required");
+        if (path.IsEmpty()) return (StatusCode.BadRequest, "Path is required");
         path = RemoveForwardSlash(path);
 
         if (!FileStoreTool.IsPathValid(path)) return (StatusCode.BadRequest, "Path is invalid");

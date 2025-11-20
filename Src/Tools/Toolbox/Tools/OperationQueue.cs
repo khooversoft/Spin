@@ -11,7 +11,6 @@ public class OperationQueue : IAsyncDisposable
     private readonly Channel<Func<Task>> _channel;
     private readonly ILogger<OperationQueue> _logger;
     private readonly Task _processingTask;
-    private readonly CancellationTokenSource _cancelToken = new();
     private volatile RunState _runState;
     private long _getEnqueueCount;
     private long _getExecuteCount;
@@ -41,11 +40,10 @@ public class OperationQueue : IAsyncDisposable
 
         context.LogDebug("Completing operations");
 
-        _cancelToken.Cancel();
+        // Signal shutdown and drain remaining operations.
         _channel.Writer.Complete();
 
         await _processingTask;
-        _cancelToken.Dispose();
     }
 
     public async Task Drain(ScopeContext context)
@@ -72,7 +70,7 @@ public class OperationQueue : IAsyncDisposable
             }
         };
 
-        await _channel.Writer.WriteAsync(wrapper, _cancelToken.Token);
+        await _channel.Writer.WriteAsync(wrapper);
         await tcs.Task;
     }
 
@@ -106,7 +104,7 @@ public class OperationQueue : IAsyncDisposable
             }
         };
 
-        await _channel.Writer.WriteAsync(wrapper, _cancelToken.Token);
+        await _channel.Writer.WriteAsync(wrapper);
         Interlocked.Increment(ref _getEnqueueCount);
         LogStats(context);
 
@@ -118,8 +116,8 @@ public class OperationQueue : IAsyncDisposable
         if (_runState != RunState.Run) throw new InvalidOperationException("Not running");
         context.With(_logger).LogDebug("Enqueue writer (send)");
 
+        await _channel.Writer.WriteAsync(sendOperation);
         Interlocked.Increment(ref _sendEnqueueCount);
-        await _channel.Writer.WriteAsync(sendOperation, _cancelToken.Token);
         LogStats(context);
     }
 
@@ -129,37 +127,36 @@ public class OperationQueue : IAsyncDisposable
 
         try
         {
-            while (await _channel.Reader.WaitToReadAsync(_cancelToken.Token))
+            await foreach (var operation in _channel.Reader.ReadAllAsync())
             {
-                while (_channel.Reader.TryRead(out var operation))
+                try
                 {
-                    try
+                    context.Location().LogDebug("OperationQueue: Process operations");
+                    using (var timeScope = context.LogDuration(nameof(ProcessQueueAsync), "OperationQueue: Process operations - timing"))
                     {
-                        context.Location().LogDebug("OperationQueue: Process operations");
-                        using (var timeScope = context.LogDuration(nameof(ProcessQueueAsync), "OperationQueue: Process operations - timing"))
-                        {
-                            Interlocked.Increment(ref _processCount);
-                            await operation();
-                            LogStats(context);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        context.LogError(ex, "Process operations failed");
+                        Interlocked.Increment(ref _processCount);
+                        await operation();
+                        LogStats(context);
                     }
                 }
+                catch (Exception ex)
+                {
+                    context.LogError(ex, "Process operations failed");
+                }
             }
+
+            context.LogDebug("Process operations completed - channel closed");
         }
-        catch (OperationCanceledException)
+        catch (Exception ex)
         {
-            context.LogDebug("Process operations canceled - shutting down");
+            context.LogError(ex, "Unexpected error in ProcessQueueAsync");
         }
     }
 
     public async ValueTask DisposeAsync() => await Complete(_logger.ToScopeContext());
 
     private void LogStats(ScopeContext context) => context.LogDebug(
-        "OperationQueue Stats: GetEnqueue={getEnqueue}, GetExecute={getExecute}, SendEnqueue={sendEnqueue}, ProcessCount={_processCount}",
+        "OperationQueue Stats: GetEnqueue={getEnqueue}, GetExecute={getExecute}, SendEnqueue={sendEnqueue}, ProcessCount={processCount}",
         _getEnqueueCount,
         _getExecuteCount,
         _sendEnqueueCount,
