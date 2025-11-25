@@ -56,8 +56,7 @@ public class InMemoryFileStoreTests
         await DeleteFile(store, pathText, 0);
     }
 
-    [Fact
-        ]
+    [Fact]
     public async Task AddFileUpdateWithSet()
     {
         const string dataText = "data";

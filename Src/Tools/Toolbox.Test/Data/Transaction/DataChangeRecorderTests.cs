@@ -27,16 +27,16 @@ public class DataChangeRecorderTests
         r.GetRecorder().Assert(x => x == mockRecorder, "Recorder should be the same instance");
     }
 
-    //[Fact]
-    //public void SetRecorder_TwiceShouldThrow()
-    //{
-    //    var r = new DataChangeRecorder();
-    //    var mockRecorder1 = new MockTrxRecorder();
-    //    var mockRecorder2 = new MockTrxRecorder();
+    [Fact]
+    public void SetRecorder_TwiceShouldThrow()
+    {
+        var r = new DataChangeRecorder();
+        var mockRecorder1 = new MockTrxRecorder();
+        var mockRecorder2 = new MockTrxRecorder();
 
-    //    r.Set(mockRecorder1);
-    //    Verify.Throws<ArgumentException>(() => r.Set(mockRecorder2));
-    //}
+        r.Set(mockRecorder1);
+        Verify.Throws<ArgumentException>(() => r.Set(mockRecorder2));
+    }
 
     [Fact]
     public void ClearRecorder_Success()

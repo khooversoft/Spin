@@ -9,4 +9,3 @@ public interface ITransactionProvider
     public Task<Option> Commit(DataChangeRecord dataChangeEntry, ScopeContext context);
     public Task<Option> Rollback(DataChangeEntry dataChangeEntry, ScopeContext context);
 }
-

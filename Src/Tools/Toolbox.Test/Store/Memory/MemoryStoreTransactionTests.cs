@@ -46,8 +46,6 @@ public class MemoryStoreTransactionTests
         return host;
     }
 
-    #region Add Operation Transaction Tests
-
     [Fact]
     public async Task GivenAdd_WhenCommit_ShouldPersistData()
     {
@@ -131,10 +129,6 @@ public class MemoryStoreTransactionTests
         memoryStore.Exist(path3).BeFalse();
     }
 
-    #endregion
-
-    #region Update Operation Transaction Tests
-
     [Fact]
     public async Task GivenUpdate_WhenCommit_ShouldPersistChanges()
     {
@@ -193,10 +187,6 @@ public class MemoryStoreTransactionTests
         result.Return().Data.SequenceEqual(originalData.Data).BeTrue();
     }
 
-    #endregion
-
-    #region Delete Operation Transaction Tests
-
     [Fact]
     public async Task GivenDelete_WhenCommit_ShouldRemoveData()
     {
@@ -252,10 +242,6 @@ public class MemoryStoreTransactionTests
         result.BeOk();
         result.Return().Data.SequenceEqual(originalData.Data).BeTrue();
     }
-
-    #endregion
-
-    #region Mixed Operations Transaction Tests
 
     [Fact]
     public async Task GivenMixedOperations_WhenCommit_ShouldPersistAll()
@@ -321,10 +307,6 @@ public class MemoryStoreTransactionTests
         memoryStore.Exist(path3).BeTrue();
     }
 
-    #endregion
-
-    #region Transaction with Lease Tests
-
     [Fact]
     public async Task GivenLeasedPath_WhenTransactionUpdate_ShouldFail()
     {
@@ -378,10 +360,6 @@ public class MemoryStoreTransactionTests
         memoryStore.Get(path).Return().Data.SequenceEqual("new data".ToBytes()).BeTrue();
     }
 
-    #endregion
-
-    #region Data Change Recorder Tests
-
     [Fact]
     public async Task GivenTransaction_WhenOperations_ShouldRecordChanges()
     {
@@ -418,10 +396,6 @@ public class MemoryStoreTransactionTests
         (recorder == null).BeTrue();
     }
 
-    #endregion
-
-    #region Journal Persistence Tests
-
     [Fact]
     public async Task GivenCommittedTransaction_ShouldWriteJournal()
     {
@@ -449,10 +423,6 @@ public class MemoryStoreTransactionTests
         matchingJournal.NotNull();
         matchingJournal.Entries.Count.Be(1);
     }
-
-    #endregion
-
-    #region Edge Cases Tests
 
     [Fact]
     public async Task GivenEmptyTransaction_WhenCommit_ShouldSucceed()
@@ -516,6 +486,4 @@ public class MemoryStoreTransactionTests
         memoryStore.Exist("test/seq/file1.txt").BeTrue();
         memoryStore.Exist("test/seq/file2.txt").BeTrue();
     }
-
-    #endregion
 }

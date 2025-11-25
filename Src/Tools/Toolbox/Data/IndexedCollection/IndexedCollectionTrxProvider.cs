@@ -74,8 +74,7 @@ public static class IndexedCollectionTrxProviderExtensions
         where TValue : notnull
     {
         var provider = new IndexedCollectionTrxProvider<TKey, TValue>(sourceName, collection);
-        var reader = manager.Register(sourceName, provider).NotNull();
-        collection.DataChangeLog.Set(reader);
+        var reader = manager.Register(collection).NotNull();
         return manager;
     }
 }

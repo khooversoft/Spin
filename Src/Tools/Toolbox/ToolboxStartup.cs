@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Data;
 using Toolbox.Store;
 using Toolbox.Tools;
 
@@ -21,4 +22,24 @@ public static class ToolboxStartup
         return services;
     }
 
+    public static IServiceCollection AddInMemoryFileStore(this TransactionStartupContext trxStartupContext, MemoryStore? memoryStore = null)
+    {
+        trxStartupContext.ServiceCollection.AddSingleton<IFileStore, InMemoryFileStore>();
+
+        switch (memoryStore)
+        {
+            case null:
+                trxStartupContext.ServiceCollection.AddSingleton<MemoryStore>(services => ActivatorUtilities.CreateInstance<MemoryStore>(services, trxStartupContext.Option));
+                break;
+
+            default:
+                trxStartupContext.ServiceCollection.AddKeyedSingleton<MemoryStore>(
+                    trxStartupContext.Option.Name,
+                    (services, obj) => ActivatorUtilities.CreateInstance<MemoryStore>(services, trxStartupContext.Option)
+                    );
+                break;
+        }
+
+        return trxStartupContext.ServiceCollection;
+    }
 }

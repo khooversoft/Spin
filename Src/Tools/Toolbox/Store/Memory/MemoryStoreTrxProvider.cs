@@ -61,9 +61,7 @@ public static class MemoryStoreTrxProviderExtensions
 {
     public static TransactionManager Register(this TransactionManager manager, string sourceName, MemoryStore memoryStore)
     {
-        var provider = new MemoryStoreTrxProvider(sourceName, memoryStore);
-        var reader = manager.Register(sourceName, provider).NotNull();
-        memoryStore.DataChangeLog.Set(reader);
+        manager.Register(memoryStore).NotNull();
         return manager;
     }
 }

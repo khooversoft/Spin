@@ -40,14 +40,28 @@ public class TransactionManager
 
     public string TransactionId { get; private set; } = Guid.NewGuid().ToString();
 
-    public ITrxRecorder Register(string sourceName, ITransactionProvider provider)
+    //public ITrxRecorder Register(string sourceName, ITransactionProvider provider)
+    //{
+    //    sourceName.NotEmpty();
+    //    provider.NotNull();
+    //    _runState.Value.Assert(x => x != RunState.Transaction, "Transaction is already in progress");
+
+    //    _providers.TryAdd(sourceName, provider).Assert(x => x == true, $"Provider {sourceName} already registered");
+    //    return new TrxRecorder(this, sourceName);
+    //}
+
+    public TransactionManager Register(ITransactionRegister registry)
     {
-        sourceName.NotEmpty();
-        provider.NotNull();
+        registry.NotNull();
+        var provider = registry.GetProvider();
         _runState.Value.Assert(x => x != RunState.Transaction, "Transaction is already in progress");
 
-        _providers.TryAdd(sourceName, provider).Assert(x => x == true, $"Provider {sourceName} already registered");
-        return new TrxRecorder(this, sourceName);
+        _providers.TryAdd(provider.Name, provider).Assert(x => x == true, $"Provider {registry.GetType().Name} already registered");
+        var recorder = new TrxRecorder(this, provider.Name);
+        registry.DataChangeLog.Set(recorder);
+
+        _logger.LogTrace("Registered transaction provider={provider}", provider.Name);
+        return this;
     }
 
     public Task<Option> Start(ScopeContext context)

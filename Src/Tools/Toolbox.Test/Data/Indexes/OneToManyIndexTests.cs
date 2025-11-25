@@ -4,7 +4,7 @@ using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 
-namespace Toolbox.Test.Data.Types;
+namespace Toolbox.Test.Data.Indexes;
 
 public class OneToManyIndexTests
 {

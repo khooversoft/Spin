@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
@@ -8,16 +9,27 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class MemoryStore
+public class MemoryStore : ITransactionRegister
 {
     private readonly ConcurrentDictionary<string, DirectoryDetail> _store = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, LeaseRecord> _leaseStore = new(StringComparer.OrdinalIgnoreCase);
+    private readonly string _storeName = "MemoryStore-" + Guid.NewGuid().ToString();
     private readonly object _lock = new object();
     private readonly ILogger<MemoryStore> _logger;
 
     public MemoryStore(ILogger<MemoryStore> logger) => _logger = logger.NotNull();
 
+    public MemoryStore(TransactionManagerOption trxManagerOption, IServiceProvider serviceProvider, ILogger<MemoryStore> logger)
+    {
+        _logger = logger.NotNull();
+        serviceProvider.NotNull();
+
+        trxManagerOption.Register(serviceProvider, this);
+    }
+
     public DataChangeRecorder DataChangeLog { get; } = new();
+    public ITransactionProvider GetProvider() => new MemoryStoreTrxProvider(_storeName, this);
+
 
     public Option<string> Add(string path, DataETag data, ScopeContext context)
     {

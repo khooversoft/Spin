@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks.Dataflow;
 using Toolbox.Tools;
 
-namespace Toolbox.Test.Data.Types;
+namespace Toolbox.Test.Data.Indexes;
 
 public class DifferentParallel
 {

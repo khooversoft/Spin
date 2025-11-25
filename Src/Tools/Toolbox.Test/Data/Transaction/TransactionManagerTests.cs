@@ -33,13 +33,15 @@ public class TransactionManagerTests
         return host;
     }
 
-    private sealed class RecordingProvider : ITransactionProvider
+    private sealed class RecordingProvider : ITransactionProvider, ITransactionRegister
     {
         public string Name { get; }
         public List<string> Calls { get; } = new();
         public Func<DataChangeRecord, Option>? PrepareResult { get; set; }
         public Func<DataChangeRecord, Option>? CommitResult { get; set; }
         public Func<DataChangeEntry, Option>? RollbackResult { get; set; }
+
+        public DataChangeRecorder DataChangeLog => new DataChangeRecorder();
 
         public RecordingProvider(string name) => Name = name;
 
@@ -60,6 +62,8 @@ public class TransactionManagerTests
             Calls.Add("rollback:" + Name + ":" + e.ObjectId);
             return Task.FromResult(RollbackResult?.Invoke(e) ?? new Option(StatusCode.OK));
         }
+
+        public ITransactionProvider GetProvider() => this;
     }
 
     private sealed class PassThruProvider : ITransactionProvider
@@ -83,8 +87,8 @@ public class TransactionManagerTests
     {
         using var host = await BuildHost("j1");
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        mgr.Register("A", new RecordingProvider("A"));
-        Assert.Throws<ArgumentException>(() => mgr.Register("A", new RecordingProvider("A")));
+        mgr.Register(new RecordingProvider("A"));
+        Assert.Throws<ArgumentException>(() => mgr.Register(new RecordingProvider("A")));
     }
 
     [Fact]
@@ -92,10 +96,10 @@ public class TransactionManagerTests
     {
         using var host = await BuildHost("j2");
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        mgr.Register("A", new RecordingProvider("A"));
+        mgr.Register(new RecordingProvider("A"));
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
-        Assert.Throws<ArgumentException>(() => mgr.Register("B", new RecordingProvider("B")));
+        Assert.Throws<ArgumentException>(() => mgr.Register(new RecordingProvider("B")));
     }
 
     [Fact]
@@ -106,8 +110,10 @@ public class TransactionManagerTests
         var mgr = host.Services.GetRequiredService<TransactionManager>();
         var pA = new RecordingProvider("A");
         var pB = new RecordingProvider("B");
-        var recA = mgr.Register("A", pA);
-        var recB = mgr.Register("B", pB);
+        mgr.Register(pA);
+        mgr.Register(pB);
+        var recA = pA.DataChangeLog.GetRecorder().NotNull();
+        var recB = pB.DataChangeLog.GetRecorder().NotNull();
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
@@ -139,7 +145,7 @@ public class TransactionManagerTests
         string journalKey = "empty-" + Guid.NewGuid().ToString("N");
         using var host = await BuildHost(journalKey);
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        mgr.Register("A", new RecordingProvider("A"));
+        mgr.Register(new RecordingProvider("A"));
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
@@ -158,12 +164,12 @@ public class TransactionManagerTests
         var mgr = host.Services.GetRequiredService<TransactionManager>();
         var bad = new RecordingProvider("bad") { PrepareResult = _ => new Option(StatusCode.BadRequest, "prep") };
         var good = new RecordingProvider("good");
-        var recBad = mgr.Register("bad", bad);
-        mgr.Register("good", good);
+        var recBad = mgr.Register(bad);
+        mgr.Register(good);
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
-        recBad.Add("obj", "v");
+        bad.DataChangeLog.GetRecorder().NotNull().Add("obj", "v");
         var result = await mgr.Commit(ctx);
         result.IsError().BeTrue();
         result.StatusCode.Be(StatusCode.BadRequest);
@@ -179,12 +185,12 @@ public class TransactionManagerTests
         var mgr = host.Services.GetRequiredService<TransactionManager>();
         var pA = new RecordingProvider("A");
         var pB = new RecordingProvider("B") { CommitResult = _ => new Option(StatusCode.Conflict, "fail") };
-        var recA = mgr.Register("A", pA);
-        mgr.Register("B", pB);
+        var recA = mgr.Register(pA);
+        mgr.Register(pB);
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
-        recA.Add("x", "y");
+        pA.DataChangeLog.GetRecorder().NotNull().Add("x", "y");
         var r = await mgr.Commit(ctx);
         r.IsError().BeTrue();
         r.StatusCode.Be(StatusCode.Conflict);
@@ -203,15 +209,15 @@ public class TransactionManagerTests
         var mgr = host.Services.GetRequiredService<TransactionManager>();
         var pA = new RecordingProvider("A");
         var pB = new RecordingProvider("B");
-        var recA = mgr.Register("A", pA);
-        var recB = mgr.Register("B", pB);
+        var recA = mgr.Register(pA);
+        var recB = mgr.Register(pB);
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
 
-        recA.Add("o1", "v1");
-        recB.Update("o2", "old2", "new2");
-        recA.Delete("o3", "old3");
+        pA.DataChangeLog.GetRecorder().NotNull().Add("o1", "v1");
+        pB.DataChangeLog.GetRecorder().NotNull().Update("o2", "old2", "new2");
+        pA.DataChangeLog.GetRecorder().NotNull().Delete("o3", "old3");
 
         (await mgr.Rollback(ctx)).BeOk();
 
@@ -234,7 +240,7 @@ public class TransactionManagerTests
     {
         using var host = await BuildHost("nostart");
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        mgr.Register("A", new RecordingProvider("A"));
+        mgr.Register(new RecordingProvider("A"));
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         Assert.Throws<ArgumentException>(() => mgr.Commit(ctx).GetAwaiter().GetResult());
     }
@@ -259,7 +265,7 @@ public class TransactionManagerTests
     {
         using var host = await BuildHost("rollbackNoStart");
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        mgr.Register("A", new RecordingProvider("A"));
+        mgr.Register(new RecordingProvider("A"));
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
 
         Assert.Throws<ArgumentException>(() => mgr.Rollback(ctx).GetAwaiter().GetResult());
@@ -274,11 +280,12 @@ public class TransactionManagerTests
         {
             RollbackResult = _ => new Option(StatusCode.InternalServerError, "rollback failed")
         };
-        var rec = mgr.Register("failing", failing);
+
+        mgr.Register(failing);
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
-        rec.Add("obj1", "val1");
+        failing.DataChangeLog.GetRecorder().NotNull().Add("obj1", "val1");
 
         var result = await mgr.Rollback(ctx);
         result.IsError().BeTrue();
@@ -291,14 +298,14 @@ public class TransactionManagerTests
         using var host = await BuildHost("rollbackOrder");
         var mgr = host.Services.GetRequiredService<TransactionManager>();
         var pA = new RecordingProvider("A");
-        var recA = mgr.Register("A", pA);
+        mgr.Register(pA);
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
 
-        recA.Add("o1", "v1");
-        recA.Add("o2", "v2");
-        recA.Add("o3", "v3");
+        pA.DataChangeLog.GetRecorder().NotNull().Add("o1", "v1");
+        pA.DataChangeLog.GetRecorder().NotNull().Add("o2", "v2");
+        pA.DataChangeLog.GetRecorder().NotNull().Add("o3", "v3");
 
         (await mgr.Rollback(ctx)).BeOk();
 
@@ -314,19 +321,20 @@ public class TransactionManagerTests
         string journalKey = "reuse-" + Guid.NewGuid().ToString("N");
         using var host = await BuildHost(journalKey);
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        var rec = mgr.Register("A", new RecordingProvider("A"));
+        RecordingProvider pA = new("A");
+        mgr.Register(pA);
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
 
         // First transaction
         (await mgr.Start(ctx)).BeOk();
         var firstTxId = mgr.TransactionId;
-        rec.Add("obj1", "val1");
+        pA.DataChangeLog.GetRecorder().NotNull().Add("obj1", "val1");
         (await mgr.Commit(ctx)).BeOk();
 
         // Second transaction
         (await mgr.Start(ctx)).BeOk();
         var secondTxId = mgr.TransactionId;
-        rec.Add("obj2", "val2");
+        pA.DataChangeLog.GetRecorder().NotNull().Add("obj2", "val2");
         (await mgr.Commit(ctx)).BeOk();
 
         // Verify different transaction IDs
@@ -343,13 +351,14 @@ public class TransactionManagerTests
     {
         using var host = await BuildHost("reuseRollback");
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        var rec = mgr.Register("A", new RecordingProvider("A"));
+        RecordingProvider pA = new("A");
+        mgr.Register(pA);
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
 
         // First transaction with rollback
         (await mgr.Start(ctx)).BeOk();
         var firstTxId = mgr.TransactionId;
-        rec.Add("obj1", "val1");
+        pA.DataChangeLog.GetRecorder().NotNull().Add("obj1", "val1");
         (await mgr.Rollback(ctx)).BeOk();
 
         // Second transaction
@@ -364,8 +373,9 @@ public class TransactionManagerTests
         using var host = await BuildHost("caseInsensitive");
         var mgr = host.Services.GetRequiredService<TransactionManager>();
 
-        mgr.Register("Provider", new RecordingProvider("Provider"));
-        Assert.Throws<ArgumentException>(() => mgr.Register("provider", new RecordingProvider("provider")));
+        var p = new RecordingProvider("Provider");
+        mgr.Register(p);
+        Assert.Throws<ArgumentException>(() => mgr.Register(p));
     }
 
     [Fact]
@@ -374,7 +384,7 @@ public class TransactionManagerTests
         string journalKey = "genericEnqueue-" + Guid.NewGuid().ToString("N");
         using var host = await BuildHost(journalKey);
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        mgr.Register("source", new RecordingProvider("source"));
+        mgr.Register(new RecordingProvider("source"));
         var lsn = host.Services.GetRequiredService<LogSequenceNumber>();
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
@@ -436,12 +446,13 @@ public class TransactionManagerTests
         string journalKey = "update-" + Guid.NewGuid().ToString("N");
         using var host = await BuildHost(journalKey);
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        var rec = mgr.Register("A", new RecordingProvider("A"));
+        RecordingProvider pA = new("A");
+        mgr.Register(pA);
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
 
-        rec.Update("key1", "oldValue", "newValue");
+        pA.DataChangeLog.GetRecorder().NotNull().Update("key1", "oldValue", "newValue");
 
         (await mgr.Commit(ctx)).BeOk();
 
@@ -463,14 +474,14 @@ public class TransactionManagerTests
         var mgr = host.Services.GetRequiredService<TransactionManager>();
         var pA = new RecordingProvider("A");
         var pB = new RecordingProvider("B");
-        var recA = mgr.Register("A", pA);
-        var recB = mgr.Register("B", pB);
+        mgr.Register(pA);
+        mgr.Register(pB);
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
 
-        recA.Add("a1", "valA");
-        recB.Add("b1", "valB");
+        pA.DataChangeLog.GetRecorder().NotNull().Add("a1", "valA");
+        pB.DataChangeLog.GetRecorder().NotNull().Add("b1", "valB");
 
         (await mgr.Commit(ctx)).BeOk();
 
@@ -491,7 +502,8 @@ public class TransactionManagerTests
         string journalKey = "stress-large-" + Guid.NewGuid().ToString("N");
         using var host = await BuildHost(journalKey);
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        var rec = mgr.Register("A", new RecordingProvider("A"));
+        RecordingProvider pA = new("A");
+        mgr.Register(pA);
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
@@ -499,7 +511,7 @@ public class TransactionManagerTests
         // Enqueue 1000 entries
         for (int i = 0; i < 1000; i++)
         {
-            rec.Add($"obj{i}", $"value{i}");
+            pA.DataChangeLog.GetRecorder().NotNull().Add($"obj{i}", $"value{i}");
         }
 
         var result = await mgr.Commit(ctx);
@@ -517,7 +529,8 @@ public class TransactionManagerTests
         string journalKey = "stress-concurrent-" + Guid.NewGuid().ToString("N");
         using var host = await BuildHost(journalKey);
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        var rec = mgr.Register("A", new RecordingProvider("A"));
+        RecordingProvider pA = new("A");
+        mgr.Register(pA);
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
@@ -534,7 +547,7 @@ public class TransactionManagerTests
             {
                 for (int i = 0; i < itemsPerThread; i++)
                 {
-                    rec.Add($"obj-t{threadId}-i{i}", $"value{i}");
+                    pA.DataChangeLog.GetRecorder().NotNull().Add($"obj-t{threadId}-i{i}", $"value{i}");
                 }
             });
             tasks.Add(task);
@@ -557,7 +570,8 @@ public class TransactionManagerTests
         string journalKey = "stress-cycles-" + Guid.NewGuid().ToString("N");
         using var host = await BuildHost(journalKey);
         var mgr = host.Services.GetRequiredService<TransactionManager>();
-        var rec = mgr.Register("A", new RecordingProvider("A"));
+        RecordingProvider pA = new("A");
+        mgr.Register(pA);
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
 
         var transactionIds = new HashSet<string>();
@@ -567,7 +581,7 @@ public class TransactionManagerTests
         {
             (await mgr.Start(ctx)).BeOk();
             transactionIds.Add(mgr.TransactionId);
-            rec.Add($"obj{i}", $"value{i}");
+            pA.DataChangeLog.GetRecorder().NotNull().Add($"obj{i}", $"value{i}");
             (await mgr.Commit(ctx)).BeOk();
         }
 
@@ -586,7 +600,7 @@ public class TransactionManagerTests
         using var host = await BuildHost("stress-rollback");
         var mgr = host.Services.GetRequiredService<TransactionManager>();
         var provider = new RecordingProvider("A");
-        var rec = mgr.Register("A", provider);
+        mgr.Register(provider);
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();
         (await mgr.Start(ctx)).BeOk();
@@ -594,7 +608,7 @@ public class TransactionManagerTests
         // Enqueue 500 entries
         for (int i = 0; i < 500; i++)
         {
-            rec.Add($"obj{i}", $"value{i}");
+            provider.DataChangeLog.GetRecorder().NotNull().Add($"obj{i}", $"value{i}");
         }
 
         var result = await mgr.Rollback(ctx);
@@ -621,7 +635,7 @@ public class TransactionManagerTests
         {
             var provider = new RecordingProvider($"P{i}");
             providers.Add(provider);
-            recorders.Add(mgr.Register($"P{i}", provider));
+            recorders.Add(provider.DataChangeLog.GetRecorder().NotNull());
         }
 
         var ctx = host.Services.CreateContext<TransactionManagerTests>();

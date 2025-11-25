@@ -7,7 +7,7 @@ namespace Toolbox.Data;
 /// <summary>
 /// Data collection with primary index with 0-n number of secondary index
 /// </summary>
-public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
+public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, ITransactionRegister, IDisposable
     where TKey : notnull
     where TValue : notnull
 {
@@ -15,6 +15,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
     private readonly Func<TValue, TKey> _keySelector;
     private readonly ReaderWriterLockSlim _rwLock = new(LockRecursionPolicy.NoRecursion);
     private readonly SecondaryIndexCollection<TKey, TValue> _secondaryIndexCollection;
+    private readonly string _storeName = "IndexedCollection-" + Guid.NewGuid().ToString();
 
     public IndexedCollection(Func<TValue, TKey> keySelector, IEqualityComparer<TKey>? primaryKeyComparer = null)
     {
@@ -25,6 +26,8 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
     }
 
     public DataChangeRecorder DataChangeLog { get; } = new();
+
+    public ITransactionProvider GetProvider() => new IndexedCollectionTrxProvider<TKey, TValue>(_storeName, this);
 
     public TValue this[TKey key]
     {
