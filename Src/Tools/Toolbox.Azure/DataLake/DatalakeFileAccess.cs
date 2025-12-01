@@ -27,7 +27,7 @@ public class DatalakeFileAccess : IFileAccess
         var result = await _fileClient.Add(data, context);
         if (result.IsError()) return result;
 
-        _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, data);
+        //_datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, data);
         return result.Return();
     }
 
@@ -62,7 +62,7 @@ public class DatalakeFileAccess : IFileAccess
                 return StatusCode.NotFound;
             }
 
-            _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
+            //_datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
             return StatusCode.OK;
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing")
@@ -107,10 +107,10 @@ public class DatalakeFileAccess : IFileAccess
 
         if (_datalakeStore.DataChangeLog.GetRecorder() != null)
         {
-            if (readOption.IsOk())
-                _datalakeStore.DataChangeLog.GetRecorder()?.Update(Path, readOption.Return(), data);
-            else
-                _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
+            //if (readOption.IsOk())
+            //    _datalakeStore.DataChangeLog.GetRecorder()?.Update(Path, readOption.Return(), data);
+            //else
+            //    _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
         }
 
         return setOption.Return();

@@ -5,35 +5,38 @@ namespace Toolbox.Data;
 
 public interface ITrxRecorder
 {
-    void Add<K, T>(K objectId, T newValue) where K : notnull where T : notnull;
-    void Delete<K, T>(K objectId, T currentValue) where K : notnull where T : notnull;
-    void Update<K, T>(K objectId, T currentValue, T newValue) where K : notnull where T : notnull;
+    void Add<K, T>(string sourceName, K objectId, T newValue) where K : notnull where T : notnull;
+    void Delete<K, T>(string sourceName, K objectId, T currentValue) where K : notnull where T : notnull;
+    void Update<K, T>(string sourceName, K objectId, T currentValue, T newValue) where K : notnull where T : notnull;
 }
 
-public sealed class TrxRecorder(TransactionManager transactionManager, string sourceName) : ITrxRecorder
+public sealed class TrxRecorder : ITrxRecorder
 {
-    private readonly string _sourceName = sourceName.NotEmpty();
-    private readonly TransactionManager _transactionManager = transactionManager.NotNull();
+    private readonly TransactionManager _transactionManager;
+    public TrxRecorder(TransactionManager transactionManager) => _transactionManager = transactionManager.NotNull();
 
-    public void Add<K, T>(K objectId, T newValue) where K : notnull where T : notnull
+    public void Add<K, T>(string sourceName, K objectId, T newValue) where K : notnull where T : notnull
     {
+        sourceName.NotEmpty();
         var id = objectId.ToString().NotEmpty();
         var nv = newValue.ToDataETagWithHash();
-        _transactionManager.Enqueue<T>(_sourceName, id, ChangeOperation.Add, null, nv);
+        _transactionManager.Enqueue<T>(sourceName, id, ChangeOperation.Add, null, nv);
     }
 
-    public void Delete<K, T>(K objectId, T currentValue) where K : notnull where T : notnull
+    public void Delete<K, T>(string sourceName, K objectId, T currentValue) where K : notnull where T : notnull
     {
+        sourceName.NotEmpty();
         var id = objectId.ToString().NotEmpty();
         var current = currentValue.ToDataETagWithHash();
-        _transactionManager.Enqueue<T>(_sourceName, id, ChangeOperation.Delete, current, null);
+        _transactionManager.Enqueue<T>(sourceName, id, ChangeOperation.Delete, current, null);
     }
 
-    public void Update<K, T>(K objectId, T currentValue, T newValue) where K : notnull where T : notnull
+    public void Update<K, T>(string sourceName, K objectId, T currentValue, T newValue) where K : notnull where T : notnull
     {
+        sourceName.NotEmpty();
         var id = objectId.ToString().NotEmpty();
         var nv = newValue.ToDataETagWithHash();
         var current = currentValue.ToDataETagWithHash();
-        _transactionManager.Enqueue<T>(_sourceName, id, ChangeOperation.Update, current, nv);
+        _transactionManager.Enqueue<T>(sourceName, id, ChangeOperation.Update, current, nv);
     }
 }

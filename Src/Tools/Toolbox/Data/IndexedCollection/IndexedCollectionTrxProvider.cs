@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public class IndexedCollectionTrxProvider<TKey, TValue> : ITransactionProvider
+public class IndexedCollectionTrxProvider<TKey, TValue>
     where TKey : notnull
     where TValue : notnull
 {
@@ -67,14 +67,14 @@ public class IndexedCollectionTrxProvider<TKey, TValue> : ITransactionProvider
     }
 }
 
-public static class IndexedCollectionTrxProviderExtensions
-{
-    public static TransactionManager Register<TKey, TValue>(this TransactionManager manager, string sourceName, IndexedCollection<TKey, TValue> collection)
-        where TKey : notnull
-        where TValue : notnull
-    {
-        var provider = new IndexedCollectionTrxProvider<TKey, TValue>(sourceName, collection);
-        var reader = manager.Register(collection).NotNull();
-        return manager;
-    }
-}
+//public static class IndexedCollectionTrxProviderExtensions
+//{
+//    public static TransactionManager Register<TKey, TValue>(this TransactionManager manager, string sourceName, IndexedCollection<TKey, TValue> collection)
+//        where TKey : notnull
+//        where TValue : notnull
+//    {
+//        var provider = new IndexedCollectionTrxProvider<TKey, TValue>(sourceName, collection);
+//        var reader = manager.Register(collection).NotNull();
+//        return manager;
+//    }
+//}

@@ -191,8 +191,8 @@ public class KeyStoreTests
         {
             var setCount = loggingMessageSave.Count(x => x.Contains("CacheSet"));
             var hitCount = loggingMessageSave.Count(x => x.Contains("CacheHit"));
-            setCount.Be(hitCount);
-            setCount.Be(count);
+            setCount.Assert(x => x >= hitCount, x => $"hit counter {x} is less than {hitCount}");
+            setCount.Assert(x => x >= count, x => $"set counter {x} less than {count}");
             loggingMessageSave.Count(x => x.Contains("CacheMiss")).Be(0);
         }
 

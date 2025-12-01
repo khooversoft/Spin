@@ -9,7 +9,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class MemoryStore : ITransactionRegister
+public class MemoryStore
 {
     private readonly ConcurrentDictionary<string, DirectoryDetail> _store = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, LeaseRecord> _leaseStore = new(StringComparer.OrdinalIgnoreCase);
@@ -23,12 +23,10 @@ public class MemoryStore : ITransactionRegister
     {
         _logger = logger.NotNull();
         serviceProvider.NotNull();
-
-        trxManagerOption.Register(serviceProvider, this);
     }
 
-    public DataChangeRecorder DataChangeLog { get; } = new();
-    public ITransactionProvider GetProvider() => new MemoryStoreTrxProvider(_storeName, this);
+    public string Name => _storeName;
+    //public ITransaction CreateTransaction() => new MemoryStoreTrxProvider(_storeName, this);
 
 
     public Option<string> Add(string path, DataETag data, ScopeContext context)
@@ -51,7 +49,7 @@ public class MemoryStore : ITransactionRegister
                 false => StatusCode.Conflict,
             };
 
-            if (result.IsOk()) DataChangeLog.GetRecorder()?.Add(path, detail);
+            //if (result.IsOk()) DataChangeLog.GetRecorder()?.Add(path, detail);
 
             context.LogDebug("Add Path={path}, length={length}", path, data.Data.Length);
             return result;
@@ -62,7 +60,7 @@ public class MemoryStore : ITransactionRegister
     {
         context = context.With(_logger);
         path = RemoveForwardSlash(path);
-        DataChangeLog.GetRecorder().Assert(x => x == null, "Append is not supported with DataChangeRecorder");
+        //DataChangeLog.GetRecorder().Assert(x => x == null, "Append is not supported with DataChangeRecorder");
 
         lock (_lock)
         {
@@ -121,7 +119,7 @@ public class MemoryStore : ITransactionRegister
                 _ => StatusCode.NotFound,
             };
 
-            if (result.IsOk()) DataChangeLog.GetRecorder()?.Delete(path, payload!);
+            //if (result.IsOk()) DataChangeLog.GetRecorder()?.Delete(path, payload!);
 
             result.LogStatus(context, "Remove Path={path}, leaseId={leaseId}", [path, leaseId ?? "<no leaseId>"]);
             return result;
@@ -163,7 +161,7 @@ public class MemoryStore : ITransactionRegister
                 x =>
                 {
                     var p = new DirectoryDetail(data.ConvertTo(x), data, null);
-                    DataChangeLog.GetRecorder()?.Add(x, p);
+                    //DataChangeLog.GetRecorder()?.Add(x, p);
                     return p;
                 },
                 (x, current) =>
@@ -178,7 +176,7 @@ public class MemoryStore : ITransactionRegister
                         },
                     };
 
-                    DataChangeLog.GetRecorder()?.Update(x, current, payload);
+                    //DataChangeLog.GetRecorder()?.Update(x, current, payload);
                     return payload;
                 });
 

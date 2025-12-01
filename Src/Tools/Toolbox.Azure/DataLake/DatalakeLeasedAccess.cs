@@ -47,10 +47,10 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
 
         if (_datalakeStore.DataChangeLog.GetRecorder() != null)
         {
-            if (readOption.IsOk())
-                _datalakeStore.DataChangeLog.GetRecorder()?.Update(Path, readOption.Return(), data);
-            else
-                _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
+            //if (readOption.IsOk())
+            //    _datalakeStore.DataChangeLog.GetRecorder()?.Update(Path, readOption.Return(), data);
+            //else
+            //    _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
         }
 
         return setOption.Return();

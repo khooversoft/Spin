@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class MemoryStoreTrxProvider : ITransactionProvider
+public class MemoryStoreTrxProvider
 {
     private readonly MemoryStore _memoryStore;
 
@@ -57,11 +57,11 @@ public class MemoryStoreTrxProvider : ITransactionProvider
     }
 }
 
-public static class MemoryStoreTrxProviderExtensions
-{
-    public static TransactionManager Register(this TransactionManager manager, string sourceName, MemoryStore memoryStore)
-    {
-        manager.Register(memoryStore).NotNull();
-        return manager;
-    }
-}
+//public static class MemoryStoreTrxProviderExtensions
+//{
+//    public static TransactionManager Register(this TransactionManager manager, string sourceName, MemoryStore memoryStore)
+//    {
+//        manager.Register(memoryStore).NotNull();
+//        return manager;
+//    }
+//}

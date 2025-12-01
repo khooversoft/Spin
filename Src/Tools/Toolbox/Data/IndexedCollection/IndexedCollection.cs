@@ -7,7 +7,7 @@ namespace Toolbox.Data;
 /// <summary>
 /// Data collection with primary index with 0-n number of secondary index
 /// </summary>
-public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, ITransactionRegister, IDisposable
+public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, IDisposable
     where TKey : notnull
     where TValue : notnull
 {
@@ -27,7 +27,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, ITransaction
 
     public DataChangeRecorder DataChangeLog { get; } = new();
 
-    public ITransactionProvider GetProvider() => new IndexedCollectionTrxProvider<TKey, TValue>(_storeName, this);
+    //public ITransactionProvider GetProvider() => new IndexedCollectionTrxProvider<TKey, TValue>(_storeName, this);
 
     public TValue this[TKey key]
     {
@@ -60,7 +60,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, ITransaction
         {
             if (DataChangeLog.GetRecorder() != null)
             {
-                foreach (var item in _primaryIndex.Values) DataChangeLog.GetRecorder()?.Delete(_keySelector(item), item);
+                //foreach (var item in _primaryIndex.Values) DataChangeLog.GetRecorder()?.Delete(_keySelector(item), item);
             }
 
             _primaryIndex.Clear();
@@ -78,7 +78,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, ITransaction
         try
         {
             if (!_primaryIndex.TryAdd(_keySelector(item), item)) return false;
-            DataChangeLog.GetRecorder()?.Add(_keySelector(item), item);
+            //DataChangeLog.GetRecorder()?.Add(_keySelector(item), item);
 
             foreach (var index in _secondaryIndexCollection.Providers) index.Set(item);
             return true;
@@ -94,7 +94,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, ITransaction
             var key = _keySelector(item);
             if (_primaryIndex.TryGetValue(key, out var existing)) return existing;
 
-            DataChangeLog.GetRecorder()?.Add(_keySelector(item), item);
+            //DataChangeLog.GetRecorder()?.Add(_keySelector(item), item);
             _primaryIndex[key] = item;
             foreach (var index in _secondaryIndexCollection.Providers) index.Set(item);
             return item;
@@ -120,7 +120,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, ITransaction
             var result = _primaryIndex.TryRemove(key, out value);
             if (result && value != null)
             {
-                DataChangeLog.GetRecorder()?.Delete(key, value);
+                //DataChangeLog.GetRecorder()?.Delete(key, value);
                 foreach (var index in _secondaryIndexCollection.Providers) index.Remove(value);
             }
             return result;
@@ -148,7 +148,7 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, ITransaction
             var result = _primaryIndex.TryUpdate(_keySelector(newValue), newValue, existing);
             if (result)
             {
-                DataChangeLog.GetRecorder()?.Update(_keySelector(newValue), currentValue, newValue);
+                //DataChangeLog.GetRecorder()?.Update(_keySelector(newValue), currentValue, newValue);
                 foreach (var index in _secondaryIndexCollection.Providers) index.Set(newValue);
             }
 
@@ -168,10 +168,10 @@ public class IndexedCollection<TKey, TValue> : IEnumerable<TValue>, ITransaction
 
             if (DataChangeLog.GetRecorder() != null)
             {
-                if (exist && existing != null)
-                    DataChangeLog.GetRecorder()?.Update(_keySelector(item), existing, item);
-                else
-                    DataChangeLog.GetRecorder()?.Add(_keySelector(item), item);
+                //if (exist && existing != null)
+                //    DataChangeLog.GetRecorder()?.Update(_keySelector(item), existing, item);
+                //else
+                //    DataChangeLog.GetRecorder()?.Add(_keySelector(item), item);
             }
 
             foreach (var index in _secondaryIndexCollection.Providers) index.Set(item);

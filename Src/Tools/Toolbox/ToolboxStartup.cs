@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Data;
 using Toolbox.Store;
 using Toolbox.Tools;
 
@@ -22,24 +21,37 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static IServiceCollection AddInMemoryFileStore(this TransactionStartupContext trxStartupContext, MemoryStore? memoryStore = null)
+    public static IServiceCollection AddDataSpace(this IServiceCollection services, Action<DataSpaceOption> config)
     {
-        trxStartupContext.ServiceCollection.AddSingleton<IFileStore, InMemoryFileStore>();
+        services.NotNull();
+        config.NotNull();
 
-        switch (memoryStore)
-        {
-            case null:
-                trxStartupContext.ServiceCollection.AddSingleton<MemoryStore>(services => ActivatorUtilities.CreateInstance<MemoryStore>(services, trxStartupContext.Option));
-                break;
+        var c = new DataSpaceOption();
+        config(c);
 
-            default:
-                trxStartupContext.ServiceCollection.AddKeyedSingleton<MemoryStore>(
-                    trxStartupContext.Option.Name,
-                    (services, obj) => ActivatorUtilities.CreateInstance<MemoryStore>(services, trxStartupContext.Option)
-                    );
-                break;
-        }
-
-        return trxStartupContext.ServiceCollection;
+        services.AddSingleton<LockManager>();
+        services.AddSingleton<DataSpace>(services =>);
+        return services;
     }
+
+    //public static IServiceCollection AddInMemoryFileStore(this TransactionStartupContext trxStartupContext, MemoryStore? memoryStore = null)
+    //{
+    //    trxStartupContext.ServiceCollection.AddSingleton<IFileStore, InMemoryFileStore>();
+
+    //    switch (memoryStore)
+    //    {
+    //        case null:
+    //            trxStartupContext.ServiceCollection.AddSingleton<MemoryStore>(services => ActivatorUtilities.CreateInstance<MemoryStore>(services, trxStartupContext.Option));
+    //            break;
+
+    //        default:
+    //            trxStartupContext.ServiceCollection.AddKeyedSingleton<MemoryStore>(
+    //                trxStartupContext.Option.Name,
+    //                (services, obj) => ActivatorUtilities.CreateInstance<MemoryStore>(services, trxStartupContext.Option)
+    //                );
+    //            break;
+    //    }
+
+    //    return trxStartupContext.ServiceCollection;
+    //}
 }

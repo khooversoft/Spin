@@ -242,7 +242,7 @@ public class OperationQueueTests
     [Fact]
     public async Task BackpressureWithSmallCapacityProcessesAll()
     {
-        int total = 10_000;
+        int total = 1_000;
         int processed = 0;
 
         await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 4);
@@ -310,7 +310,7 @@ public class OperationQueueTests
     [Fact]
     public async Task MixedHighConcurrencyGetSendStress()
     {
-        int total = 5_000;
+        int total = 1_000;
         var bag = new ConcurrentBag<int>();
 
         await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 32);

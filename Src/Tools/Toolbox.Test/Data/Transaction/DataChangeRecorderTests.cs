@@ -273,7 +273,30 @@ public class DataChangeRecorderTests
     private class MockTrxRecorder : ITrxRecorder
     {
         public void Add<K, T>(K objectId, T newValue) where K : notnull where T : notnull { }
+
+        public void Add<K, T>(string sourceName, K objectId, T newValue)
+            where K : notnull
+            where T : notnull
+        {
+            throw new NotImplementedException();
+        }
+
         public void Delete<K, T>(K objectId, T currentValue) where K : notnull where T : notnull { }
+
+        public void Delete<K, T>(string sourceName, K objectId, T currentValue)
+            where K : notnull
+            where T : notnull
+        {
+            throw new NotImplementedException();
+        }
+
         public void Update<K, T>(K objectId, T currentValue, T newValue) where K : notnull where T : notnull { }
+
+        public void Update<K, T>(string sourceName, K objectId, T currentValue, T newValue)
+            where K : notnull
+            where T : notnull
+        {
+            throw new NotImplementedException();
+        }
     }
 }

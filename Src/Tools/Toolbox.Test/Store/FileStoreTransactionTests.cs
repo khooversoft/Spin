@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
+using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Store;
@@ -52,4 +49,32 @@ public class FileStoreTransactionTests
         var fileStore = host.Services.GetRequiredService<IFileStore>();
         (fileStore as InMemoryFileStore).NotNull();
     }
+
+    //[Fact]
+    //public async Task GivenFileAdd_WhenCommit_ShouldPersistFile()
+    //{
+    //    using var host = await BuildService();
+    //    var memoryStore = host.Services.GetRequiredService<MemoryStore>();
+    //    var trxManager = host.Services.GetRequiredKeyedService<TransactionManager>("default");
+    //    var fileStore = host.Services.GetRequiredService<IFileStore>();
+    //    var context = host.Services.CreateContext<FileStoreTransactionTests>();
+
+    //    trxManager.InitializeProviders(context);
+
+    //    await trxManager.Start(context);
+
+    //    const string path = "test/transaction/file1.txt";
+    //    var data = new DataETag("test data".ToBytes());
+    //    var addResult = await fileStore.File(path).Add(data, context);
+    //    addResult.BeOk();
+
+    //    await trxManager.Commit(context);
+
+    //    var existResult = await fileStore.File(path).Exists(context);
+    //    existResult.BeOk();
+
+    //    var getResult = await fileStore.File(path).Get(context);
+    //    getResult.BeOk();
+    //    getResult.Return().Data.SequenceEqual(data.Data.ToArray()).BeTrue();
+    //}
 }
