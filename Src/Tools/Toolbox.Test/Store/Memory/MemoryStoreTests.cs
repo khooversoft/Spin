@@ -28,7 +28,6 @@ public class MemoryStoreTests
         return host;
     }
 
-    #region Existing Tests
     [Fact]
     public void EmptyTest()
     {
@@ -37,9 +36,7 @@ public class MemoryStoreTests
         var list = ms.Search("**/*");
         list.Count.Be(0);
     }
-    #endregion
 
-    #region CRUD Operations
     [Fact]
     public void GivenValidPath_WhenAdd_ShouldSucceed()
     {
@@ -209,9 +206,7 @@ public class MemoryStoreTests
         var expected = data1.Data.Concat(data2.Data).ToArray();
         result.Return().Data.SequenceEqual(expected).BeTrue();
     }
-    #endregion
 
-    #region Search Operations
     [Fact]
     public void GivenMultipleFiles_WhenSearchWithWildcard_ShouldReturnAll()
     {
@@ -259,9 +254,7 @@ public class MemoryStoreTests
         ms.Search("*").Count.Be(1);
         ms.Exist("other/file3.txt").BeTrue();
     }
-    #endregion
 
-    #region Path Normalization
     [Fact]
     public void GivenPathWithLeadingSlash_WhenAdded_ShouldNormalize()
     {
@@ -275,9 +268,7 @@ public class MemoryStoreTests
         ms.Add(path, data, context).BeOk();
         ms.Exist("test/file.txt").BeTrue();
     }
-    #endregion
 
-    #region Concurrency Tests
     [Fact]
     public async Task GivenConcurrentAdds_WhenDifferentPaths_ShouldSucceed()
     {
@@ -388,9 +379,7 @@ public class MemoryStoreTests
         var results = await Task.WhenAll(setTask, getTask);
         _output.WriteLine($"Sets: {results[0]}, Gets: {results[1]}");
     }
-    #endregion
 
-    #region Stress & Performance Tests
     [Fact]
     public async Task StressTest_LargeDataset_ShouldPerform()
     {
@@ -487,9 +476,7 @@ public class MemoryStoreTests
         // Cleanup
         ms.DeleteFolder("stress/*", context);
     }
-    #endregion
 
-    #region ETag & Data Integrity
     [Fact]
     public void GivenData_WhenAdded_ShouldGenerateETag()
     {
@@ -528,5 +515,4 @@ public class MemoryStoreTests
 
         etag1.NotBe(etag2);
     }
-    #endregion
 }

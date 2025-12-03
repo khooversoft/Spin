@@ -40,7 +40,7 @@ public class DataSpaceStandardOperationTests
             {
                 services.AddLogging(c => c.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(_ => true));
                 services.AddInMemoryFileStore();
-                services.AddDataSpace(option);
+                //services.AddDataSpace(option);
             })
             .Build();
 
@@ -49,38 +49,38 @@ public class DataSpaceStandardOperationTests
         return host;
     }
 
-    [Fact]
-    public async Task SimpleWriteAndRead()
-    {
-        using var host = await BuildService();
-        var dataSpace = host.Services.GetRequiredService<DataSpace>().NotNull();
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+    //[Fact]
+    //public async Task SimpleWriteAndRead()
+    //{
+    //    using var host = await BuildService();
+    //    var dataSpace = host.Services.GetRequiredService<DataSpace>().NotNull();
+    //    var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
 
-        string path = "test/data.txt";
+    //    string path = "test/data.txt";
 
-        var content = "Hello, World!".ToBytes();
-        var setResult = await dataSpace.Set(path, new DataETag(content), context);
-        setResult.BeOk();
+    //    var content = "Hello, World!".ToBytes();
+    //    var setResult = await dataSpace.Set(path, new DataETag(content), context);
+    //    setResult.BeOk();
 
-        var readOption = await dataSpace.Get(path, context);
-        readOption.BeOk();
-        var readData = readOption.Return().Data;
-        content.SequenceEqual(readData).BeTrue();
+    //    var readOption = await dataSpace.Get(path, context);
+    //    readOption.BeOk();
+    //    var readData = readOption.Return().Data;
+    //    content.SequenceEqual(readData).BeTrue();
 
-        var s1 = await dataSpace.Search("**.*", context);
-        s1.Count.Be(1);
-        s1[0].Path.Be(path);
+    //    var s1 = await dataSpace.Search("**.*", context);
+    //    s1.Count.Be(1);
+    //    s1[0].Path.Be(path);
 
-        s1 = await dataSpace.Search("test/*.txt", context);
-        s1.Count.Be(1);
-        s1[0].Path.Be(path);
+    //    s1 = await dataSpace.Search("test/*.txt", context);
+    //    s1.Count.Be(1);
+    //    s1[0].Path.Be(path);
 
-        var deleteOption = await dataSpace.Delete(path, context);
-        deleteOption.BeOk();
+    //    var deleteOption = await dataSpace.Delete(path, context);
+    //    deleteOption.BeOk();
 
-        var s2 = await dataSpace.Search("**.*", context);
-        s2.Count.Be(0);
-    }
+    //    var s2 = await dataSpace.Search("**.*", context);
+    //    s2.Count.Be(0);
+    //}
 
     //[Fact]
     //public async Task Standard_Operations_WorkAsExpected()

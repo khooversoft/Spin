@@ -27,10 +27,10 @@ public static class ToolboxStartup
         config.NotNull();
 
         var c = new DataSpaceOption();
-        config(c);
+        config(c); 
 
         services.AddSingleton<LockManager>();
-        services.AddSingleton<DataSpace>(services =>);
+        //services.AddSingleton<DataSpace>(services =>);
         return services;
     }
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Security.Cryptography;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -392,4 +393,71 @@ public class OperationQueueTests
 
         q.Count.Be(500);
     }
+
+    [Fact]
+    public async Task RetryOperationsOnTransientFailure()
+    {
+        int count = 100;
+        var dict = new ConcurrentDictionary<int, TaskOperation>();
+        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 100);
+
+        int pass = 0;
+        int passCount = 0;
+        bool termOk = false;
+        foreach (var x in Enumerable.Range(0, count))
+        {
+            await doWork(x, false);
+        }
+
+        while (pass++ < 3)
+        {
+            var getStats = await operationQueue.Get<bool>(async () =>
+            {
+                var retries = dict.Values.Where(kv => !kv.processed).ToArray();
+                if (retries.Length == 0) return true;
+
+                foreach (var key in retries)
+                {
+                    await doWork(key.Id, true);
+                }
+
+                return false;
+            }, _context);
+
+            if (getStats)
+            {
+                termOk = true;
+                break;
+            }
+        }
+
+        await operationQueue.Drain(_context);
+        await operationQueue.Complete(_context);
+
+        termOk.BeTrue();
+        var retries = dict.Values.Where(kv => !kv.processed).ToArray();
+        retries.Length.Be(0);
+        passCount.Be(count);
+
+        async Task doWork(int id, bool forcePass)
+        {
+            await operationQueue.Send(() =>
+            {
+                if (forcePass)
+                {
+                    dict[id] = new TaskOperation(id, true);
+                    Interlocked.Increment(ref passCount);
+                    return Task.CompletedTask;
+                }
+
+                bool workPass = (RandomNumberGenerator.GetInt32(0, 100) & 2) == 0;
+                if (workPass) Interlocked.Increment(ref passCount);
+
+                dict[id] = new TaskOperation(id, workPass);
+                return Task.CompletedTask;
+            }, _context);
+        }
+    }
+
+    private record TaskOperation(int Id, bool processed);
 }
