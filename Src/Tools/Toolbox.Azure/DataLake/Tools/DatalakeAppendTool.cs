@@ -73,7 +73,7 @@ public static class DatalakeAppendTool
 
         try
         {
-            Option<IStorePathDetail> pathDetailOption = await fileClient.GetPathDetailOrCreate(context);
+            Option<StorePathDetail> pathDetailOption = await fileClient.GetPathDetailOrCreate(context);
             if (pathDetailOption.IsError()) return pathDetailOption.ToOptionStatus<string>();
             var pathDetail = pathDetailOption.Return();
 

@@ -1,11 +1,16 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public static class FileStoreTool
+public static class KeyStoreTool
 {
     public static bool IsPathValid(string path) => PathValidator.IsPathValid(path);
 
@@ -15,17 +20,17 @@ public static class FileStoreTool
         _ => null
     };
 
-    public static async Task<Option> ClearStore<T>(this IHost host)
+    public static async Task<Option> ClearKeyStore<T>(this IHost host)
     {
-        IFileStore fileStore = host.Services.GetRequiredService<IFileStore>();
+        IKeyStore fileStore = host.Services.GetRequiredService<IKeyStore>();
         var context = host.Services.CreateContext<T>();
         var result = await fileStore.ClearStore(context);
         return result;
     }
 
-    public static Task<Option> ClearStore(this IFileStore subject, ScopeContext context) => ClearFolder(subject, null, context);
+    public static Task<Option> ClearStore(this IKeyStore subject, ScopeContext context) => ClearFolder(subject, null, context);
 
-    public static async Task<Option> ClearFolder(this IFileStore fileStore, string? path, ScopeContext context)
+    public static async Task<Option> ClearFolder(this IKeyStore fileStore, string? path, ScopeContext context)
     {
         using var metric = context.LogDuration("fileStore-clear", "store={store}", fileStore.GetType().Name);
         context.LogDebug("Clearing file store path={path}", path);
@@ -55,7 +60,7 @@ public static class FileStoreTool
         }
     }
 
-    private static async Task<Option> InternalDelete(IFileStore fileStore, IReadOnlyList<StorePathDetail> pathItems, ScopeContext context)
+    private static async Task<Option> InternalDelete(IKeyStore fileStore, IReadOnlyList<StorePathDetail> pathItems, ScopeContext context)
     {
         foreach (var item in pathItems)
         {
@@ -66,7 +71,7 @@ public static class FileStoreTool
                     if (deleteFolderOption.IsError()) return deleteFolderOption.LogStatus(context, "Failed to delete folder");
                     break;
                 case false:
-                    var deleteOption = await fileStore.File(item.Path).Delete(context).ConfigureAwait(false);
+                    var deleteOption = await fileStore.Delete(item.Path, context).ConfigureAwait(false);
                     if (deleteOption.IsError()) return deleteOption.LogStatus(context, "Failed to delete file");
                     break;
             }

@@ -133,7 +133,7 @@ public class FileStoreFileAccessStandardTests
         const string fileSearchPattern = "fileSearch/**/*";
         await ClearContainer(fileSearchPattern);
 
-        IReadOnlyList<IStorePathDetail> verifyList = await _fileStore.Search(fileSearchPattern, _context);
+        IReadOnlyList<StorePathDetail> verifyList = await _fileStore.Search(fileSearchPattern, _context);
         verifyList.Count.Be(0);
 
         var dataSet = new (string path, string data)[]
@@ -147,10 +147,10 @@ public class FileStoreFileAccessStandardTests
 
         await dataSet.ForEachAsync(async x => await _fileStore.File(x.path).Set(x.data.ToBytes(), _context));
 
-        IReadOnlyList<IStorePathDetail> subSearchList = await _fileStore.Search("fileSearch/data/**/*", _context);
+        IReadOnlyList<StorePathDetail> subSearchList = await _fileStore.Search("fileSearch/data/**/*", _context);
         subSearchList.Count.Be(dataSet.Where(x => x.path.StartsWith("fileSearch/data/")).Count());
 
-        IReadOnlyList<IStorePathDetail> searchList = await _fileStore.Search(fileSearchPattern, _context);
+        IReadOnlyList<StorePathDetail> searchList = await _fileStore.Search(fileSearchPattern, _context);
         searchList.Where(x => x.IsFolder == false).Count().Be(5);
         searchList.Where(x => x.IsFolder == true).Count().Be(0);
 
@@ -163,7 +163,7 @@ public class FileStoreFileAccessStandardTests
     {
         fileSearchPattern.NotEmpty();
 
-        IReadOnlyList<IStorePathDetail> list = await _fileStore.Search(fileSearchPattern, _context);
+        IReadOnlyList<StorePathDetail> list = await _fileStore.Search(fileSearchPattern, _context);
 
         _context.LogInformation("Delete file list={folder}", list.Select(x => x.Path).Join(";"));
 

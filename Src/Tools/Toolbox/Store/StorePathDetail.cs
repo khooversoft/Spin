@@ -14,21 +14,8 @@ public enum LeaseDuration
     Fixed
 }
 
-public interface IStorePathDetail
-{
-    string Path { get; }
-    bool IsFolder { get; }
-    long ContentLength { get; }
-    DateTimeOffset? CreatedOn { get; }
-    DateTimeOffset LastModified { get; }
-    string ETag { get; }
-    LeaseStatus LeaseStatus { get; }
-    LeaseDuration LeaseDuration { get; }
-    string? ContentHash { get; }
-}
 
-
-public record StorePathDetail : IStorePathDetail
+public record StorePathDetail
 {
     public string Path { get; init; } = null!;
     public bool IsFolder { get; init; }
@@ -50,17 +37,8 @@ public static class StorePathDetailExtensions
         ETag = dataETag.ToHash(),
     };
 
-    public static StorePathDetail WithContextHash(this IStorePathDetail subject, string contentHash) => new StorePathDetail
+    public static StorePathDetail WithContextHash(this StorePathDetail subject, string contentHash) => subject with
     {
-        Path = subject.Path,
-        IsFolder = subject.IsFolder,
-        ContentLength = subject.ContentLength,
-        CreatedOn = subject.CreatedOn,
-        LastModified = subject.LastModified,
-        ETag = subject.ETag,
-        LeaseStatus = subject.LeaseStatus,
-        LeaseDuration = subject.LeaseDuration,
-
         ContentHash = contentHash,
     };
 }

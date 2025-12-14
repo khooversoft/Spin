@@ -20,5 +20,5 @@ public sealed class InMemoryFileStore : IFileStore
 
     public IFileAccess File(string path) => new InMemoryFileAccess(path, _memoryStore, _logger);
 
-    public Task<IReadOnlyList<IStorePathDetail>> Search(string pattern, ScopeContext context) => _memoryStore.Search(pattern).ToTaskResult();
+    public Task<IReadOnlyList<StorePathDetail>> Search(string pattern, ScopeContext context) => _memoryStore.Search(pattern).ToTaskResult();
 }

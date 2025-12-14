@@ -85,7 +85,7 @@ public class ListBatchProvider<T> : IListStoreProvider<T>, IAsyncDisposable
         return await _operationQueue.Get(async () => await GetHandler().GetHistory(key, timeIndex, context), context);
     }
 
-    public async Task<IReadOnlyList<IStorePathDetail>> Search(string key, string pattern, ScopeContext context)
+    public async Task<IReadOnlyList<StorePathDetail>> Search(string key, string pattern, ScopeContext context)
     {
         await _batchStream.Drain();
         return await _operationQueue.Get(async () => await GetHandler().Search(key, pattern, context), context);

@@ -5,7 +5,7 @@ using Toolbox.Tools;
 
 namespace Toolbox.Types;
 
-
+// TODO: remove "CancelationToken"
 public readonly record struct ScopeContext : ILoggingContext
 {
     [Obsolete("Do not use, logger is required, will throw")]

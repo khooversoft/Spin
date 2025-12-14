@@ -29,7 +29,7 @@ public class InMemoryFileAccess : IFileAccess
     public Task<Option> Delete(ScopeContext context) => _memoryStore.Delete(Path, null, context.With(_logger)).ToTaskResult();
     public Task<Option> Exists(ScopeContext context) => new Option(_memoryStore.Exist(Path) ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
     public Task<Option<DataETag>> Get(ScopeContext context) => _memoryStore.Get(Path).ToTaskResult();
-    public Task<Option<IStorePathDetail>> GetDetails(ScopeContext context) => _memoryStore.GetDetail(Path).ToTaskResult();
+    public Task<Option<StorePathDetail>> GetDetails(ScopeContext context) => _memoryStore.GetDetail(Path).ToTaskResult();
     public Task<Option<string>> Set(DataETag data, ScopeContext context) => _memoryStore.Set(Path, data, null, context.With(_logger)).ToTaskResult();
 
     private async Task<Option<IFileLeasedAccess>> InternalAcquire(TimeSpan leaseDuration, bool breakLeaseIfExist, ScopeContext context)

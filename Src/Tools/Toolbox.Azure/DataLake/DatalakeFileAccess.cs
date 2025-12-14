@@ -117,7 +117,7 @@ public class DatalakeFileAccess : IFileAccess
     }
 
     public Task<Option<DataETag>> Get(ScopeContext context) => _fileClient.Get(context);
-    public Task<Option<IStorePathDetail>> GetDetails(ScopeContext context) => _fileClient.GetPathDetail(context);
+    public Task<Option<StorePathDetail>> GetDetails(ScopeContext context) => _fileClient.GetPathDetail(context);
     public Task<Option<IFileLeasedAccess>> AcquireLease(TimeSpan leaseDuration, ScopeContext context) => _fileClient.AcquireLease(_datalakeStore, leaseDuration, context);
     public Task<Option<IFileLeasedAccess>> AcquireExclusiveLease(bool breakLeaseIfExist, ScopeContext context) => _fileClient.AcquireExclusiveLease(_datalakeStore, breakLeaseIfExist, context);
     public Task<Option> BreakLease(ScopeContext context) => DatalakeLeaseTool.Break(_fileClient, context);

@@ -24,6 +24,7 @@ public class DataSpace
 {
     private readonly FrozenDictionary<string, SpaceDefinition> _spaces;
     private readonly FrozenDictionary<string, IStoreProvider> _providers;
+    private readonly FrozenDictionary<string, SpaceSerializer> _serializers;
     private readonly ILogger<DataSpace> _logger;
 
     public DataSpace(DataSpaceOption option, ILogger<DataSpace> logger)
@@ -38,49 +39,57 @@ public class DataSpace
         _providers = option.Providers
             .Select(x => new KeyValuePair<string, IStoreProvider>(x.Name, x))
             .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+
+        _serializers = option.Serializers
+            .Select(x => new KeyValuePair<string, SpaceSerializer>(x.TypeName, x))
+            .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
     public IKeyStore GetFileStore(string path)
     {
         (IStoreProvider provider, SpaceDefinition definition) = GetProvider(path);
 
-        var keyStore = provider as IStoreFileProvider ??
+        var keyStore = provider as IStoreKeyProvider ??
             throw new ArgumentException($"provider={definition.ProviderName} does not implement IStoreFileProvider");
 
         _logger.LogTrace("Getting file store for path={path}, provider={provider}", path, provider.Name);
         return keyStore.GetStore(definition).NotNull();
     }
 
-    public IListStore<T> GetListStore<T>(string key)
+    public IListStore2<T> GetListStore<T>(string key)
     {
         (IStoreProvider provider, SpaceDefinition definition) = GetProvider(key);
 
         var keyStore = provider as IStoreListProvider ??
             throw new ArgumentException($"provider={definition.ProviderName} does not implement IStoreFileProvider");
 
+        SpaceSerializer? serializer = _serializers.TryGetValue(typeof(T).Name, out var s) ? s : null;
+
         _logger.LogTrace("Getting list store for key={key}, provider={provider}", key, provider.Name);
-        return keyStore.GetStore<T>(definition).NotNull();
+        return keyStore.GetStore<T>(definition, serializer).NotNull();
     }
 
     private (IStoreProvider storeProvider, SpaceDefinition definition) GetProvider(string path)
     {
-        (string storeName, string storePath) = ParsePath(path);
+        string storeName = GetStoreName(path);
 
-        _spaces.TryGetValue(storeName, out var definition)
-            .Assert(x => x == true, $"storeName={storeName} not defined");
-        _providers.TryGetValue(definition.NotNull().ProviderName, out var provider)
-            .Assert(x => x == true, $"provider={definition.ProviderName} not registered");
+        _spaces.TryGetValue(storeName, out var definition).Assert(x => x, $"storeName={storeName} not defined");
+        _providers.TryGetValue(definition.NotNull().ProviderName, out var provider).Assert(x => x, $"provider={definition.ProviderName} not registered");
 
         return (provider.NotNull(), definition);
     }
 
-    private static (string storeName, string storePath) ParsePath(string path)
+    private static string GetStoreName(string path)
     {
         path.NotEmpty();
-        int index = path.IndexOf(':').Assert(x => x > 0, "':' sytax error");
-        string storeName = path[..(index - 1)];
-        string storePath = path[index..];
 
-        return (storeName, storePath);
+        string storeName = path.IndexOf(':') switch
+        {
+            -1 => path,
+            0 => throw new ArgumentException($"Invalid path format, missing store name in path={path}"),
+            int idx => path[..idx],
+        };
+
+        return storeName;
     }
 }

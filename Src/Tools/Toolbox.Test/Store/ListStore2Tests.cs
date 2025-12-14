@@ -9,11 +9,11 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Test.Store;
 
-public class ListStoreTests
+public class ListStore2Tests
 {
     private readonly ITestOutputHelper _outputHelper;
     private record JournalEntry(string Name, int Age);
-    public ListStoreTests(ITestOutputHelper output) => _outputHelper = output.NotNull();
+    public ListStore2Tests(ITestOutputHelper output) => _outputHelper = output.NotNull();
 
     protected virtual void AddStore(IServiceCollection services) => services.AddInMemoryFileStore();
 
@@ -25,6 +25,9 @@ public class ListStoreTests
             services.AddLogging(config => config.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(x => true));
             AddStore(services);
             services.AddListStore<JournalEntry>(config => useQueue.IfTrue(() => config.AddBatchProvider()));
+
+            services.AddSingleton<MemoryKeyStore>();
+            //services.AddSingleton<ListStore2<JournalEntry>>();
         })
         .Build();
 
@@ -38,7 +41,7 @@ public class ListStoreTests
     public async Task SingleItemInList(bool useQueue)
     {
         using var host = await BuildService(useQueue);
-        var context = host.Services.CreateContext<ListStoreTests>();
+        var context = host.Services.CreateContext<ListStore2Tests>();
         var fileStore = host.Services.GetRequiredService<IFileStore>();
         var listStore = host.Services.GetRequiredService<IListStore<JournalEntry>>();
         var fileSystem = host.Services.GetRequiredService<IListFileSystem<JournalEntry>>();

@@ -1,4 +1,9 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -6,17 +11,17 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class ListStore<T> : IListStore<T>
+public class ListSpace<T> : IListStore2<T>
 {
-    private readonly IFileStore _fileStore;
-    private readonly ILogger<ListStore<T>> _logger;
-    private readonly IListFileSystem<T> _fileSystem;
+    private readonly IKeyStore _keyStore;
+    private readonly ListKeySystem<T> _fileSystem;
+    private readonly ILogger<ListSpace<T>> _logger;
 
-    public ListStore(IFileStore fileStore, IListFileSystem<T> fileSystem, ILogger<ListStore<T>> logger)
+    public ListSpace(IKeyStore keyStore, ListKeySystem<T> listKeySystem, ILogger<ListSpace<T>> logger)
     {
-        _fileStore = fileStore.NotNull();
+        _keyStore = keyStore.NotNull();
+        _fileSystem = listKeySystem.NotNull();
         _logger = logger.NotNull();
-        _fileSystem = fileSystem;
     }
 
     public async Task<Option<string>> Append(string key, IEnumerable<T> data, ScopeContext context)
@@ -31,7 +36,7 @@ public class ListStore<T> : IListStore<T>
         string json = string.Join(Environment.NewLine, dataItems) + Environment.NewLine;
         DataETag dataEtag = json.ToDataETag();
 
-        var detailsOption = await _fileStore.File(path).Append(dataEtag, context);
+        var detailsOption = await _keyStore.Append(path, dataEtag, context);
         detailsOption.LogStatus(context, "Append to path={path}", [path]);
 
         return detailsOption;
@@ -44,14 +49,11 @@ public class ListStore<T> : IListStore<T>
 
         // FIX: Include filesystem base path prefix for correct folder clear
         string folder = $"{_fileSystem.CreatePathPrefix()}{key}";
-        var clearOption = await _fileStore.ClearFolder(folder, context);
+        var clearOption = await _keyStore.ClearFolder(folder, context);
         return clearOption;
     }
 
-    public Task<Option<IReadOnlyList<T>>> Get(string key, ScopeContext context)
-    {
-        return Get(key, "**/*", context);
-    }
+    public Task<Option<IReadOnlyList<T>>> Get(string key, ScopeContext context) => Get(key, "**/*", context);
 
     public async Task<Option<IReadOnlyList<T>>> Get(string key, string pattern, ScopeContext context)
     {
@@ -61,7 +63,7 @@ public class ListStore<T> : IListStore<T>
 
         // FIX: honor pattern in search
         string searchPattern = _fileSystem.BuildSearch(key, pattern);
-        IReadOnlyList<StorePathDetail> searchList = (await _fileStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
+        IReadOnlyList<StorePathDetail> searchList = (await _keyStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
         return await ReadList(pattern, context, searchList);
     }
 
@@ -70,7 +72,7 @@ public class ListStore<T> : IListStore<T>
         context.LogDebug("Getting history, key={key}, timeIndex={timeIndex}", key, timeIndex);
 
         string searchPattern = _fileSystem.BuildSearch(key);
-        IReadOnlyList<StorePathDetail> searchList = (await _fileStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
+        IReadOnlyList<StorePathDetail> searchList = (await _keyStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
 
         var indexedList = searchList
             .Select((x, i) => (index: i, dir: x, active: _fileSystem.ExtractTimeIndex(x.Path) >= timeIndex))
@@ -92,7 +94,7 @@ public class ListStore<T> : IListStore<T>
         context.LogDebug("Search: pattern={pattern}", pattern);
 
         string searchPattern = _fileSystem.BuildSearch(key, pattern);
-        IReadOnlyList<StorePathDetail> searchList = await _fileStore.Search(searchPattern, context);
+        IReadOnlyList<StorePathDetail> searchList = await _keyStore.Search(searchPattern, context);
         return searchList;
     }
 
@@ -115,7 +117,7 @@ public class ListStore<T> : IListStore<T>
         async Task<IReadOnlyList<T>> reader(string path)
         {
             context.LogDebug("Reading path={path}", path);
-            Option<DataETag> readOption = await _fileStore.File(path).Get(context);
+            Option<DataETag> readOption = await _keyStore.Get(path, context);
             if (readOption.IsError())
             {
                 context.LogDebug("Fail to read path={path}", path);

@@ -1,6 +1,9 @@
 ﻿using Toolbox.Data;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Extensions;
+using System.Collections.Immutable;
 
 namespace Toolbox.Store;
 
@@ -12,17 +15,65 @@ public enum SpaceFormat
     List
 }
 
-
 public class DataSpaceOption
 {
-    public Sequence<SpaceDefinition> Spaces { get; init; } = new();
-    public Sequence<IStoreProvider> Providers { get; init; } = new();
+    public IReadOnlyList<SpaceDefinition> Spaces { get; init; } = Array.Empty<SpaceDefinition>();
+    public IReadOnlyList<IStoreProvider> Providers { get; init; } = Array.Empty<IStoreProvider>();
+    public IReadOnlyList<SpaceSerializer> Serializers { get; init; } = Array.Empty<SpaceSerializer>();
 
     public static IValidator<DataSpaceOption> Validator { get; } = new Validator<DataSpaceOption>()
         .RuleForEach(x => x.Spaces).Validate(SpaceDefinition.Validator)
         .RuleFor(x => x.Providers).Must(x => x.NotNull().Count > 0, _ => "No providers")
         .RuleForEach(x => x.Providers).Must(x => x != null, _ => "Null provider")
+        .RuleForEach(x => x.Serializers).Validate(SpaceSerializer.Validator)
         .Build();
+}
+
+public class DataSpaceConfig
+{
+    public List<SpaceDefinition> Spaces { get; init; } = new();
+    public List<IStoreProvider> Providers { get; init; } = new();
+    public List<Func<IServiceProvider, IStoreProvider>> ProviderFactories { get; init; } = new();
+    public List<SpaceSerializer> Serializers { get; init; } = new();
+
+    public DataSpaceConfig Add(SpaceDefinition subject) => this.Action(_ => Spaces.Add(subject.NotNull()));
+
+    public DataSpaceConfig Add(IStoreProvider subject) => this.Action(_ => Providers.Add(subject.NotNull()));
+
+    public DataSpaceConfig Add<T>(string name) where T : IStoreProvider
+    {
+        name.NotEmpty();
+        ProviderFactories.Add(x => ActivatorUtilities.CreateInstance<T>(x, name));
+        return this;
+    }
+
+    public DataSpaceConfig Add<T>(Func<IServiceProvider, T> factory) where T : IStoreProvider
+    {
+        ProviderFactories.Add(x => factory(x));
+        return this;
+    }
+
+    public DataSpaceConfig AddSerializer<T>(Func<T, string> serializer, Func<string, T?> deserializer)
+    {
+        serializer.NotNull();
+        deserializer.NotNull();
+
+        Serializers.Add(new SpaceSerializer
+        {
+            TypeName = typeof(T).Name,
+            Serializer = obj => serializer((T)obj),
+            Deserializer = str => deserializer(str)
+        });
+
+        return this;
+    }
+
+    public DataSpaceOption Build(IServiceProvider serviceProvider) => new()
+    {
+        Spaces = Spaces.ToImmutableArray(),
+        Providers = Providers.Concat(ProviderFactories.Select(x => x(serviceProvider))).ToImmutableArray(),
+        Serializers = Serializers.ToImmutableArray(),
+    };
 }
 
 public record SpaceDefinition
@@ -37,6 +88,18 @@ public record SpaceDefinition
         .RuleFor(x => x.ProviderName).NotEmpty()
         .RuleFor(x => x.BasePath).NotEmpty()
         .RuleFor(x => x.SpaceFormat).ValidEnum()
+        .Build();
+}
+
+public record SpaceSerializer
+{
+    public string TypeName { get; init; } = null!;
+    public Func<object, string> Serializer { get; init; } = null!;
+    public Func<string, object?> Deserializer { get; init; } = null!;
+
+    public static IValidator<SpaceSerializer> Validator { get; } = new Validator<SpaceSerializer>()
+        .RuleFor(x => x.Serializer).NotNull()
+        .RuleFor(x => x.Deserializer).NotNull()
         .Build();
 }
 

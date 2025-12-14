@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
 
@@ -21,16 +22,37 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static IServiceCollection AddDataSpace(this IServiceCollection services, Action<DataSpaceOption> config)
+    public static IServiceCollection AddInMemoryKeyStore(this IServiceCollection services, MemoryStore? memoryStore = null)
+    {
+        services.NotNull();
+
+        services.AddSingleton<IKeyStore, MemoryKeyStore>();
+
+        switch (memoryStore)
+        {
+            case null: services.AddSingleton<MemoryStore>(); break;
+            default: services.AddSingleton(memoryStore); break;
+        }
+
+        return services;
+    }
+
+    public static IServiceCollection AddDataSpace(this IServiceCollection services, Action<DataSpaceConfig> config)
     {
         services.NotNull();
         config.NotNull();
 
-        var c = new DataSpaceOption();
-        config(c); 
+        var c = new DataSpaceConfig();
+        config(c);
 
-        services.AddSingleton<LockManager>();
-        //services.AddSingleton<DataSpace>(services =>);
+        services.TryAddSingleton<AccessManager>();
+
+        services.AddSingleton<DataSpace>(services =>
+        {
+            var option = c.Build(services);
+            return ActivatorUtilities.CreateInstance<DataSpace>(services, option);
+        });
+
         return services;
     }
 

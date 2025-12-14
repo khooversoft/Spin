@@ -6,7 +6,7 @@ public interface IFileStore
 {
     IFileAccess File(string path);
 
-    Task<IReadOnlyList<IStorePathDetail>> Search(string pattern, ScopeContext context);
+    Task<IReadOnlyList<StorePathDetail>> Search(string pattern, ScopeContext context);
     Task<Option> DeleteFolder(string path, ScopeContext context);
 }
 
@@ -22,7 +22,7 @@ public interface IFileAccess : IFileReadWriteAccess
 {
     Task<Option<string>> Add(DataETag data, ScopeContext context);
 
-    Task<Option<IStorePathDetail>> GetDetails(ScopeContext context);
+    Task<Option<StorePathDetail>> GetDetails(ScopeContext context);
     Task<Option> Delete(ScopeContext context);
     Task<Option> Exists(ScopeContext context);
 

@@ -200,32 +200,6 @@ public class OperationQueueTaskProcessorTests
         results.First(x => x.Id == 5).AttemptCount.Be(5);
     }
 
-    //[Fact]
-    //public async Task TasksProcessorStressTest()
-    //{
-    //    var processor = ActivatorUtilities.CreateInstance<TasksProcessor>(_host.Services, 3);
-    //    const int taskCount = 1000;
-    //    var dict = new ConcurrentDictionary<int, int>();
-
-    //    var tasks = Enumerable.Range(1, taskCount)
-    //        .Select(i => new TaskInvoke(i, async () =>
-    //        {
-    //            await Task.Delay(RandomNumberGenerator.GetInt32(1, 5));
-    //            dict.AddOrUpdate(i, 1, (_, count) => count + 1);
-                
-    //            // 80% success rate on first attempt, rest succeed on second
-    //            if (dict[i] >= 2) return true;
-    //            return RandomNumberGenerator.GetInt32(0, 100) < 80;
-    //        }))
-    //        .ToArray();
-
-    //    var results = await processor.Run(tasks, _context);
-        
-    //    results.Count.Be(taskCount);
-    //    results.All(x => x.State == TaskState.Succeeded).BeTrue();
-    //    results.All(x => x.AttemptCount >= 1 && x.AttemptCount <= 2).BeTrue();
-    //}
-
     [Fact]
     public async Task TasksProcessorVerifyStateTransitions()
     {

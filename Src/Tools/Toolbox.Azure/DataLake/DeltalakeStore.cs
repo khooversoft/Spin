@@ -60,7 +60,7 @@ public class DatalakeStore : IFileStore
         }
     }
 
-    public async Task<IReadOnlyList<IStorePathDetail>> Search(string pattern, ScopeContext context)
+    public async Task<IReadOnlyList<StorePathDetail>> Search(string pattern, ScopeContext context)
     {
         context = context.With(_logger);
         var queryParameter = QueryParameter.Parse(pattern);
@@ -90,7 +90,7 @@ public class DatalakeStore : IFileStore
                 if (collection.Count >= queryParameter.Count) break;
             }
 
-            IReadOnlyList<IStorePathDetail> list = collection
+            IReadOnlyList<StorePathDetail> list = collection
                 .Select(x => x.ConvertTo(_datalakeOption.RemoveBaseRoot(x.Name)))
                 .ToImmutableArray();
 
@@ -98,12 +98,12 @@ public class DatalakeStore : IFileStore
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "PathNotFound")
         {
-            return Array.Empty<IStorePathDetail>();
+            return Array.Empty<StorePathDetail>();
         }
         catch (Exception ex)
         {
             context.Location().LogWarning(ex, "Failed to search, query={queryParameter}", queryParameter);
-            return Array.Empty<IStorePathDetail>();
+            return Array.Empty<StorePathDetail>();
         }
     }
 }

@@ -26,10 +26,8 @@ public class MemoryStore
     }
 
     public string Name => _storeName;
-    //public ITransaction CreateTransaction() => new MemoryStoreTrxProvider(_storeName, this);
 
-
-    public Option<string> Add(string path, DataETag data, ScopeContext context)
+    public Option<string> Add(string path, DataETag data, ScopeContext context, TrxRecorder? recorder = null)
     {
         context = context.With(_logger);
         if (path.IsEmpty()) return (StatusCode.BadRequest, "Path is required");
@@ -49,7 +47,7 @@ public class MemoryStore
                 false => StatusCode.Conflict,
             };
 
-            //if (result.IsOk()) DataChangeLog.GetRecorder()?.Add(path, detail);
+            if (result.IsOk()) recorder?.Add(_storeName, path, detail);
 
             context.LogDebug("Add Path={path}, length={length}", path, data.Data.Length);
             return result;
@@ -60,7 +58,6 @@ public class MemoryStore
     {
         context = context.With(_logger);
         path = RemoveForwardSlash(path);
-        //DataChangeLog.GetRecorder().Assert(x => x == null, "Append is not supported with DataChangeRecorder");
 
         lock (_lock)
         {
@@ -103,7 +100,7 @@ public class MemoryStore
         false => StatusCode.NotFound,
     };
 
-    public Option Delete(string path, string? leaseId, ScopeContext context)
+    public Option Delete(string path, string? leaseId, ScopeContext context, TrxRecorder? recorder = null)
     {
         context = context.With(_logger);
         path = RemoveForwardSlash(path);
@@ -119,14 +116,14 @@ public class MemoryStore
                 _ => StatusCode.NotFound,
             };
 
-            //if (result.IsOk()) DataChangeLog.GetRecorder()?.Delete(path, payload!);
+            if (result.IsOk()) recorder?.Delete(_storeName, path, payload!);
 
             result.LogStatus(context, "Remove Path={path}, leaseId={leaseId}", [path, leaseId ?? "<no leaseId>"]);
             return result;
         }
     }
 
-    public Option<IStorePathDetail> GetDetail(string path)
+    public Option<StorePathDetail> GetDetail(string path)
     {
         path = RemoveForwardSlash(path);
 
@@ -146,7 +143,7 @@ public class MemoryStore
         };
     }
 
-    public Option<string> Set(string path, DataETag data, string? leaseId, ScopeContext context)
+    public Option<string> Set(string path, DataETag data, string? leaseId, ScopeContext context, TrxRecorder? recorder = null)
     {
         context = context.With(_logger);
         path = RemoveForwardSlash(path);
@@ -161,7 +158,7 @@ public class MemoryStore
                 x =>
                 {
                     var p = new DirectoryDetail(data.ConvertTo(x), data, null);
-                    //DataChangeLog.GetRecorder()?.Add(x, p);
+                    recorder?.Add(_storeName, x, p);
                     return p;
                 },
                 (x, current) =>
@@ -176,7 +173,7 @@ public class MemoryStore
                         },
                     };
 
-                    //DataChangeLog.GetRecorder()?.Update(x, current, payload);
+                    recorder?.Update(_storeName, x, current, payload);
                     return payload;
                 });
 
@@ -185,7 +182,7 @@ public class MemoryStore
         }
     }
 
-    public IReadOnlyList<IStorePathDetail> Search(string pattern)
+    public IReadOnlyList<StorePathDetail> Search(string pattern)
     {
         pattern = RemoveForwardSlash(pattern);
         var query = QueryParameter.Parse(pattern).GetMatcher();
@@ -198,12 +195,12 @@ public class MemoryStore
         return list;
     }
 
-    public IReadOnlyList<(IStorePathDetail Detail, DataETag Data)> SearchData(string pattern)
+    public IReadOnlyList<(StorePathDetail Detail, DataETag Data)> SearchData(string pattern)
     {
         var query = QueryParameter.Parse(pattern).GetMatcher();
 
         var list = _store.Values
-            .Select(x => (Detail: x.PathDetail.Cast<IStorePathDetail>(), Data: x.Data))
+            .Select(x => (Detail: x.PathDetail, Data: x.Data))
             .Where(x => pattern == "*" || query.IsMatch(x.Detail.Path, false))
             .ToImmutableArray();
 

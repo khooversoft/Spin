@@ -12,7 +12,7 @@ namespace Toolbox.Azure;
 
 public static class DatalakePathTool
 {
-    public static async Task<Option<IStorePathDetail>> GetPathDetail(this DataLakeFileClient fileClient, ScopeContext context)
+    public static async Task<Option<StorePathDetail>> GetPathDetail(this DataLakeFileClient fileClient, ScopeContext context)
     {
         fileClient.NotNull();
 
@@ -25,7 +25,7 @@ public static class DatalakePathTool
             if (!exist.HasValue || !exist.Value)
             {
                 context.LogDebug("File does not exist, path={path}", fileClient.Path);
-                return new Option<IStorePathDetail>(StatusCode.NotFound);
+                return new Option<StorePathDetail>(StatusCode.NotFound);
             }
 
             var result = await fileClient.GetPropertiesAsync(cancellationToken: context);
@@ -38,7 +38,7 @@ public static class DatalakePathTool
         }
     }
 
-    public static async Task<Option<IStorePathDetail>> GetPathDetailOrCreate(this DataLakeFileClient fileClient, ScopeContext context)
+    public static async Task<Option<StorePathDetail>> GetPathDetailOrCreate(this DataLakeFileClient fileClient, ScopeContext context)
     {
         using var metric = context.LogDuration("dataLakeStore-getPathPropertiesOrCreate");
 
@@ -49,11 +49,11 @@ public static class DatalakePathTool
         return await fileClient.GetPathDetail(context);
     }
 
-    public static async Task<Option<IReadOnlyList<IStorePathDetail>>> GetFileHashes(this IFileStore fileStore, IReadOnlyList<IStorePathDetail> subjects, ScopeContext context)
+    public static async Task<Option<IReadOnlyList<StorePathDetail>>> GetFileHashes(this IFileStore fileStore, IReadOnlyList<StorePathDetail> subjects, ScopeContext context)
     {
         fileStore.NotNull();
         subjects.NotNull();
-        ConcurrentQueue<IStorePathDetail> pathDetails = new ConcurrentQueue<IStorePathDetail>();
+        ConcurrentQueue<StorePathDetail> pathDetails = new ConcurrentQueue<StorePathDetail>();
 
         await Parallel.ForEachAsync(subjects, context.CancellationToken, async (subject, token) =>
         {
@@ -72,7 +72,7 @@ public static class DatalakePathTool
         return pathDetails.ToImmutableArray();
     }
 
-    public static IStorePathDetail ConvertTo(this PathItem subject, string path)
+    public static StorePathDetail ConvertTo(this PathItem subject, string path)
     {
         subject.NotNull();
         path.NotEmpty();
@@ -88,7 +88,7 @@ public static class DatalakePathTool
         };
     }
 
-    public static IStorePathDetail ConvertTo(this PathProperties subject, string path)
+    public static StorePathDetail ConvertTo(this PathProperties subject, string path)
     {
         subject.NotNull();
         path.NotEmpty();

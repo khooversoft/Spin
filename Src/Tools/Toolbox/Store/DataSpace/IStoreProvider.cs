@@ -8,12 +8,12 @@ public interface IStoreProvider
     string Name { get; }
 }
 
-public interface IStoreFileProvider : IStoreProvider
+public interface IStoreKeyProvider : IStoreProvider
 {
     IKeyStore GetStore(SpaceDefinition definition);
 }
 
 public interface IStoreListProvider : IStoreProvider
 {
-    IListStore<T> GetStore<T>(SpaceDefinition definition);
+    IListStore2<T> GetStore<T>(SpaceDefinition definition, SpaceSerializer? serializer);
 }
