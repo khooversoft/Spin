@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
@@ -43,7 +38,7 @@ public class MemoryKeyStore : IKeyStore
         context = context.With(_logger);
         context.LogDebug("Appending key={key}", key);
 
-        return _memoryStore.Delete(key, leaseId, context.With(_logger), recorder).ToTaskResult();
+        return _memoryStore.Delete(key, leaseId, context, recorder).ToTaskResult();
     }
 
     public Task<Option> DeleteFolder(string key, ScopeContext context)

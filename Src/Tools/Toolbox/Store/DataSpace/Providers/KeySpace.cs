@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
@@ -24,6 +19,8 @@ public class KeySpace : IKeyStore
         _keySystem = keySystem;
         _logger = logger;
     }
+
+    public IKeySystem KeySystem => _keySystem;
 
     public Task<Option<string>> Add(string key, DataETag data, ScopeContext context, TrxRecorder? recorder = null)
     {

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
@@ -14,11 +9,11 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Test.Store.DataSpaceTests;
 
-public class DataSpaceStandardOperationTests
+public class DataSpaceKeyTests
 {
     private ITestOutputHelper _outputHelper;
 
-    public DataSpaceStandardOperationTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+    public DataSpaceKeyTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     private async Task<IHost> BuildService()
     {
@@ -52,7 +47,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/data.txt";
 
@@ -85,7 +80,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/add-data.txt";
         var content = "Add operation test".ToBytes();
@@ -105,7 +100,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/duplicate-data.txt";
         var content = "Duplicate test".ToBytes();
@@ -124,7 +119,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/append-data.txt";
         var content1 = "First line".ToBytes();
@@ -148,7 +143,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/overwrite-data.txt";
         var content1 = "Original content".ToBytes();
@@ -170,7 +165,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/exists-data.txt";
         var content = "Exists test".ToBytes();
@@ -188,7 +183,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/non-existing.txt";
 
@@ -201,7 +196,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/details-data.txt";
         var content = "Details test".ToBytes();
@@ -222,7 +217,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string folder = "test/folder";
         string path1 = $"{folder}/file1.txt";
@@ -243,7 +238,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         await keyStore.Set("test/search/file1.txt", new DataETag("Data 1".ToBytes()), context);
         await keyStore.Set("test/search/file2.txt", new DataETag("Data 2".ToBytes()), context);
@@ -263,7 +258,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/lease-data.txt";
         var content = "Lease test".ToBytes();
@@ -286,7 +281,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/exclusive-lock.txt";
         var content = "Exclusive lock test".ToBytes();
@@ -309,7 +304,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/break-lease.txt";
         var content = "Break lease test".ToBytes();
@@ -330,7 +325,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/lease-update.txt";
         var content1 = "Original".ToBytes();
@@ -358,7 +353,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/lease-delete.txt";
         var content = "Delete with lease".ToBytes();
@@ -381,7 +376,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/lease-append.txt";
         var content1 = "First".ToBytes();
@@ -410,7 +405,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/non-existing-get.txt";
 
@@ -423,7 +418,7 @@ public class DataSpaceStandardOperationTests
     {
         using var host = await BuildService();
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceStandardOperationTests>();
+        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/non-existing-delete.txt";
 

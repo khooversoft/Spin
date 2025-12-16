@@ -1,4 +1,6 @@
-﻿namespace Toolbox.Store;
+﻿using Toolbox.Extensions;
+
+namespace Toolbox.Store;
 
 public record KeySystemBase
 {
@@ -23,17 +25,26 @@ public record KeySystemBase
     {
         string path = (key, pattern) switch
         {
-            (null, null) => $"{_pathPrefix}**/*",
-            (null, _) => $"{_pathPrefix}{pattern}",
-            (_, null) => $"{_pathPrefix}{key}/**/*",
-            _ => $"{_pathPrefix}{key}/{pattern}"
+            (null, null) => $"{_pathPrefix}/**/*",
+            (null, _) => $"{_pathPrefix}/{pattern}",
+            (_, null) => $"{_pathPrefix}/{key}/**/*",
+            _ => $"{_pathPrefix}/{key}/{pattern}"
         };
 
         return path.ToLowerInvariant();
     }
 
-    public string CreatePathPrefix() => _pathPrefix;
-    public string RemovePathPrefix(string path) => path.Replace(_pathPrefix, string.Empty).TrimStart('/');
+    public string GetPathPrefix() => _pathPrefix;
+    public string AddPathPrefix(string path) => $"{_pathPrefix}/{path}".TrimEnd('/').ToLowerInvariant();
+
+    public string RemovePathPrefix(string path) => path switch
+    {
+        null => throw new ArgumentNullException(nameof(path)),
+        _ when _pathPrefix.IsEmpty() => path,
+        _ when path.StartsWith(_pathPrefix, StringComparison.OrdinalIgnoreCase) => path[_pathPrefix.Length..].TrimStart('/'),
+        _ => path,
+
+    };
 
     public string BuildDeleteFolder(string path)
     {
@@ -41,7 +52,7 @@ public record KeySystemBase
         {
             -1 => path,
             var idx when idx == path.Length => path,
-            var idx when path[idx+1] == '*' => path[..idx],
+            var idx when path[idx + 1] == '*' => path[..idx],
             _ => path,
         };
 

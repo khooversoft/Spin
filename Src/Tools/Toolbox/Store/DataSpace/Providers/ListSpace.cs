@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -24,10 +20,12 @@ public class ListSpace<T> : IListStore2<T>
         _logger = logger.NotNull();
     }
 
+    public ListKeySystem<T> ListKeySystem => _fileSystem;
+
     public async Task<Option<string>> Append(string key, IEnumerable<T> data, ScopeContext context)
     {
         var dataItems = data.NotNull().Select(x => x.ToJson()).ToArray();
-        if (dataItems.Length == 0) return (StatusCode.NoContent, "Empty list");
+        if (dataItems.Length == 0) return StatusCode.OK;
 
         string path = _fileSystem.PathBuilder(key);
         context.LogDebug("Appending key={key}, listType={listType}, path={path}, dataCount={dataCount}", key, typeof(T).Name, path, dataItems.Length);
@@ -36,10 +34,10 @@ public class ListSpace<T> : IListStore2<T>
         string json = string.Join(Environment.NewLine, dataItems) + Environment.NewLine;
         DataETag dataEtag = json.ToDataETag();
 
-        var detailsOption = await _keyStore.Append(path, dataEtag, context);
-        detailsOption.LogStatus(context, "Append to path={path}", [path]);
+        var append = await _keyStore.Append(path, dataEtag, context);
+        append.LogStatus(context, "Append to path={path}", [path]);
 
-        return detailsOption;
+        return append;
     }
 
     public async Task<Option> Delete(string key, ScopeContext context)
@@ -48,7 +46,7 @@ public class ListSpace<T> : IListStore2<T>
         context.LogDebug("Delete: Deleting list key={key}", key);
 
         // FIX: Include filesystem base path prefix for correct folder clear
-        string folder = $"{_fileSystem.CreatePathPrefix()}{key}";
+        string folder = $"{_fileSystem.GetPathPrefix()}/{key}";
         var clearOption = await _keyStore.ClearFolder(folder, context);
         return clearOption;
     }
@@ -61,63 +59,80 @@ public class ListSpace<T> : IListStore2<T>
         pattern.NotEmpty();
         context.LogDebug("Get: Getting list items, pattern={pattern}", pattern);
 
-        // FIX: honor pattern in search
-        string searchPattern = _fileSystem.BuildSearch(key, pattern);
-        IReadOnlyList<StorePathDetail> searchList = (await _keyStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
-        return await ReadList(pattern, context, searchList);
+        IReadOnlyList<StorePathDetail> searchList = await InternalSearch(key, pattern, context);
+        return await ReadList(context, searchList);
     }
 
     public async Task<Option<IReadOnlyList<T>>> GetHistory(string key, DateTime timeIndex, ScopeContext context)
     {
+        timeIndex = new DateTime(timeIndex.Year, timeIndex.Month, timeIndex.Day, timeIndex.Hour, 0, 0, DateTimeKind.Utc);
         context.LogDebug("Getting history, key={key}, timeIndex={timeIndex}", key, timeIndex);
 
-        string searchPattern = _fileSystem.BuildSearch(key);
-        IReadOnlyList<StorePathDetail> searchList = (await _keyStore.Search(searchPattern, context)).OrderBy(x => x.Path).ToArray();
+        IReadOnlyList<StorePathDetail> searchList = await InternalSearch(key, null, context);
 
         var indexedList = searchList
-            .Select((x, i) => (index: i, dir: x, active: _fileSystem.ExtractTimeIndex(x.Path) >= timeIndex))
+            .Select((x, i) => (index: i, dir: x, extractTime: _fileSystem.ExtractTimeIndex(x.Path)))
+            .OrderBy(x => x.dir.Path)
             .ToArray();
 
-        int minIndex = indexedList.Where(x => x.active).Func(x => x.Any() ? x.Min(x => x.index) - 1 : 0);
+        int minIndex = indexedList
+            .Where(x => x.extractTime >= timeIndex)
+            .Func(x => x.Any() ? x.Min(x => x.index) - 1 : int.MaxValue);
 
         var list = indexedList
             .Where(x => x.index >= minIndex)
             .Select(x => x.dir)
             .ToArray();
 
-        return await ReadList(searchPattern, context, list);
+        return await ReadList(context, list);
     }
 
-    public async Task<IReadOnlyList<StorePathDetail>> Search(string key, string pattern, ScopeContext context)
+    public Task<IReadOnlyList<StorePathDetail>> Search(string key, string pattern, ScopeContext context) => InternalSearch(key, pattern, context);
+
+    private async Task<IReadOnlyList<StorePathDetail>> InternalSearch(string key, string? pattern, ScopeContext context)
     {
-        pattern.NotEmpty();
-        context.LogDebug("Search: pattern={pattern}", pattern);
+        key.NotEmpty();
+        context.LogDebug("Search: key={key}, pattern={pattern}", key, pattern);
 
-        string searchPattern = _fileSystem.BuildSearch(key, pattern);
-        IReadOnlyList<StorePathDetail> searchList = await _keyStore.Search(searchPattern, context);
-        return searchList;
-    }
-
-    private async Task<Option<IReadOnlyList<T>>> ReadList(string pattern, ScopeContext context, IReadOnlyList<StorePathDetail> searchList)
-    {
-        var taskList = new Sequence<Task<IReadOnlyList<T>>>();
-
-        foreach (var pathDetail in searchList)
+        string searchPattern = pattern switch
         {
-            if (pathDetail.IsFolder) continue;
+            null => _fileSystem.BuildSearch(key),
+            _ => _fileSystem.BuildSearch(key, pattern),
+        };
 
-            taskList += reader(pathDetail.Path);
-        }
+        IReadOnlyList<StorePathDetail> searchList = await _keyStore.Search(searchPattern, context);
 
-        IReadOnlyList<T>[] list = await Task.WhenAll(taskList);
-        var dataItems = list.SelectMany(x => x).ToImmutableArray();
-        context.LogDebug("GetList: search={pattern}, count={count}", pattern, dataItems.Length);
+        IReadOnlyList<StorePathDetail> result = searchList
+            .Select(x => x with { Path = _fileSystem.RemovePathPrefix(x.Path) })
+            .ToImmutableArray();
+
+        return result;
+    }
+
+
+    private async Task<Option<IReadOnlyList<T>>> ReadList(ScopeContext context, IReadOnlyList<StorePathDetail> searchList)
+    {
+        var journalQueue = new ConcurrentQueue<IReadOnlyList<T>>();
+
+        var scale = new ActionQueue<string>(async path =>
+        {
+            var result = await reader(path);
+            journalQueue.Enqueue(result);
+        }, maxWorkers: 5);
+
+        await scale.SendAsync(searchList.Select(x => x.Path));
+        await scale.CloseAsync();
+
+        var dataItems = journalQueue.SelectMany(x => x).ToImmutableArray();
+        context.LogDebug("ReadList: count={count}", dataItems.Length);
         return dataItems;
 
         async Task<IReadOnlyList<T>> reader(string path)
         {
             context.LogDebug("Reading path={path}", path);
-            Option<DataETag> readOption = await _keyStore.Get(path, context);
+
+            var fullPath = _fileSystem.AddPathPrefix(path);
+            Option<DataETag> readOption = await _keyStore.Get(fullPath, context);
             if (readOption.IsError())
             {
                 context.LogDebug("Fail to read path={path}", path);

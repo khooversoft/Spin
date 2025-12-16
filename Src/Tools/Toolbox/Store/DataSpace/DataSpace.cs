@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Frozen;
 using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -24,7 +17,6 @@ public class DataSpace
 {
     private readonly FrozenDictionary<string, SpaceDefinition> _spaces;
     private readonly FrozenDictionary<string, IStoreProvider> _providers;
-    private readonly FrozenDictionary<string, SpaceSerializer> _serializers;
     private readonly ILogger<DataSpace> _logger;
 
     public DataSpace(DataSpaceOption option, ILogger<DataSpace> logger)
@@ -38,10 +30,6 @@ public class DataSpace
 
         _providers = option.Providers
             .Select(x => new KeyValuePair<string, IStoreProvider>(x.Name, x))
-            .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
-
-        _serializers = option.Serializers
-            .Select(x => new KeyValuePair<string, SpaceSerializer>(x.TypeName, x))
             .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
     }
 
@@ -63,10 +51,8 @@ public class DataSpace
         var keyStore = provider as IStoreListProvider ??
             throw new ArgumentException($"provider={definition.ProviderName} does not implement IStoreFileProvider");
 
-        SpaceSerializer? serializer = _serializers.TryGetValue(typeof(T).Name, out var s) ? s : null;
-
         _logger.LogTrace("Getting list store for key={key}, provider={provider}", key, provider.Name);
-        return keyStore.GetStore<T>(definition, serializer).NotNull();
+        return keyStore.GetStore<T>(definition).NotNull();
     }
 
     private (IStoreProvider storeProvider, SpaceDefinition definition) GetProvider(string path)

@@ -2,10 +2,8 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
-using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Store;

@@ -1,7 +1,4 @@
-﻿using Toolbox.Data;
-using Toolbox.Types;
-
-namespace Toolbox.Store;
+﻿namespace Toolbox.Store;
 
 public interface IStoreProvider
 {
@@ -15,5 +12,5 @@ public interface IStoreKeyProvider : IStoreProvider
 
 public interface IStoreListProvider : IStoreProvider
 {
-    IListStore2<T> GetStore<T>(SpaceDefinition definition, SpaceSerializer? serializer);
+    IListStore2<T> GetStore<T>(SpaceDefinition definition);
 }

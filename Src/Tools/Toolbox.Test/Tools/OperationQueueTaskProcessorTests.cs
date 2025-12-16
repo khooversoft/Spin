@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Concurrent;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -71,7 +66,7 @@ public class OperationQueueTaskProcessorTests
             .ToArray();
 
         var results = await processor.Run(tasks, _context);
-        
+
         results.Count.Be(taskCount);
         results.All(x => x.State == TaskState.Abandoned).BeTrue();
         results.All(x => x.AttemptCount == 3).BeTrue();
@@ -87,24 +82,24 @@ public class OperationQueueTaskProcessorTests
             .Select(i => new TaskInvoke(i, async () =>
             {
                 await Task.Delay(10);
-                
+
                 // Tasks with even IDs succeed on second attempt, odd IDs always fail
                 if (i % 2 == 0)
                 {
                     dict.AddOrUpdate(i, 1, (_, count) => count + 1);
                     return dict[i] >= 2;
                 }
-                
+
                 return false;
             }))
             .ToArray();
 
         var results = await processor.Run(tasks, _context);
-        
+
         results.Count.Be(10);
         var succeeded = results.Where(x => x.State == TaskState.Succeeded).ToArray();
         var abandoned = results.Where(x => x.State == TaskState.Abandoned).ToArray();
-        
+
         succeeded.Length.Be(5);
         abandoned.Length.Be(5);
         succeeded.All(x => x.Id % 2 == 0).BeTrue();
@@ -116,7 +111,7 @@ public class OperationQueueTaskProcessorTests
     {
         var processor = ActivatorUtilities.CreateInstance<TasksProcessor>(_host.Services, 3);
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() => 
+        await Assert.ThrowsAsync<ArgumentNullException>(() =>
             processor.Run(null!, _context));
     }
 
@@ -125,7 +120,7 @@ public class OperationQueueTaskProcessorTests
     {
         var processor = ActivatorUtilities.CreateInstance<TasksProcessor>(_host.Services, 3);
 
-        await Assert.ThrowsAsync<ArgumentException>(() => 
+        await Assert.ThrowsAsync<ArgumentException>(() =>
             processor.Run(Array.Empty<TaskInvoke>(), _context));
     }
 
@@ -144,7 +139,7 @@ public class OperationQueueTaskProcessorTests
         };
 
         var results = await processor.Run(tasks, _context);
-        
+
         results.Count.Be(1);
         results[0].State.Be(TaskState.Succeeded);
         results[0].AttemptCount.Be(1);
@@ -165,7 +160,7 @@ public class OperationQueueTaskProcessorTests
         };
 
         var results = await processor.Run(tasks, _context);
-        
+
         results.Count.Be(1);
         results[0].State.Be(TaskState.Abandoned);
         results[0].AttemptCount.Be(3);
@@ -182,17 +177,17 @@ public class OperationQueueTaskProcessorTests
             {
                 await Task.Delay(10);
                 dict.AddOrUpdate(i, 1, (_, count) => count + 1);
-                
+
                 // Each task succeeds after specific number of attempts
                 return dict[i] >= i;
             }))
             .ToArray();
 
         var results = await processor.Run(tasks, _context);
-        
+
         results.Count.Be(5);
         results.All(x => x.State == TaskState.Succeeded).BeTrue();
-        
+
         results.First(x => x.Id == 1).AttemptCount.Be(1);
         results.First(x => x.Id == 2).AttemptCount.Be(2);
         results.First(x => x.Id == 3).AttemptCount.Be(3);
@@ -220,7 +215,7 @@ public class OperationQueueTaskProcessorTests
         tasks[0].AttemptCount.Be(0);
 
         var results = await processor.Run(tasks, _context);
-        
+
         // Verify final state
         results[0].State.Be(TaskState.Succeeded);
         results[0].AttemptCount.Be(1);
@@ -241,7 +236,7 @@ public class OperationQueueTaskProcessorTests
             .ToArray();
 
         var results = await processor.Run(tasks, _context);
-        
+
         results.Count.Be(taskCount);
         results.All(x => x.State == TaskState.Succeeded).BeTrue();
         results.All(x => x.AttemptCount == 1).BeTrue();
@@ -258,7 +253,7 @@ public class OperationQueueTaskProcessorTests
             {
                 await Task.Delay(10);
                 dict.AddOrUpdate(i, 1, (_, count) => count + 1);
-                
+
                 // First 5 tasks succeed on 2nd attempt, rest on 3rd attempt
                 int requiredAttempts = i <= 5 ? 2 : 3;
                 return dict[i] >= requiredAttempts;
@@ -266,13 +261,13 @@ public class OperationQueueTaskProcessorTests
             .ToArray();
 
         var results = await processor.Run(tasks, _context);
-        
+
         results.Count.Be(10);
         results.All(x => x.State == TaskState.Succeeded).BeTrue();
-        
+
         var firstBatch = results.Where(x => x.Id <= 5).ToArray();
         var secondBatch = results.Where(x => x.Id > 5).ToArray();
-        
+
         firstBatch.All(x => x.AttemptCount == 2).BeTrue();
         secondBatch.All(x => x.AttemptCount == 3).BeTrue();
     }
@@ -296,7 +291,7 @@ public class OperationQueueTaskProcessorTests
         };
 
         var results = await processor.Run(tasks, _context);
-        
+
         results.Count.Be(1);
         results[0].State.Be(TaskState.Succeeded);
         results[0].AttemptCount.Be(3);
@@ -317,7 +312,7 @@ public class OperationQueueTaskProcessorTests
         };
 
         var results = await processor.Run(tasks, _context);
-        
+
         results.Count.Be(1);
         results[0].State.Be(TaskState.Abandoned);
         results[0].AttemptCount.Be(1);

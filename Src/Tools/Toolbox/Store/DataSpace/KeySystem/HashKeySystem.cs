@@ -10,7 +10,7 @@ public record HashKeySystem : KeySystemBase, IKeySystem
     {
         key.NotEmpty();
         var hashPath = PathTool.CreateHashPath(key);
-        var result = $"{this.CreatePathPrefix()}/{hashPath}/{key}";
+        var result = $"{this.GetPathPrefix()}/{hashPath}/{key}";
 
         return result.ToLowerInvariant();
     }
@@ -21,7 +21,7 @@ public record HashKeySystem : KeySystemBase, IKeySystem
 
         var keyPath = $"{key}.{typeof(T).Name}.json";
         var hashPath = PathTool.CreateHashPath(keyPath);
-        var result = $"{this.CreatePathPrefix()}/{hashPath}/{keyPath}";
+        var result = $"{this.GetPathPrefix()}/{hashPath}/{keyPath}";
         return result;
     }
 }
