@@ -22,7 +22,7 @@ public class KeyStoreProvider : IStoreKeyProvider
     {
         IKeySystem keySystem = definition.SpaceFormat switch
         {
-            SpaceFormat.Key => new KeySystem(definition.BasePath),
+            SpaceFormat.Key => new KeySystem(definition.BasePath, definition.UseCache),
             SpaceFormat.Hash => new HashKeySystem(definition.BasePath),
             _ => throw new Exception($"Unsupported space format {definition.SpaceFormat} for key system"),
         };

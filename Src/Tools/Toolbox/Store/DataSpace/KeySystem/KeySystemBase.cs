@@ -27,6 +27,9 @@ public record KeySystemBase
         {
             (null, null) => $"{_pathPrefix}/**/*",
             (null, _) => $"{_pathPrefix}/{pattern}",
+            (_, "*.*") => $"{_pathPrefix}/{key}/*.*",
+            (_, "**.*") => $"{_pathPrefix}/{key}/**/*.*",
+            (_, "**/**.*") => $"{_pathPrefix}/{key}/**/*.*",
             (_, null) => $"{_pathPrefix}/{key}/**/*",
             _ => $"{_pathPrefix}/{key}/{pattern}"
         };
@@ -43,7 +46,6 @@ public record KeySystemBase
         _ when _pathPrefix.IsEmpty() => path,
         _ when path.StartsWith(_pathPrefix, StringComparison.OrdinalIgnoreCase) => path[_pathPrefix.Length..].TrimStart('/'),
         _ => path,
-
     };
 
     public string BuildDeleteFolder(string path)

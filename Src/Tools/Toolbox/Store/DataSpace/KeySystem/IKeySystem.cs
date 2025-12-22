@@ -15,8 +15,8 @@ public enum KeySystemType
 
 public interface IKeySystem
 {
-    public string? BasePath { get; }
-    public KeySystemType SystemType { get; }
+    string? BasePath { get; }
+    KeySystemType SystemType { get; }
     string PathBuilder(string key);
     string PathBuilder<T>(string key);
     string BuildSearch(string? key = null, string? pattern = null);

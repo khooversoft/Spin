@@ -1,7 +1,9 @@
 ﻿using System.Collections.Immutable;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Telemetry;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -12,41 +14,78 @@ public class KeySpace : IKeyStore
     private readonly IKeyStore _keyStore;
     private readonly ILogger<KeySpace> _logger;
     private readonly IKeySystem _keySystem;
+    private readonly IMemoryCache? _memoryCache;
+    private readonly ITelemetry? _telemetry;
+    private readonly ITelemetryCounter<long>? _addCounter;
+    private readonly ITelemetryCounter<long>? _appendCounter;
+    private readonly ITelemetryCounter<long>? _deleteCounter;
+    private readonly ITelemetryCounter<long>? _getCounter;
+    private readonly ITelemetryCounter<long>? _setCounter;
+    private readonly ITelemetryCounter<long>? _cacheHitCounter;
 
     public KeySpace(IKeyStore keyStore, IKeySystem keySystem, ILogger<KeySpace> logger)
     {
-        _keyStore = keyStore;
-        _keySystem = keySystem;
-        _logger = logger;
+        _keyStore = keyStore.NotNull();
+        _keySystem = keySystem.NotNull();
+        _logger = logger.NotNull();
     }
+
+    public KeySpace(IKeyStore keyStore, IKeySystem keySystem, IMemoryCache memoryCache, ITelemetry telemetry, ILogger<KeySpace> logger)
+    {
+        _keyStore = keyStore.NotNull();
+        _keySystem = keySystem.NotNull();
+        _memoryCache = memoryCache.NotNull();
+        _telemetry = telemetry.NotNull();
+        _logger = logger.NotNull();
+
+        _addCounter = _telemetry.CreateCounter<long>("keyspace.add", "Number of Add operations", unit: "count");
+        _appendCounter = _telemetry.CreateCounter<long>("keyspace.append", "Number of Append operations", unit: "count");
+        _deleteCounter = _telemetry.CreateCounter<long>("keyspace.delete", "Number of Delete operations", unit: "count");
+        _getCounter = _telemetry.CreateCounter<long>("keyspace.get", "Number of Get operations", unit: "count");
+        _setCounter = _telemetry.CreateCounter<long>("keyspace.set", "Number of Set operations", unit: "count");
+        _cacheHitCounter = _telemetry.CreateCounter<long>("keyspace.cache.hit", "Number of Cache Hit operations", unit: "count");
+    }
+
 
     public IKeySystem KeySystem => _keySystem;
 
-    public Task<Option<string>> Add(string key, DataETag data, ScopeContext context, TrxRecorder? recorder = null)
+    public async Task<Option<string>> Add(string key, DataETag data, ScopeContext context, TrxRecorder? recorder = null)
     {
         var path = _keySystem.PathBuilder(key);
         context = context.With(_logger);
         context.LogDebug("Add path={path}", path);
 
-        return _keyStore.Add(path, data, context, recorder);
+        var result = await _keyStore.Add(path, data, context, recorder);
+        if (result.IsOk()) _memoryCache?.Set(path, data, context);
+
+        _addCounter?.Increment();
+        return result;
     }
 
-    public Task<Option<string>> Append(string key, DataETag data, ScopeContext context, string? leaseId = null)
+    public async Task<Option<string>> Append(string key, DataETag data, ScopeContext context, string? leaseId = null)
     {
         context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
         context.LogDebug("Appending path={path}", path);
 
-        return _keyStore.Append(path, data, context, leaseId: leaseId);
+        var result = await _keyStore.Append(path, data, context, leaseId: leaseId);
+        if (result.IsOk()) _memoryCache?.Remove(path);
+
+        _appendCounter?.Increment();
+        return result;
     }
 
-    public Task<Option> Delete(string key, ScopeContext context, TrxRecorder? recorder = null, string? leaseId = null)
+    public async Task<Option> Delete(string key, ScopeContext context, TrxRecorder? recorder = null, string? leaseId = null)
     {
         context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
         context.LogDebug("Delete path={path}", path);
 
-        return _keyStore.Delete(path, context, recorder: recorder, leaseId: leaseId);
+        var result = await _keyStore.Delete(path, context, recorder: recorder, leaseId: leaseId);
+        if (result.IsOk()) _memoryCache?.Remove(path);
+
+        _deleteCounter?.Increment();
+        return result;
     }
 
     public Task<Option> DeleteFolder(string key, ScopeContext context)
@@ -58,22 +97,40 @@ public class KeySpace : IKeyStore
         return _keyStore.DeleteFolder(path, context);
     }
 
-    public Task<Option<DataETag>> Get(string key, ScopeContext context)
+    public async Task<Option<DataETag>> Get(string key, ScopeContext context)
     {
         context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
         context.LogDebug("Get path={path}", path);
 
-        return _keyStore.Get(path, context);
+        if (_memoryCache?.TryGetValue(path, out DataETag cachedData, context) == true)
+        {
+            _cacheHitCounter?.Increment();
+            return cachedData;
+        }
+
+        var result = await _keyStore.Get(path, context);
+        if (result.IsOk())
+        {
+            _memoryCache?.Set(path, result.Return(), context);
+            _getCounter?.Increment();
+            return result;
+        }
+
+        return result;
     }
 
-    public Task<Option<string>> Set(string key, DataETag data, ScopeContext context, TrxRecorder? recorder = null, string? leaseId = null)
+    public async Task<Option<string>> Set(string key, DataETag data, ScopeContext context, TrxRecorder? recorder = null, string? leaseId = null)
     {
         context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
         context.LogDebug("Set path={path}", path);
 
-        return _keyStore.Set(path, data, context, recorder: recorder, leaseId: leaseId);
+        var result = await _keyStore.Set(path, data, context, recorder: recorder, leaseId: leaseId);
+        if (result.IsOk()) _memoryCache?.Set(path, data, context);
+
+        _setCounter?.Increment();
+        return result;
     }
 
     public Task<Option> Exists(string key, ScopeContext context)
@@ -101,7 +158,7 @@ public class KeySpace : IKeyStore
     public async Task<IReadOnlyList<StorePathDetail>> Search(string pattern, ScopeContext context)
     {
         context = context.With(_logger);
-        string fullPattern = _keySystem.PathBuilder(pattern);
+        string fullPattern = _keySystem.BuildSearch(null, pattern);
         context.LogDebug("Search fullPattern={fullPattern}", fullPattern);
 
         var searchResult = await _keyStore.Search(fullPattern, context);
@@ -119,7 +176,7 @@ public class KeySpace : IKeyStore
         var path = _keySystem.PathBuilder(key);
         context.LogDebug("AcquireExclusiveLock path={path}", path);
 
-        return _keyStore.AcquireExclusiveLock(path, true, context);
+        return _keyStore.AcquireExclusiveLock(path, breakLeaseIfExist, context);
     }
 
     public Task<Option<string>> AcquireLease(string key, TimeSpan leaseDuration, ScopeContext context)

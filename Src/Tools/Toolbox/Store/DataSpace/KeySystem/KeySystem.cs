@@ -4,7 +4,13 @@ namespace Toolbox.Store;
 
 public record KeySystem : KeySystemBase, IKeySystem
 {
-    public KeySystem(string basePath) : base(basePath, KeySystemType.Key) { }
+    public KeySystem(string basePath, bool useCache)
+        : base(basePath, KeySystemType.Key)
+    {
+        UseCache = useCache;
+    }
+
+    public bool UseCache { get; }
 
     public string PathBuilder(string key) => $"{this.GetPathPrefix()}/{key.NotEmpty()}".ToLowerInvariant();
 

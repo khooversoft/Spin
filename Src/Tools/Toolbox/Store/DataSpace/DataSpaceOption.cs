@@ -63,6 +63,7 @@ public record SpaceDefinition
     public string ProviderName { get; init; } = null!;
     public string BasePath { get; init; } = null!;
     public SpaceFormat SpaceFormat { get; init; }
+    public bool UseCache { get; init; }
 
     public static IValidator<SpaceDefinition> Validator { get; } = new Validator<SpaceDefinition>()
         .RuleFor(x => x.Name).NotEmpty()

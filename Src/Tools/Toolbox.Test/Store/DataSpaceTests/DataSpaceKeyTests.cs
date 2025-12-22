@@ -15,13 +15,16 @@ public class DataSpaceKeyTests
 
     public DataSpaceKeyTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
-    private async Task<IHost> BuildService()
+    protected virtual void AddStore(IServiceCollection services) => services.AddInMemoryKeyStore();
+
+    private async Task<IHost> BuildService(bool useHash, bool useCache)
     {
         var host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
                 services.AddLogging(c => c.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(_ => true));
-                services.AddInMemoryKeyStore();
+                AddStore(services);
+                services.AddMemoryCache();
 
                 services.AddDataSpace(cnfg =>
                 {
@@ -30,8 +33,10 @@ public class DataSpaceKeyTests
                         Name = "file",
                         ProviderName = "fileStore",
                         BasePath = "dataFiles",
-                        SpaceFormat = SpaceFormat.Key,
+                        SpaceFormat = useHash ? SpaceFormat.Hash : SpaceFormat.Key,
+                        UseCache = useCache
                     });
+
                     cnfg.Add<KeyStoreProvider>("fileStore");
                 });
             })
@@ -42,14 +47,22 @@ public class DataSpaceKeyTests
         return host;
     }
 
-    [Fact]
-    public async Task SimpleWriteAndRead()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task SimpleWriteAndRead(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
+        var ls = keyStore as KeySpace ?? throw new ArgumentException();
+        var fileSystem = ls.KeySystem;
+
         string path = "test/data.txt";
+        string realPath = fileSystem.RemovePathPrefix(fileSystem.PathBuilder(path));
 
         var content = "Hello, World!".ToBytes();
         var setResult = await keyStore.Set(path, new DataETag(content), context);
@@ -60,13 +73,14 @@ public class DataSpaceKeyTests
         var readData = readOption.Return().Data;
         content.SequenceEqual(readData).BeTrue();
 
-        var s1 = await keyStore.Search("**.*", context);
+        var s1 = await keyStore.Search("**/*.*", context);
         s1.Count.Be(1);
-        s1[0].Path.Be(path);
+        s1[0].Path.Be(realPath);
 
-        s1 = await keyStore.Search("test/*.txt", context);
+        string specificSearch = useHash ? $"**/test/*.txt" : "test/*.txt";
+        s1 = await keyStore.Search(specificSearch, context);
         s1.Count.Be(1);
-        s1[0].Path.Be(path);
+        s1[0].Path.Be(realPath);
 
         var deleteOption = await keyStore.Delete(path, context);
         deleteOption.BeOk();
@@ -75,10 +89,14 @@ public class DataSpaceKeyTests
         s2.Count.Be(0);
     }
 
-    [Fact]
-    public async Task AddOperation_ShouldCreateNewKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task AddOperation_ShouldCreateNewKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -95,10 +113,14 @@ public class DataSpaceKeyTests
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task AddOperation_ShouldFailWhenKeyExists()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task AddOperation_ShouldFailWhenKeyExists(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -114,10 +136,14 @@ public class DataSpaceKeyTests
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task AppendOperation_ShouldAppendData()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task AppendOperation_ShouldAppendData(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -138,10 +164,14 @@ public class DataSpaceKeyTests
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task SetOperation_ShouldOverwriteExistingKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task SetOperation_ShouldOverwriteExistingKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -160,10 +190,14 @@ public class DataSpaceKeyTests
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task ExistsOperation_ShouldReturnTrueForExistingKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task ExistsOperation_ShouldReturnTrueForExistingKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -178,10 +212,14 @@ public class DataSpaceKeyTests
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task ExistsOperation_ShouldFailForNonExistingKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task ExistsOperation_ShouldFailForNonExistingKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -191,31 +229,44 @@ public class DataSpaceKeyTests
         existsResult.IsError().BeTrue();
     }
 
-    [Fact]
-    public async Task GetDetailsOperation_ShouldReturnPathDetails()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task GetDetailsOperation_ShouldReturnPathDetails(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
+        var ls = keyStore as KeySpace ?? throw new ArgumentException();
+        var fileSystem = ls.KeySystem;
+
         string path = "test/details-data.txt";
+        string realPath = fileSystem.RemovePathPrefix(fileSystem.PathBuilder(path));
         var content = "Details test".ToBytes();
 
         await keyStore.Set(path, new DataETag(content), context);
 
         var detailsOption = await keyStore.GetDetails(path, context);
         detailsOption.BeOk();
+
         var details = detailsOption.Return();
-        details.Path.Be(path);
+        details.Path.Be(realPath);
         details.IsFolder.BeFalse();
 
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task DeleteFolderOperation_ShouldRemoveFolder()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task DeleteFolderOperation_ShouldRemoveFolder(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -233,10 +284,12 @@ public class DataSpaceKeyTests
         searchResult.Count.Be(0);
     }
 
-    [Fact]
-    public async Task SearchOperation_ShouldFindMultipleFiles()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SearchOperation_ShouldFindMultipleFiles(bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(false, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -253,10 +306,14 @@ public class DataSpaceKeyTests
         await keyStore.DeleteFolder("test/search", context);
     }
 
-    [Fact]
-    public async Task AcquireLeaseOperation_ShouldLockKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task AcquireLeaseOperation_ShouldLockKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -276,10 +333,14 @@ public class DataSpaceKeyTests
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task AcquireExclusiveLockOperation_ShouldLockKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task AcquireExclusiveLockOperation_ShouldLockKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -299,10 +360,14 @@ public class DataSpaceKeyTests
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task BreakLeaseOperation_ShouldReleaseLockedKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task BreakLeaseOperation_ShouldReleaseLockedKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -320,10 +385,14 @@ public class DataSpaceKeyTests
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task SetWithLeaseId_ShouldUpdateLockedKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task SetWithLeaseId_ShouldUpdateLockedKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -348,10 +417,14 @@ public class DataSpaceKeyTests
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task DeleteWithLeaseId_ShouldRemoveLockedKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task DeleteWithLeaseId_ShouldRemoveLockedKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -371,10 +444,14 @@ public class DataSpaceKeyTests
         existsResult.IsError().BeTrue();
     }
 
-    [Fact]
-    public async Task AppendWithLeaseId_ShouldAppendToLockedKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task AppendWithLeaseId_ShouldAppendToLockedKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -400,10 +477,14 @@ public class DataSpaceKeyTests
         await keyStore.Delete(path, context);
     }
 
-    [Fact]
-    public async Task GetOperation_ShouldFailForNonExistingKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task GetOperation_ShouldFailForNonExistingKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
@@ -413,10 +494,14 @@ public class DataSpaceKeyTests
         readOption.IsError().BeTrue();
     }
 
-    [Fact]
-    public async Task DeleteOperation_ShouldFailForNonExistingKey()
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task DeleteOperation_ShouldFailForNonExistingKey(bool useHash, bool useCache)
     {
-        using var host = await BuildService();
+        using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
         var context = host.Services.CreateContext<DataSpaceKeyTests>();
 

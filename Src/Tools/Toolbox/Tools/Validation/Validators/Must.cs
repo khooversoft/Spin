@@ -80,7 +80,7 @@ public static class MustExtensions
 {
     public static Rule<T, TProperty> Must<T, TProperty>(this Rule<T, TProperty> rule, Func<TProperty, Option> check)
     {
-        rule.NotNull();
+        rule.Assert(x => !x.Equals(default), "Rule must be specified");
         check.NotNull();
         rule.PropertyRule.Validators.Add(new MustFunc<T, TProperty>(rule.PropertyRule, check));
         return rule;
@@ -88,7 +88,7 @@ public static class MustExtensions
 
     public static Rule<T, TProperty> Must<T, TProperty>(this Rule<T, TProperty> rule, Func<T, TProperty, Option> check)
     {
-        rule.NotNull();
+        rule.Assert(x => !x.Equals(default), "Rule must be specified");
         check.NotNull();
         rule.PropertyRule.Validators.Add(new MustFuncWithSubject<T, TProperty>(rule.PropertyRule, check));
         return rule;
@@ -96,7 +96,7 @@ public static class MustExtensions
 
     public static Rule<T, TProperty> Must<T, TProperty>(this Rule<T, TProperty> rule, Func<TProperty, bool> check, Func<TProperty, string> getMsg)
     {
-        rule.NotNull();
+        rule.Assert(x => !x.Equals(default), "Rule must be specified");
         check.NotNull();
         getMsg.NotNull();
         rule.PropertyRule.Validators.Add(new MustTest<T, TProperty>(rule.PropertyRule, check, getMsg));
