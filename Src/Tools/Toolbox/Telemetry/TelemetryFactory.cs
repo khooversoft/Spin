@@ -8,8 +8,8 @@ public interface ITelemetry
 {
     ITelemetryCounter<T> CreateCounter<T>(string name, string? description = null, string? unit = null, string? tags = null, string? version = null)
         where T : struct;
-    ITelemetryRecorder<T> CreateHistogram<T>(string name, string? description = null, string? unit = null, string? tags = null, string? version = null)
-        where T : struct;
+    //ITelemetryRecorder<T> CreateHistogram<T>(string name, string? description = null, string? unit = null, string? tags = null, string? version = null)
+    //    where T : struct;
     ITelemetryRecorder<T> CreateGauge<T>(string name, string? description = null, string? unit = null, string? tags = null, string? version = null)
         where T : struct;
 }
@@ -28,20 +28,22 @@ public class TelemetryFactory : ITelemetry
     public ITelemetryCounter<T> CreateCounter<T>(string name, string? description = null, string? unit = null, string? tags = null, string? version = null)
         where T : struct
     {
+        unit ??= "count";
         var def = CreateDefinition(name, MetricDefinition.CounterType, description, unit, tags, version);
         return ActivatorUtilities.CreateInstance<TelemetryCounter<T>>(_serviceProvider, def, _collector);
     }
 
-    public ITelemetryRecorder<T> CreateHistogram<T>(string name, string? description = null, string? unit = null, string? tags = null, string? version = null)
-        where T : struct
-    {
-        var def = CreateDefinition(name, MetricDefinition.HistogramType, description, unit, tags, version);
-        return ActivatorUtilities.CreateInstance<TelemetryRecorder<T>>(_serviceProvider, def, _collector);
-    }
+    //public ITelemetryRecorder<T> CreateHistogram<T>(string name, string? description = null, string? unit = null, string? tags = null, string? version = null)
+    //    where T : struct
+    //{
+    //    var def = CreateDefinition(name, MetricDefinition.HistogramType, description, unit, tags, version);
+    //    return ActivatorUtilities.CreateInstance<TelemetryRecorder<T>>(_serviceProvider, def, _collector);
+    //}
 
     public ITelemetryRecorder<T> CreateGauge<T>(string name, string? description = null, string? unit = null, string? tags = null, string? version = null)
         where T : struct
     {
+        unit ??= "gauge";
         var def = CreateDefinition(name, MetricDefinition.GaugeType, description, unit, tags, version);
         return ActivatorUtilities.CreateInstance<TelemetryRecorder<T>>(_serviceProvider, def, _collector);
     }

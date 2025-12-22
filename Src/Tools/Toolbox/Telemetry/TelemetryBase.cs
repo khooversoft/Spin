@@ -14,7 +14,7 @@ public class TelemetryBase<T>
         _telemetryCollector = telemetryCollector.NotNull();
     }
 
-    protected void Post(T value, string? scope = null, string? tags = null)
+    protected void PostInternal(T value, string? scope = null, string? tags = null)
     {
         var tm = new TelemetryEvent
         {

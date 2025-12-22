@@ -23,14 +23,14 @@ public class KeySpace : IKeyStore
     private readonly ITelemetryCounter<long>? _setCounter;
     private readonly ITelemetryCounter<long>? _cacheHitCounter;
 
-    public KeySpace(IKeyStore keyStore, IKeySystem keySystem, ILogger<KeySpace> logger)
-    {
-        _keyStore = keyStore.NotNull();
-        _keySystem = keySystem.NotNull();
-        _logger = logger.NotNull();
-    }
+    //public KeySpace(IKeyStore keyStore, IKeySystem keySystem, ILogger<KeySpace> logger)
+    //{
+    //    _keyStore = keyStore.NotNull();
+    //    _keySystem = keySystem.NotNull();
+    //    _logger = logger.NotNull();
+    //}
 
-    public KeySpace(IKeyStore keyStore, IKeySystem keySystem, IMemoryCache memoryCache, ITelemetry telemetry, ILogger<KeySpace> logger)
+    public KeySpace(IKeyStore keyStore, IKeySystem keySystem, ILogger<KeySpace> logger, IMemoryCache? memoryCache = null, ITelemetry? telemetry = null)
     {
         _keyStore = keyStore.NotNull();
         _keySystem = keySystem.NotNull();

@@ -23,8 +23,8 @@ public class TelemetryCounter<T> : TelemetryBase<T>, ITelemetryCounter<T> where 
             _ => throw new NotSupportedException($"Increment is not supported for value type {typeof(T).Name}")
         };
 
-        Post(incrementValue, scope, tags);
+        PostInternal(incrementValue, scope, tags);
     }
 
-    public void Add(T value, string? scope = null, string? tags = null) => Post(value, scope, tags);
+    public void Add(T value, string? scope = null, string? tags = null) => PostInternal(value, scope, tags);
 }
