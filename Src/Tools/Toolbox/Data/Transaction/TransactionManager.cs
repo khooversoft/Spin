@@ -7,6 +7,9 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
+/// <summary>
+/// Transaction manager is per transaction
+/// </summary>
 public class TransactionManager
 {
     private enum RunState

@@ -15,7 +15,6 @@ public class KeySpace : IKeyStore
     private readonly ILogger<KeySpace> _logger;
     private readonly IKeySystem _keySystem;
     private readonly IMemoryCache? _memoryCache;
-    private readonly ITelemetry? _telemetry;
     private readonly ITelemetryCounter<long>? _addCounter;
     private readonly ITelemetryCounter<long>? _appendCounter;
     private readonly ITelemetryCounter<long>? _deleteCounter;
@@ -23,27 +22,19 @@ public class KeySpace : IKeyStore
     private readonly ITelemetryCounter<long>? _setCounter;
     private readonly ITelemetryCounter<long>? _cacheHitCounter;
 
-    //public KeySpace(IKeyStore keyStore, IKeySystem keySystem, ILogger<KeySpace> logger)
-    //{
-    //    _keyStore = keyStore.NotNull();
-    //    _keySystem = keySystem.NotNull();
-    //    _logger = logger.NotNull();
-    //}
-
     public KeySpace(IKeyStore keyStore, IKeySystem keySystem, ILogger<KeySpace> logger, IMemoryCache? memoryCache = null, ITelemetry? telemetry = null)
     {
         _keyStore = keyStore.NotNull();
         _keySystem = keySystem.NotNull();
-        _memoryCache = memoryCache.NotNull();
-        _telemetry = telemetry.NotNull();
         _logger = logger.NotNull();
 
-        _addCounter = _telemetry.CreateCounter<long>("keyspace.add", "Number of Add operations", unit: "count");
-        _appendCounter = _telemetry.CreateCounter<long>("keyspace.append", "Number of Append operations", unit: "count");
-        _deleteCounter = _telemetry.CreateCounter<long>("keyspace.delete", "Number of Delete operations", unit: "count");
-        _getCounter = _telemetry.CreateCounter<long>("keyspace.get", "Number of Get operations", unit: "count");
-        _setCounter = _telemetry.CreateCounter<long>("keyspace.set", "Number of Set operations", unit: "count");
-        _cacheHitCounter = _telemetry.CreateCounter<long>("keyspace.cache.hit", "Number of Cache Hit operations", unit: "count");
+        _memoryCache = memoryCache;
+        _addCounter = telemetry?.CreateCounter<long>("keyspace.add", "Number of Add operations", unit: "count");
+        _appendCounter = telemetry?.CreateCounter<long>("keyspace.append", "Number of Append operations", unit: "count");
+        _deleteCounter = telemetry?.CreateCounter<long>("keyspace.delete", "Number of Delete operations", unit: "count");
+        _getCounter = telemetry?.CreateCounter<long>("keyspace.get", "Number of Get operations", unit: "count");
+        _setCounter = telemetry?.CreateCounter<long>("keyspace.set", "Number of Set operations", unit: "count");
+        _cacheHitCounter = telemetry?.CreateCounter<long>("keyspace.cache.hit", "Number of Cache Hit operations", unit: "count");
     }
 
 
@@ -110,13 +101,9 @@ public class KeySpace : IKeyStore
         }
 
         var result = await _keyStore.Get(path, context);
-        if (result.IsOk())
-        {
-            _memoryCache?.Set(path, result.Return(), context);
-            _getCounter?.Increment();
-            return result;
-        }
+        if (result.IsOk()) _memoryCache?.Set(path, result.Return(), context);
 
+        _getCounter?.Increment();
         return result;
     }
 

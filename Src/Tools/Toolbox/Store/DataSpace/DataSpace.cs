@@ -59,8 +59,8 @@ public class DataSpace
     {
         string storeName = GetStoreName(path);
 
-        _spaces.TryGetValue(storeName, out var definition).Assert(x => x, $"storeName={storeName} not defined");
-        _providers.TryGetValue(definition.NotNull().ProviderName, out var provider).Assert(x => x, $"provider={definition.ProviderName} not registered");
+        _spaces.TryGetValue(storeName, out var definition).BeTrue($"storeName={storeName} not defined");
+        _providers.TryGetValue(definition.NotNull().ProviderName, out var provider).BeTrue($"provider={definition.ProviderName} not registered");
 
         return (provider.NotNull(), definition);
     }

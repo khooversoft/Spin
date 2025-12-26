@@ -56,24 +56,31 @@ public static class ToolboxStartup
         return services;
     }
 
-    //public static IServiceCollection AddInMemoryFileStore(this TransactionStartupContext trxStartupContext, MemoryStore? memoryStore = null)
-    //{
-    //    trxStartupContext.ServiceCollection.AddSingleton<IFileStore, InMemoryFileStore>();
+    public static IServiceCollection AddKeyStore(this IServiceCollection services, string spaceName)
+    {
+        services.NotNull();
+        spaceName.NotEmpty();
 
-    //    switch (memoryStore)
-    //    {
-    //        case null:
-    //            trxStartupContext.ServiceCollection.AddSingleton<MemoryStore>(services => ActivatorUtilities.CreateInstance<MemoryStore>(services, trxStartupContext.Option));
-    //            break;
+        services.AddKeyedTransient<IKeyStore>(spaceName, (services, k) =>
+        {
+            var dataSpace = services.GetRequiredService<DataSpace>();
+            return dataSpace.GetFileStore(spaceName);
+        });
 
-    //        default:
-    //            trxStartupContext.ServiceCollection.AddKeyedSingleton<MemoryStore>(
-    //                trxStartupContext.Option.Name,
-    //                (services, obj) => ActivatorUtilities.CreateInstance<MemoryStore>(services, trxStartupContext.Option)
-    //                );
-    //            break;
-    //    }
+        return services;
+    }
 
-    //    return trxStartupContext.ServiceCollection;
-    //}
+    public static IServiceCollection AddListStore<T>(this IServiceCollection services, string spaceName)
+    {
+        services.NotNull();
+        spaceName.NotEmpty();
+
+        services.AddTransient<IListStore2<T>>(services =>
+        {
+            var dataSpace = services.GetRequiredService<DataSpace>();
+            return dataSpace.GetListStore<T>(spaceName);
+        });
+
+        return services;
+    }
 }

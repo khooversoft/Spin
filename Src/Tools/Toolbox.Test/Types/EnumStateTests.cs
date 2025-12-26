@@ -13,13 +13,6 @@ public class EnumStateTests
         Completed
     }
 
-    public enum OffsetState : long
-    {
-        Undefined0 = 0, // or deliberately omit to test behavior
-        First = 1,
-        Second = 2,
-    }
-
     [Fact]
     public void EnumState_BasicOperations_WorksAsExpected()
     {
@@ -182,17 +175,6 @@ public class EnumStateTests
     }
 
     [Fact]
-    public void EnumState_LongUnderlyingEnum_BasicFlow()
-    {
-        var enumState = new EnumState<OffsetState>();
-        enumState.Value.Be(OffsetState.Undefined0);
-        enumState.Set(OffsetState.First);
-        enumState.Value.Be(OffsetState.First);
-        enumState.TryMove(OffsetState.First, OffsetState.Second).Be(true);
-        enumState.Value.Be(OffsetState.Second);
-    }
-
-    [Fact]
     public async Task EnumState_ConcurrentTransitions()
     {
         var enumState = new EnumState<State>();
@@ -210,5 +192,72 @@ public class EnumStateTests
         // At most one full successful progression
         enumState.Value.Be(State.Completed);
         successCount.Be(3);
+    }
+
+    [Fact]
+    public void EnumState_ConstructorWithInitialValue_SetsState()
+    {
+        var enumState = new EnumState<State>(State.InProgress);
+        enumState.Value.Be(State.InProgress);
+    }
+
+    [Fact]
+    public void EnumState_ConstructorWithInitialValue_AllValues()
+    {
+        foreach (State state in Enum.GetValues<State>())
+        {
+            var enumState = new EnumState<State>(state);
+            enumState.Value.Be(state);
+        }
+    }
+
+    // Note: Testing the static constructor exception requires an enum with a non-int backing type.
+    // This would need a byte/short/long-based enum to trigger the NotSupportedException.
+    public enum ByteState : byte { A, B }
+
+    [Fact]
+    public void EnumState_NonInt32Enum_ThrowsNotSupportedException()
+    {
+        // The static constructor throws when the enum's underlying type is not 32-bit
+        var exception = Assert.Throws<TypeInitializationException>(() => new EnumState<ByteState>());
+        Assert.IsType<NotSupportedException>(exception.InnerException);
+    }
+
+    [Fact]
+    public void EnumState_IfValue_ReturnsCorrectResult()
+    {
+        var enumState = new EnumState<State>(State.InProgress);
+
+        enumState.IfValue(State.InProgress).Be(true);
+        enumState.IfValue(State.None).Be(false);
+        enumState.IfValue(State.Started).Be(false);
+        enumState.IfValue(State.Completed).Be(false);
+
+        enumState.Set(State.Completed);
+        enumState.IfValue(State.Completed).Be(true);
+        enumState.IfValue(State.InProgress).Be(false);
+    }
+
+    [Fact]
+    public async Task EnumState_IfValue_ConcurrentReads()
+    {
+        var enumState = new EnumState<State>(State.Started);
+
+        var tasks = Enumerable.Range(0, 100).Select(_ => Task.Run(() =>
+        {
+            State current = enumState.Value;
+            if (!enumState.IfValue(current))
+            {
+                // State changed between reads - this is expected under concurrency
+                // but IfValue should still return a consistent atomic read
+            }
+
+            // IfValue should be consistent with itself
+            bool check1 = enumState.IfValue(State.Started);
+            bool check2 = enumState.IfValue(State.Started);
+            // Note: These could differ if another thread changes state between calls
+        }));
+
+        await Task.WhenAll(tasks);
     }
 }
