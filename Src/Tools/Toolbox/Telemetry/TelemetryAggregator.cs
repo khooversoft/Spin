@@ -25,7 +25,7 @@ public class TelemetryAggregator : ITelemetryCollector
             }
         );
 
-        switch(telemetryEvent.EventType)
+        switch (telemetryEvent.EventType)
         {
             case MetricDefinition.CounterType:
                 UpdateCounter(telemetryEvent);

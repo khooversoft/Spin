@@ -3,7 +3,6 @@ using Azure;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Microsoft.Extensions.Logging;
-using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -29,8 +28,6 @@ public class DatalakeStore : IFileStore
         _fileSystem.Exists().Assert(x => x == true, $"Datalake file system does not exist, containerName={datalakeOption.Container}");
     }
 
-    public DataChangeRecorder DataChangeLog { get; } = new();
-
     public IFileAccess File(string path) => path
         .Func(x => _datalakeOption.WithBasePath(x))
         .Func(x => _fileSystem.GetFileClient(x))
@@ -40,7 +37,7 @@ public class DatalakeStore : IFileStore
     {
         context = context.With(_logger);
         using var metric = context.LogDuration("dataLakeStore-deleteDirectory", "path={path}", path);
-        DataChangeLog.GetRecorder().Assert(x => x == null, "DeleteFolder is not supported with DataChangeRecorder");
+        //DataChangeLog.GetRecorder().Assert(x => x == null, "DeleteFolder is not supported with DataChangeRecorder");
 
         path = _datalakeOption.WithBasePath(path);
         context.LogDebug("Deleting directory {path}", path);

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Store;
@@ -24,15 +19,13 @@ public enum RunState
 
 public class Transaction
 {
-    private readonly ConcurrentQueue<Func<DataChangeEntry, Task<Option>>> _rollback = new();
     private readonly ConcurrentQueue<DataChangeEntry> _queue = new();
     private readonly TransactionOption _trxOption;
     private readonly LogSequenceNumber _logSequenceNumber;
     private readonly IListStore2<DataChangeRecord> _changeClient;
     private readonly ILogger<Transaction> _logger;
-
     private EnumState<RunState> _runState = new(RunState.None);
-    private DataChangeRecorder _trxChangeRecorder = new DataChangeRecorder();
+    private TransactionEnlistments _enlistments;
 
     public Transaction(
         TransactionOption trxOption,
@@ -45,29 +38,25 @@ public class Transaction
         _logSequenceNumber = logSequenceNumber.NotNull();
         _changeClient = changeClient.NotNull();
         _logger = logger.NotNull();
+
+        TrxRecorder = new TrxRecorder(this);
+        _enlistments = new TransactionEnlistments(this, () => _runState.IfValue(RunState.None), _logger);
     }
 
     public string TransactionId { get; private set; } = Guid.NewGuid().ToString();
-    public DataChangeRecorder TrxRecorder => _trxChangeRecorder;
+    public TrxRecorder TrxRecorder { get; }
     public RunState RunState => _runState.Value;
+    public TransactionEnlistments Enlistments => _enlistments;
 
-    public void Enlist(Func<DataChangeEntry, Task<Option>> rollback) => _rollback.Enqueue(rollback.NotNull());
-
-    public ITrxRecorder Start()
+    public void Start()
     {
-        _rollback.Count.Assert(x => x > 0, "No rollback functions registered");
+        _enlistments.Count.Assert(x => x > 0, "No rollback functions or enlistment registered");
         _queue.Count.Assert(x => x == 0, "Transaction queue is not empty");
 
         _runState.TryMove(RunState.None, RunState.Active).BeTrue("Active is already in progress");
-        _trxChangeRecorder.Clear();
-
         TransactionId = Guid.NewGuid().ToString();
 
-        var trxRecorder = new TrxRecorder2(this);
-        _trxChangeRecorder.Set(trxRecorder);
-
         _logger.LogTrace("Starting transaction with id={transactionId}", TransactionId);
-        return _trxChangeRecorder.GetRecorder().NotNull();
     }
 
     public void Enqueue(DataChangeEntry entry)
@@ -104,7 +93,6 @@ public class Transaction
     public async Task<Option> Commit(ScopeContext context)
     {
         _runState.TryMove(RunState.Active, RunState.Committing).BeTrue("Transaction is not in progress");
-        _trxChangeRecorder.Clear();
         context = context.With(_logger);
         context.LogTrace("Committing transaction with count={count}", _queue.Count);
 
@@ -127,37 +115,21 @@ public class Transaction
     {
         _runState.TryMove(RunState.Active, RunState.RollingBack).BeTrue("Transaction is not in progress");
         context = context.With(_logger);
-        _trxChangeRecorder.Clear();
         context.LogTrace("Rolling back transaction with count={count}", _queue.Count);
 
         // snap shot queue and clear
         var queue = _queue.Reverse().ToArray();
         _queue.Clear();
-        int errorCount = 0;
 
         foreach (var journalEntry in queue)
         {
-            foreach (var rollbackAction in _rollback)
+            var result = await _enlistments.Rollback(journalEntry);
+            if (result.IsError())
             {
-                var result = await rollbackAction(journalEntry);
-                if (result.IsError())
-                {
-                    context.LogError(
-                        "Failed rollback action for transaction with sourceName={sourceName}, statusCode={statusCode}, error={error}", 
-                        journalEntry.SourceName, 
-                        result.StatusCode,
-                        result.Error
-                        );
-
-                    errorCount++;
-                }
+                _logger.LogError("Failed to rollback transaction entry: {entry}, error={error}", journalEntry, result.Error);
+                _runState.TryMove(RunState.RollingBack, RunState.None).BeTrue("Transaction is aborted");
+                return result;
             }
-        }
-
-        if (errorCount > 0)
-        {
-            _runState.TryMove(RunState.RollingBack, RunState.Failed).BeTrue("Some or all transactions did not in rollback");
-            return StatusCode.Conflict;
         }
 
         _runState.TryMove(RunState.RollingBack, RunState.None).BeTrue("Transaction is rollback");

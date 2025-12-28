@@ -30,7 +30,7 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
 
     public Task<Option<string>> Append(DataETag data, ScopeContext context)
     {
-        _datalakeStore.DataChangeLog.GetRecorder().Assert(x => x == null, "Append is not supported with DataChangeRecorder");
+        //_datalakeStore.DataChangeLog.GetRecorder().Assert(x => x == null, "Append is not supported with DataChangeRecorder");
         return _fileClient.Append(this, data, context);
     }
 
@@ -40,18 +40,18 @@ public class DatalakeLeasedAccess : IFileLeasedAccess
     {
         Option<DataETag> readOption = StatusCode.NotFound;
 
-        if (_datalakeStore.DataChangeLog.GetRecorder() != null) readOption = await _fileClient.Get(this, context);
+        //if (_datalakeStore.DataChangeLog.GetRecorder() != null) readOption = await _fileClient.Get(this, context);
 
         var setOption = await _fileClient.Set(this, data, context);
         if (setOption.IsError()) return setOption;
 
-        if (_datalakeStore.DataChangeLog.GetRecorder() != null)
-        {
-            //if (readOption.IsOk())
-            //    _datalakeStore.DataChangeLog.GetRecorder()?.Update(Path, readOption.Return(), data);
-            //else
-            //    _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
-        }
+        //if (_datalakeStore.DataChangeLog.GetRecorder() != null)
+        //{
+        //    //if (readOption.IsOk())
+        //    //    _datalakeStore.DataChangeLog.GetRecorder()?.Update(Path, readOption.Return(), data);
+        //    //else
+        //    //    _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
+        //}
 
         return setOption.Return();
     }

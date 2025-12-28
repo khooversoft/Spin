@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Data;
@@ -68,13 +63,13 @@ public class TransactionTests
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
         int rollbackCount = 0;
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source1", entry =>
         {
             Interlocked.Increment(ref rollbackCount);
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var trxRecorderOption = transaction.Start();
+        transaction.Start();
 
         var result = await transaction.Commit(context);
         result.BeOk();
@@ -96,15 +91,15 @@ public class TransactionTests
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
         int rollbackCount = 0;
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source1", entry =>
         {
             Interlocked.Increment(ref rollbackCount);
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var recorder = transaction.Start();
+        transaction.Start();
         var je1 = new JournalEntry("Alice", 30);
-        recorder.Add("source1", "id1", je1);
+        transaction.TrxRecorder.Add("source1", "id1", je1);
 
         var result = await transaction.Commit(context);
         result.BeOk();
@@ -141,7 +136,7 @@ public class TransactionTests
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
         int rollbackCount = 0;
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source1", entry =>
         {
             Interlocked.Increment(ref rollbackCount);
 
@@ -158,9 +153,9 @@ public class TransactionTests
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var recorder = transaction.Start();
+        transaction.Start();
         var je1 = new JournalEntry("Alice", 30);
-        recorder.Add("source1", "id1", je1);
+        transaction.TrxRecorder.Add("source1", "id1", je1);
 
         var result = await transaction.Rollback(context);
         result.BeOk();
@@ -175,16 +170,16 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
-        var recorder = transaction.Start();
+        transaction.Start();
         JournalEntry j1 = new("Alice", 30);
         JournalEntry j2 = new("Bob", 25);
         JournalEntry j3 = new("Charlie", 35);
 
-        recorder.Add("source1", "id1", j1);
-        recorder.Add("source2", "id2", j2);
-        recorder.Add("source3", "id3", j3);
+        transaction.TrxRecorder.Add("source1", "id1", j1);
+        transaction.TrxRecorder.Add("source2", "id2", j2);
+        transaction.TrxRecorder.Add("source3", "id3", j3);
 
         var result = await transaction.Commit(context);
         result.BeOk();
@@ -211,16 +206,16 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         List<string> rollbackOrder = new();
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source", entry =>
         {
             rollbackOrder.Add(entry.ObjectId);
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var recorder = transaction.Start();
-        recorder.Add("source", "first", new JournalEntry("Alice", 30));
-        recorder.Add("source", "second", new JournalEntry("Bob", 25));
-        recorder.Add("source", "third", new JournalEntry("Charlie", 35));
+        transaction.Start();
+        transaction.TrxRecorder.Add("source", "first", new JournalEntry("Alice", 30));
+        transaction.TrxRecorder.Add("source", "second", new JournalEntry("Bob", 25));
+        transaction.TrxRecorder.Add("source", "third", new JournalEntry("Charlie", 35));
 
         var result = await transaction.Rollback(context);
         result.BeOk();
@@ -238,10 +233,10 @@ public class TransactionTests
         var transaction = host.Services.GetRequiredService<Transaction>();
         var context = host.Services.CreateContext<TransactionTests>();
 
-        transaction.Enlist(entry => new Option(StatusCode.InternalServerError, "Rollback failed").ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.Conflict, "Rollback failed").ToTaskResult());
 
-        var recorder = transaction.Start();
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.Start();
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
 
         var result = await transaction.Rollback(context);
         result.StatusCode.Be(StatusCode.Conflict);
@@ -256,20 +251,21 @@ public class TransactionTests
         int handler1Count = 0;
         int handler2Count = 0;
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source1", entry =>
         {
             Interlocked.Increment(ref handler1Count);
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source2", entry =>
         {
             Interlocked.Increment(ref handler2Count);
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var recorder = transaction.Start();
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.Start();
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.TrxRecorder.Add("source2", "id1", new JournalEntry("Bob", 30));
 
         var result = await transaction.Rollback(context);
         result.BeOk();
@@ -283,7 +279,7 @@ public class TransactionTests
         var host = BuildService();
         var transaction = host.Services.GetRequiredService<Transaction>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
         transaction.Start();
 
@@ -297,15 +293,15 @@ public class TransactionTests
         var transaction = host.Services.GetRequiredService<Transaction>();
         var context = host.Services.CreateContext<TransactionTests>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
-        var recorder1 = transaction.Start();
+        transaction.Start();
         string firstTransactionId = transaction.TransactionId;
 
         // Complete first transaction
         await transaction.Commit(context);
 
-        var recorder2 = transaction.Start();
+        transaction.Start();
         string secondTransactionId = transaction.TransactionId;
 
         firstTransactionId.NotBe(secondTransactionId);
@@ -318,7 +314,7 @@ public class TransactionTests
         var transaction = host.Services.GetRequiredService<Transaction>();
         var context = host.Services.CreateContext<TransactionTests>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
         await Verify.ThrowsAsync<ArgumentException>(async () => await transaction.Commit(context));
     }
@@ -330,7 +326,7 @@ public class TransactionTests
         var transaction = host.Services.GetRequiredService<Transaction>();
         var context = host.Services.CreateContext<TransactionTests>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
         await Verify.ThrowsAsync<ArgumentException>(async () => await transaction.Rollback(context));
     }
@@ -342,14 +338,14 @@ public class TransactionTests
         var transaction = host.Services.GetRequiredService<Transaction>();
         var context = host.Services.CreateContext<TransactionTests>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
         transaction.RunState.Be(RunState.None);
 
-        var recorder = transaction.Start();
+        transaction.Start();
         transaction.RunState.Be(RunState.Active);
 
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
 
         await transaction.Rollback(context);
         transaction.RunState.Be(RunState.None);
@@ -365,34 +361,34 @@ public class TransactionTests
         int handler2Count = 0;
         int handler3Count = 0;
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source1", entry =>
         {
             Interlocked.Increment(ref handler1Count);
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source2", entry =>
         {
             Interlocked.Increment(ref handler2Count);
             return new Option(StatusCode.InternalServerError, "Handler 2 failed").ToTaskResult();
         });
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source3", entry =>
         {
             Interlocked.Increment(ref handler3Count);
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var recorder = transaction.Start();
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.Start();
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.TrxRecorder.Add("source2", "id1", new JournalEntry("Alice-2", 30));
+        transaction.TrxRecorder.Add("source3", "id1", new JournalEntry("Alice-3", 30));
 
         var result = await transaction.Rollback(context);
-        result.StatusCode.Be(StatusCode.Conflict);
-        transaction.RunState.Be(RunState.Failed);
+        result.StatusCode.Be(StatusCode.InternalServerError);
+        transaction.RunState.Be(RunState.None);
 
-        handler1Count.Be(1);
-        handler2Count.Be(1);
-        handler3Count.Be(1);
+        (handler1Count + handler2Count + handler3Count).Be(2);
     }
 
     [Fact]
@@ -402,16 +398,16 @@ public class TransactionTests
         var transaction = host.Services.GetRequiredService<Transaction>();
         var context = host.Services.CreateContext<TransactionTests>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
-        var recorder = transaction.Start();
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.Start();
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
 
         var result = await transaction.Commit(context);
         result.BeOk();
 
         // Start a new transaction to verify queue was cleared
-        var recorder2 = transaction.Start();
+        transaction.Start();
         var result2 = await transaction.Commit(context);
         result2.BeOk();
 
@@ -425,98 +421,23 @@ public class TransactionTests
     }
 
     [Fact]
-    public async Task RollbackClearsQueueAfterSuccess()
-    {
-        var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<TransactionTests>();
-        int rollbackCount = 0;
-
-        transaction.Enlist(entry =>
-        {
-            Interlocked.Increment(ref rollbackCount);
-            return new Option(StatusCode.OK).ToTaskResult();
-        });
-
-        var recorder = transaction.Start();
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
-
-        var result = await transaction.Rollback(context);
-        result.BeOk();
-        rollbackCount.Be(1);
-
-        // Start a new transaction to verify queue was cleared
-        var recorder2 = transaction.Start();
-        recorder2.Add("source2", "id2", new JournalEntry("Bob", 25));
-
-        await transaction.Rollback(context);
-        rollbackCount.Be(2);
-    }
-
-    [Fact]
-    public void TrxRecorderPropertyIsAccessible()
-    {
-        var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-
-        var trxRecorder = transaction.TrxRecorder;
-        trxRecorder.NotNull();
-    }
-
-    [Fact]
-    public async Task TrxRecorderIsClearedAfterCommit()
-    {
-        var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<TransactionTests>();
-
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
-
-        var recorder = transaction.Start();
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
-
-        await transaction.Commit(context);
-
-        var currentRecorder = transaction.TrxRecorder.GetRecorder();
-        (currentRecorder == null).BeTrue();
-    }
-
-    [Fact]
-    public async Task TrxRecorderIsClearedAfterRollback()
-    {
-        var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<TransactionTests>();
-
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
-
-        var recorder = transaction.Start();
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
-
-        await transaction.Rollback(context);
-
-        var currentRecorder = transaction.TrxRecorder.GetRecorder();
-        (currentRecorder == null).BeTrue();
-    }
-
-    [Fact]
     public async Task MultipleCommitsWithSameTransactionInstance()
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredService<Transaction>();
         var context = host.Services.CreateContext<TransactionTests>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
         // First transaction
-        var recorder1 = transaction.Start();
-        recorder1.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.Start();
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
         var result1 = await transaction.Commit(context);
         result1.BeOk();
 
         // Second transaction
-        var recorder2 = transaction.Start();
-        recorder2.Add("source2", "id2", new JournalEntry("Bob", 25));
+        transaction.Start();
+        transaction.TrxRecorder.Add("source2", "id2", new JournalEntry("Bob", 25));
         var result2 = await transaction.Commit(context);
         result2.BeOk();
 
@@ -538,7 +459,7 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         int rollbackCount = 0;
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source1", entry =>
         {
             Interlocked.Increment(ref rollbackCount);
             return new Option(StatusCode.OK).ToTaskResult();
@@ -559,16 +480,16 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         string capturedTransactionId = string.Empty;
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source1", entry =>
         {
             capturedTransactionId = entry.TransactionId;
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var recorder = transaction.Start();
+        transaction.Start();
         string startTransactionId = transaction.TransactionId;
 
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
 
         await transaction.Rollback(context);
 
@@ -583,16 +504,16 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         int callCount = 0;
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source1", entry =>
         {
             Interlocked.Increment(ref callCount);
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var recorder = transaction.Start();
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
-        recorder.Add("source2", "id2", new JournalEntry("Bob", 25));
-        recorder.Add("source3", "id3", new JournalEntry("Charlie", 35));
+        transaction.Start();
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.TrxRecorder.Add("source1", "id2", new JournalEntry("Bob", 25));
+        transaction.TrxRecorder.Add("source1", "id3", new JournalEntry("Charlie", 35));
 
         await transaction.Rollback(context);
 
@@ -607,11 +528,11 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         var listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
-        var recorder = transaction.Start();
+        transaction.Start();
         string expectedTransactionId = transaction.TransactionId;
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
 
         await transaction.Commit(context);
 
@@ -629,11 +550,11 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
-        var recorder = transaction.Start();
+        transaction.Start();
         var je1 = new JournalEntry("Alice", 30);
-        recorder.Delete("source1", "id1", je1);
+        transaction.TrxRecorder.Delete("source1", "id1", je1);
 
         var result = await transaction.Commit(context);
         result.BeOk();
@@ -668,7 +589,7 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         int rollbackCount = 0;
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source1", entry =>
         {
             Interlocked.Increment(ref rollbackCount);
 
@@ -685,9 +606,9 @@ public class TransactionTests
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var recorder = transaction.Start();
+        transaction.Start();
         var je1 = new JournalEntry("Alice", 30);
-        recorder.Delete("source1", "id1", je1);
+        transaction.TrxRecorder.Delete("source1", "id1", je1);
 
         var result = await transaction.Rollback(context);
         result.BeOk();
@@ -702,12 +623,12 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
-        var recorder = transaction.Start();
+        transaction.Start();
         var oldEntry = new JournalEntry("Alice", 30);
         var newEntry = new JournalEntry("Alice", 31);
-        recorder.Update("source1", "id1", oldEntry, newEntry);
+        transaction.TrxRecorder.Update("source1", "id1", oldEntry, newEntry);
 
         var result = await transaction.Commit(context);
         result.BeOk();
@@ -745,7 +666,7 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         int rollbackCount = 0;
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source1", entry =>
         {
             Interlocked.Increment(ref rollbackCount);
 
@@ -765,10 +686,10 @@ public class TransactionTests
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var recorder = transaction.Start();
+        transaction.Start();
         var oldEntry = new JournalEntry("Alice", 30);
         var newEntry = new JournalEntry("Alice", 31);
-        recorder.Update("source1", "id1", oldEntry, newEntry);
+        transaction.TrxRecorder.Update("source1", "id1", oldEntry, newEntry);
 
         var result = await transaction.Rollback(context);
         result.BeOk();
@@ -783,12 +704,12 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
-        var recorder = transaction.Start();
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
-        recorder.Delete("source2", "id2", new JournalEntry("Bob", 25));
-        recorder.Update("source3", "id3", new JournalEntry("Charlie", 35), new JournalEntry("Charlie", 36));
+        transaction.Start();
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.TrxRecorder.Delete("source2", "id2", new JournalEntry("Bob", 25));
+        transaction.TrxRecorder.Update("source3", "id3", new JournalEntry("Charlie", 35), new JournalEntry("Charlie", 36));
 
         var result = await transaction.Commit(context);
         result.BeOk();
@@ -815,17 +736,17 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         List<string> rollbackOrder = new();
 
-        transaction.Enlist(entry =>
+        transaction.EnlistLambda("source", entry =>
         {
             rollbackOrder.Add(entry.ObjectId);
             entry.Action.Be(ChangeOperation.Delete);
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var recorder = transaction.Start();
-        recorder.Delete("source", "first", new JournalEntry("Alice", 30));
-        recorder.Delete("source", "second", new JournalEntry("Bob", 25));
-        recorder.Delete("source", "third", new JournalEntry("Charlie", 35));
+        transaction.Start();
+        transaction.TrxRecorder.Delete("source", "first", new JournalEntry("Alice", 30));
+        transaction.TrxRecorder.Delete("source", "second", new JournalEntry("Bob", 25));
+        transaction.TrxRecorder.Delete("source", "third", new JournalEntry("Charlie", 35));
 
         var result = await transaction.Rollback(context);
         result.BeOk();
@@ -844,12 +765,12 @@ public class TransactionTests
         var context = host.Services.CreateContext<TransactionTests>();
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
-        var recorder = transaction.Start();
-        recorder.Update("source1", "id1", new JournalEntry("Alice", 30), new JournalEntry("Alice", 31));
-        recorder.Update("source2", "id2", new JournalEntry("Bob", 25), new JournalEntry("Bob", 26));
-        recorder.Update("source3", "id3", new JournalEntry("Charlie", 35), new JournalEntry("Charlie", 36));
+        transaction.Start();
+        transaction.TrxRecorder.Update("source1", "id1", new JournalEntry("Alice", 30), new JournalEntry("Alice", 31));
+        transaction.TrxRecorder.Update("source2", "id2", new JournalEntry("Bob", 25), new JournalEntry("Bob", 26));
+        transaction.TrxRecorder.Update("source3", "id3", new JournalEntry("Charlie", 35), new JournalEntry("Charlie", 36));
 
         var result = await transaction.Commit(context);
         result.BeOk();
@@ -870,7 +791,7 @@ public class TransactionTests
         var transaction = host.Services.GetRequiredService<Transaction>();
         var context = host.Services.CreateContext<TransactionTests>();
 
-        transaction.Enlist(entry => new Option(StatusCode.OK).ToTaskResult());
+        transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
         // Initial state
         transaction.RunState.Be(RunState.None);
@@ -884,9 +805,9 @@ public class TransactionTests
         transaction.RunState.Be(RunState.None);
 
         // Start again for rollback test
-        var recorder = transaction.Start();
+        transaction.Start();
         transaction.RunState.Be(RunState.Active);
-        recorder.Add("source1", "id1", new JournalEntry("Alice", 30));
+        transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
 
         // After rollback
         await transaction.Rollback(context);

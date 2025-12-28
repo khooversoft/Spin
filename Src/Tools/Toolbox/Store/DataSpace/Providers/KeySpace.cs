@@ -101,9 +101,12 @@ public class KeySpace : IKeyStore
         }
 
         var result = await _keyStore.Get(path, context);
-        if (result.IsOk()) _memoryCache?.Set(path, result.Return(), context);
+        if (result.IsOk())
+        {
+            _memoryCache?.Set(path, result.Return(), context);
+            _getCounter?.Increment();
+        }
 
-        _getCounter?.Increment();
         return result;
     }
 

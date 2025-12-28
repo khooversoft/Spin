@@ -1,7 +1,4 @@
-﻿using Toolbox.Tools;
-using Toolbox.Types;
-
-namespace Toolbox.Telemetry;
+﻿namespace Toolbox.Telemetry;
 
 public interface ITelemetryRecorder<T>
 {

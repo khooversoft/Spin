@@ -8,7 +8,7 @@ public interface IUniqueIndexAccess<TKey, TValue>
     bool TryGetValue(TKey key, out TValue? value);
 }
 
-public class UniqueIndexProvider<TKey, TValue> : IIndexedCollectionProvider<TValue>, IUniqueIndexAccess<TKey, TValue>, IEnumerable<KeyValuePair<TKey, TValue>>
+public class UniqueIndexProvider<TKey, TValue> : IConcurrentMap<TValue>, IUniqueIndexAccess<TKey, TValue>, IEnumerable<KeyValuePair<TKey, TValue>>
     where TKey : notnull
 {
     private Func<TValue, TKey> _keySelector;

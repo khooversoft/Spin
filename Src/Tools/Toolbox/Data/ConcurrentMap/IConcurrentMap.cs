@@ -1,6 +1,6 @@
 ﻿namespace Toolbox.Data;
 
-public interface IIndexedCollectionProvider<TValue>
+public interface IConcurrentMap<TValue>
 {
     void Clear();
     void Set(TValue item);

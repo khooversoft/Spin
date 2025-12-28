@@ -385,7 +385,7 @@ public class TelemetryCounterTest
         {
             e1.Count.Be(1);
             e1[0].Description.BeNull();
-            e1[0].Units.BeNull();
+            e1[0].Units.Be("count");
             e1[0].Version.BeNull();
         });
     }

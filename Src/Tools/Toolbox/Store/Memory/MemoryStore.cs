@@ -18,7 +18,7 @@ public class MemoryStore
 
     public MemoryStore(ILogger<MemoryStore> logger) => _logger = logger.NotNull();
 
-    public MemoryStore(TransactionManagerOption trxManagerOption, IServiceProvider serviceProvider, ILogger<MemoryStore> logger)
+    public MemoryStore(IServiceProvider serviceProvider, ILogger<MemoryStore> logger)
     {
         _logger = logger.NotNull();
         serviceProvider.NotNull();

@@ -33,7 +33,7 @@ public class DatalakeFileAccess : IFileAccess
 
     public Task<Option<string>> Append(DataETag data, ScopeContext context)
     {
-        _datalakeStore.DataChangeLog.GetRecorder().Assert(x => x == null, "Append is not supported with DataChangeRecorder");
+        //_datalakeStore.DataChangeLog.GetRecorder().Assert(x => x == null, "Append is not supported with DataChangeRecorder");
         return _fileClient.Append(data, context);
     }
 
@@ -48,11 +48,11 @@ public class DatalakeFileAccess : IFileAccess
         {
             Option<DataETag> readOption = StatusCode.NotFound;
 
-            if (_datalakeStore.DataChangeLog.GetRecorder() != null)
-            {
-                readOption = await _fileClient.Get(context);
-                if (readOption.IsError()) return readOption.ToOptionStatus();
-            }
+            //if (_datalakeStore.DataChangeLog.GetRecorder() != null)
+            //{
+            //    readOption = await _fileClient.Get(context);
+            //    if (readOption.IsError()) return readOption.ToOptionStatus();
+            //}
 
             Response<bool> response = await _fileClient.DeleteIfExistsAsync(cancellationToken: context);
 
@@ -100,18 +100,18 @@ public class DatalakeFileAccess : IFileAccess
     {
         Option<DataETag> readOption = StatusCode.NotFound;
 
-        if (_datalakeStore.DataChangeLog.GetRecorder() != null) readOption = await _fileClient.Get(context);
+        //if (_datalakeStore.DataChangeLog.GetRecorder() != null) readOption = await _fileClient.Get(context);
 
         var setOption = await _fileClient.Set(data, context);
         if (setOption.IsError()) return setOption;
 
-        if (_datalakeStore.DataChangeLog.GetRecorder() != null)
-        {
-            //if (readOption.IsOk())
-            //    _datalakeStore.DataChangeLog.GetRecorder()?.Update(Path, readOption.Return(), data);
-            //else
-            //    _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
-        }
+        //if (_datalakeStore.DataChangeLog.GetRecorder() != null)
+        //{
+        //    //if (readOption.IsOk())
+        //    //    _datalakeStore.DataChangeLog.GetRecorder()?.Update(Path, readOption.Return(), data);
+        //    //else
+        //    //    _datalakeStore.DataChangeLog.GetRecorder()?.Add(Path, readOption.Return());
+        //}
 
         return setOption.Return();
     }

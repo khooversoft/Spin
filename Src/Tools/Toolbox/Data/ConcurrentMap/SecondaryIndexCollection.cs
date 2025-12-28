@@ -4,14 +4,14 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public class SecondaryIndexCollection<TKey, TValue> : IEnumerable<KeyValuePair<string, IIndexedCollectionProvider<TValue>>>
+public class SecondaryIndexCollection<TKey, TValue> : IEnumerable<KeyValuePair<string, IConcurrentMap<TValue>>>
     where TKey : notnull
     where TValue : notnull
 {
-    private readonly ConcurrentDictionary<string, IIndexedCollectionProvider<TValue>> _secondaryIndexes = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, IConcurrentMap<TValue>> _secondaryIndexes = new(StringComparer.OrdinalIgnoreCase);
 
     public int Count => _secondaryIndexes.Count;
-    public IEnumerable<IIndexedCollectionProvider<TValue>> Providers => _secondaryIndexes.Values;
+    public IEnumerable<IConcurrentMap<TValue>> Providers => _secondaryIndexes.Values;
 
     public Option<IUniqueIndexAccess<TIndexKey, TValue>> CreateUniqueIndex<TIndexKey>(string indexName, Func<TValue, TIndexKey> keySelector, IEqualityComparer<TIndexKey>? comparer = null)
         where TIndexKey : notnull
@@ -32,7 +32,7 @@ public class SecondaryIndexCollection<TKey, TValue> : IEnumerable<KeyValuePair<s
         return ((INonUniqueIndexAccess<TIndexKey, TValue>)index).ToOption();
     }
 
-    public Option<IIndexedCollectionProvider<TValue>> GetIndex(string indexName)
+    public Option<IConcurrentMap<TValue>> GetIndex(string indexName)
     {
         if (_secondaryIndexes.TryGetValue(indexName, out var index)) return index.ToOption();
         return StatusCode.NotFound;
@@ -44,6 +44,6 @@ public class SecondaryIndexCollection<TKey, TValue> : IEnumerable<KeyValuePair<s
         return result ? StatusCode.OK : StatusCode.NotFound;
     }
 
-    public IEnumerator<KeyValuePair<string, IIndexedCollectionProvider<TValue>>> GetEnumerator() => _secondaryIndexes.GetEnumerator();
+    public IEnumerator<KeyValuePair<string, IConcurrentMap<TValue>>> GetEnumerator() => _secondaryIndexes.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => _secondaryIndexes.GetEnumerator();
 }

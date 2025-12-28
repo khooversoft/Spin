@@ -9,7 +9,7 @@ public interface INonUniqueIndexAccess<TKey, TValue>
     bool TryGetValue(TKey key, [NotNullWhen(true)] out IReadOnlyList<TValue>? values);
 }
 
-public class NonUniqueIndexProvider<TKey, TValue> : IIndexedCollectionProvider<TValue>, INonUniqueIndexAccess<TKey, TValue>
+public class NonUniqueIndexProvider<TKey, TValue> : IConcurrentMap<TValue>, INonUniqueIndexAccess<TKey, TValue>
     where TKey : notnull
     where TValue : notnull
 {

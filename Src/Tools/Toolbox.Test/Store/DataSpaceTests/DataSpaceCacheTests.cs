@@ -42,11 +42,11 @@ public class DataSpaceCacheTests
                     cnfg.Add<KeyStoreProvider>("fileStore");
                 });
 
-                //services.AddSingleton<TelemetryAggregator>();
-                //services.AddTelemetry(config =>
-                //{
-                //    config.AddCollector<TelemetryAggregator>();
-                //});
+                services.AddSingleton<TelemetryAggregator>();
+                services.AddTelemetry(config =>
+                {
+                    config.AddCollector<TelemetryAggregator>();
+                });
             })
             .Build();
 

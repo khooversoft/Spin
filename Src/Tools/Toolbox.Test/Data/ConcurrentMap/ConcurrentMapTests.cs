@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Test.Data.IndexedCollection;
 
-public class IndexedCollectionTests
+public class ConcurrentMapTests
 {
     private record TestRec
     {
@@ -15,7 +15,7 @@ public class IndexedCollectionTests
     [Fact]
     public void EmptyCollection()
     {
-        var collection = new IndexedCollection<int, TestRec>(x => x.Id);
+        var collection = new ConcurrentMap<int, TestRec>(x => x.Id);
         collection.Count.Be(0);
         collection.ToArray().Length.Be(0);
     }
@@ -23,7 +23,7 @@ public class IndexedCollectionTests
     [Fact]
     public void SingleRecord()
     {
-        var collection = new IndexedCollection<int, TestRec>(x => x.Id);
+        var collection = new ConcurrentMap<int, TestRec>(x => x.Id);
         var item = new TestRec { Id = 1, Name = "Test" };
 
         collection.TryAdd(item).BeTrue();
@@ -34,7 +34,7 @@ public class IndexedCollectionTests
     [Fact]
     public void TryAdd_DuplicateKey_Fails()
     {
-        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+        var c = new ConcurrentMap<int, TestRec>(x => x.Id);
         c.TryAdd(new TestRec { Id = 1, Name = "A" }).BeTrue();
         c.TryAdd(new TestRec { Id = 1, Name = "B" }).BeFalse();
         c.Count.Be(1);
@@ -44,7 +44,7 @@ public class IndexedCollectionTests
     [Fact]
     public void GetOrAdd_ReturnsExisting_And_DoesNotTouchSecondary_WhenExists()
     {
-        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+        var c = new ConcurrentMap<int, TestRec>(x => x.Id);
 
         // Unique secondary index by Name (case-insensitive)
         var unique = c.SecondaryIndexes.CreateUniqueIndex("byName", x => x.Name, StringComparer.OrdinalIgnoreCase).BeOk().Return();
@@ -69,7 +69,7 @@ public class IndexedCollectionTests
     [Fact]
     public void ContainsKey_TryGetValue_Keys_Values_Enumerate()
     {
-        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+        var c = new ConcurrentMap<int, TestRec>(x => x.Id);
         var a = new TestRec { Id = 1, Name = "A" };
         var b = new TestRec { Id = 2, Name = "B" };
         c.TryAdd(a).BeTrue();
@@ -89,7 +89,7 @@ public class IndexedCollectionTests
     [Fact]
     public void Remove_ByKey_And_ByValue_UpdatesSecondary()
     {
-        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+        var c = new ConcurrentMap<int, TestRec>(x => x.Id);
 
         // Non-unique secondary by first letter of Name
         var nonUnique = c.SecondaryIndexes.CreateNonUniqueIndex("byFirst", x => x.Name.Substring(0, 1), StringComparer.OrdinalIgnoreCase).BeOk().Return();
@@ -123,7 +123,7 @@ public class IndexedCollectionTests
     [Fact]
     public void Clear_Empties_Primary_And_Secondary()
     {
-        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+        var c = new ConcurrentMap<int, TestRec>(x => x.Id);
         var unique = c.SecondaryIndexes.CreateUniqueIndex("byName", x => x.Name, StringComparer.OrdinalIgnoreCase).BeOk().Return();
 
         c.TryAdd(new TestRec { Id = 1, Name = "Alpha" }).BeTrue();
@@ -141,7 +141,7 @@ public class IndexedCollectionTests
     [Fact]
     public void Indexer_Get_Set_And_KeyMismatch_Throws()
     {
-        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+        var c = new ConcurrentMap<int, TestRec>(x => x.Id);
 
         // Set via indexer with matching key
         c[42] = new TestRec { Id = 42, Name = "X" };
@@ -158,7 +158,7 @@ public class IndexedCollectionTests
     [Fact]
     public void TryUpdate_Updates_Primary_And_Adds_New_Secondary_Key()
     {
-        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+        var c = new ConcurrentMap<int, TestRec>(x => x.Id);
         var unique = c.SecondaryIndexes.CreateUniqueIndex("byName", x => x.Name, StringComparer.OrdinalIgnoreCase).BeOk().Return();
 
         var current = new TestRec { Id = 1, Name = "Alpha" };
@@ -179,7 +179,7 @@ public class IndexedCollectionTests
     public void PrimaryKeyComparer_CaseInsensitive_Works()
     {
         // Use Name as primary key to exercise string comparer
-        var c = new IndexedCollection<string, TestRec>(x => x.Name, StringComparer.OrdinalIgnoreCase);
+        var c = new ConcurrentMap<string, TestRec>(x => x.Name, StringComparer.OrdinalIgnoreCase);
 
         var a = new TestRec { Id = 1, Name = "Alpha" };
         c.TryAdd(a).BeTrue();
@@ -195,7 +195,7 @@ public class IndexedCollectionTests
     [Fact]
     public void Multiple_NonUniqueIndexes_Add_Remove_Clear()
     {
-        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+        var c = new ConcurrentMap<int, TestRec>(x => x.Id);
 
         var byFirst = c.SecondaryIndexes
             .CreateNonUniqueIndex("byFirst", x => x.Name.Substring(0, 1), StringComparer.OrdinalIgnoreCase)
@@ -248,7 +248,7 @@ public class IndexedCollectionTests
     [Fact]
     public void Multiple_NonUniqueIndexes_TryUpdate_Adds_New_Keys_To_All_Indexes()
     {
-        var c = new IndexedCollection<int, TestRec>(x => x.Id);
+        var c = new ConcurrentMap<int, TestRec>(x => x.Id);
 
         var byFirst = c.SecondaryIndexes
             .CreateNonUniqueIndex("byFirst", x => x.Name.Substring(0, 1), StringComparer.OrdinalIgnoreCase)
