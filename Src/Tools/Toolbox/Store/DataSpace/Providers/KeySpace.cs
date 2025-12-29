@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Telemetry;
 using Toolbox.Tools;
@@ -40,118 +39,109 @@ public class KeySpace : IKeyStore
 
     public IKeySystem KeySystem => _keySystem;
 
-    public async Task<Option<string>> Add(string key, DataETag data, ScopeContext context, TrxRecorder? recorder = null)
+    public async Task<Option<string>> Add(string key, DataETag data)
     {
         var path = _keySystem.PathBuilder(key);
-        context = context.With(_logger);
-        context.LogDebug("Add path={path}", path);
+        _logger.LogDebug("Add path={path}", path);
 
-        var result = await _keyStore.Add(path, data, context, recorder);
-        if (result.IsOk()) _memoryCache?.Set(path, data, context);
+        var result = await _keyStore.Add(path, data);
+        if (result.IsOk()) _memoryCache?.Set(path, data);
 
         _addCounter?.Increment();
         return result;
     }
 
-    public async Task<Option<string>> Append(string key, DataETag data, ScopeContext context, string? leaseId = null)
+    public async Task<Option<string>> Append(string key, DataETag data, string? leaseId = null)
     {
-        context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
-        context.LogDebug("Appending path={path}", path);
+        _logger.LogDebug("Appending path={path}", path);
 
-        var result = await _keyStore.Append(path, data, context, leaseId: leaseId);
+        var result = await _keyStore.Append(path, data, leaseId: leaseId);
         if (result.IsOk()) _memoryCache?.Remove(path);
 
         _appendCounter?.Increment();
         return result;
     }
 
-    public async Task<Option> Delete(string key, ScopeContext context, TrxRecorder? recorder = null, string? leaseId = null)
+    public async Task<Option> Delete(string key, string? leaseId = null)
     {
-        context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
-        context.LogDebug("Delete path={path}", path);
+        _logger.LogDebug("Delete path={path}", path);
 
-        var result = await _keyStore.Delete(path, context, recorder: recorder, leaseId: leaseId);
+        var result = await _keyStore.Delete(path, leaseId: leaseId);
         if (result.IsOk()) _memoryCache?.Remove(path);
 
         _deleteCounter?.Increment();
         return result;
     }
 
-    public Task<Option> DeleteFolder(string key, ScopeContext context)
+    public Task<Option> DeleteFolder(string key)
     {
-        context = context.With(_logger);
         var path = _keySystem.BuildDeleteFolder(key);
-        context.LogDebug("Delete folder path={path}", path);
+        _logger.LogDebug("Delete folder path={path}", path);
 
-        return _keyStore.DeleteFolder(path, context);
+        return _keyStore.DeleteFolder(path);
     }
 
-    public async Task<Option<DataETag>> Get(string key, ScopeContext context)
+    public async Task<Option<DataETag>> Get(string key)
     {
-        context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
-        context.LogDebug("Get path={path}", path);
+        _logger.LogDebug("Get path={path}", path);
 
-        if (_memoryCache?.TryGetValue(path, out DataETag cachedData, context) == true)
+        if (_memoryCache?.TryGetValue(path, out DataETag cachedData) == true)
         {
             _cacheHitCounter?.Increment();
             return cachedData;
         }
 
-        var result = await _keyStore.Get(path, context);
+        var result = await _keyStore.Get(path);
         if (result.IsOk())
         {
-            _memoryCache?.Set(path, result.Return(), context);
+            _memoryCache?.Set(path, result.Return());
             _getCounter?.Increment();
         }
 
         return result;
     }
 
-    public async Task<Option<string>> Set(string key, DataETag data, ScopeContext context, TrxRecorder? recorder = null, string? leaseId = null)
+    public async Task<Option<string>> Set(string key, DataETag data, string? leaseId = null)
     {
-        context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
-        context.LogDebug("Set path={path}", path);
+        _logger.LogDebug("Set path={path}", path);
 
-        var result = await _keyStore.Set(path, data, context, recorder: recorder, leaseId: leaseId);
-        if (result.IsOk()) _memoryCache?.Set(path, data, context);
+        var result = await _keyStore.Set(path, data, leaseId: leaseId);
+        if (result.IsOk()) _memoryCache?.Set(path, data);
 
         _setCounter?.Increment();
         return result;
     }
 
-    public Task<Option> Exists(string key, ScopeContext context)
+    public Task<Option> Exists(string key)
     {
-        context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
-        context.LogDebug("Exists path={path}", path);
+        _logger.LogDebug("Exists path={path}", path);
 
-        return _keyStore.Exists(path, context);
+        return _keyStore.Exists(path);
     }
 
-    public async Task<Option<StorePathDetail>> GetDetails(string key, ScopeContext context)
+    public async Task<Option<StorePathDetail>> GetDetails(string key)
     {
-        context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
-        context.LogDebug("GetDetails path={path}", path);
+        _logger.LogDebug("GetDetails path={path}", path);
 
-        var resultOption = await _keyStore.GetDetails(path, context);
+        var resultOption = await _keyStore.GetDetails(path);
         if (resultOption.IsError()) return resultOption;
 
         var result = resultOption.Return();
         return result with { Path = _keySystem.RemovePathPrefix(result.Path) };
     }
 
-    public async Task<IReadOnlyList<StorePathDetail>> Search(string pattern, ScopeContext context)
+    public async Task<IReadOnlyList<StorePathDetail>> Search(string pattern)
     {
-        context = context.With(_logger);
         string fullPattern = _keySystem.BuildSearch(null, pattern);
-        context.LogDebug("Search fullPattern={fullPattern}", fullPattern);
+        _logger.LogDebug("Search fullPattern={fullPattern}", fullPattern);
 
-        var searchResult = await _keyStore.Search(fullPattern, context);
+        var searchResult = await _keyStore.Search(fullPattern);
 
         IReadOnlyList<StorePathDetail> result = searchResult
             .Select(x => x with { Path = _keySystem.RemovePathPrefix(x.Path) })
@@ -160,38 +150,34 @@ public class KeySpace : IKeyStore
         return result;
     }
 
-    public Task<Option<string>> AcquireExclusiveLock(string key, bool breakLeaseIfExist, ScopeContext context)
+    public Task<Option<string>> AcquireExclusiveLock(string key, bool breakLeaseIfExist)
     {
-        context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
-        context.LogDebug("AcquireExclusiveLock path={path}", path);
+        _logger.LogDebug("AcquireExclusiveLock path={path}", path);
 
-        return _keyStore.AcquireExclusiveLock(path, breakLeaseIfExist, context);
+        return _keyStore.AcquireExclusiveLock(path, breakLeaseIfExist);
     }
 
-    public Task<Option<string>> AcquireLease(string key, TimeSpan leaseDuration, ScopeContext context)
+    public Task<Option<string>> AcquireLease(string key, TimeSpan leaseDuration)
     {
-        context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
-        context.LogDebug("AcquireLease path={path}", path);
+        _logger.LogDebug("AcquireLease path={path}", path);
 
-        return _keyStore.AcquireLease(path, leaseDuration, context);
+        return _keyStore.AcquireLease(path, leaseDuration);
     }
 
-    public Task<Option> BreakLease(string key, ScopeContext context)
+    public Task<Option> BreakLease(string key)
     {
-        context = context.With(_logger);
         var path = _keySystem.PathBuilder(key);
-        context.LogDebug("BreakLease path={path}", path);
+        _logger.LogDebug("BreakLease path={path}", path);
 
-        return _keyStore.BreakLease(path, context);
+        return _keyStore.BreakLease(path);
     }
 
-    public Task<Option> Release(string leaseId, ScopeContext context)
+    public Task<Option> Release(string leaseId)
     {
-        context = context.With(_logger);
-        context.LogDebug("Release leaseId={leaseId}", leaseId);
+        _logger.LogDebug("Release leaseId={leaseId}", leaseId);
 
-        return _keyStore.Release(leaseId, context);
+        return _keyStore.Release(leaseId);
     }
 }

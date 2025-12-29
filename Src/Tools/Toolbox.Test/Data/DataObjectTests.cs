@@ -3,7 +3,7 @@ using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
-namespace Toolbox.Test.Data.Serialization;
+namespace Toolbox.Test.Data;
 
 public class DataObjectTests
 {

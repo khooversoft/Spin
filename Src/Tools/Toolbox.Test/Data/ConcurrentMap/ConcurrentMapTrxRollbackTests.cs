@@ -10,6 +10,8 @@ using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
+// TrxManager -> TrxScope
+
 namespace Toolbox.Test.Data.ConcurrentMap;
 
 public class ConcurrentMapTrxRollbackTests
@@ -40,7 +42,11 @@ public class ConcurrentMapTrxRollbackTests
                 });
 
                 services.AddListStore<DataChangeRecord>("list");
-                services.AddTransaction(new TransactionOption { ListSpaceName = "list", JournalKey = "TestJournal" });
+                services.AddTransaction("default", config =>
+                {
+                    config.ListSpaceName = "list";
+                    config.JournalKey = "TestJournal";
+                });
             })
             .Build();
 
@@ -51,71 +57,68 @@ public class ConcurrentMapTrxRollbackTests
     public async Task AttachToConcurrentMap()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRollbackTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
         int rollbackCount = 0;
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
-        transaction.Enlistments.Enlist(concurrentMap);
-        transaction.Start();
+        transaction.Providers.Enlist(concurrentMap);
+        await transaction.Start();
 
-        var result = await transaction.Commit(context);
+        var result = await transaction.Commit();
         result.BeOk();
         rollbackCount.Be(0);
 
-        var records = await listStore.Get("TestJournal", context);
+        var records = await listStore.Get("TestJournal");
         records.BeOk();
         var data = records.Return();
         data.Count.Be(1);
         data[0].Entries.Count.Be(0);
 
-        transaction.Enlistments.Delist(concurrentMap);
+        transaction.Providers.Delist(concurrentMap);
     }
 
     [Fact]
     public async Task RollbackTryAdd_ShouldRemoveItem()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRollbackTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
-        transaction.Enlistments.Enlist(concurrentMap);
-        transaction.Start();
+        transaction.Providers.Enlist(concurrentMap);
+        await transaction.Start();
 
         var item = new MapRecord("Item1", 25);
         concurrentMap.TryAdd(item).BeTrue();
         concurrentMap.Count.Be(1);
 
-        var result = await transaction.Rollback(context);
+        var result = await transaction.Rollback();
         result.BeOk();
 
         // After rollback, item should be removed
         concurrentMap.Count.Be(0);
         concurrentMap.ContainsKey("Item1").BeFalse();
 
-        transaction.Enlistments.Delist(concurrentMap);
+        transaction.Providers.Delist(concurrentMap);
     }
 
     [Fact]
     public async Task RollbackTryRemove_ShouldRestoreItem()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRollbackTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         var originalItem = new MapRecord("Item1", 25);
         concurrentMap.TryAdd(originalItem).BeTrue();
 
-        transaction.Enlistments.Enlist(concurrentMap);
-        transaction.Start();
+        transaction.Providers.Enlist(concurrentMap);
+        await transaction.Start();
 
         concurrentMap.TryRemove("Item1", out _).BeTrue();
         concurrentMap.Count.Be(0);
 
-        var result = await transaction.Rollback(context);
+        var result = await transaction.Rollback();
         result.BeOk();
 
         // After rollback, item should be restored
@@ -123,104 +126,100 @@ public class ConcurrentMapTrxRollbackTests
         concurrentMap.TryGetValue("Item1", out var restored).BeTrue();
         restored.NotNull().Age.Be(25);
 
-        transaction.Enlistments.Delist(concurrentMap);
+        transaction.Providers.Delist(concurrentMap);
     }
 
     [Fact]
     public async Task RollbackTryUpdate_ShouldRestorePreviousValue()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRollbackTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         var originalItem = new MapRecord("Item1", 25);
         concurrentMap.TryAdd(originalItem).BeTrue();
 
-        transaction.Enlistments.Enlist(concurrentMap);
-        transaction.Start();
+        transaction.Providers.Enlist(concurrentMap);
+        await transaction.Start();
 
         var updatedItem = new MapRecord("Item1", 30);
         concurrentMap.TryUpdate(updatedItem, originalItem).BeTrue();
         concurrentMap["Item1"].Age.Be(30);
 
-        var result = await transaction.Rollback(context);
+        var result = await transaction.Rollback();
         result.BeOk();
 
         // After rollback, original value should be restored
         concurrentMap.TryGetValue("Item1", out var restored).BeTrue();
         restored.NotNull().Age.Be(25);
 
-        transaction.Enlistments.Delist(concurrentMap);
+        transaction.Providers.Delist(concurrentMap);
     }
 
     [Fact]
     public async Task RollbackSet_NewItem_ShouldRemoveItem()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRollbackTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
-        transaction.Enlistments.Enlist(concurrentMap);
-        transaction.Start();
+        transaction.Providers.Enlist(concurrentMap);
+        await transaction.Start();
 
         concurrentMap.Set(new MapRecord("Item1", 25));
         concurrentMap.Count.Be(1);
 
-        var result = await transaction.Rollback(context);
+        var result = await transaction.Rollback();
         result.BeOk();
 
         // After rollback, item should be removed
         concurrentMap.Count.Be(0);
 
-        transaction.Enlistments.Delist(concurrentMap);
+        transaction.Providers.Delist(concurrentMap);
     }
 
     [Fact]
     public async Task RollbackSet_ExistingItem_ShouldRestorePreviousValue()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRollbackTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         concurrentMap.TryAdd(new MapRecord("Item1", 25)).BeTrue();
 
-        transaction.Enlistments.Enlist(concurrentMap);
-        transaction.Start();
+        transaction.Providers.Enlist(concurrentMap);
+        await transaction.Start();
 
         concurrentMap.Set(new MapRecord("Item1", 30));
         concurrentMap["Item1"].Age.Be(30);
 
-        var result = await transaction.Rollback(context);
+        var result = await transaction.Rollback();
         result.BeOk();
 
         // After rollback, original value should be restored
         concurrentMap["Item1"].Age.Be(25);
 
-        transaction.Enlistments.Delist(concurrentMap);
+        transaction.Providers.Delist(concurrentMap);
     }
 
     [Fact]
     public async Task RollbackClear_ShouldRestoreAllItems()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRollbackTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         concurrentMap.TryAdd(new MapRecord("Item1", 25)).BeTrue();
         concurrentMap.TryAdd(new MapRecord("Item2", 30)).BeTrue();
         concurrentMap.TryAdd(new MapRecord("Item3", 35)).BeTrue();
 
-        transaction.Enlistments.Enlist(concurrentMap);
-        transaction.Start();
+        transaction.Providers.Enlist(concurrentMap);
+        await transaction.Start();
 
         concurrentMap.Clear();
         concurrentMap.Count.Be(0);
 
-        var result = await transaction.Rollback(context);
+        var result = await transaction.Rollback();
         result.BeOk();
 
         // After rollback, all items should be restored
@@ -229,45 +228,43 @@ public class ConcurrentMapTrxRollbackTests
         concurrentMap.ContainsKey("Item2").BeTrue();
         concurrentMap.ContainsKey("Item3").BeTrue();
 
-        transaction.Enlistments.Delist(concurrentMap);
+        transaction.Providers.Delist(concurrentMap);
     }
 
     [Fact]
     public async Task RollbackGetOrAdd_NewItem_ShouldRemoveItem()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRollbackTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
-        transaction.Enlistments.Enlist(concurrentMap);
-        transaction.Start();
+        transaction.Providers.Enlist(concurrentMap);
+        await transaction.Start();
 
         var item = concurrentMap.GetOrAdd(new MapRecord("Item1", 25));
         item.Age.Be(25);
         concurrentMap.Count.Be(1);
 
-        var result = await transaction.Rollback(context);
+        var result = await transaction.Rollback();
         result.BeOk();
 
         // After rollback, item should be removed
         concurrentMap.Count.Be(0);
 
-        transaction.Enlistments.Delist(concurrentMap);
+        transaction.Providers.Delist(concurrentMap);
     }
 
     [Fact]
     public async Task RollbackMultipleOperations_ShouldUndoInReverseOrder()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRollbackTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         concurrentMap.TryAdd(new MapRecord("Item1", 25)).BeTrue();
 
-        transaction.Enlistments.Enlist(concurrentMap);
-        transaction.Start();
+        transaction.Providers.Enlist(concurrentMap);
+        await transaction.Start();
 
         // Operation 1: Add Item2
         concurrentMap.TryAdd(new MapRecord("Item2", 30)).BeTrue();
@@ -282,7 +279,7 @@ public class ConcurrentMapTrxRollbackTests
         // Operation 4: Add Item3
         concurrentMap.TryAdd(new MapRecord("Item3", 35)).BeTrue();
 
-        var result = await transaction.Rollback(context);
+        var result = await transaction.Rollback();
         result.BeOk();
 
         // After rollback: Item1 restored to 25, Item2 gone, Item3 gone
@@ -291,31 +288,30 @@ public class ConcurrentMapTrxRollbackTests
         concurrentMap.ContainsKey("Item2").BeFalse();
         concurrentMap.ContainsKey("Item3").BeFalse();
 
-        transaction.Enlistments.Delist(concurrentMap);
+        transaction.Providers.Delist(concurrentMap);
     }
 
     [Fact]
     public async Task RollbackEmptyTransaction_ShouldSucceed()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRollbackTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         concurrentMap.TryAdd(new MapRecord("Item1", 25)).BeTrue();
 
-        transaction.Enlistments.Enlist(concurrentMap);
-        transaction.Start();
+        transaction.Providers.Enlist(concurrentMap);
+        await transaction.Start();
 
         // No operations performed
 
-        var result = await transaction.Rollback(context);
+        var result = await transaction.Rollback();
         result.BeOk();
 
         // Map should remain unchanged
         concurrentMap.Count.Be(1);
         concurrentMap["Item1"].Age.Be(25);
 
-        transaction.Enlistments.Delist(concurrentMap);
+        transaction.Providers.Delist(concurrentMap);
     }
 }

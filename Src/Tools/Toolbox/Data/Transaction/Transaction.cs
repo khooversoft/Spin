@@ -7,7 +7,6 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-
 public enum RunState
 {
     None,
@@ -25,7 +24,7 @@ public class Transaction
     private readonly IListStore2<DataChangeRecord> _changeClient;
     private readonly ILogger<Transaction> _logger;
     private EnumState<RunState> _runState = new(RunState.None);
-    private TransactionEnlistments _enlistments;
+    private TransactionProviders _providers;
 
     public Transaction(
         TransactionOption trxOption,
@@ -40,21 +39,22 @@ public class Transaction
         _logger = logger.NotNull();
 
         TrxRecorder = new TrxRecorder(this);
-        _enlistments = new TransactionEnlistments(this, () => _runState.IfValue(RunState.None), _logger);
+        _providers = new TransactionProviders(this, () => _runState.IfValue(RunState.None), _logger);
     }
 
     public string TransactionId { get; private set; } = Guid.NewGuid().ToString();
     public TrxRecorder TrxRecorder { get; }
     public RunState RunState => _runState.Value;
-    public TransactionEnlistments Enlistments => _enlistments;
+    public TransactionProviders Providers => _providers;
 
-    public void Start()
+    public async Task Start()
     {
-        _enlistments.Count.Assert(x => x > 0, "No rollback functions or enlistment registered");
+        _providers.Count.Assert(x => x > 0, "No rollback functions or enlistment registered");
         _queue.Count.Assert(x => x == 0, "Transaction queue is not empty");
 
         _runState.TryMove(RunState.None, RunState.Active).BeTrue("Active is already in progress");
         TransactionId = Guid.NewGuid().ToString();
+        await Providers.Start();
 
         _logger.LogTrace("Starting transaction with id={transactionId}", TransactionId);
     }
@@ -90,11 +90,10 @@ public class Transaction
         Enqueue(entry);
     }
 
-    public async Task<Option> Commit(ScopeContext context)
+    public async Task<Option> Commit()
     {
         _runState.TryMove(RunState.Active, RunState.Committing).BeTrue("Transaction is not in progress");
-        context = context.With(_logger);
-        context.LogTrace("Committing transaction with count={count}", _queue.Count);
+        _logger.LogTrace("Committing transaction with count={count}", _queue.Count);
 
         var dataChangeRecord = new DataChangeRecord
         {
@@ -103,19 +102,19 @@ public class Transaction
         };
 
         _queue.Clear();
-        var r1 = await CommitJournal(dataChangeRecord, context);
+        var r1 = await CommitJournal(dataChangeRecord);
         _runState.TryMove(RunState.Committing, RunState.None).BeTrue("Transaction is not in finalized");
         if (r1.IsError()) return r1;
 
-        context.LogTrace("Completed committing journal to store");
+        await Providers.Commit();
+        _logger.LogTrace("Completed committing journal to store");
         return StatusCode.OK;
     }
 
-    public async Task<Option> Rollback(ScopeContext context)
+    public async Task<Option> Rollback()
     {
         _runState.TryMove(RunState.Active, RunState.RollingBack).BeTrue("Transaction is not in progress");
-        context = context.With(_logger);
-        context.LogTrace("Rolling back transaction with count={count}", _queue.Count);
+        _logger.LogTrace("Rolling back transaction with count={count}", _queue.Count);
 
         // snap shot queue and clear
         var queue = _queue.Reverse().ToArray();
@@ -123,7 +122,7 @@ public class Transaction
 
         foreach (var journalEntry in queue)
         {
-            var result = await _enlistments.Rollback(journalEntry);
+            var result = await _providers.Rollback(journalEntry);
             if (result.IsError())
             {
                 _logger.LogError("Failed to rollback transaction entry: {entry}, error={error}", journalEntry, result.Error);
@@ -133,18 +132,21 @@ public class Transaction
         }
 
         _runState.TryMove(RunState.RollingBack, RunState.None).BeTrue("Transaction is rollback");
-        context.LogTrace("Completed rollback");
+        _logger.LogTrace("Completed rollback");
         return StatusCode.OK;
     }
 
-    private async Task<Option> CommitJournal(DataChangeRecord dataChangeRecord, ScopeContext context)
+    private async Task<Option> CommitJournal(DataChangeRecord dataChangeRecord)
     {
         dataChangeRecord.NotNull().Validate().ThrowOnError();
-        context = context.With(_logger);
 
-        context.LogTrace("Committing journal to store, entries={entries}", dataChangeRecord.Entries.Count);
-        var journalOption = await _changeClient.Append(_trxOption.JournalKey, [dataChangeRecord], context);
-        if (journalOption.IsError()) return journalOption.LogStatus(context, "Failed to append to journal file").ToOptionStatus();
+        _logger.LogTrace("Committing journal to store, entries={entries}", dataChangeRecord.Entries.Count);
+        var journalOption = await _changeClient.Append(_trxOption.JournalKey, [dataChangeRecord]);
+        if (journalOption.IsError())
+        {
+            _logger.LogError("Failed to commit journal to store, statusCode={statusCode}, error={error}", journalOption.StatusCode, journalOption.Error);
+            return journalOption.ToOptionStatus();
+        }
 
         return StatusCode.OK;
     }

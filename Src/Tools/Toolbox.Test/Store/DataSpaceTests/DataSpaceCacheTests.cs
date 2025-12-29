@@ -62,7 +62,6 @@ public class DataSpaceCacheTests
     {
         using var host = await BuildService(useHash);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceCacheTests>();
 
         var listener = host.Services.GetRequiredService<TelemetryAggregator>();
         listener.GetAllEvents().Count.Be(0);
@@ -74,19 +73,19 @@ public class DataSpaceCacheTests
         string realPath = fileSystem.RemovePathPrefix(fileSystem.PathBuilder(path));
 
         var content = "Hello, World!".ToBytes();
-        var setResult = await keyStore.Set(path, new DataETag(content), context);
+        var setResult = await keyStore.Set(path, new DataETag(content));
         setResult.BeOk();
         listener.GetAllEvents().Count.Be(1); // Set
         listener.GetCounterValue("keyspace.set").Be(1);
 
-        var readOption = await keyStore.Get(path, context);
+        var readOption = await keyStore.Get(path);
         readOption.BeOk();
         var readData = readOption.Return().Data;
         content.SequenceEqual(readData).BeTrue();
         listener.GetAllEvents().Count.Be(2); // Set, Cache hit
         listener.GetCounterValue("keyspace.cache.hit").Be(1);
 
-        var deleteOption = await keyStore.Delete(path, context);
+        var deleteOption = await keyStore.Delete(path);
         deleteOption.BeOk();
         listener.GetAllEvents().Count.Be(3); // Set, Cache hit, Delete
         listener.GetCounterValue("keyspace.delete").Be(1);
@@ -99,13 +98,11 @@ public class DataSpaceCacheTests
     {
         using var host = await BuildService(useHash);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceCacheTests>();
 
         var listener = host.Services.GetRequiredService<TelemetryAggregator>();
-
         string path = "test/nonexistent.txt";
 
-        var readOption = await keyStore.Get(path, context);
+        var readOption = await keyStore.Get(path);
         readOption.IsError().BeTrue();
         readOption.StatusCode.Be(StatusCode.NotFound);
 
@@ -119,31 +116,30 @@ public class DataSpaceCacheTests
     {
         using var host = await BuildService(useHash);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceCacheTests>();
 
         var listener = host.Services.GetRequiredService<TelemetryAggregator>();
 
         string path = "test/multiread.txt";
         var content = "Cache test content".ToBytes();
 
-        var setResult = await keyStore.Set(path, new DataETag(content), context);
+        var setResult = await keyStore.Set(path, new DataETag(content));
         setResult.BeOk();
         listener.GetCounterValue("keyspace.set").Be(1);
 
         // First read - should be cache hit from Set operation
-        var readOption1 = await keyStore.Get(path, context);
+        var readOption1 = await keyStore.Get(path);
         readOption1.BeOk();
         content.SequenceEqual(readOption1.Return().Data).BeTrue();
         listener.GetCounterValue("keyspace.cache.hit").Be(1);
 
         // Second read - should be cache hit
-        var readOption2 = await keyStore.Get(path, context);
+        var readOption2 = await keyStore.Get(path);
         readOption2.BeOk();
         content.SequenceEqual(readOption2.Return().Data).BeTrue();
         listener.GetCounterValue("keyspace.cache.hit").Be(2);
 
         // Third read - should be cache hit
-        var readOption3 = await keyStore.Get(path, context);
+        var readOption3 = await keyStore.Get(path);
         readOption3.BeOk();
         content.SequenceEqual(readOption3.Return().Data).BeTrue();
         listener.GetCounterValue("keyspace.cache.hit").Be(3);
@@ -159,7 +155,6 @@ public class DataSpaceCacheTests
     {
         using var host = await BuildService(useHash);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceCacheTests>();
 
         var listener = host.Services.GetRequiredService<TelemetryAggregator>();
         listener.GetAllEvents().Count.Be(0);
@@ -167,13 +162,13 @@ public class DataSpaceCacheTests
         string path = "test/adddata.txt";
         var content = "Added content".ToBytes();
 
-        var addResult = await keyStore.Add(path, new DataETag(content), context);
+        var addResult = await keyStore.Add(path, new DataETag(content));
         addResult.BeOk();
         listener.GetCounterValue("keyspace.add").Be(1);
         listener.GetAllEvents().Count.Be(1);
 
         // Read should be cache hit
-        var readOption = await keyStore.Get(path, context);
+        var readOption = await keyStore.Get(path);
         readOption.BeOk();
         content.SequenceEqual(readOption.Return().Data).BeTrue();
         listener.GetCounterValue("keyspace.cache.hit").Be(1);
@@ -187,7 +182,6 @@ public class DataSpaceCacheTests
     {
         using var host = await BuildService(useHash);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceCacheTests>();
 
         var listener = host.Services.GetRequiredService<TelemetryAggregator>();
 
@@ -195,23 +189,23 @@ public class DataSpaceCacheTests
         var content1 = "Initial content".ToBytes();
         var content2 = "\nAppended content".ToBytes();
 
-        var setResult = await keyStore.Set(path, new DataETag(content1), context);
+        var setResult = await keyStore.Set(path, new DataETag(content1));
         setResult.BeOk();
         listener.GetCounterValue("keyspace.set").Be(1);
 
         // First read should be cache hit
-        var readOption1 = await keyStore.Get(path, context);
+        var readOption1 = await keyStore.Get(path);
         readOption1.BeOk();
         listener.GetCounterValue("keyspace.get").Be(-1);
         listener.GetCounterValue("keyspace.cache.hit").Be(1);
 
         // Append should invalidate cache
-        var appendResult = await keyStore.Append(path, new DataETag(content2), context);
+        var appendResult = await keyStore.Append(path, new DataETag(content2));
         appendResult.BeOk();
         listener.GetCounterValue("keyspace.append").Be(1);
 
         // Read after append should be cache miss (cache was invalidated)
-        var readOption2 = await keyStore.Get(path, context);
+        var readOption2 = await keyStore.Get(path);
         readOption2.BeOk();
         listener.GetCounterValue("keyspace.get").Be(1);
         listener.GetCounterValue("keyspace.cache.hit").Be(1);
@@ -228,30 +222,29 @@ public class DataSpaceCacheTests
     {
         using var host = await BuildService(useHash);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceCacheTests>();
 
         var listener = host.Services.GetRequiredService<TelemetryAggregator>();
 
         string path = "test/deletedata.txt";
         var content = "Content to delete".ToBytes();
 
-        var setResult = await keyStore.Set(path, new DataETag(content), context);
+        var setResult = await keyStore.Set(path, new DataETag(content));
         setResult.BeOk();
         listener.GetCounterValue("keyspace.set").Be(1);
 
         // First read should be cache hit
-        var readOption1 = await keyStore.Get(path, context);
+        var readOption1 = await keyStore.Get(path);
         readOption1.BeOk();
         listener.GetCounterValue("keyspace.cache.hit").Be(1);
         listener.GetCounterValue("keyspace.get").Be(-1);
 
         // Delete should invalidate cache
-        var deleteResult = await keyStore.Delete(path, context);
+        var deleteResult = await keyStore.Delete(path);
         deleteResult.BeOk();
         listener.GetCounterValue("keyspace.delete").Be(1);
 
         // Read after delete should be cache miss and return NotFound
-        var readOption2 = await keyStore.Get(path, context);
+        var readOption2 = await keyStore.Get(path);
         readOption2.BeError();
         readOption2.StatusCode.Be(StatusCode.NotFound);
 
@@ -265,7 +258,6 @@ public class DataSpaceCacheTests
     {
         using var host = await BuildService(useHash);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceCacheTests>();
 
         var listener = host.Services.GetRequiredService<TelemetryAggregator>();
 
@@ -274,23 +266,23 @@ public class DataSpaceCacheTests
         var content2 = "Updated content".ToBytes();
 
         // Initial set
-        var setResult1 = await keyStore.Set(path, new DataETag(content1), context);
+        var setResult1 = await keyStore.Set(path, new DataETag(content1));
         setResult1.BeOk();
         listener.GetCounterValue("keyspace.set").Be(1);
 
         // First read should be cache hit
-        var readOption1 = await keyStore.Get(path, context);
+        var readOption1 = await keyStore.Get(path);
         readOption1.BeOk();
         content1.SequenceEqual(readOption1.Return().Data).BeTrue();
         listener.GetCounterValue("keyspace.cache.hit").Be(1);
 
         // Update content
-        var setResult2 = await keyStore.Set(path, new DataETag(content2), context);
+        var setResult2 = await keyStore.Set(path, new DataETag(content2));
         setResult2.BeOk();
         listener.GetCounterValue("keyspace.set").Be(2);
 
         // Read should return updated content from cache
-        var readOption2 = await keyStore.Get(path, context);
+        var readOption2 = await keyStore.Get(path);
         readOption2.BeOk();
         content2.SequenceEqual(readOption2.Return().Data).BeTrue();
         listener.GetCounterValue("keyspace.cache.hit").Be(2);
@@ -306,7 +298,6 @@ public class DataSpaceCacheTests
     {
         using var host = await BuildService(useHash);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceCacheTests>();
 
         var listener = host.Services.GetRequiredService<TelemetryAggregator>();
 
@@ -314,25 +305,25 @@ public class DataSpaceCacheTests
         var content = "Test content".ToBytes();
 
         // Set data
-        await keyStore.Set(path, new DataETag(content), context);
+        await keyStore.Set(path, new DataETag(content));
 
         // Delete to clear cache
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
 
         // Set again
-        await keyStore.Set(path, new DataETag(content), context);
+        await keyStore.Set(path, new DataETag(content));
         listener.GetCounterValue("keyspace.set").Be(2);
 
         // Read should be cache hit
-        var readOption1 = await keyStore.Get(path, context);
+        var readOption1 = await keyStore.Get(path);
         readOption1.BeOk();
         listener.GetCounterValue("keyspace.cache.hit").Be(1);
 
         // Delete again
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
 
         // Read should be cache miss
-        var readOption2 = await keyStore.Get(path, context);
+        var readOption2 = await keyStore.Get(path);
         readOption2.BeError();
 
         listener.GetAllEvents().Count.Be(5);
@@ -345,7 +336,7 @@ public class DataSpaceCacheTests
     {
         using var host = await BuildService(useHash);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceCacheTests>();
+
         IMemoryCache memoryCache = host.Services.GetRequiredService<IMemoryCache>();
         var listener = host.Services.GetRequiredService<TelemetryAggregator>();
 
@@ -356,9 +347,9 @@ public class DataSpaceCacheTests
         var content = "Test content".ToBytes();
 
         // Set data
-        await keyStore.Set(path, new DataETag(content), context);
+        await keyStore.Set(path, new DataETag(content));
 
-        (await keyStore.Get(path, context)).BeOk();
+        (await keyStore.Get(path)).BeOk();
         listener.GetCounterValue("keyspace.cache.hit").Be(1);
         listener.GetCounterValue("keyspace.get").Be(-1);
 
@@ -367,17 +358,17 @@ public class DataSpaceCacheTests
         memoryCache.Remove(realPath);
 
         // Read should be cache hit
-        var readOption1 = await keyStore.Get(path, context);
+        var readOption1 = await keyStore.Get(path);
         readOption1.BeOk();
         listener.GetCounterValue("keyspace.cache.hit").Be(1);
         listener.GetCounterValue("keyspace.get").Be(1);
 
         // Delete again
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
         listener.GetCounterValue("keyspace.delete").Be(1);
 
         // Read should be cache miss
-        var readOption2 = await keyStore.Get(path, context);
+        var readOption2 = await keyStore.Get(path);
         readOption2.BeError();
         listener.GetCounterValue("keyspace.cache.miss").Be(-1);
         listener.GetCounterValue("keyspace.get").Be(1);

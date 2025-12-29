@@ -1,42 +1,42 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Extensions;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿//using Microsoft.Extensions.DependencyInjection;
+//using Toolbox.Extensions;
+//using Toolbox.Tools;
+//using Toolbox.Types;
 
-namespace Toolbox.Store;
+//namespace Toolbox.Store;
 
-public record ListStoreBuilder<T>
-{
-    private readonly IList<Func<IServiceProvider, IListStoreProvider<T>>> _handlers = new List<Func<IServiceProvider, IListStoreProvider<T>>>();
+//public record ListStoreBuilder<T>
+//{
+//    private readonly IList<Func<IServiceProvider, IListStoreProvider<T>>> _handlers = new List<Func<IServiceProvider, IListStoreProvider<T>>>();
 
-    public ListStoreBuilder(IServiceCollection services) => Services = services;
+//    public ListStoreBuilder(IServiceCollection services) => Services = services;
 
-    public string? BasePath { get; set; } = null!;
-    public Func<string, T?>? Deserializer { get; set; } = null!;
-    public Func<T, string>? Serializer { get; set; } = null!;
-    public IServiceCollection Services { get; }
+//    public string? BasePath { get; set; } = null!;
+//    public Func<string, T?>? Deserializer { get; set; } = null!;
+//    public Func<T, string>? Serializer { get; set; } = null!;
+//    public IServiceCollection Services { get; }
 
-    public void Add(Func<IServiceProvider, IListStoreProvider<T>> handler) => _handlers.Add(handler.NotNull());
-    public void Add<P>() where P : class, IListStoreProvider<T> => _handlers.Add(service => service.GetRequiredService<P>());
-    public void AddSerializer(Func<T, string>? serializer) => Serializer = serializer;
-    public void AddDeserializer(Func<string, T?>? deserializer) => Deserializer = deserializer;
-    public FileSystemConfig<T> GetFileSystemConfig() => new(BasePath, Deserializer, Serializer);
+//    public void Add(Func<IServiceProvider, IListStoreProvider<T>> handler) => _handlers.Add(handler.NotNull());
+//    public void Add<P>() where P : class, IListStoreProvider<T> => _handlers.Add(service => service.GetRequiredService<P>());
+//    public void AddSerializer(Func<T, string>? serializer) => Serializer = serializer;
+//    public void AddDeserializer(Func<string, T?>? deserializer) => Deserializer = deserializer;
+//    public FileSystemConfig<T> GetFileSystemConfig() => new(BasePath, Deserializer, Serializer);
 
-    public Option<IListStoreProvider<T>> BuildHandlers(IServiceProvider serviceProvider, IListStore<T> storeProvider)
-    {
-        IListStoreProvider<T>? firstHandler = _handlers
-            .Reverse()
-            .Aggregate((IListStoreProvider<T>?)null, (prev, current) =>
-            {
-                var handler = current(serviceProvider);
-                handler.InnerHandler = prev ?? storeProvider;
-                return handler;
-            });
+//    public Option<IListStoreProvider<T>> BuildHandlers(IServiceProvider serviceProvider, IListStore<T> storeProvider)
+//    {
+//        IListStoreProvider<T>? firstHandler = _handlers
+//            .Reverse()
+//            .Aggregate((IListStoreProvider<T>?)null, (prev, current) =>
+//            {
+//                var handler = current(serviceProvider);
+//                handler.InnerHandler = prev ?? storeProvider;
+//                return handler;
+//            });
 
-        return firstHandler switch
-        {
-            null => StatusCode.NotFound,
-            _ => firstHandler.Cast<IListStoreProvider<T>>().ToOption(),
-        };
-    }
-}
+//        return firstHandler switch
+//        {
+//            null => StatusCode.NotFound,
+//            _ => firstHandler.Cast<IListStoreProvider<T>>().ToOption(),
+//        };
+//    }
+//}

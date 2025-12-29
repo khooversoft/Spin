@@ -5,63 +5,40 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class MemoryStoreTrxProvider
+
+public partial class MemoryStore : ITrxProvider
 {
-    private readonly MemoryStore _memoryStore;
+    public const string SourceNameText = "memoryStore";
+    private TrxSourceRecorder? _recorder;
 
-    public MemoryStoreTrxProvider(string name, MemoryStore memoryStore)
+    public string SourceName => SourceNameText;
+
+    public void AttachRecorder(TrxRecorder trxRecorder) => _recorder = trxRecorder.NotNull().ForSource(SourceName);
+    public void DetachRecorder() => _recorder = null;
+
+    public Task<Option> Start() => new Option(StatusCode.OK).ToTaskResult();
+    public Task<Option> Commit() => new Option(StatusCode.OK).ToTaskResult();
+
+    public Task<Option> Rollback(DataChangeEntry entry)
     {
-        Name = name.NotEmpty();
-        _memoryStore = memoryStore.NotNull();
-    }
-
-    public string Name { get; }
-
-    public Task<Option> Commit(DataChangeRecord dataChangeEntry, ScopeContext context)
-    {
-        context.LogTrace("MemoryStoreTrxProvider: Committing change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
-        return new Option(StatusCode.OK).ToTaskResult();
-    }
-
-    public Task<Option> Prepare(DataChangeRecord dataChangeEntry, ScopeContext context)
-    {
-        context.LogTrace("MemoryStoreTrxProvider: Preparing change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
-        return new Option(StatusCode.OK).ToTaskResult();
-    }
-
-    public Task<Option> Rollback(DataChangeEntry dataChangeEntry, ScopeContext context)
-    {
-        if (dataChangeEntry.SourceName != Name) return new Option(StatusCode.OK).ToTaskResult();
-        context.LogTrace("MemoryStoreTrxProvider: Rolling back change entry dataChangeEntry={dataChangeEntry}", dataChangeEntry);
-
-        switch (dataChangeEntry.Action)
+        switch (entry.Action)
         {
             case ChangeOperation.Add:
-                {
-                    if (dataChangeEntry.After == null) return new Option(StatusCode.OK).ToTaskResult();
-                    var directoryDetail = dataChangeEntry.After.Value.ToObject<DirectoryDetail>();
-                    _memoryStore.Delete(directoryDetail.PathDetail.Path, null, context).Assert(x => x.IsOk(), $"Failed to delete {directoryDetail.PathDetail.Path}");
-                    return new Option(StatusCode.OK).ToTaskResult();
-                }
-            case ChangeOperation.Update:
+                entry.After.HasValue.BeTrue("After value must be present for add operation.");
+                _store.TryRemove(entry.ObjectId, out var _);
+                break;
+
             case ChangeOperation.Delete:
-                {
-                    if (dataChangeEntry.Before == null) return new Option(StatusCode.OK).ToTaskResult();
-                    var directoryDetail = dataChangeEntry.Before.Value.ToObject<DirectoryDetail>();
-                    _memoryStore.Set(directoryDetail.PathDetail.Path, directoryDetail.Data, null, context);
-                    return new Option(StatusCode.OK).ToTaskResult();
-                }
-            default:
-                return new Option(StatusCode.OK).ToTaskResult();
+                entry.Before.HasValue.BeTrue("After value must be present for add operation.");
+                _store[entry.ObjectId] = entry.Before!.Value.ToObject<DirectoryDetail>();
+                break;
+
+            case ChangeOperation.Update:
+                entry.Before.HasValue.BeTrue("After value must be present for add operation.");
+                _store[entry.ObjectId] = entry.Before!.Value.ToObject<DirectoryDetail>();
+                break;
         }
+
+        return new Option(StatusCode.OK).ToTaskResult();
     }
 }
-
-//public static class MemoryStoreTrxProviderExtensions
-//{
-//    public static TransactionManager Register(this TransactionManager manager, string sourceName, MemoryStore memoryStore)
-//    {
-//        manager.Register(memoryStore).NotNull();
-//        return manager;
-//    }
-//}

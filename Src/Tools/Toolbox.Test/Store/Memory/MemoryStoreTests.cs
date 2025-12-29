@@ -42,12 +42,11 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "test/file.txt";
         var data = new DataETag("test data".ToBytes());
 
-        var result = ms.Add(path, data, context);
+        var result = ms.Add(path, data);
         result.BeOk();
         result.Return().NotEmpty();
 
@@ -59,13 +58,12 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "test/duplicate.txt";
         var data = new DataETag("data".ToBytes());
 
-        ms.Add(path, data, context).BeOk();
-        var result = ms.Add(path, data, context);
+        ms.Add(path, data).BeOk();
+        var result = ms.Add(path, data);
         result.IsConflict().BeTrue();
     }
 
@@ -74,12 +72,11 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string invalidPath = "";
         var data = new DataETag("data".ToBytes());
 
-        var result = ms.Add(invalidPath, data, context);
+        var result = ms.Add(invalidPath, data);
         result.StatusCode.Be(StatusCode.BadRequest);
     }
 
@@ -88,14 +85,13 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "test/update.txt";
         var data1 = new DataETag("original".ToBytes());
         var data2 = new DataETag("updated".ToBytes());
 
-        ms.Add(path, data1, context).BeOk();
-        var result = ms.Set(path, data2, null, context);
+        ms.Add(path, data1).BeOk();
+        var result = ms.Set(path, data2, null);
         result.BeOk();
 
         var retrieved = ms.Get(path);
@@ -108,12 +104,11 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "test/new.txt";
         var data = new DataETag("new data".ToBytes());
 
-        var result = ms.Set(path, data, null, context);
+        var result = ms.Set(path, data, null);
         result.BeOk();
         ms.Exist(path).BeTrue();
     }
@@ -123,12 +118,11 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "test/get.txt";
         var expected = new DataETag("get data".ToBytes());
 
-        ms.Add(path, expected, context);
+        ms.Add(path, expected);
         var result = ms.Get(path);
 
         result.BeOk();
@@ -150,13 +144,12 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "test/delete.txt";
         var data = new DataETag("data".ToBytes());
 
-        ms.Add(path, data, context);
-        var result = ms.Delete(path, null, context);
+        ms.Add(path, data);
+        var result = ms.Delete(path, null);
 
         result.BeOk();
         ms.Exist(path).BeFalse();
@@ -167,9 +160,8 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
-        var result = ms.Delete("nonexistent.txt", null, context);
+        var result = ms.Delete("nonexistent.txt", null);
         result.IsNotFound().BeTrue();
     }
 
@@ -178,12 +170,11 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "test/append.txt";
         var data = new DataETag("append data".ToBytes());
 
-        var result = ms.Append(path, data, null, context);
+        var result = ms.Append(path, data, null);
         result.BeOk();
         ms.Exist(path).BeTrue();
     }
@@ -193,14 +184,13 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "test/append2.txt";
         var data1 = new DataETag("part1".ToBytes());
         var data2 = new DataETag("part2".ToBytes());
 
-        ms.Add(path, data1, context);
-        ms.Append(path, data2, null, context);
+        ms.Add(path, data1);
+        ms.Append(path, data2, null);
 
         var result = ms.Get(path);
         var expected = data1.Data.Concat(data2.Data).ToArray();
@@ -212,11 +202,10 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
-        ms.Add("file1.txt", new DataETag("data1".ToBytes()), context);
-        ms.Add("file2.txt", new DataETag("data2".ToBytes()), context);
-        ms.Add("dir/file3.txt", new DataETag("data3".ToBytes()), context);
+        ms.Add("file1.txt", new DataETag("data1".ToBytes()));
+        ms.Add("file2.txt", new DataETag("data2".ToBytes()));
+        ms.Add("dir/file3.txt", new DataETag("data3".ToBytes()));
 
         var result = ms.Search("*");
         result.Count.Be(3);
@@ -227,11 +216,10 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
-        ms.Add("dir/file1.txt", new DataETag("data1".ToBytes()), context);
-        ms.Add("dir/file2.txt", new DataETag("data2".ToBytes()), context);
-        ms.Add("other/file3.txt", new DataETag("data3".ToBytes()), context);
+        ms.Add("dir/file1.txt", new DataETag("data1".ToBytes()));
+        ms.Add("dir/file2.txt", new DataETag("data2".ToBytes()));
+        ms.Add("other/file3.txt", new DataETag("data3".ToBytes()));
 
         var result = ms.Search("dir/*");
         result.Count.Be(2);
@@ -243,13 +231,12 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
-        ms.Add("folder/file1.txt", new DataETag("data1".ToBytes()), context);
-        ms.Add("folder/file2.txt", new DataETag("data2".ToBytes()), context);
-        ms.Add("other/file3.txt", new DataETag("data3".ToBytes()), context);
+        ms.Add("folder/file1.txt", new DataETag("data1".ToBytes()));
+        ms.Add("folder/file2.txt", new DataETag("data2".ToBytes()));
+        ms.Add("other/file3.txt", new DataETag("data3".ToBytes()));
 
-        ms.DeleteFolder("folder/*", context);
+        ms.DeleteFolder("folder/*");
 
         ms.Search("*").Count.Be(1);
         ms.Exist("other/file3.txt").BeTrue();
@@ -260,12 +247,11 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "/test/file.txt";
         var data = new DataETag("data".ToBytes());
 
-        ms.Add(path, data, context).BeOk();
+        ms.Add(path, data).BeOk();
         ms.Exist("test/file.txt").BeTrue();
     }
 
@@ -274,7 +260,6 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const int concurrency = 10;
         var tasks = Enumerable.Range(0, concurrency)
@@ -282,7 +267,7 @@ public class MemoryStoreTests
             {
                 var path = $"concurrent/file{i}.txt";
                 var data = new DataETag($"data{i}".ToBytes());
-                return ms.Add(path, data, context);
+                return ms.Add(path, data);
             }))
             .ToArray();
 
@@ -296,7 +281,6 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "concurrent/same.txt";
         const int concurrency = 10;
@@ -305,7 +289,7 @@ public class MemoryStoreTests
             .Select(i => Task.Run(() =>
             {
                 var data = new DataETag($"data{i}".ToBytes());
-                return ms.Add(path, data, context);
+                return ms.Add(path, data);
             }))
             .ToArray();
 
@@ -319,7 +303,6 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "concurrent/set.txt";
         const int concurrency = 100;
@@ -328,7 +311,7 @@ public class MemoryStoreTests
             .Select(i => Task.Run(() =>
             {
                 var data = new DataETag($"data{i}".ToBytes());
-                return ms.Set(path, data, null, context);
+                return ms.Set(path, data, null);
             }))
             .ToArray();
 
@@ -345,10 +328,9 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "concurrent/getset.txt";
-        ms.Add(path, new DataETag("initial".ToBytes()), context);
+        ms.Add(path, new DataETag("initial".ToBytes()));
 
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
         var setTask = Task.Run(async () =>
@@ -357,7 +339,7 @@ public class MemoryStoreTests
             while (!cts.Token.IsCancellationRequested)
             {
                 var data = new DataETag($"data{count++}".ToBytes());
-                ms.Set(path, data, null, context);
+                ms.Set(path, data, null);
                 await Task.Delay(1);
             }
             return count;
@@ -385,7 +367,6 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const int size = 1000;
         var start = DateTime.Now;
@@ -396,7 +377,7 @@ public class MemoryStoreTests
             {
                 var path = $"stress/file{i}.txt";
                 var data = new DataETag($"data{i}".ToBytes());
-                return ms.Add(path, data, context);
+                return ms.Add(path, data);
             }))
             .ToArray();
 
@@ -423,7 +404,7 @@ public class MemoryStoreTests
         _output.WriteLine($"Get: {size} items in {getTime.TotalMilliseconds}ms, TPS: {getTps:F2}");
 
         // Cleanup
-        ms.DeleteFolder("stress/*", context);
+        ms.DeleteFolder("stress/*");
         ms.Search("*").Count.Be(0);
     }
 
@@ -432,7 +413,6 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         int addCount = 0, setCount = 0, getCount = 0, deleteCount = 0;
@@ -443,7 +423,7 @@ public class MemoryStoreTests
                 while (!cts.Token.IsCancellationRequested)
                 {
                     var path = $"stress/add{Interlocked.Increment(ref addCount)}.txt";
-                    ms.Add(path, new DataETag($"data{addCount}".ToBytes()), context);
+                    ms.Add(path, new DataETag($"data{addCount}".ToBytes()));
                     await Task.Delay(1);
                 }
             }),
@@ -451,7 +431,7 @@ public class MemoryStoreTests
                 while (!cts.Token.IsCancellationRequested)
                 {
                     var path = $"stress/set{Interlocked.Increment(ref setCount) % 100}.txt";
-                    ms.Set(path, new DataETag($"data{setCount}".ToBytes()), null, context);
+                    ms.Set(path, new DataETag($"data{setCount}".ToBytes()), null);
                     await Task.Delay(1);
                 }
             }),
@@ -474,7 +454,7 @@ public class MemoryStoreTests
         _output.WriteLine($"Add: {addCount}, Set: {setCount}, Get: {getCount}, Delete: {deleteCount}");
 
         // Cleanup
-        ms.DeleteFolder("stress/*", context);
+        ms.DeleteFolder("stress/*");
     }
 
     [Fact]
@@ -482,12 +462,11 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "test/etag.txt";
         var data = new DataETag("test".ToBytes());
 
-        var result = ms.Add(path, data, context);
+        var result = ms.Add(path, data);
         result.BeOk();
         result.Return().NotEmpty();
 
@@ -501,16 +480,15 @@ public class MemoryStoreTests
     {
         var host = BuildHost();
         var ms = host.Services.GetRequiredService<MemoryStore>();
-        var context = host.Services.CreateContext<MemoryStoreTests>();
 
         const string path = "test/etag2.txt";
         var data1 = new DataETag("original".ToBytes());
         var data2 = new DataETag("updated".ToBytes());
 
-        ms.Add(path, data1, context);
+        ms.Add(path, data1);
         var etag1 = ms.GetDetail(path).Return().ETag;
 
-        ms.Set(path, data2, null, context);
+        ms.Set(path, data2, null);
         var etag2 = ms.GetDetail(path).Return().ETag;
 
         etag1.NotBe(etag2);

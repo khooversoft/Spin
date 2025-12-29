@@ -1,18 +1,19 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public class TransactionEnlistments
+public class TransactionProviders
 {
     private readonly ConcurrentDictionary<string, ITrxProvider> _enlistedProviders = new(StringComparer.OrdinalIgnoreCase);
     private readonly Transaction _parent;
     private readonly Func<bool> _isOpen;
     private readonly ILogger _logger;
 
-    public TransactionEnlistments(Transaction parent, Func<bool> isOpen, ILogger logger)
+    public TransactionProviders(Transaction parent, Func<bool> isOpen, ILogger logger)
     {
         _parent = parent.NotNull();
         _isOpen = isOpen;
@@ -35,6 +36,16 @@ public class TransactionEnlistments
         _isOpen().BeTrue("Transaction is not in progress");
         provider.NotNull();
         _enlistedProviders.TryRemove(provider.SourceName, out var _).BeTrue($"Provider with sourceName={provider.SourceName} is not enlisted");
+
+        provider.DetachRecorder();
+    }
+
+    public void DelistAll()
+    {
+        _isOpen().BeTrue("Transaction is not in progress");
+
+        var list = _enlistedProviders.Values.ToList();
+        foreach (var provider in list) Delist(provider);
     }
 
     internal async Task<Option> Start()

@@ -1,26 +1,28 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Toolbox.Data;
 using Toolbox.Store;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox;
 
 public static class ToolboxStartup
 {
-    public static IServiceCollection AddInMemoryFileStore(this IServiceCollection services, MemoryStore? memoryStore = null)
-    {
-        services.NotNull();
+    //public static IServiceCollection AddInMemoryFileStore(this IServiceCollection services, MemoryStore? memoryStore = null)
+    //{
+    //    services.NotNull();
 
-        services.AddSingleton<IFileStore, InMemoryFileStore>();
+    //    services.AddSingleton<IFileStore, InMemoryFileStore>();
 
-        switch (memoryStore)
-        {
-            case null: services.AddSingleton<MemoryStore>(); break;
-            default: services.AddSingleton(memoryStore); break;
-        }
+    //    switch (memoryStore)
+    //    {
+    //        case null: services.AddSingleton<MemoryStore>(); break;
+    //        default: services.AddSingleton(memoryStore); break;
+    //    }
 
-        return services;
-    }
+    //    return services;
+    //}
 
     public static IServiceCollection AddInMemoryKeyStore(this IServiceCollection services, MemoryStore? memoryStore = null)
     {
@@ -44,8 +46,6 @@ public static class ToolboxStartup
 
         var c = new DataSpaceConfig();
         config(c);
-
-        services.TryAddSingleton<AccessManager>();
 
         services.AddSingleton<DataSpace>(services =>
         {
@@ -79,6 +79,35 @@ public static class ToolboxStartup
         {
             var dataSpace = services.GetRequiredService<DataSpace>();
             return dataSpace.GetListStore<T>(spaceName);
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddTransaction(this IServiceCollection services, string name, Action<TransactionOption> config)
+    {
+        name.NotEmpty();
+
+        var option = new TransactionOption();
+        config(option);
+        option.NotNull().Validate().ThrowOnError();
+
+        services.TryAddSingleton<LogSequenceNumber>();
+
+        services.AddKeyedSingleton<TransactionOption>(name, option);
+
+        services.AddKeyedSingleton<Transaction>(name, (service, _) =>
+        {
+            var option = service.GetRequiredKeyedService<TransactionOption>(name);
+
+            var providers = option.Providers
+                .Select(f => f(service))
+                .ToList();
+
+            var instance = ActivatorUtilities.CreateInstance<Transaction>(service, option);
+            foreach (var p in providers) instance.Providers.Enlist(p);
+
+            return instance;
         });
 
         return services;

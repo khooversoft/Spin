@@ -33,26 +33,25 @@ public class MemoryKeyStoreTests
     {
         using var host = BuildHost();
         var memoryKeyStore = host.Services.GetRequiredService<MemoryKeyStore>();
-        var context = host.Services.CreateContext<MemoryKeyStoreTests>();
 
         string path = "test/key1.txt";
         DataETag data = "Hello, World!".ToBytes().ToDataETag();
 
-        var add = await memoryKeyStore.Add(path, data, context);
+        var add = await memoryKeyStore.Add(path, data);
         add.BeOk();
 
-        var get = await memoryKeyStore.Get(path, context);
+        var get = await memoryKeyStore.Get(path);
         get.BeOk();
         get.Return().Data.SequenceEqual(data.Data).BeTrue();
 
-        var search = await memoryKeyStore.Search("test/**.*", context);
+        var search = await memoryKeyStore.Search("test/**.*");
         search.Count.Be(1);
         search[0].Path.Be(path);
 
-        var delete = await memoryKeyStore.Delete(path, context);
+        var delete = await memoryKeyStore.Delete(path);
         delete.BeOk();
 
-        search = await memoryKeyStore.Search("test/**.*", context);
+        search = await memoryKeyStore.Search("test/**.*");
         search.Count.Be(0);
     }
 
@@ -61,16 +60,15 @@ public class MemoryKeyStoreTests
     {
         using var host = BuildHost();
         var memoryKeyStore = host.Services.GetRequiredService<MemoryKeyStore>();
-        var context = host.Services.CreateContext<MemoryKeyStoreTests>();
 
         string path = "test/key1.txt";
         DataETag data1 = "Hello".ToBytes().ToDataETag();
         DataETag data2 = "World".ToBytes().ToDataETag();
 
-        (await memoryKeyStore.Add(path, data1, context)).BeOk();
-        (await memoryKeyStore.Set(path, data2, context)).BeOk();
+        (await memoryKeyStore.Add(path, data1)).BeOk();
+        (await memoryKeyStore.Set(path, data2)).BeOk();
 
-        var get = await memoryKeyStore.Get(path, context);
+        var get = await memoryKeyStore.Get(path);
         get.BeOk();
         get.Return().Data.SequenceEqual(data2.Data).BeTrue();
     }
@@ -80,16 +78,15 @@ public class MemoryKeyStoreTests
     {
         using var host = BuildHost();
         var memoryKeyStore = host.Services.GetRequiredService<MemoryKeyStore>();
-        var context = host.Services.CreateContext<MemoryKeyStoreTests>();
 
         string path = "test/append.txt";
         DataETag data1 = "Hello ".ToBytes().ToDataETag();
         DataETag data2 = "World".ToBytes().ToDataETag();
 
-        (await memoryKeyStore.Add(path, data1, context)).BeOk();
-        (await memoryKeyStore.Append(path, data2, context)).BeOk();
+        (await memoryKeyStore.Add(path, data1)).BeOk();
+        (await memoryKeyStore.Append(path, data2)).BeOk();
 
-        var get = await memoryKeyStore.Get(path, context);
+        var get = await memoryKeyStore.Get(path);
         get.BeOk();
         var expected = "Hello World".ToBytes();
         get.Return().Data.SequenceEqual(expected).BeTrue();
@@ -100,17 +97,16 @@ public class MemoryKeyStoreTests
     {
         using var host = BuildHost();
         var memoryKeyStore = host.Services.GetRequiredService<MemoryKeyStore>();
-        var context = host.Services.CreateContext<MemoryKeyStoreTests>();
 
         string path = "test/exists.txt";
 
-        (await memoryKeyStore.Exists(path, context)).StatusCode.Be(StatusCode.NotFound);
+        (await memoryKeyStore.Exists(path)).StatusCode.Be(StatusCode.NotFound);
 
-        await memoryKeyStore.Add(path, "data".ToBytes().ToDataETag(), context);
-        (await memoryKeyStore.Exists(path, context)).BeOk();
+        await memoryKeyStore.Add(path, "data".ToBytes().ToDataETag());
+        (await memoryKeyStore.Exists(path)).BeOk();
 
-        await memoryKeyStore.Delete(path, context);
-        (await memoryKeyStore.Exists(path, context)).StatusCode.Be(StatusCode.NotFound);
+        await memoryKeyStore.Delete(path);
+        (await memoryKeyStore.Exists(path)).StatusCode.Be(StatusCode.NotFound);
     }
 
     [Fact]
@@ -118,14 +114,13 @@ public class MemoryKeyStoreTests
     {
         using var host = BuildHost();
         var memoryKeyStore = host.Services.GetRequiredService<MemoryKeyStore>();
-        var context = host.Services.CreateContext<MemoryKeyStoreTests>();
 
         string path = "test/details.txt";
         DataETag data = "test data".ToBytes().ToDataETag();
 
-        await memoryKeyStore.Add(path, data, context);
+        await memoryKeyStore.Add(path, data);
 
-        var details = await memoryKeyStore.GetDetails(path, context);
+        var details = await memoryKeyStore.GetDetails(path);
         details.BeOk();
         details.Return().Path.Be(path);
         details.Return().ETag.NotEmpty();
@@ -136,12 +131,11 @@ public class MemoryKeyStoreTests
     {
         using var host = BuildHost();
         var memoryKeyStore = host.Services.GetRequiredService<MemoryKeyStore>();
-        var context = host.Services.CreateContext<MemoryKeyStoreTests>();
 
         string path = "test/lock.txt";
-        await memoryKeyStore.Add(path, "data".ToBytes().ToDataETag(), context);
+        await memoryKeyStore.Add(path, "data".ToBytes().ToDataETag());
 
-        var leaseId = await memoryKeyStore.AcquireExclusiveLock(path, true, context);
+        var leaseId = await memoryKeyStore.AcquireExclusiveLock(path, true);
         leaseId.BeOk();
         leaseId.Return().NotEmpty();
     }
@@ -151,16 +145,15 @@ public class MemoryKeyStoreTests
     {
         using var host = BuildHost();
         var memoryKeyStore = host.Services.GetRequiredService<MemoryKeyStore>();
-        var context = host.Services.CreateContext<MemoryKeyStoreTests>();
 
         string path = "test/lease.txt";
-        await memoryKeyStore.Add(path, "data".ToBytes().ToDataETag(), context);
+        await memoryKeyStore.Add(path, "data".ToBytes().ToDataETag());
 
-        var leaseId = await memoryKeyStore.AcquireLease(path, TimeSpan.FromSeconds(10), context);
+        var leaseId = await memoryKeyStore.AcquireLease(path, TimeSpan.FromSeconds(10));
         leaseId.BeOk();
 
         // Second acquire should fail
-        var leaseId2 = await memoryKeyStore.AcquireLease(path, TimeSpan.FromSeconds(10), context);
+        var leaseId2 = await memoryKeyStore.AcquireLease(path, TimeSpan.FromSeconds(10));
         leaseId2.StatusCode.Be(StatusCode.Locked);
     }
 
@@ -169,18 +162,17 @@ public class MemoryKeyStoreTests
     {
         using var host = BuildHost();
         var memoryKeyStore = host.Services.GetRequiredService<MemoryKeyStore>();
-        var context = host.Services.CreateContext<MemoryKeyStoreTests>();
 
         string path = "test/breaklease.txt";
-        await memoryKeyStore.Add(path, "data".ToBytes().ToDataETag(), context);
+        await memoryKeyStore.Add(path, "data".ToBytes().ToDataETag());
 
-        var leaseId = await memoryKeyStore.AcquireLease(path, TimeSpan.FromSeconds(60), context);
+        var leaseId = await memoryKeyStore.AcquireLease(path, TimeSpan.FromSeconds(60));
         leaseId.BeOk();
 
-        await memoryKeyStore.BreakLease(path, context);
+        await memoryKeyStore.BreakLease(path);
 
         // Should be able to acquire again after break
-        var leaseId2 = await memoryKeyStore.AcquireLease(path, TimeSpan.FromSeconds(10), context);
+        var leaseId2 = await memoryKeyStore.AcquireLease(path, TimeSpan.FromSeconds(10));
         leaseId2.BeOk();
     }
 
@@ -189,12 +181,11 @@ public class MemoryKeyStoreTests
     {
         using var host = BuildHost();
         var memoryKeyStore = host.Services.GetRequiredService<MemoryKeyStore>();
-        var context = host.Services.CreateContext<MemoryKeyStoreTests>();
 
         string path = "test/duplicate.txt";
         DataETag data = "data".ToBytes().ToDataETag();
 
-        (await memoryKeyStore.Add(path, data, context)).BeOk();
-        (await memoryKeyStore.Add(path, data, context)).StatusCode.Be(StatusCode.Conflict);
+        (await memoryKeyStore.Add(path, data)).BeOk();
+        (await memoryKeyStore.Add(path, data)).StatusCode.Be(StatusCode.Conflict);
     }
 }

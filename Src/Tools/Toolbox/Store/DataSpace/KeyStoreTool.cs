@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Toolbox.Tools;
+﻿using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Store;
@@ -9,31 +7,14 @@ public static class KeyStoreTool
 {
     public static bool IsPathValid(string path) => PathValidator.IsPathValid(path);
 
-    public static string? GetLeaseId(this IFileReadWriteAccess subject) => subject switch
+    public static Task<Option> ClearStore(this IKeyStore subject) => ClearFolder(subject, null);
+
+    public static async Task<Option> ClearFolder(this IKeyStore fileStore, string? path)
     {
-        IFileLeasedAccess v => v.LeaseId,
-        _ => null
-    };
-
-    public static async Task<Option> ClearKeyStore<T>(this IHost host)
-    {
-        IKeyStore fileStore = host.Services.GetRequiredService<IKeyStore>();
-        var context = host.Services.CreateContext<T>();
-        var result = await fileStore.ClearStore(context);
-        return result;
-    }
-
-    public static Task<Option> ClearStore(this IKeyStore subject, ScopeContext context) => ClearFolder(subject, null, context);
-
-    public static async Task<Option> ClearFolder(this IKeyStore fileStore, string? path, ScopeContext context)
-    {
-        using var metric = context.LogDuration("fileStore-clear", "store={store}", fileStore.GetType().Name);
-        context.LogDebug("Clearing file store path={path}", path);
-
         string pattern = $"{buildPattern()};includeFolder=true";
 
-        IReadOnlyList<StorePathDetail> pathItems = await fileStore.Search(pattern, context);
-        var deleteFolderOption = await InternalDelete(fileStore, pathItems, context);
+        IReadOnlyList<StorePathDetail> pathItems = await fileStore.Search(pattern);
+        var deleteFolderOption = await InternalDelete(fileStore, pathItems);
 
         return StatusCode.OK;
 
@@ -55,19 +36,19 @@ public static class KeyStoreTool
         }
     }
 
-    private static async Task<Option> InternalDelete(IKeyStore fileStore, IReadOnlyList<StorePathDetail> pathItems, ScopeContext context)
+    private static async Task<Option> InternalDelete(IKeyStore fileStore, IReadOnlyList<StorePathDetail> pathItems)
     {
         foreach (var item in pathItems)
         {
             switch (item.IsFolder)
             {
                 case true:
-                    var deleteFolderOption = await fileStore.DeleteFolder(item.Path, context).ConfigureAwait(false);
-                    if (deleteFolderOption.IsError()) return deleteFolderOption.LogStatus(context, "Failed to delete folder");
+                    var deleteFolderOption = await fileStore.DeleteFolder(item.Path).ConfigureAwait(false);
+                    if (deleteFolderOption.IsError()) return deleteFolderOption;
                     break;
                 case false:
-                    var deleteOption = await fileStore.Delete(item.Path, context).ConfigureAwait(false);
-                    if (deleteOption.IsError()) return deleteOption.LogStatus(context, "Failed to delete file");
+                    var deleteOption = await fileStore.Delete(item.Path).ConfigureAwait(false);
+                    if (deleteOption.IsError()) return deleteOption;
                     break;
             }
         }

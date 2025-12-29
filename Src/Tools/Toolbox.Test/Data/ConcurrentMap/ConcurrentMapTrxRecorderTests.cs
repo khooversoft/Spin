@@ -38,7 +38,12 @@ public class ConcurrentMapTrxRecorderTests
                 });
 
                 services.AddListStore<DataChangeRecord>("list");
-                services.AddTransaction(new TransactionOption { ListSpaceName = "list", JournalKey = "TestJournal" });
+
+                services.AddTransaction("default", config =>
+                {
+                    config.ListSpaceName = "list";
+                    config.JournalKey = "TestJournal";
+                });
             })
             .Build();
 
@@ -49,8 +54,7 @@ public class ConcurrentMapTrxRecorderTests
     public async Task AttachToConcurrentMap()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
         int rollbackCount = 0;
 
@@ -62,13 +66,13 @@ public class ConcurrentMapTrxRecorderTests
 
         var concurrentMap = new ConcurrentMap<string, string>(x => x);
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
-        var result = await transaction.Commit(context);
+        var result = await transaction.Commit();
         result.BeOk();
         rollbackCount.Be(0);
 
-        var records = await listStore.Get("TestJournal", context);
+        var records = await listStore.Get("TestJournal");
         records.BeOk();
         var data = records.Return();
         data.Count.Be(1);
@@ -81,8 +85,7 @@ public class ConcurrentMapTrxRecorderTests
     public async Task AttachAndDetachRecorder()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
         int rollbackCount = 0;
 
@@ -94,14 +97,14 @@ public class ConcurrentMapTrxRecorderTests
 
         var concurrentMap = new ConcurrentMap<string, string>(x => x);
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
         concurrentMap.TryAdd("Item1").BeTrue();
 
-        (await transaction.Commit(context)).BeOk();
+        (await transaction.Commit()).BeOk();
         rollbackCount.Be(0);
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var data = x.Return();
@@ -113,7 +116,7 @@ public class ConcurrentMapTrxRecorderTests
 
         concurrentMap.TryAdd("Item2").BeTrue();
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var data = x.Return();
@@ -126,8 +129,7 @@ public class ConcurrentMapTrxRecorderTests
     public async Task VerifyJournalRecorder()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
         int rollbackCount = 0;
 
@@ -139,15 +141,15 @@ public class ConcurrentMapTrxRecorderTests
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
         var r1 = new MapRecord("Item1", 25);
         concurrentMap.TryAdd(r1).BeTrue();
 
-        (await transaction.Commit(context)).BeOk();
+        (await transaction.Commit()).BeOk();
         rollbackCount.Be(0);
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var data = x.Return();
@@ -172,8 +174,7 @@ public class ConcurrentMapTrxRecorderTests
     public async Task VerifyTryRemoveRecording()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
@@ -182,13 +183,13 @@ public class ConcurrentMapTrxRecorderTests
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
         concurrentMap.TryRemove("Item1", out var removed).BeTrue();
 
-        (await transaction.Commit(context)).BeOk();
+        (await transaction.Commit()).BeOk();
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var list = x.Return().SelectMany(r => r.Entries).ToList();
@@ -206,8 +207,7 @@ public class ConcurrentMapTrxRecorderTests
     public async Task VerifyTryUpdateRecording()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
@@ -216,14 +216,14 @@ public class ConcurrentMapTrxRecorderTests
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
         var updated = new MapRecord("Item1", 30);
         concurrentMap.TryUpdate(updated, original).BeTrue();
 
-        (await transaction.Commit(context)).BeOk();
+        (await transaction.Commit()).BeOk();
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var list = x.Return().SelectMany(r => r.Entries).ToList();
@@ -244,21 +244,20 @@ public class ConcurrentMapTrxRecorderTests
     public async Task VerifySetNewItemRecording()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
         concurrentMap.Set(new MapRecord("Item1", 25));
 
-        (await transaction.Commit(context)).BeOk();
+        (await transaction.Commit()).BeOk();
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var list = x.Return().SelectMany(r => r.Entries).ToList();
@@ -273,8 +272,7 @@ public class ConcurrentMapTrxRecorderTests
     public async Task VerifySetExistingItemRecording()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
@@ -282,13 +280,13 @@ public class ConcurrentMapTrxRecorderTests
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
         concurrentMap.Set(new MapRecord("Item1", 30));
 
-        (await transaction.Commit(context)).BeOk();
+        (await transaction.Commit()).BeOk();
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var list = x.Return().SelectMany(r => r.Entries).ToList();
@@ -303,8 +301,7 @@ public class ConcurrentMapTrxRecorderTests
     public async Task VerifyClearRecording()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
@@ -313,13 +310,13 @@ public class ConcurrentMapTrxRecorderTests
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
         concurrentMap.Clear();
 
-        (await transaction.Commit(context)).BeOk();
+        (await transaction.Commit()).BeOk();
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var list = x.Return().SelectMany(r => r.Entries).ToList();
@@ -334,15 +331,14 @@ public class ConcurrentMapTrxRecorderTests
     public async Task VerifyMultipleOperationsInSingleTransaction()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
         var item1 = new MapRecord("Item1", 25);
         var item2 = new MapRecord("Item2", 30);
@@ -351,9 +347,9 @@ public class ConcurrentMapTrxRecorderTests
         concurrentMap.Set(new MapRecord("Item1", 26));
         concurrentMap.TryRemove("Item2", out _).BeTrue();
 
-        (await transaction.Commit(context)).BeOk();
+        (await transaction.Commit()).BeOk();
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var list = x.Return().SelectMany(r => r.Entries).ToList();
@@ -371,22 +367,21 @@ public class ConcurrentMapTrxRecorderTests
     public async Task VerifyGetOrAddNewItemRecording()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
         var result = concurrentMap.GetOrAdd(new MapRecord("Item1", 25));
         result.Name.Be("Item1");
 
-        (await transaction.Commit(context)).BeOk();
+        (await transaction.Commit()).BeOk();
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var list = x.Return().SelectMany(r => r.Entries).ToList();
@@ -401,8 +396,7 @@ public class ConcurrentMapTrxRecorderTests
     public async Task VerifyGetOrAddExistingItemNoRecording()
     {
         var host = BuildService();
-        var transaction = host.Services.GetRequiredService<Transaction>();
-        var context = host.Services.CreateContext<ConcurrentMapTrxRecorderTests>();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
@@ -410,14 +404,14 @@ public class ConcurrentMapTrxRecorderTests
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
-        transaction.Start();
+        await transaction.Start();
 
         var result = concurrentMap.GetOrAdd(new MapRecord("Item1", 30));
         result.Age.Be(25); // Returns existing, not new
 
-        (await transaction.Commit(context)).BeOk();
+        (await transaction.Commit()).BeOk();
 
-        (await listStore.Get("TestJournal", context)).Action(x =>
+        (await listStore.Get("TestJournal")).Action(x =>
         {
             x.BeOk();
             var list = x.Return().SelectMany(r => r.Entries).ToList();

@@ -56,7 +56,6 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         var ls = keyStore as KeySpace ?? throw new ArgumentException();
         var fileSystem = ls.KeySystem;
@@ -65,27 +64,27 @@ public class DataSpaceKeyTests
         string realPath = fileSystem.RemovePathPrefix(fileSystem.PathBuilder(path));
 
         var content = "Hello, World!".ToBytes();
-        var setResult = await keyStore.Set(path, new DataETag(content), context);
+        var setResult = await keyStore.Set(path, new DataETag(content));
         setResult.BeOk();
 
-        var readOption = await keyStore.Get(path, context);
+        var readOption = await keyStore.Get(path);
         readOption.BeOk();
         var readData = readOption.Return().Data;
         content.SequenceEqual(readData).BeTrue();
 
-        var s1 = await keyStore.Search("**/*.*", context);
+        var s1 = await keyStore.Search("**/*.*");
         s1.Count.Be(1);
         s1[0].Path.Be(realPath);
 
         string specificSearch = useHash ? $"**/test/*.txt" : "test/*.txt";
-        s1 = await keyStore.Search(specificSearch, context);
+        s1 = await keyStore.Search(specificSearch);
         s1.Count.Be(1);
         s1[0].Path.Be(realPath);
 
-        var deleteOption = await keyStore.Delete(path, context);
+        var deleteOption = await keyStore.Delete(path);
         deleteOption.BeOk();
 
-        var s2 = await keyStore.Search("**.*", context);
+        var s2 = await keyStore.Search("**.*");
         s2.Count.Be(0);
     }
 
@@ -98,19 +97,18 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/add-data.txt";
         var content = "Add operation test".ToBytes();
 
-        var addResult = await keyStore.Add(path, new DataETag(content), context);
+        var addResult = await keyStore.Add(path, new DataETag(content));
         addResult.BeOk();
 
-        var readOption = await keyStore.Get(path, context);
+        var readOption = await keyStore.Get(path);
         readOption.BeOk();
         content.SequenceEqual(readOption.Return().Data).BeTrue();
 
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -122,18 +120,17 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/duplicate-data.txt";
         var content = "Duplicate test".ToBytes();
 
-        var addResult = await keyStore.Add(path, new DataETag(content), context);
+        var addResult = await keyStore.Add(path, new DataETag(content));
         addResult.BeOk();
 
-        var duplicateResult = await keyStore.Add(path, new DataETag(content), context);
+        var duplicateResult = await keyStore.Add(path, new DataETag(content));
         duplicateResult.IsError().BeTrue();
 
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -145,23 +142,22 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/append-data.txt";
         var content1 = "First line".ToBytes();
         var content2 = "Second line".ToBytes();
 
-        await keyStore.Set(path, new DataETag(content1), context);
+        await keyStore.Set(path, new DataETag(content1));
 
-        var appendResult = await keyStore.Append(path, new DataETag(content2), context);
+        var appendResult = await keyStore.Append(path, new DataETag(content2));
         appendResult.BeOk();
 
-        var readOption = await keyStore.Get(path, context);
+        var readOption = await keyStore.Get(path);
         readOption.BeOk();
         var combined = content1.Concat(content2).ToArray();
         combined.SequenceEqual(readOption.Return().Data).BeTrue();
 
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -173,21 +169,20 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/overwrite-data.txt";
         var content1 = "Original content".ToBytes();
         var content2 = "Updated content".ToBytes();
 
-        await keyStore.Set(path, new DataETag(content1), context);
-        var setResult = await keyStore.Set(path, new DataETag(content2), context);
+        await keyStore.Set(path, new DataETag(content1));
+        var setResult = await keyStore.Set(path, new DataETag(content2));
         setResult.BeOk();
 
-        var readOption = await keyStore.Get(path, context);
+        var readOption = await keyStore.Get(path);
         readOption.BeOk();
         content2.SequenceEqual(readOption.Return().Data).BeTrue();
 
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -199,17 +194,16 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/exists-data.txt";
         var content = "Exists test".ToBytes();
 
-        await keyStore.Set(path, new DataETag(content), context);
+        await keyStore.Set(path, new DataETag(content));
 
-        var existsResult = await keyStore.Exists(path, context);
+        var existsResult = await keyStore.Exists(path);
         existsResult.BeOk();
 
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -221,11 +215,10 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/non-existing.txt";
 
-        var existsResult = await keyStore.Exists(path, context);
+        var existsResult = await keyStore.Exists(path);
         existsResult.IsError().BeTrue();
     }
 
@@ -238,7 +231,6 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         var ls = keyStore as KeySpace ?? throw new ArgumentException();
         var fileSystem = ls.KeySystem;
@@ -247,16 +239,16 @@ public class DataSpaceKeyTests
         string realPath = fileSystem.RemovePathPrefix(fileSystem.PathBuilder(path));
         var content = "Details test".ToBytes();
 
-        await keyStore.Set(path, new DataETag(content), context);
+        await keyStore.Set(path, new DataETag(content));
 
-        var detailsOption = await keyStore.GetDetails(path, context);
+        var detailsOption = await keyStore.GetDetails(path);
         detailsOption.BeOk();
 
         var details = detailsOption.Return();
         details.Path.Be(realPath);
         details.IsFolder.BeFalse();
 
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -268,19 +260,18 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string folder = "test/folder";
         string path1 = $"{folder}/file1.txt";
         string path2 = $"{folder}/file2.txt";
 
-        await keyStore.Set(path1, new DataETag("File 1".ToBytes()), context);
-        await keyStore.Set(path2, new DataETag("File 2".ToBytes()), context);
+        await keyStore.Set(path1, new DataETag("File 1".ToBytes()));
+        await keyStore.Set(path2, new DataETag("File 2".ToBytes()));
 
-        var deleteFolderResult = await keyStore.DeleteFolder(folder, context);
+        var deleteFolderResult = await keyStore.DeleteFolder(folder);
         deleteFolderResult.BeOk();
 
-        var searchResult = await keyStore.Search($"{folder}/*.*", context);
+        var searchResult = await keyStore.Search($"{folder}/*.*");
         searchResult.Count.Be(0);
     }
 
@@ -291,19 +282,18 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(false, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
-        await keyStore.Set("test/search/file1.txt", new DataETag("Data 1".ToBytes()), context);
-        await keyStore.Set("test/search/file2.txt", new DataETag("Data 2".ToBytes()), context);
-        await keyStore.Set("test/search/file3.json", new DataETag("Data 3".ToBytes()), context);
+        await keyStore.Set("test/search/file1.txt", new DataETag("Data 1".ToBytes()));
+        await keyStore.Set("test/search/file2.txt", new DataETag("Data 2".ToBytes()));
+        await keyStore.Set("test/search/file3.json", new DataETag("Data 3".ToBytes()));
 
-        var searchResult = await keyStore.Search("test/search/*.txt", context);
+        var searchResult = await keyStore.Search("test/search/*.txt");
         searchResult.Count.Be(2);
 
-        var allFiles = await keyStore.Search("test/search/*.*", context);
+        var allFiles = await keyStore.Search("test/search/*.*");
         allFiles.Count.Be(3);
 
-        await keyStore.DeleteFolder("test/search", context);
+        await keyStore.DeleteFolder("test/search");
     }
 
     [Theory]
@@ -315,22 +305,21 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/lease-data.txt";
         var content = "Lease test".ToBytes();
 
-        await keyStore.Set(path, new DataETag(content), context);
+        await keyStore.Set(path, new DataETag(content));
 
-        var leaseOption = await keyStore.AcquireLease(path, TimeSpan.FromMinutes(1), context);
+        var leaseOption = await keyStore.AcquireLease(path, TimeSpan.FromMinutes(1));
         leaseOption.BeOk();
         var leaseId = leaseOption.Return();
         leaseId.NotEmpty();
 
-        var releaseResult = await keyStore.Release(leaseId, context);
+        var releaseResult = await keyStore.Release(leaseId);
         releaseResult.BeOk();
 
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -342,22 +331,21 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/exclusive-lock.txt";
         var content = "Exclusive lock test".ToBytes();
 
-        await keyStore.Set(path, new DataETag(content), context);
+        await keyStore.Set(path, new DataETag(content));
 
-        var lockOption = await keyStore.AcquireExclusiveLock(path, false, context);
+        var lockOption = await keyStore.AcquireExclusiveLock(path, false);
         lockOption.BeOk();
         var leaseId = lockOption.Return();
         leaseId.NotEmpty();
 
-        var releaseResult = await keyStore.Release(leaseId, context);
+        var releaseResult = await keyStore.Release(leaseId);
         releaseResult.BeOk();
 
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -369,20 +357,19 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/break-lease.txt";
         var content = "Break lease test".ToBytes();
 
-        await keyStore.Set(path, new DataETag(content), context);
+        await keyStore.Set(path, new DataETag(content));
 
-        var leaseOption = await keyStore.AcquireLease(path, TimeSpan.FromMinutes(1), context);
+        var leaseOption = await keyStore.AcquireLease(path, TimeSpan.FromMinutes(1));
         leaseOption.BeOk();
 
-        var breakResult = await keyStore.BreakLease(path, context);
+        var breakResult = await keyStore.BreakLease(path);
         breakResult.BeOk();
 
-        await keyStore.Delete(path, context);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -394,27 +381,26 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/lease-update.txt";
         var content1 = "Original".ToBytes();
         var content2 = "Updated".ToBytes();
 
-        await keyStore.Set(path, new DataETag(content1), context);
+        await keyStore.Set(path, new DataETag(content1));
 
-        var leaseOption = await keyStore.AcquireLease(path, TimeSpan.FromMinutes(1), context);
+        var leaseOption = await keyStore.AcquireLease(path, TimeSpan.FromMinutes(1));
         leaseOption.BeOk();
         var leaseId = leaseOption.Return();
 
-        var setResult = await keyStore.Set(path, new DataETag(content2), context, leaseId: leaseId);
+        var setResult = await keyStore.Set(path, new DataETag(content2), leaseId: leaseId);
         setResult.BeOk();
 
-        var readOption = await keyStore.Get(path, context);
+        var readOption = await keyStore.Get(path);
         readOption.BeOk();
         content2.SequenceEqual(readOption.Return().Data).BeTrue();
 
-        await keyStore.Release(leaseId, context);
-        await keyStore.Delete(path, context);
+        await keyStore.Release(leaseId);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -426,21 +412,20 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/lease-delete.txt";
         var content = "Delete with lease".ToBytes();
 
-        await keyStore.Set(path, new DataETag(content), context);
+        await keyStore.Set(path, new DataETag(content));
 
-        var leaseOption = await keyStore.AcquireLease(path, TimeSpan.FromMinutes(1), context);
+        var leaseOption = await keyStore.AcquireLease(path, TimeSpan.FromMinutes(1));
         leaseOption.BeOk();
         var leaseId = leaseOption.Return();
 
-        var deleteResult = await keyStore.Delete(path, context, leaseId: leaseId);
+        var deleteResult = await keyStore.Delete(path, leaseId: leaseId);
         deleteResult.BeOk();
 
-        var existsResult = await keyStore.Exists(path, context);
+        var existsResult = await keyStore.Exists(path);
         existsResult.IsError().BeTrue();
     }
 
@@ -453,28 +438,27 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/lease-append.txt";
         var content1 = "First".ToBytes();
         var content2 = " Second".ToBytes();
 
-        await keyStore.Set(path, new DataETag(content1), context);
+        await keyStore.Set(path, new DataETag(content1));
 
-        var leaseOption = await keyStore.AcquireLease(path, TimeSpan.FromMinutes(1), context);
+        var leaseOption = await keyStore.AcquireLease(path, TimeSpan.FromMinutes(1));
         leaseOption.BeOk();
         var leaseId = leaseOption.Return();
 
-        var appendResult = await keyStore.Append(path, new DataETag(content2), context, leaseId: leaseId);
+        var appendResult = await keyStore.Append(path, new DataETag(content2), leaseId: leaseId);
         appendResult.BeOk();
 
-        var readOption = await keyStore.Get(path, context);
+        var readOption = await keyStore.Get(path);
         readOption.BeOk();
         var combined = content1.Concat(content2).ToArray();
         combined.SequenceEqual(readOption.Return().Data).BeTrue();
 
-        await keyStore.Release(leaseId, context);
-        await keyStore.Delete(path, context);
+        await keyStore.Release(leaseId);
+        await keyStore.Delete(path);
     }
 
     [Theory]
@@ -486,11 +470,10 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/non-existing-get.txt";
 
-        var readOption = await keyStore.Get(path, context);
+        var readOption = await keyStore.Get(path);
         readOption.IsError().BeTrue();
     }
 
@@ -503,11 +486,10 @@ public class DataSpaceKeyTests
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
-        var context = host.Services.CreateContext<DataSpaceKeyTests>();
 
         string path = "test/non-existing-delete.txt";
 
-        var deleteResult = await keyStore.Delete(path, context);
+        var deleteResult = await keyStore.Delete(path);
         deleteResult.IsError().BeTrue();
     }
 }

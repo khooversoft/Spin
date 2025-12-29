@@ -35,6 +35,6 @@ public static class TrxProviderLambdaExtensions
         rollback.NotNull();
 
         var provider = new TrxProviderLambda(sourceName, rollback);
-        transaction.Enlistments.Enlist(provider);
+        transaction.Providers.Enlist(provider);
     }
 }
