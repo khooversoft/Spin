@@ -65,7 +65,7 @@ public class TransactionTests
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         int rollbackCount = 0;
 
         transaction.EnlistLambda("source1", entry =>
@@ -93,7 +93,7 @@ public class TransactionTests
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         int rollbackCount = 0;
 
         transaction.EnlistLambda("source1", entry =>
@@ -138,7 +138,7 @@ public class TransactionTests
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         int rollbackCount = 0;
 
         transaction.EnlistLambda("source1", entry =>
@@ -173,7 +173,7 @@ public class TransactionTests
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
@@ -411,7 +411,7 @@ public class TransactionTests
         result2.BeOk();
 
         // Verify only the second (empty) transaction was committed
-        var listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        var listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         var records = await listStore.Get("TestJournal");
         records.BeOk();
         var data = records.Return();
@@ -440,7 +440,7 @@ public class TransactionTests
         result2.BeOk();
 
         // Verify both transactions were committed
-        var listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        var listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         var records = await listStore.Get("TestJournal");
         records.BeOk();
         var data = records.Return();
@@ -524,7 +524,7 @@ public class TransactionTests
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
-        var listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        var listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
@@ -546,7 +546,7 @@ public class TransactionTests
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
@@ -619,7 +619,7 @@ public class TransactionTests
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
@@ -700,7 +700,7 @@ public class TransactionTests
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
@@ -761,7 +761,7 @@ public class TransactionTests
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 

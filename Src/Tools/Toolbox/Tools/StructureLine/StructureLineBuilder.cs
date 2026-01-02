@@ -43,7 +43,6 @@ public sealed class StructureLineBuilder
         return this;
     }
 
-    // Fix: accept normal params array and flatten into the args list.
     public StructureLineBuilder Add(string? message, params object?[] args)
     {
         if (message.IsEmpty()) return this;

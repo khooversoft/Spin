@@ -38,6 +38,11 @@ public class DataSpaceListTests
             })
             .Build();
 
+        // Clear the store before running tests, this includes any locked files
+        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        await keyStore.ClearStore();
+        (await keyStore.Search("**.*")).Count().Be(0);
+
         return host;
     }
 

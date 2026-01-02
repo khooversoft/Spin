@@ -10,7 +10,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Azure;
 
-public class DatalakeStore : IFileStore
+public partial class DatalakeStore : IKeyStore
 {
     private readonly DataLakeFileSystemClient _fileSystem;
     private readonly ILogger<DatalakeStore> _logger;
@@ -28,47 +28,71 @@ public class DatalakeStore : IFileStore
         _fileSystem.Exists().Assert(x => x == true, $"Datalake file system does not exist, containerName={datalakeOption.Container}");
     }
 
-    public IFileAccess File(string path) => path
-        .Func(x => _datalakeOption.WithBasePath(x))
-        .Func(x => _fileSystem.GetFileClient(x))
-        .Func(x => new DatalakeFileAccess(this, x, _logger));
-
-    public async Task<Option> DeleteFolder(string path, ScopeContext context)
+    public async Task<Option> DeleteFolder(string path)
     {
-        context = context.With(_logger);
-        using var metric = context.LogDuration("dataLakeStore-deleteDirectory", "path={path}", path);
-        //DataChangeLog.GetRecorder().Assert(x => x == null, "DeleteFolder is not supported with DataChangeRecorder");
+        using var metric = _logger.LogDuration("dataLakeStore-deleteDirectory", "path={path}", path);
 
         path = _datalakeOption.WithBasePath(path);
-        context.LogDebug("Deleting directory {path}", path);
+        _logger.LogDebug("Deleting directory {path}", path);
 
         try
         {
             DataLakeDirectoryClient directoryClient = _fileSystem.GetDirectoryClient(path);
-            var response = await directoryClient.DeleteAsync(cancellationToken: context);
+            var response = await directoryClient.DeleteAsync(recursive: true);
             if (response.Status != 200) return (StatusCode.Conflict, response.ReasonPhrase);
 
             return StatusCode.OK;
         }
+        catch (RequestFailedException ex) when (ex.Status == 401 || ex.ErrorCode == "PathNotFound")
+        {
+            _logger.LogError(ex, "Failed to delete directory for {path}", path);
+            return StatusCode.NotFound;
+        }
         catch (Exception ex)
         {
-            context.Location().LogError(ex, "Failed to delete directory for {path}", path);
-            return StatusCode.BadRequest;
+            _logger.LogError(ex, "Failed to delete directory for {path}", path);
+        }
+
+        return StatusCode.BadRequest;
+    }
+
+    public async Task<Option<StorePathDetail>> GetDetails(string path)
+    {
+        var fileClient = GetFileClient(path);
+
+        _logger.LogDebug("Getting path {path} properties", fileClient.Path);
+        using var metric = _logger.LogDuration("dataLakeStore-getPathProperties");
+
+        try
+        {
+            Response<bool> exist = await fileClient.ExistsAsync();
+            if (!exist.HasValue || !exist.Value)
+            {
+                _logger.LogDebug("File does not exist, path={path}", fileClient.Path);
+                return new Option<StorePathDetail>(StatusCode.NotFound);
+            }
+
+            var result = await fileClient.GetPropertiesAsync();
+            return result.Value.ConvertTo(fileClient.Path).ToOption();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to GetPathProperties for file {path}", fileClient.Path);
+            return (StatusCode.NotFound, ex.Message);
         }
     }
 
-    public async Task<IReadOnlyList<StorePathDetail>> Search(string pattern, ScopeContext context)
+    public async Task<IReadOnlyList<StorePathDetail>> Search(string pattern)
     {
-        context = context.With(_logger);
         var queryParameter = QueryParameter.Parse(pattern);
-        using var metric = context.LogDuration("dataLakeStore-search", "queryParameter={queryParameter}", queryParameter);
+        using var metric = _logger.LogDuration("dataLakeStore-search", "queryParameter={queryParameter}", queryParameter);
 
         queryParameter = queryParameter with
         {
             Filter = _datalakeOption.WithBasePath(queryParameter.Filter),
             BasePath = _datalakeOption.WithBasePath(queryParameter.BasePath),
         };
-        context.LogDebug("Searching {queryParameter}", queryParameter);
+        _logger.LogDebug("Searching {queryParameter}", queryParameter);
 
         var collection = new Sequence<PathItem>();
         var matcher = queryParameter.GetMatcher();
@@ -76,7 +100,7 @@ public class DatalakeStore : IFileStore
         int index = -1;
         try
         {
-            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(queryParameter.BasePath, queryParameter.Recurse, cancellationToken: context))
+            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(queryParameter.BasePath, queryParameter.Recurse))
             {
                 if (!matcher.IsMatch(pathItem.Name, pathItem.IsDirectory == true)) continue;
 
@@ -99,8 +123,17 @@ public class DatalakeStore : IFileStore
         }
         catch (Exception ex)
         {
-            context.Location().LogWarning(ex, "Failed to search, query={queryParameter}", queryParameter);
+            _logger.LogWarning(ex, "Failed to search, query={queryParameter}", queryParameter);
             return Array.Empty<StorePathDetail>();
         }
+    }
+
+    private DataLakeFileClient GetFileClient(string path)
+    {
+        path.NotEmpty();
+
+        var p1 = _datalakeOption.WithBasePath(path);
+        var fullPath = _fileSystem.GetFileClient(p1);
+        return fullPath;
     }
 }

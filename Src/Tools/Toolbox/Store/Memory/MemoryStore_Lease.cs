@@ -71,13 +71,17 @@ public partial class MemoryStore
         }
     }
 
-    public Option ReleaseLease(string leaseId)
+    public Option ReleaseLease(string path, string leaseId)
     {
+        path = RemoveForwardSlash(path);
+
         lock (_lock)
         {
+            if (!_store.ContainsKey(path)) return (StatusCode.NotFound, "Path not found");
             if (!_leaseStore.TryRemove(leaseId, out var leaseRecord)) return (StatusCode.NotFound, "Lease not found");
+            if (path != leaseRecord.Path) return (StatusCode.BadRequest, "LeaseId does not match path");
 
-            _store[leaseRecord.Path] = _store[leaseRecord.Path] with { LeaseRecord = null };
+            _store[path] = _store[path] with { LeaseRecord = null };
             _logger.LogDebug("Release lease Path={path}, leaseId={leaseId}", leaseRecord.Path, leaseId);
             return StatusCode.OK;
         }

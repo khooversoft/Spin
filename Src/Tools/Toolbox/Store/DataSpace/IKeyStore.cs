@@ -18,14 +18,6 @@ public interface IKeyStore
     Task<Option> BreakLease(string key);
     Task<Option<string>> AcquireExclusiveLock(string key, bool breakLeaseIfExist);
     Task<Option<string>> AcquireLease(string key, TimeSpan leaseDuration);
-    Task<Option> Release(string leaseId);
+    Task<Option> ReleaseLease(string key, string leaseId);
+    Task<Option> RenewLease(string key, string leaseId);
 }
-
-//public interface IKeyReadWriteStore
-//{
-//    Task<Option<string>> Append(DataETag data, ScopeContext context);
-//    Task<Option> Delete(ScopeContext context);
-//    Task<Option<DataETag>> Get(ScopeContext context);
-//    Task<Option<string>> Set(DataETag data, ScopeContext context);
-//    Task<Option> Release(ScopeContext context);
-//}

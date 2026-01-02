@@ -44,7 +44,7 @@ public class DataSpace
         return keyStore.GetStore(definition).NotNull();
     }
 
-    public IListStore2<T> GetListStore<T>(string key)
+    public IListStore<T> GetListStore<T>(string key)
     {
         (IStoreProvider provider, SpaceDefinition definition) = GetProvider(key);
 

@@ -55,7 +55,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         int rollbackCount = 0;
 
         transaction.EnlistLambda("source1", entry =>
@@ -86,7 +86,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         int rollbackCount = 0;
 
         transaction.EnlistLambda("source1", entry =>
@@ -130,7 +130,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         int rollbackCount = 0;
 
         transaction.EnlistLambda("source1", entry =>
@@ -175,7 +175,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         var r1 = new MapRecord("Item1", 25);
@@ -208,7 +208,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         var original = new MapRecord("Item1", 25);
@@ -245,7 +245,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
 
@@ -273,7 +273,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         concurrentMap.TryAdd(new MapRecord("Item1", 25)).BeTrue();
@@ -302,7 +302,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         concurrentMap.TryAdd(new MapRecord("Item1", 25)).BeTrue();
@@ -332,7 +332,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
 
@@ -368,7 +368,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
 
@@ -397,7 +397,7 @@ public class ConcurrentMapTrxRecorderTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);
         concurrentMap.TryAdd(new MapRecord("Item1", 25)).BeTrue();

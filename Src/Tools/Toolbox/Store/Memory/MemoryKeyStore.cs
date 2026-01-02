@@ -29,7 +29,13 @@ public class MemoryKeyStore : IKeyStore
     public Task<Option<string>> AcquireExclusiveLock(string key, bool breakLeaseIfExist) => InternalAcquire(key, TimeSpan.FromSeconds(-1), true);
     public Task<Option<string>> AcquireLease(string key, TimeSpan leaseDuration) => InternalAcquire(key, leaseDuration, false);
     public Task<Option> BreakLease(string key) => _memoryStore.BreakLease(key).ToTaskResult();
-    public Task<Option> Release(string leaseId) => _memoryStore.ReleaseLease(leaseId).ToTaskResult();
+    public Task<Option> ReleaseLease(string key, string leaseId) => _memoryStore.ReleaseLease(key, leaseId).ToTaskResult();
+
+    public Task<Option> RenewLease(string key, string leaseId)
+    {
+        throw new NotImplementedException();
+    }
+
 
     private async Task<Option<string>> InternalAcquire(string path, TimeSpan leaseDuration, bool breakLeaseIfExist)
     {

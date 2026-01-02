@@ -12,5 +12,5 @@ public interface IStoreKeyProvider : IStoreProvider
 
 public interface IStoreListProvider : IStoreProvider
 {
-    IListStore2<T> GetStore<T>(SpaceDefinition definition);
+    IListStore<T> GetStore<T>(SpaceDefinition definition);
 }

@@ -74,7 +74,7 @@ public class MemoryStoreTrxTests
     {
         var host = BuildService(useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
         string path = "test-file.json";
 
@@ -121,7 +121,7 @@ public class MemoryStoreTrxTests
     {
         var host = BuildService(useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
         string path = "test-file.json";
 
@@ -142,7 +142,7 @@ public class MemoryStoreTrxTests
 
             var list = x.SelectMany(x => x.Entries).ToList();
             list.Count.Be(2);
-            
+
             // First operation is Add
             list[0].Action(entry =>
             {
@@ -187,7 +187,7 @@ public class MemoryStoreTrxTests
     {
         var host = BuildService(useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
         string path = "test-file.json";
 
@@ -207,10 +207,10 @@ public class MemoryStoreTrxTests
 
             var list = x.SelectMany(x => x.Entries).ToList();
             list.Count.Be(2);
-            
+
             // First operation is Add
             list[0].Action.Be(ChangeOperation.Add);
-            
+
             // Second operation is Delete
             list[1].Action(entry =>
             {
@@ -359,7 +359,7 @@ public class MemoryStoreTrxTests
     {
         var host = BuildService(useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         await transaction.Start();
@@ -391,7 +391,7 @@ public class MemoryStoreTrxTests
     {
         var host = BuildService(useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
 
         await transaction.Start();
 
@@ -413,7 +413,7 @@ public class MemoryStoreTrxTests
     {
         var host = BuildService(useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         // First transaction
@@ -443,7 +443,7 @@ public class MemoryStoreTrxTests
     {
         var host = BuildService(useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
         string path = "test-file.json";
 

@@ -12,7 +12,7 @@ namespace Toolbox.Azure.test.Application;
 
 internal static class TestApplication
 {
-    public static IFileStore GetDatalake(string basePath) => new DatalakeStore(ReadOption(basePath), new NullLogger<DatalakeStore>());
+    public static IKeyStore GetDatalake(string basePath) => new DatalakeStore(ReadOption(basePath), new NullLogger<DatalakeStore>());
 
     public static DatalakeOption ReadOption(string basePath) => new ConfigurationBuilder()
         .AddJsonFile("TestSettings.json")

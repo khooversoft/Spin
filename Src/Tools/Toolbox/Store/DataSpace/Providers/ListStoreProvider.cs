@@ -18,7 +18,7 @@ public class ListStoreProvider : IStoreListProvider
 
     public string Name { get; }
 
-    public IListStore2<T> GetStore<T>(SpaceDefinition definition)
+    public IListStore<T> GetStore<T>(SpaceDefinition definition)
     {
         definition.SpaceFormat.Assert(x => x == SpaceFormat.List, $"Invalid space format {definition.SpaceFormat} for list store");
 

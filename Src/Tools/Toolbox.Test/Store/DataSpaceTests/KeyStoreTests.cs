@@ -9,11 +9,11 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Test.Store.DataSpaceTests;
 
-public class DataSpaceKeyTests
+public class KeyStoreTests
 {
     private ITestOutputHelper _outputHelper;
 
-    public DataSpaceKeyTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+    public KeyStoreTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     protected virtual void AddStore(IServiceCollection services) => services.AddInMemoryKeyStore();
 
@@ -43,7 +43,9 @@ public class DataSpaceKeyTests
             .Build();
 
         // Clear the store before running tests, this includes any locked files
-        //await host.ClearStore<FileStoreTransactionTests>();
+        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        await keyStore.ClearStore();
+        (await keyStore.Search("**.*")).Count().Be(0);
         return host;
     }
 
@@ -316,7 +318,7 @@ public class DataSpaceKeyTests
         var leaseId = leaseOption.Return();
         leaseId.NotEmpty();
 
-        var releaseResult = await keyStore.Release(leaseId);
+        var releaseResult = await keyStore.ReleaseLease(path, leaseId);
         releaseResult.BeOk();
 
         await keyStore.Delete(path);
@@ -342,7 +344,7 @@ public class DataSpaceKeyTests
         var leaseId = lockOption.Return();
         leaseId.NotEmpty();
 
-        var releaseResult = await keyStore.Release(leaseId);
+        var releaseResult = await keyStore.ReleaseLease(path, leaseId);
         releaseResult.BeOk();
 
         await keyStore.Delete(path);
@@ -399,7 +401,7 @@ public class DataSpaceKeyTests
         readOption.BeOk();
         content2.SequenceEqual(readOption.Return().Data).BeTrue();
 
-        await keyStore.Release(leaseId);
+        await keyStore.ReleaseLease(path, leaseId);
         await keyStore.Delete(path);
     }
 
@@ -457,7 +459,7 @@ public class DataSpaceKeyTests
         var combined = content1.Concat(content2).ToArray();
         combined.SequenceEqual(readOption.Return().Data).BeTrue();
 
-        await keyStore.Release(leaseId);
+        await keyStore.ReleaseLease(path, leaseId);
         await keyStore.Delete(path);
     }
 

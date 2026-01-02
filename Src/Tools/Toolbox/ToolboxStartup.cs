@@ -75,7 +75,7 @@ public static class ToolboxStartup
         services.NotNull();
         spaceName.NotEmpty();
 
-        services.AddTransient<IListStore2<T>>(services =>
+        services.AddTransient<IListStore<T>>(services =>
         {
             var dataSpace = services.GetRequiredService<DataSpace>();
             return dataSpace.GetListStore<T>(spaceName);

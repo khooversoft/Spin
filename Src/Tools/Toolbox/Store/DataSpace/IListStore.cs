@@ -2,7 +2,7 @@
 
 namespace Toolbox.Store;
 
-public interface IListStore2<T>
+public interface IListStore<T>
 {
     Task<Option<string>> Append(string key, IEnumerable<T> data);
     Task<Option> Delete(string key);

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Azure.test.Application;
-using Toolbox.Test.Store;
+using Toolbox.Test.Store.DataSpaceTests;
 using Xunit.Abstractions;
 
 namespace Toolbox.Azure.test.Store;

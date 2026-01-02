@@ -7,7 +7,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class ListSpace<T> : IListStore2<T>
+public class ListSpace<T> : IListStore<T>
 {
     private readonly IKeyStore _keyStore;
     private readonly ListKeySystem<T> _fileSystem;

@@ -21,7 +21,7 @@ public class Transaction
     private readonly ConcurrentQueue<DataChangeEntry> _queue = new();
     private readonly TransactionOption _trxOption;
     private readonly LogSequenceNumber _logSequenceNumber;
-    private readonly IListStore2<DataChangeRecord> _changeClient;
+    private readonly IListStore<DataChangeRecord> _changeClient;
     private readonly ILogger<Transaction> _logger;
     private EnumState<RunState> _runState = new(RunState.None);
     private TransactionProviders _providers;
@@ -29,7 +29,7 @@ public class Transaction
     public Transaction(
         TransactionOption trxOption,
         LogSequenceNumber logSequenceNumber,
-        IListStore2<DataChangeRecord> changeClient,
+        IListStore<DataChangeRecord> changeClient,
         ILogger<Transaction> logger
         )
     {

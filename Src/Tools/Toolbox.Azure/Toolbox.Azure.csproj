@@ -23,6 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="DataLake\Store\" />
       <Folder Include="OpenId\" />
     </ItemGroup>
 

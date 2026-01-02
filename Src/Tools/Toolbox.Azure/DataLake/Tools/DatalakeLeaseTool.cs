@@ -1,151 +1,144 @@
-﻿using System.Security.Cryptography;
-using Azure;
-using Azure.Storage.Files.DataLake;
-using Azure.Storage.Files.DataLake.Models;
-using Microsoft.Extensions.Logging;
-using Toolbox.Store;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿//using System.Security.Cryptography;
+//using Azure;
+//using Azure.Storage.Files.DataLake;
+//using Azure.Storage.Files.DataLake.Models;
+//using Microsoft.Extensions.Logging;
+//using Toolbox.Store;
+//using Toolbox.Tools;
+//using Toolbox.Types;
 
-namespace Toolbox.Azure;
+//namespace Toolbox.Azure;
 
-public static class DatalakeLeaseTool
-{
-    private const string _leaseAlreadyPresentText = "LeaseAlreadyPresent";
-    private const string _blobNotFoundText = "BlobNotFound";
-    private static readonly TimeSpan _leaseRetryDuration = TimeSpan.FromSeconds(5);
+//public static class DatalakeLeaseTool
+//{
+//    private const string _leaseAlreadyPresentText = "LeaseAlreadyPresent";
+//    private const string _blobNotFoundText = "BlobNotFound";
+//    private static readonly TimeSpan _leaseRetryDuration = TimeSpan.FromSeconds(5);
 
-    public static async Task<Option<IFileLeasedAccess>> AcquireLease(this DataLakeFileClient fileClient, DatalakeStore datalakeStore, TimeSpan leaseDuration, ScopeContext context)
-    {
-        var acquireOption = await fileClient.InternalAcquire(datalakeStore, leaseDuration, context);
-        return acquireOption;
-    }
+//    public static async Task<Option<string>> AcquireLease(this DataLakeFileClient fileClient, TimeSpan leaseDuration, ILogger logger)
+//    {
+//        var acquireOption = await fileClient.InternalAcquireLease(leaseDuration, logger);
+//        return acquireOption;
+//    }
 
-    public static async Task<Option<IFileLeasedAccess>> AcquireExclusiveLease(this DataLakeFileClient fileClient, DatalakeStore datalakeStore, bool breakLeaseIfExist, ScopeContext context)
-    {
-        var leaseDuration = TimeSpan.FromSeconds(-1);
+//    public static async Task<Option<string>> AcquireExclusiveLease(this DataLakeFileClient fileClient, bool breakLeaseIfExist, ILogger logger)
+//    {
+//        var leaseDuration = TimeSpan.FromSeconds(-1);
 
-        var acquireOption = await fileClient.InternalAcquire(datalakeStore, leaseDuration, context);
-        if (acquireOption.IsOk()) return acquireOption;
-        if (acquireOption.IsLocked() && !breakLeaseIfExist) return acquireOption;
+//        var acquireOption = await fileClient.InternalAcquireLease(leaseDuration, logger);
+//        if (acquireOption.IsOk()) return acquireOption;
+//        if (acquireOption.IsLocked() && !breakLeaseIfExist) return acquireOption;
 
-        context.LogWarning("Failed to acquire lease, attempting to break lease");
-        var breakOption = await fileClient.Break(context);
-        if (breakOption.IsError()) return breakOption.ToOptionStatus<IFileLeasedAccess>();
+//        logger.LogWarning("Failed to acquire lease, attempting to break lease");
+//        var breakOption = await fileClient.Break(logger);
+//        if (breakOption.IsError()) return breakOption.ToOptionStatus<string>();
 
-        acquireOption = await fileClient.InternalAcquire(datalakeStore, leaseDuration, context);
-        return acquireOption;
-    }
+//        acquireOption = await fileClient.InternalAcquireLease(leaseDuration, logger);
+//        return acquireOption;
+//    }
 
-    public static async Task<Option> Break(this DataLakeFileClient fileClient, ScopeContext context)
-    {
-        fileClient.NotNull();
-        DataLakeLeaseClient leaseClient = fileClient.GetDataLakeLeaseClient();
-        context.LogDebug("Attempting to breaking lease for path={path}, leaseId={leaseId}", fileClient.Path, leaseClient.LeaseId);
+//    public static async Task<Option> Break(this DataLakeFileClient fileClient, ILogger logger)
+//    {
+//        fileClient.NotNull();
+//        DataLakeLeaseClient leaseClient = fileClient.GetDataLakeLeaseClient();
+//        logger.LogDebug("Attempting to breaking lease for path={path}, leaseId={leaseId}", fileClient.Path, leaseClient.LeaseId);
 
-        try
-        {
-            var result = await leaseClient.BreakAsync();
-            if (result.GetRawResponse().IsError)
-            {
-                context.LogError("Failed to break lease, reason={reason}", result.GetRawResponse().ToString());
-                return (StatusCode.Conflict, "Failed to break lease");
-            }
+//        try
+//        {
+//            var result = await leaseClient.BreakAsync();
+//            if (result.GetRawResponse().IsError)
+//            {
+//                logger.LogError("Failed to break lease, reason={reason}", result.GetRawResponse().ToString());
+//                return (StatusCode.Conflict, "Failed to break lease");
+//            }
 
-            context.LogWarning("Lease has been broken");
-            return StatusCode.OK;
-        }
-        catch (Exception ex)
-        {
-            context.LogError(ex, "Failed to acquire lease, {isCancellationRequested}", context.CancellationToken.IsCancellationRequested);
-            return (StatusCode.Conflict, ex.Message);
-        }
-    }
+//            logger.LogWarning("Lease has been broken");
+//            return StatusCode.OK;
+//        }
+//        catch (Exception ex)
+//        {
+//            logger.LogError(ex, "Failed to acquire lease");
+//            return (StatusCode.Conflict, ex.Message);
+//        }
+//    }
 
-    private static async Task<Option<IFileLeasedAccess>> InternalAcquire(this DataLakeFileClient fileClient, DatalakeStore datalakeStore, TimeSpan leaseDuration, ScopeContext context)
-    {
-        fileClient.NotNull();
+//    // Returns the LeaseID
+//    internal static async Task<Option<string>> InternalAcquireLease(this DataLakeFileClient fileClient, TimeSpan leaseDuration, ILogger logger, CancellationToken token = default)
+//    {
+//        logger.NotNull();
 
-        var leaseOption = await fileClient.InternalAcquireLease(leaseDuration, context);
-        if (leaseOption.IsError()) return leaseOption.ToOptionStatus<IFileLeasedAccess>();
+//        DataLakeLeaseClient leaseClient = fileClient.GetDataLakeLeaseClient();
+//        DataLakeLease? lease = null;
+//        int notFoundCount = 0;
 
-        DataLakeLeaseClient leaseClient = leaseOption.Return();
-        return new DatalakeLeasedAccess(datalakeStore, fileClient, leaseClient, context.Logger);
-    }
+//        var scopeToken = CancellationTokenSource.CreateLinkedTokenSource(new CancellationTokenSource(_leaseRetryDuration).Token, token);
+//        while (!scopeToken.IsCancellationRequested)
+//        {
+//            try
+//            {
+//                logger.LogDebug("Attempting to acquire lease, leaseDuration={leaseDuration}", leaseDuration.ToString());
+//                lease = await leaseClient.AcquireAsync(leaseDuration, cancellationToken: token);
 
-    internal static async Task<Option<DataLakeLeaseClient>> InternalAcquireLease(this DataLakeFileClient fileClient, TimeSpan leaseDuration, ScopeContext context)
-    {
-        DataLakeLeaseClient leaseClient = fileClient.GetDataLakeLeaseClient();
-        DataLakeLease? lease = null;
-        int notFoundCount = 0;
+//                logger.LogDebug("Lease acquired. Duration={duration}, leaseId={leaseId}", leaseDuration.ToString(), lease.LeaseId);
+//                return leaseClient.LeaseId;
+//            }
+//            catch (RequestFailedException ex) when (ex.ErrorCode == _blobNotFoundText && notFoundCount++ == 0)
+//            {
+//                Response<PathInfo> leaseResult = await fileClient.CreateIfNotExistsAsync(PathResourceType.File, cancellationToken: token.Token);
+//                if (!leaseResult.HasValue)
+//                {
+//                    logger.LogError(ex, "Failed to acquire lease");
+//                    return (StatusCode.Conflict, ex.Message);
+//                }
 
-        var token = new CancellationTokenSource(_leaseRetryDuration);
-        while (!token.IsCancellationRequested)
-        {
-            try
-            {
-                context.LogDebug("Attempting to acquire lease, leaseDuration={leaseDuration}", leaseDuration.ToString());
-                lease = await leaseClient.AcquireAsync(leaseDuration);
+//                continue;
+//            }
+//            catch (RequestFailedException ex) when (ex.ErrorCode == _leaseAlreadyPresentText)
+//            {
+//                logger.LogWarning("Lease already present. Retrying...");
+//                var waitPeriod = TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(300));
+//                await Task.Delay(waitPeriod);
+//                continue;
+//            }
+//            catch (Exception ex)
+//            {
+//                logger.LogError(ex, "Failed to acquire lease");
+//                return (StatusCode.Conflict, ex.Message);
+//            }
+//        }
 
-                context.LogDebug("Lease acquired. Duration={duration}, leaseId={leaseId}", leaseDuration.ToString(), lease.LeaseId);
-                return leaseClient;
-            }
-            catch (RequestFailedException ex) when (ex.ErrorCode == _blobNotFoundText && notFoundCount++ == 0)
-            {
-                Response<PathInfo> leaseResult = await fileClient.CreateIfNotExistsAsync(PathResourceType.File, cancellationToken: token.Token);
-                if (!leaseResult.HasValue)
-                {
-                    context.LogError(ex, "Failed to acquire lease, {isCancellationRequested}", context.CancellationToken.IsCancellationRequested);
-                    return (StatusCode.Conflict, ex.Message);
-                }
+//        logger.LogError("Failed to acquire lease, timed out duration={duration}", _leaseRetryDuration.ToString());
+//        return (StatusCode.Locked, _leaseAlreadyPresentText);
+//    }
 
-                continue;
-            }
-            catch (RequestFailedException ex) when (ex.ErrorCode == _leaseAlreadyPresentText)
-            {
-                context.LogWarning("Lease already present. Retrying...");
-                var waitPeriod = TimeSpan.FromMilliseconds(RandomNumberGenerator.GetInt32(300));
-                await Task.Delay(waitPeriod, context.CancellationToken);
-                continue;
-            }
-            catch (Exception ex)
-            {
-                context.LogError(ex, "Failed to acquire lease");
-                return (StatusCode.Conflict, ex.Message);
-            }
-        }
+//    internal static async Task<Option> ReleaseLease(this DataLakeLeaseClient leaseClient, string path, ILogger logger, CancellationToken token = default)
+//    {
+//        leaseClient.NotNull();
+//        path.NotEmpty();
+//        logger.NotNull();
 
-        context.LogError("Failed to acquire lease, timed out duration={duration}", _leaseRetryDuration.ToString());
-        return (StatusCode.Locked, _leaseAlreadyPresentText);
-    }
+//        try
+//        {
+//            logger.LogDebug("Releasing lease for path={path}, leaseId={leaseId}", path, leaseClient.LeaseId);
 
-    internal static async Task<Option> ReleaseLease(this DataLakeLeaseClient leaseClient, string path, ScopeContext context)
-    {
-        leaseClient.NotNull();
-        path.NotEmpty();
+//            Response<ReleasedObjectInfo> result = await leaseClient.ReleaseAsync();
+//            if (!result.HasValue)
+//            {
+//                logger.LogError("Failed to release lease leaseId={leaseId} on path={path}", leaseClient.LeaseId, path);
+//                return StatusCode.Conflict;
+//            }
+//        }
+//        catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing")
+//        {
+//            logger.LogDebug("(LeaseIdMissing) Invalid lease Id path={path}", path);
+//            return StatusCode.OK;
+//        }
+//        catch (Exception ex)
+//        {
+//            logger.LogError(ex, "Ignore error, failed to release lease on path={path}, leaseId={leaseId}", path, leaseClient.LeaseId);
+//        }
 
-        try
-        {
-            context.Location().LogDebug("Releasing lease for path={path}, leaseId={leaseId}", path, leaseClient.LeaseId);
-
-            Response<ReleasedObjectInfo> result = await leaseClient.ReleaseAsync();
-            if (!result.HasValue)
-            {
-                context.LogError("Failed to release lease leaseId={leaseId} on path={path}", leaseClient.LeaseId, path);
-                return StatusCode.Conflict;
-            }
-        }
-        catch (RequestFailedException ex) when (ex.ErrorCode == "LeaseIdMissing")
-        {
-            context.LogDebug("(LeaseIdMissing) Invalid lease Id path={path}", path);
-            return StatusCode.OK;
-        }
-        catch (Exception ex)
-        {
-            context.LogError(ex, "Ignore error, failed to release lease on path={path}, leaseId={leaseId}", path, leaseClient.LeaseId);
-        }
-
-        context.LogDebug("Released lease for path={path}, leaseId={leaseId}", path, leaseClient.LeaseId);
-        return StatusCode.OK;
-    }
-}
+//        logger.LogDebug("Released lease for path={path}, leaseId={leaseId}", path, leaseClient.LeaseId);
+//        return StatusCode.OK;
+//    }
+//}

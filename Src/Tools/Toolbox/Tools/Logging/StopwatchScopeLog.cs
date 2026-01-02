@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Toolbox.Types;
 
 namespace Toolbox.Tools;
@@ -14,16 +15,31 @@ public static class StopwatchScopeTool
     {
         return new StopwatchScope(context, action);
     }
+
+    public static StopwatchScopeLog LogDuration(this ILogger logger, string metricName, string? message = null, params object?[] args)
+    {
+        return new StopwatchScopeLog(logger, metricName, message, args);
+    }
+
+    public static StopwatchScope LogDuration(this ILogger logger, Action<string?, TimeSpan> action)
+    {
+        return new StopwatchScope(logger, action);
+    }
 }
 
 public readonly struct StopwatchScope : IDisposable
 {
-    private readonly ScopeContext? _context = null;
+    private readonly ILogger? _logger;
     private readonly Action<string?, TimeSpan> _action;
 
     public StopwatchScope(ScopeContext context, Action<string?, TimeSpan> action)
+        : this(context.Logger, action)
     {
-        _context = context.NotNull();
+    }
+
+    public StopwatchScope(ILogger logger, Action<string?, TimeSpan> action)
+    {
+        _logger = logger.NotNull();
         _action = action.NotNull();
         Timestamp = Stopwatch.GetTimestamp();
     }
@@ -44,17 +60,23 @@ public readonly struct StopwatchScope : IDisposable
 public readonly struct StopwatchScopeLog : IDisposable
 {
     private readonly ScopeContext? _context = null;
+    private readonly ILogger? _logger;
     private readonly string? _metricName;
     private readonly string? _message = null;
     private readonly object?[] _args = [];
 
-    public StopwatchScopeLog(ScopeContext context, string metricName, string? message = null, params object?[] args)
+    public StopwatchScopeLog(ILogger logger, string metricName, string? message = null, params object?[] args)
     {
-        _context = context;
+        _logger = logger;
         _metricName = metricName.NotEmpty();
         _message = message;
         _args = args.NotNull();
         Timestamp = Stopwatch.GetTimestamp();
+    }
+
+    public StopwatchScopeLog(ScopeContext context, string metricName, string? message = null, params object?[] args)
+        : this(context.Logger, metricName, message, args)
+    {
     }
 
     public long Timestamp { get; }

@@ -58,7 +58,7 @@ public class ConcurrentMapTrxRollbackTests
     {
         var host = BuildService();
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
-        IListStore2<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore2<DataChangeRecord>>();
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
         int rollbackCount = 0;
 
         var concurrentMap = new ConcurrentMap<string, MapRecord>(x => x.Name);

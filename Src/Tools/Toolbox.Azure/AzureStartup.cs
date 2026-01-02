@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -8,23 +7,29 @@ namespace Toolbox.Azure;
 
 public static class AzureStartup
 {
-    public static IServiceCollection AddDatalakeFileStore(this IServiceCollection services, DatalakeOption datalakeOption, string? key = null)
+    public static IServiceCollection AddDatalakeFileStore(this IServiceCollection services, DatalakeOption datalakeOption)
     {
         datalakeOption.NotNull();
         datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption");
 
-        switch (key.ToNullIfEmpty())
-        {
-            case null:
-                services.AddSingleton(datalakeOption);
-                services.AddSingleton<IFileStore, DatalakeStore>();
-                break;
+        services.AddSingleton(datalakeOption);
+        services.AddSingleton<IKeyStore, DatalakeStore>();
 
-            case string vKey:
-                services.AddKeyedSingleton(vKey, datalakeOption);
-                services.AddKeyedSingleton<IFileStore, DatalakeStore>(vKey);
-                break;
-        }
+        return services;
+    }
+
+    public static IServiceCollection AddDatalakeKeyedFileStore(this IServiceCollection services, string key, DatalakeOption datalakeOption)
+    {
+        key.NotEmpty();
+        datalakeOption.NotNull();
+        datalakeOption.Validate().ThrowOnError("Invalid DatalakeOption");
+
+        services.AddKeyedSingleton(key, datalakeOption);
+        services.AddKeyedSingleton<IKeyStore, DatalakeStore>(key, (services, _) =>
+        {
+            var option = services.GetRequiredKeyedService<DatalakeOption>(key);
+            return ActivatorUtilities.CreateInstance<DatalakeStore>(services, option);
+        });
 
         return services;
     }
