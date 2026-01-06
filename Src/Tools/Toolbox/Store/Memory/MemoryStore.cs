@@ -25,14 +25,15 @@ public partial class MemoryStore
     public Option<string> Add(string path, DataETag data)
     {
         if (path.IsEmpty()) return (StatusCode.BadRequest, "Path is required");
-        path = RemoveForwardSlash(path);
+        path = StorePathTool.RemoveForwardSlash(path);
         _logger.LogDebug("Appending path={path}", path);
+        data = data.WithHash();
 
         if (!PathValidator.IsPathValid(path)) return (StatusCode.BadRequest, "Path is invalid");
 
         lock (_lock)
         {
-            if (IsLeased(path)) return (StatusCode.Conflict, "Path is leased");
+            if (IsLeased(path).IsLocked()) return (StatusCode.Conflict, "Path is leased");
 
             DirectoryDetail detail = new(data.ConvertTo(path), data, null);
 
@@ -52,11 +53,12 @@ public partial class MemoryStore
     public Option<string> Append(string path, DataETag data, string? leaseId)
     {
         _logger.LogDebug("Appending path={path}, leaseId={leaseId}", path, leaseId);
-        path = RemoveForwardSlash(path);
+        path = StorePathTool.RemoveForwardSlash(path);
+        data = data.WithHash();
 
         lock (_lock)
         {
-            if (IsLeased(path, leaseId)) return (StatusCode.Conflict, "Path is leased");
+            if (IsLeased(path, leaseId).IsLocked()) return (StatusCode.Conflict, "Path is leased");
 
             StorePathDetail pathDetail = data.ConvertTo(path);
 
@@ -64,11 +66,12 @@ public partial class MemoryStore
             {
                 var newPayload = readPayload with { Data = (readPayload.Data + data).WithHash() };
                 _store[path] = newPayload;
+
                 _logger.LogDebug("Append Path={path}, length={length}", path, data.Data.Length);
                 return newPayload.Data.ETag.NotEmpty();
             }
 
-            DirectoryDetail detail = new(pathDetail, data.WithHash());
+            DirectoryDetail detail = new(pathDetail, data);
             _store[path] = detail;
             return detail.Data.ETag.NotEmpty();
         }
@@ -76,20 +79,20 @@ public partial class MemoryStore
 
     public Option DeleteFolder(string pattern)
     {
-        var query = QueryParameter.Parse(pattern);
-        var matcher = query.GetMatcher();
+        pattern = StorePathTool.AddRecursiveSafe(pattern);
+        var matcher = new GlobFileMatching(pattern.NotEmpty());
 
         var result = _store.Keys
-            .Where(x => matcher.IsMatch(x, false))
+            .Where(x => matcher.IsMatch(x))
             .Select(x => Delete(x, null))
             .ToList();
 
-        return StatusCode.OK;
+        return result.Count > 0 ? StatusCode.OK : StatusCode.NotFound;
     }
 
-    public bool Exist(string path) => _store.ContainsKey(RemoveForwardSlash(path));
+    public bool Exist(string path) => _store.ContainsKey(StorePathTool.RemoveForwardSlash(path));
 
-    public Option<DataETag> Get(string path) => _store.TryGetValue(RemoveForwardSlash(path), out var payload) switch
+    public Option<DataETag> Get(string path) => _store.TryGetValue(StorePathTool.RemoveForwardSlash(path), out var payload) switch
     {
         true => payload.Data,
         false => StatusCode.NotFound,
@@ -97,11 +100,11 @@ public partial class MemoryStore
 
     public Option Delete(string path, string? leaseId)
     {
-        path = RemoveForwardSlash(path);
+        path = StorePathTool.RemoveForwardSlash(path);
 
         lock (_lock)
         {
-            if (IsLeased(path, leaseId)) return (StatusCode.Locked, "Path is leased");
+            if (IsLeased(path, leaseId).IsLocked()) return (StatusCode.Locked, "Path is leased");
 
             Option result = _store.TryRemove(path, out var payload) switch
             {
@@ -119,7 +122,7 @@ public partial class MemoryStore
 
     public Option<StorePathDetail> GetDetail(string path)
     {
-        path = RemoveForwardSlash(path);
+        path = StorePathTool.RemoveForwardSlash(path);
 
         return _store.TryGetValue(path, out var payload) switch
         {
@@ -139,13 +142,22 @@ public partial class MemoryStore
 
     public Option<string> Set(string path, DataETag data, string? leaseId)
     {
-        path = RemoveForwardSlash(path);
-
+        path = StorePathTool.RemoveForwardSlash(path);
         if (!PathValidator.IsPathValid(path)) return (StatusCode.BadRequest, "Path is invalid");
 
         lock (_lock)
         {
-            if (IsLeased(path, leaseId)) return (StatusCode.Locked, "Path is leased");
+            if (IsLeased(path, leaseId).IsLocked()) return (StatusCode.Locked, "Path is leased");
+
+            if (data.ETag.IsNotEmpty())
+            {
+                if (_store.TryGetValue(path, out var existing))
+                {
+                    if (existing.Data.ETag != data.ETag) return (StatusCode.Conflict, "ETag does not match");
+                }
+            }
+
+            data = data.WithHash();
 
             var result = _store.AddOrUpdate(path,
                 x =>
@@ -162,7 +174,7 @@ public partial class MemoryStore
                         PathDetail = current.PathDetail with
                         {
                             LastModified = DateTimeOffset.UtcNow,
-                            ETag = data.ToHash(),
+                            ETag = data.ETag.NotEmpty(),
                         },
                     };
 
@@ -175,14 +187,21 @@ public partial class MemoryStore
         }
     }
 
-    public IReadOnlyList<StorePathDetail> Search(string pattern)
+    public IReadOnlyList<StorePathDetail> Search(string pattern, int index = 0, int size = -1)
     {
-        pattern = RemoveForwardSlash(pattern);
-        var query = QueryParameter.Parse(pattern).GetMatcher();
+        pattern = StorePathTool.RemoveForwardSlash(pattern);
+        index.Assert(x => x >= 0, "Index must be greater than or equal to zero");
+        size.Assert(x => x == -1 || x > 0, "Size must be greater than zero or -1 for unlimited");
+
+        var query = new GlobFileMatching(pattern);
+        int maxSize = size < 1 ? int.MaxValue : size;
 
         var list = _store.Values
-            .Where(x => pattern == "*" || query.IsMatch(x.PathDetail.Path, false))
-            .Select(x => x.PathDetail with { Path = RemoveForwardSlash(x.PathDetail.Path) })
+            .Where(x => pattern == "*" || query.IsMatch(x.PathDetail.Path))
+            .Select(x => x.PathDetail with { Path = StorePathTool.RemoveForwardSlash(x.PathDetail.Path) })
+            .OrderBy(x => x.Path)
+            .Skip(index)
+            .Take(maxSize)
             .ToImmutableArray();
 
         return list;
@@ -190,19 +209,14 @@ public partial class MemoryStore
 
     public IReadOnlyList<(StorePathDetail Detail, DataETag Data)> SearchData(string pattern)
     {
-        var query = QueryParameter.Parse(pattern).GetMatcher();
+        var query = new GlobFileMatching(pattern);
 
         var list = _store.Values
             .Select(x => (Detail: x.PathDetail, Data: x.Data))
-            .Where(x => pattern == "*" || query.IsMatch(x.Detail.Path, false))
+            .Where(x => pattern == "*" || query.IsMatch(x.Detail.Path))
+            .Where(x => pattern == "*" || query.IsMatch(x.Detail.Path))
             .ToImmutableArray();
 
         return list;
     }
-
-    private static string RemoveForwardSlash(string path) => path.NotEmpty().StartsWith('/') switch
-    {
-        true => path[1..],
-        false => path,
-    };
 }

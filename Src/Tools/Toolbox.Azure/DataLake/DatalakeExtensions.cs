@@ -10,34 +10,6 @@ namespace Toolbox.Azure;
 
 public static class DatalakeExtensions
 {
-    public static async Task<Option> ForceDelete(this IKeyStore keyStore, string path, ILogger logger)
-    {
-        keyStore.NotNull();
-        path.NotEmpty();
-
-        var deleteOption = (await keyStore.Delete(path)).LogStatus(logger, "Delete file {path}", [path]);
-        if (deleteOption.IsOk() || !deleteOption.IsLocked()) return StatusCode.OK;
-
-        (await keyStore.BreakLease(path)).LogStatus(logger, "Break lease {path}", [path]);
-
-        var result = (await keyStore.Delete(path)).LogStatus(logger, "Delete file {path}", [path]);
-        return result;
-    }
-
-    public static async Task<Option<string>> ForceSet(this IKeyStore keyStore, string path, DataETag data, ILogger logger)
-    {
-        keyStore.NotNull();
-        path.NotEmpty();
-
-        var writeOption = (await keyStore.Set(path, data)).LogStatus(logger, "Set file {path}", [path]);
-        if (writeOption.IsOk() || !writeOption.IsLocked()) return StatusCode.OK;
-
-        (await keyStore.BreakLease(path)).LogStatus(logger, "Break lease {path}", path);
-
-        var result = (await keyStore.Set(path, data)).LogStatus(logger, "Set file {path}", path);
-        return result;
-    }
-
     public static async Task<Option<StorePathDetail>> GetPathDetail(this DataLakeFileClient fileClient, ILogger logger, CancellationToken token = default)
     {
         fileClient.NotNull();

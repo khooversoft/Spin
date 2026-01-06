@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Store;
@@ -7,7 +8,7 @@ public partial class MemoryStore
 {
     public Option<LeaseRecord> AcquireLease(string path, TimeSpan leaseDuration)
     {
-        path = RemoveForwardSlash(path);
+        path = StorePathTool.RemoveForwardSlash(path);
 
         LeaseRecord? leaseRecord = null!;
         Option result = StatusCode.OK;
@@ -17,7 +18,7 @@ public partial class MemoryStore
             DirectoryDetail directoryDetail = _store.AddOrUpdate(path,
                 x =>
                 {
-                    var data = new byte[0].ToDataETag();
+                    var data = new byte[0].ToDataETag().WithHash();
                     StorePathDetail storePathDetail = data.ConvertTo(path);
                     leaseRecord = new LeaseRecord(path, leaseDuration);
                     _leaseStore[leaseRecord.LeaseId] = leaseRecord;
@@ -54,7 +55,7 @@ public partial class MemoryStore
 
     public Option BreakLease(string path)
     {
-        path = RemoveForwardSlash(path);
+        path = StorePathTool.RemoveForwardSlash(path);
 
         lock (_lock)
         {
@@ -71,14 +72,41 @@ public partial class MemoryStore
         }
     }
 
-    public Option ReleaseLease(string path, string leaseId)
+    public Option IsLeased(string path, string? leaseId = null)
     {
-        path = RemoveForwardSlash(path);
+        path = StorePathTool.RemoveForwardSlash(path);
 
         lock (_lock)
         {
-            if (!_store.ContainsKey(path)) return (StatusCode.NotFound, "Path not found");
+            // Path does not exist or there is no lease
+            if (!_store.TryGetValue(path, out var directoryDetail)) return StatusCode.NotFound;
+            if (directoryDetail.LeaseRecord == null) return StatusCode.NotFound;
+
+            // Lease is no longer valid, clean up
+            if (!directoryDetail.LeaseRecord.IsLeaseValid())
+            {
+                _leaseStore.TryRemove(directoryDetail.LeaseRecord.LeaseId, out var _);
+                _store[path] = directoryDetail with { LeaseRecord = null };
+                return StatusCode.NotFound;
+            }
+
+            // Locked but leaseId is not valid
+            if (leaseId == null || directoryDetail.LeaseRecord.LeaseId != leaseId) return StatusCode.Locked;
+
+            // Locked but leaseId is valid
+            return StatusCode.OK;
+        }
+    }
+
+    public Option ReleaseLease(string path, string leaseId)
+    {
+        path = StorePathTool.RemoveForwardSlash(path);
+        leaseId.NotEmpty();
+
+        lock (_lock)
+        {
             if (!_leaseStore.TryRemove(leaseId, out var leaseRecord)) return (StatusCode.NotFound, "Lease not found");
+            if (!_store.ContainsKey(path)) return (StatusCode.NotFound, "Path not found");
             if (path != leaseRecord.Path) return (StatusCode.BadRequest, "LeaseId does not match path");
 
             _store[path] = _store[path] with { LeaseRecord = null };
@@ -87,24 +115,26 @@ public partial class MemoryStore
         }
     }
 
-    public bool IsLeased(string path, string? leaseId = null)
+    public Option RenewLease(string path, string leaseId)
     {
-        path = RemoveForwardSlash(path);
+        path = StorePathTool.RemoveForwardSlash(path);
 
-        // Path does not exist or there is no lease
-        if (!_store.TryGetValue(path, out var directoryDetail) || directoryDetail.LeaseRecord == null) return false;
-
-        // Lease is no longer valid, clean up
-        if (!directoryDetail.LeaseRecord.IsLeaseValid())
+        lock (_lock)
         {
-            string currentLeaseId = directoryDetail.LeaseRecord.LeaseId;
+            if (!_store.TryGetValue(path, out var directoryDetail)) return StatusCode.NotFound;
+            if (directoryDetail.LeaseRecord == null) return StatusCode.NotFound;
+            if (leaseId == null || directoryDetail.LeaseRecord.LeaseId != leaseId) return StatusCode.NotFound;
 
-            _leaseStore.TryRemove(directoryDetail.LeaseRecord.LeaseId, out var _);
-            _store[path] = directoryDetail with { LeaseRecord = null };
-            return false;
+            if (!directoryDetail.LeaseRecord.Renew())
+            {
+                // Lease not valid, clean up
+                _leaseStore.TryRemove(directoryDetail.LeaseRecord.LeaseId, out var _);
+                _store[path] = directoryDetail with { LeaseRecord = null };
+                return StatusCode.NotFound;
+            }
+
+            _logger.LogDebug("Renew lease Path={path}", path);
+            return StatusCode.OK;
         }
-
-        if (directoryDetail.LeaseRecord.IsLeaseValid(leaseId) == true) return true;
-        return false;
     }
 }

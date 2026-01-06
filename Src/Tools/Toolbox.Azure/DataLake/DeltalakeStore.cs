@@ -30,30 +30,35 @@ public partial class DatalakeStore : IKeyStore
 
     public async Task<Option> DeleteFolder(string path)
     {
+        path.NotEmpty();
         using var metric = _logger.LogDuration("dataLakeStore-deleteDirectory", "path={path}", path);
 
         path = _datalakeOption.WithBasePath(path);
         _logger.LogDebug("Deleting directory {path}", path);
 
-        try
-        {
-            DataLakeDirectoryClient directoryClient = _fileSystem.GetDirectoryClient(path);
-            var response = await directoryClient.DeleteAsync(recursive: true);
-            if (response.Status != 200) return (StatusCode.Conflict, response.ReasonPhrase);
+        var queue = new Queue<Func<Task<Option>>>();
 
-            return StatusCode.OK;
-        }
-        catch (RequestFailedException ex) when (ex.Status == 401 || ex.ErrorCode == "PathNotFound")
+        switch (path.IndexOf("*/*/"))
         {
-            _logger.LogError(ex, "Failed to delete directory for {path}", path);
-            return StatusCode.NotFound;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to delete directory for {path}", path);
+            case -1:
+                queue.Enqueue(() => InternalDeleteFolder(path));
+                queue.Enqueue(() => InternalSearchDelete(path));
+                break;
+
+            default:
+                queue.Enqueue(() => InternalSearchDelete(path));
+                queue.Enqueue(() => InternalDeleteFolder(path));
+                break;
         }
 
-        return StatusCode.BadRequest;
+        while (queue.Count > 0)
+        {
+            var action = queue.Dequeue();
+            Option result = await action().ConfigureAwait(false);
+            if (result.IsOk()) return result;
+        }
+
+        return StatusCode.NotFound;
     }
 
     public async Task<Option<StorePathDetail>> GetDetails(string path)
@@ -82,40 +87,35 @@ public partial class DatalakeStore : IKeyStore
         }
     }
 
-    public async Task<IReadOnlyList<StorePathDetail>> Search(string pattern)
+    public async Task<IReadOnlyList<StorePathDetail>> Search(string pattern, int index = 0, int size = -1)
     {
-        var queryParameter = QueryParameter.Parse(pattern);
-        using var metric = _logger.LogDuration("dataLakeStore-search", "queryParameter={queryParameter}", queryParameter);
+        var basePattern = _datalakeOption.WithBasePath(pattern);
 
-        queryParameter = queryParameter with
-        {
-            Filter = _datalakeOption.WithBasePath(queryParameter.Filter),
-            BasePath = _datalakeOption.WithBasePath(queryParameter.BasePath),
-        };
-        _logger.LogDebug("Searching {queryParameter}", queryParameter);
+        var matcher = new GlobFileMatching(basePattern);
+        using var metric = _logger.LogDuration("dataLakeStore-search", "pattern={pattern}", basePattern);
 
-        var collection = new Sequence<PathItem>();
-        var matcher = queryParameter.GetMatcher();
+        var list = new Sequence<StorePathDetail>();
+        string basePath = StorePathTool.GetRootPath(basePattern);
+        bool recurse = matcher.IsRecursive;
+        int maxSize = size < 1 ? int.MaxValue : size;
 
-        int index = -1;
+        int count = 0;
+        int scanCount = 0;
         try
         {
-            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(queryParameter.BasePath, queryParameter.Recurse))
+            await foreach (PathItem pathItem in _fileSystem.GetPathsAsync(basePath, recurse))
             {
-                if (!matcher.IsMatch(pathItem.Name, pathItem.IsDirectory == true)) continue;
+                scanCount++;
+                if (!matcher.IsMatch(pathItem.Name)) continue;
+                if (pathItem.IsDirectory == true && !matcher.IncludeFolders) continue;
+                if (count++ < index) continue;
 
-                index++;
-                if (index < queryParameter.Index) continue;
-
-                collection += pathItem;
-                if (collection.Count >= queryParameter.Count) break;
+                string trimmedPath = _datalakeOption.RemoveBaseRoot(pathItem.Name);
+                list += pathItem.ConvertTo(trimmedPath);
+                if (list.Count >= maxSize) break;
             }
 
-            IReadOnlyList<StorePathDetail> list = collection
-                .Select(x => x.ConvertTo(_datalakeOption.RemoveBaseRoot(x.Name)))
-                .ToImmutableArray();
-
-            return list;
+            return list.ToImmutableArray();
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == "PathNotFound")
         {
@@ -123,7 +123,7 @@ public partial class DatalakeStore : IKeyStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to search, query={queryParameter}", queryParameter);
+            _logger.LogWarning(ex, "Failed to search, pattern={pattern}", basePattern);
             return Array.Empty<StorePathDetail>();
         }
     }
@@ -135,5 +135,70 @@ public partial class DatalakeStore : IKeyStore
         var p1 = _datalakeOption.WithBasePath(path);
         var fullPath = _fileSystem.GetFileClient(p1);
         return fullPath;
+    }
+
+    public async Task<Option> InternalDeleteFolder(string path)
+    {
+        path.NotEmpty();
+        path = _datalakeOption.WithBasePath(path);
+        using var metric = _logger.LogDuration("dataLakeStore-deleteDirectory", "path={path}", path);
+        _logger.LogDebug("Deleting directory {path}", path);
+
+        try
+        {
+            DataLakeDirectoryClient directoryClient = _fileSystem.GetDirectoryClient(path);
+            var existResponse = await directoryClient.ExistsAsync();
+            if (!existResponse.Value)
+            {
+                _logger.LogDebug("Directory does not exist, path={path}", path);
+                return StatusCode.NotFound;
+            }
+
+            var response = await directoryClient.DeleteAsync(recursive: true);
+            if (response.Status != 200) return (StatusCode.Conflict, response.ReasonPhrase);
+
+            return StatusCode.OK;
+        }
+        catch (RequestFailedException ex) when (ex.Status == 401 || ex.ErrorCode == "PathNotFound")
+        {
+            _logger.LogError(ex, "Failed to delete directory for {path}", path);
+            return StatusCode.NotFound;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete directory for {path}", path);
+        }
+
+        return StatusCode.BadRequest;
+    }
+
+    private async Task<Option> InternalSearchDelete(string path)
+    {
+        path.NotEmpty();
+        var fullPath = StorePathTool.AddRecursiveSafe(path);
+        IReadOnlyList<StorePathDetail> pathItems = await Search(fullPath);
+
+        IReadOnlyList<StorePathDetail> orderedItems = pathItems
+            .OrderBy(x => x.IsFolder) // files first, folders last
+            .ThenByDescending(x => x.Path.Count(c => c == '/')) // deepest paths first
+            .ToList();
+
+        if (orderedItems.Count == 0) return StatusCode.NotFound;
+
+        foreach (StorePathDetail item in orderedItems)
+        {
+            if (item.IsFolder)
+            {
+                Option deleteFolderOption = await InternalDeleteFolder(item.Path);
+                if (deleteFolderOption.IsError()) return deleteFolderOption;
+            }
+            else
+            {
+                Option deleteOption = await Delete(item.Path).ConfigureAwait(false);
+                if (deleteOption.IsError()) return deleteOption;
+            }
+        }
+
+        return StatusCode.OK;
     }
 }

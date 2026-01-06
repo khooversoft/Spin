@@ -23,7 +23,7 @@ public partial class DatalakeStore : ITrxProvider
         switch (entry.Action)
         {
             case ChangeOperation.Add:
-                //entry.After.HasValue.BeTrue("After value must be present for add operation.");
+                entry.After.HasValue.BeTrue("After value must be present for add operation.");
                 //_store.TryRemove(entry.ObjectId, out var _);
                 break;
 

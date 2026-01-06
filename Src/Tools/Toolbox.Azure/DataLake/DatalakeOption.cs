@@ -43,6 +43,7 @@ public static class DatalakeOptionTool
         var result = (subject.BasePath, path) switch
         {
             (string v, null) => v,
+            (string v1, string v2) when v2.StartsWith(v1, StringComparison.OrdinalIgnoreCase) => v2,
             (string v1, string v2) => (v1 + "/" + v2)
                 .Split('/', StringSplitOptions.RemoveEmptyEntries)
                 .Join('/'),

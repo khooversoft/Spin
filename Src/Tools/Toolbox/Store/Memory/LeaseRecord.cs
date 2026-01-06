@@ -20,8 +20,16 @@ public record class LeaseRecord
     public string LeaseId { get; } = Guid.NewGuid().ToString();
     public bool Infinite { get; }
     public TimeSpan Duration { get; }
-    public DateTimeOffset Expiration { get; }
+    public DateTimeOffset Expiration { get; private set; }
 
     public bool IsLeaseValid() => Infinite || Expiration > DateTimeOffset.UtcNow;
     public bool IsLeaseValid(string? leaseId) => IsLeaseValid() && (LeaseId != leaseId);
+
+    public bool Renew()
+    {
+        if (!IsLeaseValid()) return false;
+
+        Expiration = DateTimeOffset.UtcNow + Duration;
+        return true;
+    }
 }

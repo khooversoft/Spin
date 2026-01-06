@@ -11,6 +11,8 @@ namespace Toolbox.Azure;
 
 public partial class DatalakeStore
 {
+    private readonly AsyncKeyGuard _appendGuard = new();
+
     public async Task<Option<string>> Append(string path, DataETag data, string? leaseId = null)
     {
         path.NotEmpty();
@@ -19,6 +21,8 @@ public partial class DatalakeStore
 
         using var metric = _logger.LogDuration("dataLakeStore-append", "path={path}, dataSize={dataSize}", fileClient.Path, data.Data.Length);
         _logger.LogDebug("Appending to {path}, data.Length={data.Length}", fileClient.Path, data.Data.Length);
+
+        using var guardScope = await _appendGuard.AcquireLock(path);
 
         var resultOption = leaseId switch
         {
@@ -40,16 +44,8 @@ public partial class DatalakeStore
                 return leaseOption;
             }
 
-            var leaseId = leaseOption.Return();
-            try
-            {
-                return await LeaseAppend(fileClient, leaseId, data);
-            }
-            finally
-            {
-                _logger.LogDebug("Releasing lease for path={path}", fileClient.Path);
-                (await ReleaseLease(path, leaseId)).ThrowOnError("Failed to release lease");
-            }
+            var leaseId = leaseOption.Return().NotEmpty();
+            return await LeaseAppend(fileClient, leaseId, data);
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using Toolbox.Types;
+﻿using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Store;
 
@@ -34,7 +35,7 @@ public static class StorePathDetailExtensions
     {
         Path = path,
         ContentLength = dataETag.Data.Length,
-        ETag = dataETag.ToHash(),
+        ETag = dataETag.ETag.NotEmpty(),
     };
 
     public static StorePathDetail WithContextHash(this StorePathDetail subject, string contentHash) => subject with

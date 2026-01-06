@@ -103,4 +103,18 @@ public static class VerifyOption
         if (!subject.StatusCode.IsBadRequest()) throw new ArgumentException(Verify.FormatException($"'{name}' is '{subject.StatusCode}' should be BadRequest, error={subject.Error}", because));
         return subject;
     }
+
+    [DebuggerStepThrough]
+    public static Option BeLocked(this Option subject, string? because = null, [CallerArgumentExpression("subject")] string name = "")
+    {
+        if (!subject.StatusCode.IsLocked()) throw new ArgumentException(Verify.FormatException($"'{name}' is '{subject.StatusCode}' should be Locked, error={subject.Error}", because));
+        return subject;
+    }
+
+    [DebuggerStepThrough]
+    public static Option<T> BeLocked<T>(this Option<T> subject, string? because = null, [CallerArgumentExpression("subject")] string name = "")
+    {
+        if (!subject.StatusCode.IsLocked()) throw new ArgumentException(Verify.FormatException($"'{name}' is '{subject.StatusCode}' should be Locked, error={subject.Error}", because));
+        return subject;
+    }
 }

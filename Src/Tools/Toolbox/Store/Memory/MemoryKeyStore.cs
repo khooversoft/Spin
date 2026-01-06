@@ -25,17 +25,12 @@ public class MemoryKeyStore : IKeyStore
     public Task<Option<string>> Set(string key, DataETag data, string? leaseId = null) => _memoryStore.Set(key, data, leaseId).ToTaskResult();
     public Task<Option> Exists(string key) => new Option(_memoryStore.Exist(key) ? StatusCode.OK : StatusCode.NotFound).ToTaskResult();
     public Task<Option<StorePathDetail>> GetDetails(string key) => _memoryStore.GetDetail(key).ToTaskResult();
-    public Task<IReadOnlyList<StorePathDetail>> Search(string pattern) => _memoryStore.Search(pattern).ToTaskResult();
+    public Task<IReadOnlyList<StorePathDetail>> Search(string pattern, int index = 0, int size = -1) => _memoryStore.Search(pattern, index, size).ToTaskResult();
     public Task<Option<string>> AcquireExclusiveLock(string key, bool breakLeaseIfExist) => InternalAcquire(key, TimeSpan.FromSeconds(-1), true);
     public Task<Option<string>> AcquireLease(string key, TimeSpan leaseDuration) => InternalAcquire(key, leaseDuration, false);
     public Task<Option> BreakLease(string key) => _memoryStore.BreakLease(key).ToTaskResult();
     public Task<Option> ReleaseLease(string key, string leaseId) => _memoryStore.ReleaseLease(key, leaseId).ToTaskResult();
-
-    public Task<Option> RenewLease(string key, string leaseId)
-    {
-        throw new NotImplementedException();
-    }
-
+    public Task<Option> RenewLease(string key, string leaseId) => _memoryStore.RenewLease(key, leaseId).ToTaskResult();
 
     private async Task<Option<string>> InternalAcquire(string path, TimeSpan leaseDuration, bool breakLeaseIfExist)
     {
