@@ -70,6 +70,8 @@ public class Transaction
 
     public void Enqueue<T>(string sourceName, string objectId, string action, DataETag? before, DataETag? after)
     {
+        if (_runState.IfValue(RunState.RollingBack)) return;
+
         _runState.IfValue(RunState.Active).BeTrue("Transaction is not in progress");
         _logger.LogTrace("Enqueue Transaction sourceName={sourceName}, objectId={objectId}", sourceName, objectId);
 

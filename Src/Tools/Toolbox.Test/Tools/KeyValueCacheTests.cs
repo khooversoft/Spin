@@ -30,7 +30,7 @@ public class KeyValueCacheTests
     public void AddOrUpdate_ShouldRefreshLifetime()
     {
         var key = "key";
-        var cache = new KeyValueCache<string>(TimeSpan.FromMilliseconds(80));
+        var cache = new KeyValueCache<string>(TimeSpan.FromMilliseconds(200));
 
         cache.AddOrUpdate(key, "value1");
         Thread.Sleep(TimeSpan.FromMilliseconds(50));

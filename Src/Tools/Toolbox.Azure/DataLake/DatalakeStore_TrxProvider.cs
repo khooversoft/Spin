@@ -1,5 +1,7 @@
-﻿using Toolbox.Data;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -18,26 +20,41 @@ public partial class DatalakeStore : ITrxProvider
     public Task<Option> Start() => new Option(StatusCode.OK).ToTaskResult();
     public Task<Option> Commit() => new Option(StatusCode.OK).ToTaskResult();
 
-    public Task<Option> Rollback(DataChangeEntry entry)
+    public async Task<Option> Rollback(DataChangeEntry entry)
     {
         switch (entry.Action)
         {
             case ChangeOperation.Add:
                 entry.After.HasValue.BeTrue("After value must be present for add operation.");
-                //_store.TryRemove(entry.ObjectId, out var _);
+                var deleteOption = await this.ForceDelete(entry.ObjectId);
+                if (deleteOption.IsError())
+                {
+                    _logger.LogCritical("Rollback failed to delete objectId: {ObjectId} with error: {Error}", entry.ObjectId, deleteOption.Error);
+                    return deleteOption;
+                }
                 break;
 
             case ChangeOperation.Delete:
-                //entry.Before.HasValue.BeTrue("After value must be present for add operation.");
-                //_store[entry.ObjectId] = entry.Before!.Value.ToObject<DirectoryDetail>();
+                entry.Before.HasValue.BeTrue("After value must be present for add operation.");
+                var setOption = await this.ForceSet(entry.ObjectId, entry.Before!.Value);
+                if (setOption.IsError())
+                {
+                    _logger.LogCritical("Rollback failed to set objectId: {ObjectId} with error: {Error}", entry.ObjectId, setOption.Error);
+                    return setOption.ToOptionStatus();
+                }
                 break;
 
             case ChangeOperation.Update:
-                //entry.Before.HasValue.BeTrue("After value must be present for add operation.");
-                //_store[entry.ObjectId] = entry.Before!.Value.ToObject<DirectoryDetail>();
+                entry.Before.HasValue.BeTrue("After value must be present for add operation.");
+                var updateOption = await this.ForceSet(entry.ObjectId, entry.Before!.Value);
+                if (updateOption.IsError())
+                {
+                    _logger.LogCritical("Rollback failed to set objectId: {ObjectId} with error: {Error}", entry.ObjectId, updateOption.Error);
+                    return updateOption.ToOptionStatus();
+                }
                 break;
         }
 
-        return new Option(StatusCode.OK).ToTaskResult();
+        return StatusCode.OK;
     }
 }

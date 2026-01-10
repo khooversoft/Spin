@@ -138,20 +138,20 @@ public partial class DatalakeStore
         path.NotEmpty();
 
         _logger.LogDebug("Getting file path={path}", path);
-        Option<DataETag> readOption = StatusCode.NotFound;
+        Option<DataETag> currentDataOption = StatusCode.NotFound;
 
         var fileClient = GetFileClient(path);
-        if (_recorder != null) readOption = await Get(path);
+        if (_recorder != null) currentDataOption = await Get(path);
 
         var setOption = await Upload(fileClient, true, data, leaseId);
         if (setOption.IsError()) return setOption;
 
         if (_recorder != null)
         {
-            if (readOption.IsOk())
-                _recorder?.Update(path, readOption.Return(), data);
+            if (currentDataOption.IsOk())
+                _recorder?.Update(path, currentDataOption.Return(), data);
             else
-                _recorder?.Add(path, readOption.Return());
+                _recorder?.Add(path, data);
         }
 
         return setOption.Return();

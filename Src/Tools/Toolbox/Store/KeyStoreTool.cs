@@ -27,7 +27,7 @@ public static class KeyStoreTool
         keyStore.NotNull();
         path.NotEmpty();
 
-        var writeOption = await keyStore.Set(path, data);
+        var writeOption = await keyStore.Set(path, data.StripETag());
         if (writeOption.IsOk() || !writeOption.IsLocked()) return StatusCode.OK;
 
         await keyStore.BreakLease(path);

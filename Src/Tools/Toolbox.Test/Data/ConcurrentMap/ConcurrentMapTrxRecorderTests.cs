@@ -64,7 +64,7 @@ public class ConcurrentMapTrxRecorderTests
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
-        var concurrentMap = new ConcurrentMap<string, string>(x => x);
+        ITrxProvider concurrentMap = new ConcurrentMap<string, string>(x => x);
         concurrentMap.AttachRecorder(transaction.TrxRecorder);
         await transaction.Start();
 

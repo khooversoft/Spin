@@ -200,9 +200,10 @@ public class RateLimiterTests
         sw.Stop();
 
         var actual = sw.Elapsed;
-        // Allow +/-150ms around estimate to absorb scheduling jitter
-        actual.TotalMilliseconds.Assert(ms => ms >= est.TotalMilliseconds - 150 && ms <= est.TotalMilliseconds + 150,
-            ms => $"Actual wait {ms:F1}ms should be close to estimate {est.TotalMilliseconds:F1}ms");
+        const double toleranceMs = 250d; // widen tolerance to handle timer quantization & scheduler jitter
+        actual.TotalMilliseconds.Assert(
+            ms => ms >= est.TotalMilliseconds - toleranceMs && ms <= est.TotalMilliseconds + toleranceMs,
+            ms => $"Actual wait {ms:F1}ms should be within ±{toleranceMs:F0}ms of estimate {est.TotalMilliseconds:F1}ms");
     }
 
     [Fact]

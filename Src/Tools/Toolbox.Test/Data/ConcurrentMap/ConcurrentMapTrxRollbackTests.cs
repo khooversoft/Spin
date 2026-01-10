@@ -69,9 +69,7 @@ public class ConcurrentMapTrxRollbackTests
         result.BeOk();
         rollbackCount.Be(0);
 
-        var records = await listStore.Get("TestJournal");
-        records.BeOk();
-        var data = records.Return();
+        var data = (await listStore.Get("TestJournal")).BeOk().Return();
         data.Count.Be(1);
         data[0].Entries.Count.Be(0);
 
