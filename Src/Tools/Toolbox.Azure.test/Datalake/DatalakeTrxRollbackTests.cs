@@ -72,6 +72,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task AttachToDatalakeStore(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -94,6 +97,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task AddCommit_ShouldExist(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -133,6 +139,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task AddRollback_ShouldNotExist(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -162,6 +171,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task SetCommit_ShouldExist(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -202,6 +214,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task SetRollback_ShouldNotExist(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -231,6 +246,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task RollbackTryAdd_ShouldRemoveItem(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -256,6 +274,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task RollbackTryRemove_ShouldRestoreItem(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -283,6 +304,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task RollbackTryUpdate_ShouldRestorePreviousValue(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -311,6 +335,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task RollbackSet_NewItem_ShouldRemoveItem(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -335,6 +362,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task RollbackSet_ExistingItem_ShouldRestorePreviousValue(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -363,6 +393,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task RollbackClear_ShouldRestoreAllItems(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -399,6 +432,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task RollbackGetOrAdd_NewItem_ShouldRemoveItem(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -423,6 +459,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task RollbackMultipleOperations_ShouldUndoInReverseOrder(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -465,6 +504,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task RollbackEmptyTransaction_ShouldSucceed(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -484,6 +526,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task DeleteCommit_ShouldRemoveExistingItem(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -525,6 +570,9 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task UpdateCommit_ShouldPersistNewValue(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
