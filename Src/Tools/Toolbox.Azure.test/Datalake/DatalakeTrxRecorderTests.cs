@@ -72,6 +72,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task AttachToConcurrentMap(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -101,6 +104,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task AttachAndDetachRecorder(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -143,6 +149,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task VerifyJournalRecorder(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -189,6 +198,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task VerifyTryRemoveRecording(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -223,6 +235,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task VerifyTryUpdateRecording(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -261,6 +276,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task VerifySetNewItemRecording(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -289,6 +307,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task VerifySetExistingItemRecording(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -319,6 +340,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task VerifyClearRecording(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -351,6 +375,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task VerifyMultipleOperationsInSingleTransaction(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -387,6 +414,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task VerifyGetOrAddNewItemRecording(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
@@ -415,6 +445,9 @@ public class DatalakeTrxRecorderTests
 
     [Theory]
     [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task VerifyGetOrAddExistingItemNoRecording(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);

@@ -8,6 +8,7 @@ public interface IStoreProvider
 public interface IStoreKeyProvider : IStoreProvider
 {
     IKeyStore GetStore(SpaceDefinition definition);
+    IKeyStore<T> GetStore<T>(SpaceDefinition definition);
 }
 
 public interface IStoreListProvider : IStoreProvider

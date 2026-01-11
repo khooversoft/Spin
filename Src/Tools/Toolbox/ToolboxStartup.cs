@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Toolbox.Data;
 using Toolbox.Store;
+using Toolbox.Telemetry;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -9,20 +10,19 @@ namespace Toolbox;
 
 public static class ToolboxStartup
 {
-    //public static IServiceCollection AddInMemoryFileStore(this IServiceCollection services, MemoryStore? memoryStore = null)
-    //{
-    //    services.NotNull();
+    public static IServiceCollection AddTelemetry(this IServiceCollection services, Action<TelemetryOption>? options = null)
+    {
+        services.NotNull();
 
-    //    services.AddSingleton<IFileStore, InMemoryFileStore>();
+        var option = new TelemetryOption();
+        options?.Invoke(option);
 
-    //    switch (memoryStore)
-    //    {
-    //        case null: services.AddSingleton<MemoryStore>(); break;
-    //        default: services.AddSingleton(memoryStore); break;
-    //    }
+        services.AddSingleton<TelemetryOption>(option);
+        services.AddSingleton<TelemetryCollector>();
+        services.AddSingleton<ITelemetry, TelemetryFactory>();
 
-    //    return services;
-    //}
+        return services;
+    }
 
     public static IServiceCollection AddInMemoryKeyStore(this IServiceCollection services, MemoryStore? memoryStore = null)
     {
@@ -61,10 +61,24 @@ public static class ToolboxStartup
         services.NotNull();
         spaceName.NotEmpty();
 
-        services.AddKeyedTransient<IKeyStore>(spaceName, (services, k) =>
+        services.AddKeyedSingleton<IKeyStore>(spaceName, (services, k) =>
         {
             var dataSpace = services.GetRequiredService<DataSpace>();
             return dataSpace.GetFileStore(spaceName);
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddKeyStore<T>(this IServiceCollection services, string spaceName)
+    {
+        services.NotNull();
+        spaceName.NotEmpty();
+
+        services.AddSingleton<IKeyStore<T>>(services =>
+        {
+            var dataSpace = services.GetRequiredService<DataSpace>();
+            return dataSpace.GetFileStore<T>(spaceName);
         });
 
         return services;

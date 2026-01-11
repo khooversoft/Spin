@@ -30,4 +30,12 @@ public class KeyStoreProvider : IStoreKeyProvider
         var store = ActivatorUtilities.CreateInstance<KeySpace>(_serviceProvider, keySystem);
         return store;
     }
+
+    public IKeyStore<T> GetStore<T>(SpaceDefinition definition)
+    {
+        var keySpace = GetStore(definition);
+
+        var store = ActivatorUtilities.CreateInstance<KeySpace<T>>(_serviceProvider, keySpace);
+        return store;
+    }
 }

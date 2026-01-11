@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36414.22
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceAliveWeb", "RaceAlive\RaceAliveWeb\RaceAliveWeb.csproj", "{C371A1ED-BF40-4A6A-97EF-373B69D6347B}"
 EndProject
@@ -27,6 +27,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.Graph.Extensions", "Tools\Toolbox.Graph.Extensions\Toolbox.Graph.Extensions.csproj", "{40B824C9-8FBE-D40D-2B38-2540555980E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.Graph.test", "Tools\Toolbox.Graph.test\Toolbox.Graph.test.csproj", "{51355A03-092E-C260-F0F9-AF0CCD3CAAC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolbox.TestApi", "Tools\Toolbox.TestApi\Toolbox.TestApi.csproj", "{EF1B03B1-8566-2DD0-EB97-E3CC813D563B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,6 +72,10 @@ Global
 		{51355A03-092E-C260-F0F9-AF0CCD3CAAC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51355A03-092E-C260-F0F9-AF0CCD3CAAC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51355A03-092E-C260-F0F9-AF0CCD3CAAC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF1B03B1-8566-2DD0-EB97-E3CC813D563B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF1B03B1-8566-2DD0-EB97-E3CC813D563B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF1B03B1-8566-2DD0-EB97-E3CC813D563B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF1B03B1-8566-2DD0-EB97-E3CC813D563B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +88,7 @@ Global
 		{53F4EC42-45F0-D8D7-62C2-39E118D56959} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{40B824C9-8FBE-D40D-2B38-2540555980E1} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{51355A03-092E-C260-F0F9-AF0CCD3CAAC6} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{EF1B03B1-8566-2DD0-EB97-E3CC813D563B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9AD19E9E-D4CB-4B46-BEB7-9D4B720083A6}

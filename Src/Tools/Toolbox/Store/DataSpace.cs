@@ -44,6 +44,17 @@ public class DataSpace
         return keyStore.GetStore(definition).NotNull();
     }
 
+    public IKeyStore<T> GetFileStore<T>(string path)
+    {
+        (IStoreProvider provider, SpaceDefinition definition) = GetProvider(path);
+
+        var keyStore = provider as IStoreKeyProvider ??
+            throw new ArgumentException($"provider={definition.ProviderName} does not implement IStoreFileProvider");
+
+        _logger.LogTrace("Getting file store for path={path}, provider={provider}", path, provider.Name);
+        return keyStore.GetStore<T>(definition).NotNull();
+    }
+
     public IListStore<T> GetListStore<T>(string key)
     {
         (IStoreProvider provider, SpaceDefinition definition) = GetProvider(key);

@@ -35,4 +35,30 @@ public static class KeyStoreTool
         var result = await keyStore.Set(path, data);
         return result;
     }
+
+    public static async Task<Option<string>> Add<T>(this IKeyStore keyStore, string key, T value)
+    {
+        var data = value.ToDataETag();
+        return await keyStore.NotNull().Add(key, data);
+    }
+
+    public static async Task<Option<string>> Set<T>(this IKeyStore keyStore, string key, T value)
+    {
+        var data = value.ToDataETag();
+        return await keyStore.NotNull().Set(key, data);
+    }
+
+    public static Task<Option<T>> Get<T>(this IKeyStore keyStore, string key) => Get<T>(keyStore, key, data => data.ToObject<T>());
+
+    public static async Task<Option<T>> Get<T>(this IKeyStore keyStore, string key, Func<DataETag, Option<T>> converter)
+    {
+        keyStore.NotNull();
+        converter.NotNull();
+
+        var getOption = await keyStore.Get(key);
+        if (getOption.IsError()) return getOption.ToOptionStatus<T>();
+
+        DataETag data = getOption.Return();
+        return converter(data);
+    }
 }
