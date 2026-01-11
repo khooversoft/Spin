@@ -113,7 +113,11 @@ public partial class DatalakeStore
             if (response.Value == null) return StatusCode.NotFound;
             metric.Log("readAsync");
 
-            using MemoryStream memory = new MemoryStream();
+            var expectedLength = response.Value.ContentLength;
+            using MemoryStream memory = expectedLength > 0 && expectedLength <= int.MaxValue
+                ? new MemoryStream((int)expectedLength)
+                : new MemoryStream();
+
             await response.Value.Content.CopyToAsync(memory);
 
             byte[] data = memory.ToArray();
@@ -164,7 +168,10 @@ public partial class DatalakeStore
         dataETag.NotNull().Assert(x => x.Data.Length > 0, $"length must be greater then 0, path={fileClient.Path}");
 
         using var metric = _logger.LogDuration("dataLakeStore-upload", "path={path}", fileClient.Path);
-        using var fromStream = new MemoryStream(dataETag.Data.ToArray());
+        using var fromStream = new MemoryStream(dataETag.Data.Length);
+        ReadOnlySpan<byte> span = dataETag.Data.AsSpan();
+        fromStream.Write(span);
+        fromStream.Position = 0;
 
         try
         {

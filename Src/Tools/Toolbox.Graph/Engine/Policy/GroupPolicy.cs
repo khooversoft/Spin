@@ -4,7 +4,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public readonly struct GroupPolicy : IEquatable<GroupPolicy>
+public class GroupPolicy : IEquatable<GroupPolicy>
 {
     private readonly FrozenSet<string> _members;
 
@@ -31,8 +31,9 @@ public readonly struct GroupPolicy : IEquatable<GroupPolicy>
 
     public bool IsMember(string principalIdentifier) => Members.Contains(principalIdentifier.NotEmpty());
 
-    public bool Equals(GroupPolicy other)
+    public bool Equals(GroupPolicy? other)
     {
+        if (other is null) return false;
         if (!string.Equals(NameIdentifier, other.NameIdentifier, StringComparison.Ordinal)) return false;
 
         var left = Members ?? FrozenSet<string>.Empty;
