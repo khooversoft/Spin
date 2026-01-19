@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
@@ -12,14 +13,14 @@ public class GraphTrxContext
     private readonly IGraphEngine _graphEngine;
     private readonly Sequence<QueryResult> _queryResult = new Sequence<QueryResult>();
 
-    internal GraphTrxContext(string graphQuery, IEnumerable<IGraphInstruction> graphInstructions, IGraphEngine graphEngine, TransactionScope transactionScope, ScopeContext context)
+    internal GraphTrxContext(string graphQuery, IEnumerable<IGraphInstruction> graphInstructions, IGraphEngine graphEngine, TransactionScope transactionScope, ILogger logger)
     {
         GraphQuery = graphQuery.NotEmpty();
         Instructions = graphInstructions.NotNull().ToList();
         Cursor = new Cursor<IGraphInstruction>(Instructions);
         _graphEngine = graphEngine.NotNull();
         TransactionScope = transactionScope.NotNull();
-        Context = context;
+        Logger = logger.NotNull();
     }
 
     public string GraphQuery { get; }
@@ -30,7 +31,7 @@ public class GraphTrxContext
     public IReadOnlyList<QueryResult> QueryResult => _queryResult;
     public JoinInstructionSwitch LastJoin { get; } = new JoinInstructionSwitch();
     public TransactionScope TransactionScope { get; }
-    public ScopeContext Context { get; }
+    public ILogger Logger { get; }
     public IKeyStore<DataETag> DataClient => _graphEngine.DataClient;
     public GraphMap GetMap() => _graphEngine.DataManager.GetMap();
 

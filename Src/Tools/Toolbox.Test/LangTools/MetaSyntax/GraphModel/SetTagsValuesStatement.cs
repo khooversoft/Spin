@@ -36,7 +36,7 @@ public class SetTagsValuesStatement : TestBase
     public void FailedReturn(string command)
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
         parse.Status.IsError().BeTrue(parse.Status.Error);
@@ -46,7 +46,7 @@ public class SetTagsValuesStatement : TestBase
     public void SingleSet()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("set t1", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -102,7 +102,7 @@ public class SetTagsValuesStatement : TestBase
     public void TwoTagsSet()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("set t1, t2", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -176,7 +176,7 @@ public class SetTagsValuesStatement : TestBase
     public void TwoValuesSet()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("set t1=v1, t2, t3=v3", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

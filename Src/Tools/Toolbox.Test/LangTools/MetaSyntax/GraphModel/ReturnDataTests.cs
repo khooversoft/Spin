@@ -34,7 +34,7 @@ public class ReturnDataTests : TestBase
     public void FailedReturn(string command)
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
         parse.Status.IsError().BeTrue(parse.Status.Error);
@@ -44,7 +44,7 @@ public class ReturnDataTests : TestBase
     public void SimpleLabelAndRepeat()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("return d1", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -86,7 +86,7 @@ public class ReturnDataTests : TestBase
     public void MultipleData()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("return d1, d2", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

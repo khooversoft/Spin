@@ -30,7 +30,7 @@ public class OptionalSubRule : TestBase
         schema.StatusCode.IsOk().BeTrue(schema.Error);
 
         var parser = new SyntaxParser(schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("sym", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

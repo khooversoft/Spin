@@ -86,6 +86,15 @@ public class Json
     public string SerializeFormat<T>(T subject) => JsonSerializer.Serialize(subject, JsonSerializerFormatOption);
     public string SerializeDefault<T>(T subject) => JsonSerializer.Serialize(subject);
 
+    /// <summary>
+    /// Replaces (or adds) a child object on <paramref name="nodeName"/> using the JSON fragment in <paramref name="nodeJson"/>.
+    /// The new object is parsed and inserted into the parsed <paramref name="sourceJson"/> document, then re-serialized.
+    /// </summary>
+    /// <param name="sourceJson">A JSON document string that will be modified.</param>
+    /// <param name="nodeName">The property name of the child node to replace or add.</param>
+    /// <param name="nodeJson">A JSON fragment representing the new child object.</param>
+    /// <returns>The updated JSON string with the specified node replaced.</returns>
+    /// <exception cref="ArgumentException">Thrown when any argument is null or empty, or if parsing fails.</exception>
     public static string ExpandNode(string sourceJson, string nodeName, string nodeJson)
     {
         sourceJson.NotEmpty();
@@ -103,6 +112,13 @@ public class Json
         return sourceJsonObject.ToJsonString(JsonSerializerOptions);
     }
 
+    /// <summary>
+    /// Wraps the specified child node into a string value, replacing the original object/array with its serialized JSON text.
+    /// </summary>
+    /// <param name="sourceJson">A JSON document string that contains the node to wrap.</param>
+    /// <param name="nodeName">The property name of the child node to wrap.</param>
+    /// <returns>The updated JSON string with the child node replaced by its serialized text.</returns>
+    /// <exception cref="ArgumentException">Thrown when the node cannot be found or input is invalid.</exception>
     public static string WrapNode(string sourceJson, string nodeName)
     {
         sourceJson.NotEmpty();

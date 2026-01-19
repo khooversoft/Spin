@@ -30,7 +30,7 @@ public class OptionalWithSuffix : TestBase
     public void NoJoin()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OptionalRuleOnly>();
+        var logger = GetLogger<OptionalRuleOnly>();
 
         var parse = parser.Parse("first", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -69,7 +69,7 @@ public class OptionalWithSuffix : TestBase
     public void LeftJoin()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OptionalRuleOnly>();
+        var logger = GetLogger<OptionalRuleOnly>();
 
         var parse = parser.Parse("-> first", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -124,7 +124,7 @@ public class OptionalWithSuffix : TestBase
     public void InnerJoin()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OptionalRuleOnly>();
+        var logger = GetLogger<OptionalRuleOnly>();
 
         var parse = parser.Parse("<-> first", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

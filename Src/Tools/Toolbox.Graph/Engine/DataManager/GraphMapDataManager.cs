@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Store;
+using Toolbox.Telemetry;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -9,46 +11,47 @@ namespace Toolbox.Graph;
 
 public class GraphMapDataManager
 {
+    private GraphMap? _map;
+    private readonly MapPartition _mapPartition;
     private readonly IKeyStore<GraphSerialization> _graphDataClient;
     private readonly IListStore<DataChangeRecord> _changeClient;
     private readonly ILogger<GraphMapDataManager> _logger;
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private readonly IKeyStore<DataETag> _dataFileClient;
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private readonly LogSequenceNumber _logSequenceNumber = new LogSequenceNumber();
-    private readonly GraphMapCounter _graphMapCounter;
-    private GraphMap? _map;
+    private readonly IServiceProvider _serviceProvider;
 
     public GraphMapDataManager(
         IKeyStore<GraphSerialization> graphDataClient,
         IListStore<DataChangeRecord> changeClient,
         IKeyStore<DataETag> dataFileClient,
-        GraphMapCounter graphMapCounter,
-        ILogger<GraphMapDataManager> logger
+        ILogger<GraphMapDataManager> logger,
+        IServiceProvider serviceProvider
         )
     {
         _graphDataClient = graphDataClient.NotNull();
         _changeClient = changeClient.NotNull();
         _dataFileClient = dataFileClient.NotNull();
-        _graphMapCounter = graphMapCounter.NotNull();
         _logger = logger.NotNull();
+        _serviceProvider = serviceProvider.NotNull();
+
+        _mapPartition = new MapPartition(graphDataClient, _serviceProvider, _logger);
     }
 
     public GraphMap GetMap() => _map.NotNull("Database has not been loaded");
 
-    public async Task<Option> SetMap(GraphMap map, ScopeContext context)
+    public async Task<Option> SetMap(GraphMap map)
     {
-        context = context.With(_logger);
+        await _semaphore.WaitAsync();
 
-        await _semaphore.WaitAsync(context.CancellationToken);
         try
         {
             if (_map != null) return (StatusCode.Conflict, "Map already loaded");
 
-            _graphMapCounter.Clear();
-            _map = map.NotNull().Clone(_graphMapCounter);
+            _map = map.NotNull().Clone();
 
-            var setOption = await _graphDataClient.Set(GraphConstants.GraphMap.Key, _map.ToSerialization(), context);
-            return setOption.LogStatus(context, "Failed to initialize graph map").ToOptionStatus();
+            Option<string> setOption = await _graphDataClient.Set(GraphConstants.GraphMap.Key, _map.ToSerialization());
+            return _logger.LogStatus(setOption, "Failed to initialize graph map").ToOptionStatus();
         }
         finally
         {
@@ -56,25 +59,26 @@ public class GraphMapDataManager
         }
     }
 
-    public async Task<Option> LoadDatabase(ScopeContext context)
+    public async Task<Option> LoadDatabase()
     {
-        context = context.With(_logger);
+        await _semaphore.WaitAsync();
 
-        await _semaphore.WaitAsync(context.CancellationToken);
         try
         {
-            var getOption = await _graphDataClient.Get(GraphConstants.GraphMap.Key, context);
+            var getOption = await _graphDataClient.Get(GraphConstants.GraphMap.Key);
 
             Option<GraphMap> result = getOption switch
             {
-                { StatusCode: StatusCode.OK } => getOption.Return().FromSerialization(_graphMapCounter).ToOption(),
-                { StatusCode: StatusCode.NotFound } => await new GraphMap(_graphMapCounter).Func(async x =>
+                { StatusCode: StatusCode.OK } => getOption.Return().FromSerialization(_serviceProvider).ToOption(),
+
+                { StatusCode: StatusCode.NotFound } => await ActivatorUtilities.CreateInstance<GraphMap>(_serviceProvider).Func(async x =>
                 {
-                    var setOption = await _graphDataClient.Set(GraphConstants.GraphMap.Key, x.ToSerialization(), context);
-                    setOption.LogStatus(context, "Graph DB not found, failed to create a new one").ToOption();
+                    var setOption = await _graphDataClient.Set(GraphConstants.GraphMap.Key, x.ToSerialization());
+                    _logger.LogStatus(setOption, "Graph DB not found, failed to create a new one").ToOption();
                     return x.ToOption();
                 }),
-                _ => getOption.LogStatus(context, "Failed to load graph map").ToOptionStatus<GraphMap>(),
+
+                _ => _logger.LogStatus(getOption, "Failed to load graph map").ToOptionStatus<GraphMap>(),
             };
 
             if (result.IsError()) return result.ToOptionStatus();
@@ -88,15 +92,14 @@ public class GraphMapDataManager
         }
     }
 
-    public Task<Option<GraphMap>> BuildFromJournals(ScopeContext context) => BuildFromJournals(_dataFileClient, context);
+    public Task<Option<GraphMap>> BuildFromJournals(CancellationToken token = default) => BuildFromJournals(_dataFileClient, token);
 
-    public async Task<Option<GraphMap>> BuildFromJournals(IKeyStore<DataETag> dataFileClient, ScopeContext context)
+    public async Task<Option<GraphMap>> BuildFromJournals(IKeyStore<DataETag> dataFileClient, CancellationToken token = default)
     {
-        context = context.With(_logger);
-        context.LogDebug("Building new GraphMap from journals");
+        _logger.LogDebug("Building new GraphMap from journals");
 
-        var journalsOption = await _changeClient.Get(GraphConstants.Journal.Key, "**/*", context);
-        if (journalsOption.IsError()) return journalsOption.LogStatus(context, "Failed to read journals").ToOptionStatus<GraphMap>();
+        var journalsOption = await _changeClient.Get(GraphConstants.Journal.Key);
+        if (journalsOption.IsError()) return _logger.LogStatus(journalsOption, "Failed to read journals").ToOptionStatus<GraphMap>();
 
         var records = journalsOption.Return();
 
@@ -121,14 +124,14 @@ public class GraphMapDataManager
         // Sort globally by LSN (ascending = oldest first)
         entries.Sort(static (a, b) => string.CompareOrdinal(a.LogSequenceNumber, b.LogSequenceNumber));
 
-        var map = new GraphMap(_graphMapCounter);
+        var map = ActivatorUtilities.CreateInstance<GraphMap>(_serviceProvider);
         string? lastLsn = null;
 
         try
         {
             foreach (var entry in entries)
             {
-                context.CancellationToken.ThrowIfCancellationRequested();
+                token.ThrowIfCancellationRequested();
 
                 //var resultOption = entry.SourceName switch
                 //{
@@ -147,42 +150,38 @@ public class GraphMapDataManager
                 //resultOption.LogStatus(context, "Failed to recover").ThrowOnError();
             }
 
-            if (!string.IsNullOrEmpty(lastLsn))
+            if (lastLsn.IsNotEmpty())
             {
                 map.SetLastLogSequenceNumber(lastLsn);
             }
 
-            // Ensure counters reflect the built state
-            map.UpdateCounters();
-
-            context.LogDebug("Completed build process, nodeCount={nodeCount}, edgeCount={edgeCount}", map.Nodes.Count, map.Edges.Count);
+            _logger.LogDebug("Completed build process, nodeCount={nodeCount}, edgeCount={edgeCount}", map.Nodes.Count, map.Edges.Count);
             return map;
         }
         catch (Exception ex)
         {
-            context.LogError(ex, "Failed to build map from journals");
+            _logger.LogError(ex, "Failed to build map from journals");
             return (StatusCode.BadRequest, "Failed to build map from journals");
         }
     }
 
     public TransactionScope StartTransaction() => new TransactionScope(Commit, Rollback, _logSequenceNumber, _logger);
 
-    private async Task<Option> Commit(DataChangeRecord dataChangeRecord, ScopeContext context)
+    private async Task<Option> Commit(DataChangeRecord dataChangeRecord)
     {
         _map.NotNull("Database has not been loaded");
         dataChangeRecord.NotNull().Validate().ThrowOnError();
-        context = context.With(_logger);
 
-        await _semaphore.WaitAsync(context.CancellationToken);
+        await _semaphore.WaitAsync();
         try
         {
-            var journalOption = await _changeClient.Append(GraphConstants.Journal.Key, [dataChangeRecord], context);
-            if (journalOption.IsError()) return journalOption.LogStatus(context, "Failed to append to journal file").ToOptionStatus();
+            var journalOption = await _changeClient.Append(GraphConstants.Journal.Key, [dataChangeRecord]);
+            if (journalOption.IsError()) return _logger.LogStatus(journalOption, "Failed to append to journal file").ToOptionStatus();
 
             dataChangeRecord.GetLastLogSequenceNumber()?.Action(x => _map.SetLastLogSequenceNumber(x));
 
-            var setOption = await _graphDataClient.Set(GraphConstants.GraphMap.Key, _map.ToSerialization(), context);
-            if (setOption.IsError()) return setOption.LogStatus(context, "Failed to save graph map").ToOptionStatus();
+            var setOption = await _graphDataClient.Set(GraphConstants.GraphMap.Key, _map.ToSerialization());
+            if (setOption.IsError()) return _logger.LogStatus(setOption, "Failed to save graph map").ToOptionStatus();
 
             return StatusCode.OK;
         }
@@ -192,22 +191,19 @@ public class GraphMapDataManager
         }
     }
 
-    private async Task<Option> Rollback(DataChangeRecord record, ScopeContext context)
+    private async Task<Option> Rollback(DataChangeRecord record)
     {
-        context = context.With(_logger);
         _map.NotNull("Database has not been loaded");
         record.NotNull().Validate().ThrowOnError();
 
-        context.LogWarning("Starting rollback of transaction transactionId={transactionId} with {Count} entries", record.TransactionId, record.Entries.Count);
+        _logger.LogWarning("Starting rollback, transactionId={transactionId}, count={Count}", record.TransactionId, record.Entries.Count);
 
-        await _semaphore.WaitAsync(context.CancellationToken);
+        await _semaphore.WaitAsync();
         try
         {
             // Compensate in reverse order (LIFO)
             for (int i = record.Entries.Count - 1; i >= 0; i--)
             {
-                context.CancellationToken.ThrowIfCancellationRequested();
-
                 //var entry = record.Entries[i];
                 //var result = entry.SourceName switch
                 //{
@@ -223,12 +219,12 @@ public class GraphMapDataManager
                 //result.LogStatus(context, "Rollback failed to recover an entry").ThrowOnError();
             }
 
-            context.LogDebug("Rollback completed for transaction {TransactionId}", record.TransactionId);
+            _logger.LogDebug("Rollback completed for transaction {TransactionId}", record.TransactionId);
             return StatusCode.OK;
         }
         catch (Exception ex)
         {
-            context.LogError(ex, "Rollback failed for transaction {TransactionId}", record.TransactionId);
+            _logger.LogError(ex, "Rollback failed for transaction {TransactionId}", record.TransactionId);
             return (StatusCode.BadRequest, $"Rollback failed for transaction {record.TransactionId}");
         }
         finally

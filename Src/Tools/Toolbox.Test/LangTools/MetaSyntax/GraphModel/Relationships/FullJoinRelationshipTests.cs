@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
@@ -13,7 +14,7 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
+    private readonly ILogger _logger;
 
     public FullJoinRelationshipTests(ITestOutputHelper output) : base(output)
     {
@@ -23,7 +24,7 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _context = GetScopeContext();
+        _logger = GetLogger();
         _parser = new SyntaxParser(_root);
     }
 
@@ -31,7 +32,7 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNodesToEdgeRelationship()
     {
-        var parse = _parser.Parse("select (*) <-> [*] ;", _context);
+        var parse = _parser.Parse("select (*) <-> [*] ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -56,7 +57,7 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNodesWithAliasToEdgeRelationship()
     {
-        var parse = _parser.Parse("select (*) a1 <-> [*] ;", _context);
+        var parse = _parser.Parse("select (*) a1 <-> [*] ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -82,7 +83,7 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNodesToEdgeToNodeRelationship()
     {
-        var parse = _parser.Parse("select (*) <-> [*] <-> (*) ;", _context);
+        var parse = _parser.Parse("select (*) <-> [*] <-> (*) ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -112,7 +113,7 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNodesToEdgeToNodePartialRelationship()
     {
-        var parse = _parser.Parse("select (*) -> [*] <-> (*) ;", _context);
+        var parse = _parser.Parse("select (*) -> [*] <-> (*) ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -141,7 +142,7 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNodesToEdgeToNodeWithAliasRelationship()
     {
-        var parse = _parser.Parse("select (*) a1 <-> [*] a2 <-> (*) a3 ;", _context);
+        var parse = _parser.Parse("select (*) a1 <-> [*] a2 <-> (*) a3 ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -173,7 +174,7 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNodesToEdgeToNodeRelationshipWithDataReturn()
     {
-        var parse = _parser.Parse("select (*) <-> [*] <-> (*) return entity, data ;", _context);
+        var parse = _parser.Parse("select (*) <-> [*] <-> (*) return entity, data ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -206,7 +207,7 @@ public class FullJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNotCorrectButWorksRelationship()
     {
-        var parse = _parser.Parse("select (*) <-> (*) -> (*) ;", _context);
+        var parse = _parser.Parse("select (*) <-> (*) -> (*) ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

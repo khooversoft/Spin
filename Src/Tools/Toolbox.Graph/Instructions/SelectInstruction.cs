@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -10,11 +11,11 @@ internal static class SelectInstruction
 {
     public static async Task<Option> Process(GiSelect giSelect, GraphTrxContext pContext)
     {
-        pContext.Context.Location().LogDebug("Process giSelect={giSelect}", giSelect);
+        pContext.Logger.LogDebug("Process giSelect={giSelect}", giSelect);
         var result = await Select(giSelect.Instructions, pContext);
-        result.LogStatus(pContext.Context, "Select return status");
+        pContext.Logger.LogStatus(result, "Select return status");
 
-        pContext.Context.LogDebug("Completed processing of giSelect={giSelect}", giSelect);
+        pContext.Logger.LogDebug("Completed processing of giSelect={giSelect}", giSelect);
         return result;
     }
 
@@ -39,12 +40,12 @@ internal static class SelectInstruction
 
             if (result.IsError())
             {
-                result.LogStatus(pContext.Context, "Error in processing of selectInstruction={selectInstruction}", [selectInstruction]);
+                pContext.Logger.LogStatus(result, "Error in processing of selectInstruction={selectInstruction}", [selectInstruction]);
                 break;
             }
         }
 
-        pContext.Context.LogDebug("Completed processing select, count={count}", instructions.Count);
+        pContext.Logger.LogDebug("Completed processing select, count={count}", instructions.Count);
         return result;
     }
 
@@ -78,10 +79,10 @@ internal static class SelectInstruction
 
         IEnumerable<GraphNode> findRootNodes() => giNodeSelect switch
         {
-            var v when v.Tags.Any(x => x.Key == "*") => pContext.GetMap().Nodes.Action(x => pContext.GetMap().Nodes.NodeCounter?.IndexScan.Add()),
+            var v when v.Tags.Any(x => x.Key == "*") => pContext.GetMap().Nodes.Action(x => x.AddIndexScan()),
             { Key: string v } when !HasWildCard(v) => pContext.GetMap().Nodes.TryGetValue(v, out var gn) ? [gn] : [],
             { Tags: { Count: > 0 } v } => v.SelectMany(x => pContext.GetMap().Nodes.LookupTaggedNodes(x.Key)),
-            _ => pContext.GetMap().Nodes.Action(x => pContext.GetMap().Nodes.NodeCounter?.IndexScan.Add()),
+            _ => pContext.GetMap().Nodes.Action(x => x.AddIndexScan()),
         };
     }
 
@@ -114,7 +115,7 @@ internal static class SelectInstruction
 
         IEnumerable<GraphEdge> findRootEdges() => giEdgeSelect switch
         {
-            var v when v.Tags.Any(x => x.Key == "*") => pContext.GetMap().Edges.Action(x => pContext.GetMap().Edges.EdgeCounter?.IndexScan.Add()),
+            var v when v.Tags.Any(x => x.Key == "*") => pContext.GetMap().Edges.Action(x => pContext.GetMap().Edges.AddIndexScan()),
             { From: string v1, To: string v2, Type: string v3 } when !HasWildCard(v1) && !HasWildCard(v2) && !HasWildCard(v3) => lookupEdge(v1, v2, v3),
             { From: string v1 } when !HasWildCard(v1) => pContext.GetMap().Edges.LookupByFromKeyExpand([v1]),
             { To: string v2 } when !HasWildCard(v2) => pContext.GetMap().Edges.LookupByToKeyExpand([v2]),
@@ -137,7 +138,7 @@ internal static class SelectInstruction
         var latest = pContext.GetLastQueryResult();
         if (latest == null)
         {
-            pContext.Context.LogError("No data set found for giReturnNames={giReturnNames}");
+            pContext.Logger.LogError("No data set found for giReturnNames");
             return (StatusCode.BadRequest, "No data set found");
         }
 
@@ -151,7 +152,7 @@ internal static class SelectInstruction
             var readOption = await NodeDataTool.GetData(item, pContext);
             if (readOption.IsError())
             {
-                pContext.Context.LogError("Cannot get data for fileId={item.FileId} for nodeKey={nodeKey}", item.FileId, item.NodeKey);
+                pContext.Logger.LogError("Cannot get data for fileId={item.FileId} for nodeKey={nodeKey}", item.FileId, item.NodeKey);
                 continue;
             }
 

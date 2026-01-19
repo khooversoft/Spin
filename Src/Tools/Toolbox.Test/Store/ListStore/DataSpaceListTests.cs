@@ -58,7 +58,7 @@ public class DataSpaceListTests
     public async Task SingleItemInList()
     {
         using var host = await BuildService();
-        var listStore = host.Services.GetRequiredService<DataSpace>().GetListStore<JournalEntry>("list");
+        IListStore<JournalEntry> listStore = host.Services.GetRequiredService<DataSpace>().GetListStore<JournalEntry>("list");
 
         var ls = listStore as ListSpace<JournalEntry> ?? throw new ArgumentException();
         var fileStore = ls.ListKeySystem;

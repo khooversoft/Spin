@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 
@@ -42,7 +43,7 @@ public class LocalProcessBuilder
         return this;
     }
 
-    public LocalProcessRun Build() => new LocalProcessRun(BuildProcess(), CaptureOutput);
+    public LocalProcessRun Build(ILogger logger) => new LocalProcessRun(BuildProcess(), CaptureOutput, logger);
 
     private Process BuildProcess()
     {

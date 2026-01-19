@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Toolbox.Types;
 
 namespace Toolbox.Tools;
@@ -7,7 +8,7 @@ public static class JsonExtensions
 {
     public static string ToJson<T>(this T subject) => Json.Default.Serialize(subject);
 
-    public static string ToJsonSafe<T>(this T subject, ScopeContextLocation context)
+    public static string ToJsonSafe<T>(this T subject, ILogger logger)
     {
         try
         {
@@ -20,14 +21,14 @@ public static class JsonExtensions
         }
         catch (Exception ex)
         {
-            context.LogError(ex, "Json serialization error");
+            logger.LogError(ex, "Json serialization error");
             return string.Empty;
         }
     }
 
     public static string ToJsonPascal<T>(this T subject) => Json.Default.SerializePascal(subject);
 
-    public static string? ToJsonPascalSafe<T>(this T subject, ScopeContext context)
+    public static string? ToJsonPascalSafe<T>(this T subject, ILogger logger)
     {
         try
         {
@@ -40,7 +41,7 @@ public static class JsonExtensions
         }
         catch (Exception ex)
         {
-            context.Location().LogError(ex, "Json serialization error");
+            logger.LogError(ex, "Json serialization error");
             return string.Empty;
         }
     }

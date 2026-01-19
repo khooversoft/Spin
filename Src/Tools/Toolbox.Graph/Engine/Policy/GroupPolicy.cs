@@ -26,7 +26,7 @@ public class GroupPolicy : IEquatable<GroupPolicy>
     public IReadOnlyCollection<string> Members
     {
         get => _members;
-        init => _members = value.NotNull().ToFrozenSet<string>();
+        //init => _members = value.NotNull().ToFrozenSet<string>(StringComparer.OrdinalIgnoreCase);
     }
 
     public bool IsMember(string principalIdentifier) => Members.Contains(principalIdentifier.NotEmpty());
@@ -36,8 +36,8 @@ public class GroupPolicy : IEquatable<GroupPolicy>
         if (other is null) return false;
         if (!string.Equals(NameIdentifier, other.NameIdentifier, StringComparison.Ordinal)) return false;
 
-        var left = Members ?? FrozenSet<string>.Empty;
-        var right = other.Members ?? FrozenSet<string>.Empty;
+        var left = Members;
+        var right = other.Members;
 
         if (ReferenceEquals(left, right)) return true;
         if (left.Count != right.Count) return false;
@@ -89,7 +89,10 @@ public static class SecurityGroupTool
         principalIdentifier = principalIdentifier.NotEmpty();
         if (subject.Members.Contains(principalIdentifier)) return subject;
 
-        var newMembers = subject.Members.Append(principalIdentifier).ToFrozenSet(StringComparer.OrdinalIgnoreCase);
-        return subject with { Members = newMembers };
+        var newMembers = subject.Members
+            .Append(principalIdentifier)
+            .ToFrozenSet(StringComparer.OrdinalIgnoreCase);
+
+        return new GroupPolicy(subject.NameIdentifier, newMembers);
     }
 }

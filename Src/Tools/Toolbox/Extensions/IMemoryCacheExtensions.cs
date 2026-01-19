@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -10,64 +11,64 @@ public static class IMemoryCacheExtensions
 
     public static void Remove(this IMemoryCache memoryCache, string path) => memoryCache.NotNull().Remove(path);
 
-    public static void Set(this IMemoryCache memoryCache, string path, DataETag data, ScopeContext context)
+    public static void Set(this IMemoryCache memoryCache, string path, DataETag data, ILogger logger)
     {
         memoryCache.NotNull();
         path.NotEmpty();
 
         data.Assert(x => x.Data.Length > 0, "Data length must be greater than zero");
         memoryCache.Set(path, data, MemoryOption);
-        context.LogDebug("Set data to cache, path={path}", path);
+        logger.LogDebug("Set data to cache, path={path}", path);
     }
 
-    public static void Set<T>(this IMemoryCache memoryCache, string path, T subject, ScopeContext context)
+    public static void Set<T>(this IMemoryCache memoryCache, string path, T subject, ILogger logger)
     {
         memoryCache.NotNull();
         path.NotEmpty();
         subject.NotNull();
 
         memoryCache.Set(path, subject, MemoryOption);
-        context.LogDebug("Set type={type} data to cache, path={path}", typeof(T).Name, path);
+        logger.LogDebug("Set type={type} data to cache, path={path}", typeof(T).Name, path);
     }
 
-    public static Option<T> Get<T>(this IMemoryCache memoryCache, string path, ScopeContext context)
+    public static Option<T> Get<T>(this IMemoryCache memoryCache, string path, ILogger logger)
     {
         if (memoryCache.TryGetValue(path, out T? value))
         {
-            context.LogDebug("Get type={type} data from cache, path={path}", typeof(T).Name, path);
+            logger.LogDebug("Get type={type} data from cache, path={path}", typeof(T).Name, path);
             return value.ToOption();
         }
 
-        context.LogDebug("Failed to get type={type} data from cache, path={path}", typeof(T).Name, path);
+        logger.LogDebug("Failed to get type={type} data from cache, path={path}", typeof(T).Name, path);
         return StatusCode.NotFound;
     }
 
-    public static bool TryGetValue(this IMemoryCache memoryCache, string path, out DataETag data, ScopeContext context)
+    public static bool TryGetValue(this IMemoryCache memoryCache, string path, out DataETag data, ILogger logger)
     {
         if (memoryCache.TryGetValue(path, out DataETag dataETag))
         {
             dataETag.Assert(x => x.Data.Length > 0, "Data length must be greater than zero");
             data = dataETag;
 
-            context.LogDebug("Get data from cache, path={path}", path);
+            logger.LogDebug("Get data from cache, path={path}", path);
             return true;
         }
 
-        context.LogDebug("Failed to get data from cache, path={path}", path);
+        logger.LogDebug("Failed to get data from cache, path={path}", path);
         data = default;
         return false;
     }
 
-    public static bool TryGetValue<T>(this IMemoryCache memoryCache, string path, out T? subject, ScopeContext context)
+    public static bool TryGetValue<T>(this IMemoryCache memoryCache, string path, out T? subject, ILogger logger)
     {
         if (memoryCache.TryGetValue(path, out T? value))
         {
             subject = value;
-            context.LogDebug("Get type={type} data from cache, path={path}", typeof(T).Name, path);
+            logger.LogDebug("Get type={type} data from cache, path={path}", typeof(T).Name, path);
             return true;
         }
 
-        context.LogDebug("Failed to get type={type} data from cache, path={path}", typeof(T).Name, path);
+        logger.LogDebug("Failed to get type={type} data from cache, path={path}", typeof(T).Name, path);
         subject = default;
         return false;
     }

@@ -1,6 +1,6 @@
-﻿namespace Toolbox.Types;
+﻿//namespace Toolbox.Types;
 
-public interface ILoggingContext
-{
-    public ScopeContext Context { get; }
-}
+//public interface ILoggingContext
+//{
+//    public ScopeContext Context { get; }
+//}

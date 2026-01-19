@@ -39,7 +39,7 @@ public class SetDataStatement : TestBase
     public void FailedReturn(string command)
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
         parse.Status.IsError().BeTrue(parse.Status.Error);
@@ -49,7 +49,7 @@ public class SetDataStatement : TestBase
     public void SingleSetData()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("data { base64data }", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

@@ -29,7 +29,7 @@ public class OrRuleTests : TestBase
     public void SimpleOrSymbol()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("node", logger);
         parse.Status.IsOk().BeTrue();
@@ -75,7 +75,7 @@ public class OrRuleTests : TestBase
     public void SimpleOrSymbolSecond()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("edge", logger);
         parse.Status.IsOk().BeTrue();
@@ -121,7 +121,7 @@ public class OrRuleTests : TestBase
     public void SimpleOrSymbolFail()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("edxxxge", logger);
         parse.Status.IsError().BeTrue();

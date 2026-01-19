@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
@@ -12,7 +13,7 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
+    private readonly ILogger _logger;
 
     public EdgeSelectTests(ITestOutputHelper output) : base(output)
     {
@@ -22,7 +23,7 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _context = GetScopeContext();
+        _logger = GetLogger();
         _parser = new SyntaxParser(_root);
     }
 
@@ -30,7 +31,7 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
     [Fact]
     public void SelectAllNodesCommand()
     {
-        var parse = _parser.Parse("select [*] ;", _context);
+        var parse = _parser.Parse("select [*] ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -51,7 +52,7 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
     [Fact]
     public void SelectExact()
     {
-        var parse = _parser.Parse("select [from=k1, to=k2, type=label] a1 ;", _context);
+        var parse = _parser.Parse("select [from=k1, to=k2, type=label] a1 ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -83,7 +84,7 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
     [Fact]
     public void SelectNodeAndReturnDataCommand()
     {
-        var parse = _parser.Parse("select [key=k1, t2] a1 ;", _context);
+        var parse = _parser.Parse("select [key=k1, t2] a1 ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -109,7 +110,7 @@ public class EdgeSelectTests : TestBase<EdgeSelectTests>
     [Fact]
     public void SelectNodeByTypeCommand()
     {
-        var parse = _parser.Parse("select [label] a1 ;", _context);
+        var parse = _parser.Parse("select [label] a1 ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

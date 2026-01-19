@@ -20,28 +20,72 @@ public static class GraphStartup
 
         services.AddSingleton(hostOption);
         services.AddSingleton<IGraphEngine, GraphEngine>();
-        services.AddSingleton<GraphMapCounter>();
         services.AddSingleton<GraphMapDataManager>();
         services.AddSingleton<IGraphClient, GraphQueryExecute>();
 
-        services.AddKeyStore<GraphSerialization>(FileSystemType.Key, config =>
+        services.AddDataSpace(cnfg =>
         {
-            config.BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}";
-            config.AddKeyStore();
-            config.Serializer = x => JsonSerializer.Serialize(x, GraphJsonContext.Default.GraphSerialization);
-            config.Deserializer = x => JsonSerializer.Deserialize(x, GraphJsonContext.Default.GraphSerialization);
+            cnfg.Spaces.Add(new SpaceDefinition
+            {
+                Name = "graphDb",
+                ProviderName = "fileStore",
+                BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}",
+                SpaceFormat = SpaceFormat.Key,
+                UseCache = true,
+            });
+
+            cnfg.Spaces.Add(new SpaceDefinition
+            {
+                Name = "graphFile",
+                ProviderName = "fileStore",
+                BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}",
+                SpaceFormat = SpaceFormat.Hash,
+                UseCache = true,
+            });
+
+            cnfg.Spaces.Add(new SpaceDefinition
+            {
+                Name = "journal",
+                ProviderName = "listStore",
+                BasePath = $"{hostOption.BasePath}/{GraphConstants.Journal.BasePath}",
+                SpaceFormat = SpaceFormat.List,
+            });
+
+            cnfg.Add<KeyStoreProvider>("fileStore");
+            cnfg.Add<ListStoreProvider>("listStore");
         });
 
-        services.AddKeyStore<DataETag>(FileSystemType.Hash, config =>
+        services.AddKeyStore<GraphSerialization>("graphDb", option =>
         {
-            config.BasePath = $"{hostOption.BasePath}/{GraphConstants.Data.BasePath}";
-            config.AddKeyStore();
+            option.Serializer = x => JsonSerializer.Serialize(x, GraphJsonContext.Default.GraphSerialization);
+            option.Deserializer = x => JsonSerializer.Deserialize(x, GraphJsonContext.Default.GraphSerialization);
         });
 
-        services.AddListStore<DataChangeRecord>(config =>
+        services.AddListStore<DataChangeRecord>("journal", option =>
         {
-            config.BasePath = $"{hostOption.BasePath}/{GraphConstants.Journal.BasePath}";
+            option.Serializer = x => JsonSerializer.Serialize(x, DataChangeRecordJsonContext.Default.DataChangeRecord);
+            option.Deserializer = x => JsonSerializer.Deserialize(x, DataChangeRecordJsonContext.Default.DataChangeRecord);
         });
+
+
+        //services.AddKeyStore<GraphSerialization>(FileSystemType.Key, config =>
+        //{
+        //    config.BasePath = $"{hostOption.BasePath}/{GraphConstants.GraphMap.BasePath}";
+        //    config.AddKeyStore();
+        //    config.Serializer = x => JsonSerializer.Serialize(x, GraphJsonContext.Default.GraphSerialization);
+        //    config.Deserializer = x => JsonSerializer.Deserialize(x, GraphJsonContext.Default.GraphSerialization);
+        //});
+
+        //services.AddKeyStore<DataETag>(FileSystemType.Hash, config =>
+        //{
+        //    config.BasePath = $"{hostOption.BasePath}/{GraphConstants.Data.BasePath}";
+        //    config.AddKeyStore();
+        //});
+
+        //services.AddListStore<DataChangeRecord>(config =>
+        //{
+        //    config.BasePath = $"{hostOption.BasePath}/{GraphConstants.Journal.BasePath}";
+        //});
 
         return services;
     }

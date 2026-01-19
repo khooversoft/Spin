@@ -8,6 +8,12 @@ public static class GraphConstants
         public const string BasePath = "graphDb";
     }
 
+    public static class GraphSecurity
+    {
+        public const string Key = "graphSecurity";
+        public const string BasePath = "graphDb";
+    }
+
     public static class Journal
     {
         public const string Key = "graphMapJournal";

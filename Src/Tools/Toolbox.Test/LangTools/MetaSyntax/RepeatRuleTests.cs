@@ -31,7 +31,7 @@ public class RepeatRuleTests : TestBase
     public void SimpleRepeat()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("t1", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -77,7 +77,7 @@ public class RepeatRuleTests : TestBase
     public void SimpleTwoRepeat()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("t1, t2", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -141,7 +141,7 @@ public class RepeatRuleTests : TestBase
     public void SimpleWithValueRepeat()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("t1=v1", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -198,7 +198,7 @@ public class RepeatRuleTests : TestBase
     public void SimpleTwoWithValueRepeat()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("t1=v1, t2", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -273,7 +273,7 @@ public class RepeatRuleTests : TestBase
     public void SimpleTwoWithTwoValueRepeat()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("t1=v1, t2=v2", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -359,7 +359,7 @@ public class RepeatRuleTests : TestBase
     public void ThreeTagsRepeat()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("t1=v1, t2=v2, t3=v3", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -474,7 +474,7 @@ public class RepeatRuleTests : TestBase
     public void ThreeTagsRepeatWithOneNoValue()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("t1=v1, t2, t3=v3", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

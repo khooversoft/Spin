@@ -5,7 +5,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
-using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tools;
@@ -14,7 +13,6 @@ public class OperationQueueTests
 {
     private ITestOutputHelper _testOutputHelper;
     private IHost _host;
-    private ScopeContext _context;
 
     public OperationQueueTests(ITestOutputHelper testOutputHelper)
     {
@@ -26,8 +24,6 @@ public class OperationQueueTests
                 services.AddLogging(config => config.AddLambda(_testOutputHelper.WriteLine).AddDebug().AddFilter(x => true));
             })
             .Build();
-
-        _context = _host.Services.GetRequiredService<ILogger<OperationQueueTests>>().ToScopeContext();
     }
 
     [Fact]
@@ -43,10 +39,10 @@ public class OperationQueueTests
             {
                 queue.Enqueue(x);
                 return Task.CompletedTask;
-            }, _context);
+            });
         }
 
-        await operationQueue.Complete(_context);
+        await operationQueue.Complete();
         queue.Count.Be(count);
         queue.All(x => x >= 0 && x < count).BeTrue();
     }
@@ -69,17 +65,17 @@ public class OperationQueueTests
                     var v = x switch { 0 => -100, _ => -x };
                     queue.Enqueue(v);
                     return Task.FromResult(x);
-                }, _context);
+                });
             }
 
             await operationQueue.Send(() =>
             {
                 queue.Enqueue(x);
                 return Task.CompletedTask;
-            }, _context);
+            });
         });
 
-        await operationQueue.Complete(_context);
+        await operationQueue.Complete();
         queue.Count.Be(count + setIndexes.Length);
         queue.All(x => x >= 0 && x < count || x == -100 || setIndexes.Contains(Math.Abs(x))).BeTrue();
 
@@ -109,16 +105,16 @@ public class OperationQueueTests
                     int result = await deferred(v);
                     result.Be(v);
                     return v;
-                }, _context);
+                });
             }
 
             await operationQueue.Send(async () =>
             {
                 await deferred(x);
-            }, _context);
+            });
         });
 
-        await operationQueue.Complete(_context);
+        await operationQueue.Complete();
         queue.Count.Be(count + setIndexes.Length);
         queue.All(x => x >= 0 && x < count || x == -100 || setIndexes.Contains(Math.Abs(x))).BeTrue();
 
@@ -149,10 +145,10 @@ public class OperationQueueTests
             {
                 queue.Enqueue(x);
                 return Task.CompletedTask;
-            }, _context);
+            });
         }
 
-        await operationQueue.Drain(_context);
+        await operationQueue.Drain();
         queue.Count.Be(50);
 
         foreach (var x in Enumerable.Range(50, 50))
@@ -161,13 +157,13 @@ public class OperationQueueTests
             {
                 queue.Enqueue(x);
                 return Task.CompletedTask;
-            }, _context);
+            });
         }
 
-        await operationQueue.Drain(_context);
+        await operationQueue.Drain();
         queue.Count.Be(100);
 
-        await operationQueue.Complete(_context);
+        await operationQueue.Complete();
     }
 
     // After Complete -> Send/Get/Drain throw; Complete can be called multiple times.
@@ -176,17 +172,17 @@ public class OperationQueueTests
     {
         await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
 
-        await operationQueue.Complete(_context);
-        await operationQueue.Complete(_context); // idempotent
+        await operationQueue.Complete();
+        await operationQueue.Complete(); // idempotent
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            operationQueue.Send(() => Task.CompletedTask, _context));
+            operationQueue.Send(() => Task.CompletedTask));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            operationQueue.Get(() => Task.FromResult(42), _context));
+            operationQueue.Get(() => Task.FromResult(42)));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            operationQueue.Drain(_context));
+            operationQueue.Drain());
     }
 
     // Exception in Send is swallowed by the queue; subsequent work continues.
@@ -200,17 +196,17 @@ public class OperationQueueTests
         {
             queue.Enqueue(1);
             return Task.CompletedTask;
-        }, _context);
+        });
 
-        await operationQueue.Send(() => throw new ApplicationException("boom"), _context);
+        await operationQueue.Send(() => throw new ApplicationException("boom"));
 
         await operationQueue.Send(() =>
         {
             queue.Enqueue(2);
             return Task.CompletedTask;
-        }, _context);
+        });
 
-        await operationQueue.Complete(_context);
+        await operationQueue.Complete();
 
         queue.Count.Be(2);
         queue.Contains(1).BeTrue();
@@ -225,15 +221,15 @@ public class OperationQueueTests
         await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            operationQueue.Get<int>(() => throw new InvalidOperationException("bad read"), _context));
+            operationQueue.Get<int>(() => throw new InvalidOperationException("bad read")));
 
         await operationQueue.Send(() =>
         {
             queue.Enqueue(999);
             return Task.CompletedTask;
-        }, _context);
+        });
 
-        await operationQueue.Complete(_context);
+        await operationQueue.Complete();
 
         queue.Contains(999).BeTrue();
         queue.Count.Be(1);
@@ -254,10 +250,10 @@ public class OperationQueueTests
             {
                 Interlocked.Increment(ref processed);
                 return Task.CompletedTask;
-            }, _context);
+            });
         });
 
-        await operationQueue.Complete(_context);
+        await operationQueue.Complete();
 
         processed.Be(total);
     }
@@ -286,14 +282,14 @@ public class OperationQueueTests
             {
                 lock (gate) order.Add(2);
                 return Task.CompletedTask;
-            }, _context);
+            });
 
             lock (gate) order.Add(3);
-        }, _context);
+        });
 
         // Ensure all enqueued work (including the nested send) is processed before shutdown.
-        await operationQueue.Drain(_context);
-        await operationQueue.Complete(_context);
+        await operationQueue.Drain();
+        await operationQueue.Complete();
 
         order.Count.Be(3);
         order.Contains(1).BeTrue();
@@ -324,16 +320,16 @@ public class OperationQueueTests
             {
                 bag.Add(-i);
                 return Task.FromResult(i);
-            }, _context);
+            });
 
             await operationQueue.Send(() =>
             {
                 bag.Add(i);
                 return Task.CompletedTask;
-            }, _context);
+            });
         });
 
-        await operationQueue.Complete(_context);
+        await operationQueue.Complete();
 
         bag.Count.Be(total * 2);
 
@@ -357,17 +353,17 @@ public class OperationQueueTests
                 {
                     processed.Enqueue(i);
                     return Task.CompletedTask;
-                }, _context);
+                });
             }
         });
 
         await Task.Delay(10);
 
-        await operationQueue.Drain(_context);
+        await operationQueue.Drain();
         int countAtDrain = processed.Count;
 
         await producer;
-        await operationQueue.Complete(_context);
+        await operationQueue.Complete();
 
         int final = processed.Count;
         (countAtDrain > 0 && final >= countAtDrain && final == total).BeTrue();
@@ -386,7 +382,7 @@ public class OperationQueueTests
                 {
                     q.Enqueue(i);
                     return Task.CompletedTask;
-                }, _context);
+                });
             }
             // Leaving the scope calls DisposeAsync -> Complete
         }
@@ -422,7 +418,7 @@ public class OperationQueueTests
                 }
 
                 return false;
-            }, _context);
+            });
 
             if (getStats)
             {
@@ -431,8 +427,8 @@ public class OperationQueueTests
             }
         }
 
-        await operationQueue.Drain(_context);
-        await operationQueue.Complete(_context);
+        await operationQueue.Drain();
+        await operationQueue.Complete();
 
         termOk.BeTrue();
         var retries = dict.Values.Where(kv => !kv.processed).ToArray();
@@ -455,7 +451,7 @@ public class OperationQueueTests
 
                 dict[id] = new TaskOperation(id, workPass);
                 return Task.CompletedTask;
-            }, _context);
+            });
         }
     }
 

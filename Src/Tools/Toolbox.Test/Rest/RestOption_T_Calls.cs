@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Rest;
 using Toolbox.TestApi;
 using Toolbox.Tools;
@@ -9,7 +10,7 @@ namespace Toolbox.Test.Rest;
 public class RestOption_T_Calls : IClassFixture<TestApiHost>
 {
     private readonly TestApiHost _testApiHost;
-    private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
+    private readonly ILogger _logger = NullLogger.Instance;
 
     public RestOption_T_Calls(TestApiHost testApiHost) => _testApiHost = testApiHost;
 
@@ -20,7 +21,7 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
 
         Option<TestModel> response = await new RestClient(client)
             .SetPath("/testModel")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .GetContent<TestModel>();
 
         response.StatusCode.Be(StatusCode.OK);
@@ -37,7 +38,7 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
 
         Option<TestModel> response = await new RestClient(client)
             .SetPath("/testModelWithError")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .GetContent<TestModel>();
 
         response.StatusCode.Be(StatusCode.BadRequest);
@@ -52,7 +53,7 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
 
         Option<TestModel> response = await new RestClient(client)
             .SetPath("/testModelBadRequestNoErrorMessage")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .GetContent<TestModel>();
 
         response.StatusCode.Be(StatusCode.BadRequest);
@@ -67,7 +68,7 @@ public class RestOption_T_Calls : IClassFixture<TestApiHost>
 
         Option<Option<TestModel>> response = await new RestClient(client)
             .SetPath("/option_t")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .GetContent<Option<TestModel>>();
 
         response.StatusCode.Be(StatusCode.OK);

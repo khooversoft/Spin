@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
+using Toolbox.Telemetry;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -12,19 +13,32 @@ public class ListSpace<T> : IListStore<T>
     private readonly IKeyStore _keyStore;
     private readonly ListKeySystem<T> _fileSystem;
     private readonly ILogger<ListSpace<T>> _logger;
+    private readonly ITelemetryCounter<long>? _appendCounter;
+    private readonly ITelemetryCounter<long>? _deleteCounter;
+    private readonly ITelemetryCounter<long>? _getCounter;
+    private readonly ITelemetryCounter<long>? _getHistoryCounter;
+    private readonly ITelemetryCounter<long>? _searchCounter;
+    private readonly SpaceOption<T> _options;
 
-    public ListSpace(IKeyStore keyStore, ListKeySystem<T> listKeySystem, ILogger<ListSpace<T>> logger)
+    public ListSpace(IKeyStore keyStore, ListKeySystem<T> listKeySystem, SpaceOption<T> options, ILogger<ListSpace<T>> logger, ITelemetry? telemetry = null)
     {
         _keyStore = keyStore.NotNull();
         _fileSystem = listKeySystem.NotNull();
+        _options = options.NotNull();
         _logger = logger.NotNull();
+
+        _appendCounter = telemetry?.CreateCounter<long>("listspace.append", "Number of Append operations", unit: "count");
+        _deleteCounter = telemetry?.CreateCounter<long>("listspace.delete", "Number of Delete operations", unit: "count");
+        _getCounter = telemetry?.CreateCounter<long>("listspace.get", "Number of Get operations", unit: "count");
+        _getHistoryCounter = telemetry?.CreateCounter<long>("listspace.gethistory", "Number of GetHistory operations", unit: "count");
+        _searchCounter = telemetry?.CreateCounter<long>("listspace.search", "Number of Search operations", unit: "count");
     }
 
     public ListKeySystem<T> ListKeySystem => _fileSystem;
 
     public async Task<Option<string>> Append(string key, IEnumerable<T> data)
     {
-        var dataItems = data.NotNull().Select(x => x.ToJson()).ToArray();
+        var dataItems = data.NotNull().Select(x => _options.Serializer(x)).ToArray();
         if (dataItems.Length == 0) return StatusCode.OK;
 
         string path = _fileSystem.PathBuilder(key);
@@ -39,6 +53,7 @@ public class ListSpace<T> : IListStore<T>
             _logger.LogError("Append failed key={key}, path={path}, error={error}", key, path, append.Error);
         }
 
+        _appendCounter?.Increment();
         return append;
     }
 
@@ -49,6 +64,8 @@ public class ListSpace<T> : IListStore<T>
 
         string folder = $"{_fileSystem.GetPathPrefix()}/{key}";
         var clearOption = await _keyStore.DeleteFolder(folder);
+
+        _deleteCounter?.Increment();
         return clearOption;
     }
 
@@ -58,7 +75,10 @@ public class ListSpace<T> : IListStore<T>
         _logger.LogDebug("Get: Getting list items, key={key}", key);
 
         IReadOnlyList<StorePathDetail> searchList = await Search(key);
-        return await ReadList(searchList);
+        var result = await ReadList(searchList);
+
+        if (result.IsOk()) _getCounter?.Increment();
+        return result;
     }
 
     public async Task<Option<IReadOnlyList<T>>> GetHistory(string key, DateTime timeIndex)
@@ -82,7 +102,10 @@ public class ListSpace<T> : IListStore<T>
             .Select(x => x.dir)
             .ToArray();
 
-        return await ReadList(list);
+        var result = await ReadList(list);
+
+        if (result.IsOk()) _getHistoryCounter?.Increment();
+        return result;
     }
 
     public async Task<IReadOnlyList<StorePathDetail>> Search(string key)
@@ -98,6 +121,7 @@ public class ListSpace<T> : IListStore<T>
             .Select(x => x with { Path = _fileSystem.RemovePathPrefix(x.Path) })
             .ToImmutableArray();
 
+        _searchCounter?.Increment();
         return result;
     }
 
@@ -133,7 +157,7 @@ public class ListSpace<T> : IListStore<T>
             var result = readOption.Return()
                 .DataToString()
                 .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.ToObject<T>().NotNull())
+                .Select(x => _options.Deserializer(x).NotNull())
                 .ToArray();
 
             return result;

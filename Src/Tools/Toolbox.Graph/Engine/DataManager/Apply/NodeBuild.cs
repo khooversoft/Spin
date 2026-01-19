@@ -1,4 +1,5 @@
-﻿using Toolbox.Data;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -7,7 +8,7 @@ namespace Toolbox.Graph;
 
 public static class NodeBuild
 {
-    public static Task<Option> Build(GraphMap map, DataChangeEntry entry, ScopeContext context)
+    public static Task<Option> Build(GraphMap map, DataChangeEntry entry, ILogger logger)
     {
         map.NotNull();
         entry.NotNull();
@@ -15,19 +16,19 @@ public static class NodeBuild
         switch (entry.SourceName, entry.Action)
         {
             case (ChangeSource.Node, ChangeOperation.Add):
-                return Add(map, entry, context).ThrowOnError().ToTaskResult();
+                return Add(map, entry, logger).ThrowOnError().ToTaskResult();
 
             case (ChangeSource.Node, ChangeOperation.Delete):
-                return Delete(map, entry, context).ThrowOnError().ToTaskResult();
+                return Delete(map, entry, logger).ThrowOnError().ToTaskResult();
 
             case (ChangeSource.Node, ChangeOperation.Update):
-                return Update(map, entry, context).ThrowOnError().ToTaskResult();
+                return Update(map, entry, logger).ThrowOnError().ToTaskResult();
         }
 
         return new Option(StatusCode.NotFound).ToTaskResult();
     }
 
-    private static Option Add(GraphMap map, DataChangeEntry entry, ScopeContext context)
+    private static Option Add(GraphMap map, DataChangeEntry entry, ILogger logger)
     {
         if (entry.After == null) throw new ArgumentNullException($"{entry.Action} command does not have 'After' DataETag data");
         GraphNode node = entry.After.Value.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
@@ -35,16 +36,16 @@ public static class NodeBuild
 
         if (map.Nodes.Add(node).IsError())
         {
-            context.LogError("Build: Failed to remove node key={key}, entry={entry}", node.Key, entry);
+            logger.LogError("Build: Failed to remove node key={key}, entry={entry}", node.Key, entry);
             return (StatusCode.Conflict, $"Failed to add node key={node.Key}");
         }
 
-        context.LogDebug("Build: add node key={key}, entry={entry}", node.Key, entry);
+        logger.LogDebug("Build: add node key={key}, entry={entry}", node.Key, entry);
         map.SetLastLogSequenceNumber(entry.LogSequenceNumber);
         return StatusCode.OK;
     }
 
-    private static Option Delete(GraphMap map, DataChangeEntry entry, ScopeContext context)
+    private static Option Delete(GraphMap map, DataChangeEntry entry, ILogger logger)
     {
         if (entry.Before == null) throw new ArgumentNullException($"{entry.Action} command does not have 'After' DataETag data");
         GraphNode node = entry.Before.Value.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
@@ -52,16 +53,16 @@ public static class NodeBuild
 
         if (map.Nodes.Remove(node.Key).IsError())
         {
-            context.LogError("Build: Failed to remove node key={key}, entry={entry}", node.Key, entry);
+            logger.LogError("Build: Failed to remove node key={key}, entry={entry}", node.Key, entry);
             return (StatusCode.Conflict, $"Failed to remove node key={node.Key}");
         }
 
-        context.LogDebug("Build: removed node key={key}, entry={entry}", node.Key, entry);
+        logger.LogDebug("Build: removed node key={key}, entry={entry}", node.Key, entry);
         map.SetLastLogSequenceNumber(entry.LogSequenceNumber);
         return StatusCode.OK;
     }
 
-    private static Option Update(GraphMap map, DataChangeEntry entry, ScopeContext context)
+    private static Option Update(GraphMap map, DataChangeEntry entry, ILogger logger)
     {
         if (entry.Before == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 
@@ -69,9 +70,9 @@ public static class NodeBuild
         node.Validate().ThrowOnError("Validation failure");
 
         var setOption = map.Nodes.Set(node);
-        if (setOption.IsError()) return setOption.LogStatus(context, "Failed to set node");
+        if (setOption.IsError()) return logger.LogStatus(setOption, "Failed to set node");
 
-        context.LogDebug("Build: restored node nodeKey={nodeKey}, entity={entity}", node.Key, entry);
+        logger.LogDebug("Build: restored node nodeKey={nodeKey}, entity={entity}", node.Key, entry);
         map.SetLastLogSequenceNumber(entry.LogSequenceNumber);
         return StatusCode.OK;
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Rest;
 using Toolbox.TestApi;
 using Toolbox.Tools;
@@ -9,7 +10,7 @@ namespace Toolbox.Test.Rest;
 public class RestOptionCalls : IClassFixture<TestApiHost>
 {
     private readonly TestApiHost _testApiHost;
-    private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
+    private readonly ILogger _logger = NullLogger.Instance;
     public RestOptionCalls(TestApiHost testApiHost) => _testApiHost = testApiHost;
 
     [Fact]
@@ -19,7 +20,7 @@ public class RestOptionCalls : IClassFixture<TestApiHost>
 
         Option<Option> response = await new RestClient(client)
             .SetPath("/option")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .GetContent<Option>();
 
         response.IsOk().BeTrue();
@@ -35,7 +36,7 @@ public class RestOptionCalls : IClassFixture<TestApiHost>
 
         Option<Option> response = await new RestClient(client)
             .SetPath("/optionWithError")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .GetContent<Option>();
 
         response.IsOk().BeTrue();

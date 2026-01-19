@@ -47,7 +47,7 @@ public class SelectEdgeQueryTests : TestBase
     public void FailedReturn(string command)
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
         parse.Status.IsError().BeTrue(parse.Status.Error);
@@ -58,7 +58,7 @@ public class SelectEdgeQueryTests : TestBase
     public void SelectEdge()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("[*]", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -122,7 +122,7 @@ public class SelectEdgeQueryTests : TestBase
     public void SelectEdgeToNode()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("[*] -> (*)", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -250,7 +250,7 @@ public class SelectEdgeQueryTests : TestBase
     public void SelectNodeToEdgeWithLabel()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("[label] -> (*)", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -378,7 +378,7 @@ public class SelectEdgeQueryTests : TestBase
     public void SelectNodeToEdgeToNode()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("[label] -> (key=k1)", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

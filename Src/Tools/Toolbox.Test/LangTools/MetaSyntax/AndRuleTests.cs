@@ -37,7 +37,7 @@ public class AndRuleTests : TestBase
     public void SimpleAndSymbolFail(string rawData)
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         parser.Parse(rawData, logger).Status.IsError().BeTrue();
     }
@@ -46,7 +46,7 @@ public class AndRuleTests : TestBase
     public void SimpleAndSymbol()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("alias { hello };", logger);
         parse.Status.IsOk().BeTrue();
@@ -93,7 +93,7 @@ public class AndRuleTests : TestBase
     public void SimpleAndSymbolWithQuote()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("data { 'this is a test' };", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

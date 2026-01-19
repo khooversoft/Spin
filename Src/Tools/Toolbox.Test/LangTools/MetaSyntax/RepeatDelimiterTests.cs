@@ -45,7 +45,7 @@ public class RepeatDelimiterTests : TestBase
     public void FailedReturn(string command)
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
         parse.Status.IsError().BeTrue(parse.Status.Error);
@@ -55,7 +55,7 @@ public class RepeatDelimiterTests : TestBase
     public void SingleTag()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("(t1) ;", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -121,7 +121,7 @@ public class RepeatDelimiterTests : TestBase
     public void SingleTagWithData()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("(key=k1) data { 'data section' } ;", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

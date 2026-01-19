@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
@@ -12,7 +13,7 @@ public class SelectMultipleNodesEdgesTests : TestBase<SelectMultipleNodesEdgesTe
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
+    private readonly ILogger _logger;
 
     public SelectMultipleNodesEdgesTests(ITestOutputHelper output) : base(output)
     {
@@ -22,14 +23,14 @@ public class SelectMultipleNodesEdgesTests : TestBase<SelectMultipleNodesEdgesTe
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _context = GetScopeContext();
+        _logger = GetLogger();
         _parser = new SyntaxParser(_root);
     }
 
     [Fact]
     public void SelectCommand()
     {
-        var parse = _parser.Parse("upsert node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 } ;", _context);
+        var parse = _parser.Parse("upsert node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 } ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

@@ -36,11 +36,6 @@ public class KeySpace : IKeyStore
         _cacheHitCounter = telemetry?.CreateCounter<long>("keyspace.cache.hit", "Number of Cache Hit operations", unit: "count");
     }
 
-    public Task<Option> RenewLease(string key, string leaseId)
-    {
-        throw new NotImplementedException();
-    }
-
     public IKeySystem KeySystem => _keySystem;
 
     public async Task<Option<string>> Add(string key, DataETag data)
@@ -183,5 +178,12 @@ public class KeySpace : IKeyStore
         var path = _keySystem.PathBuilder(key);
         _logger.LogDebug("Release path={path}, leaseId={leaseId}", path, leaseId);
         return _keyStore.ReleaseLease(path, leaseId);
+    }
+
+    public Task<Option> RenewLease(string key, string leaseId)
+    {
+        var path = _keySystem.PathBuilder(key);
+        _logger.LogDebug("RenewLease path={path}, leaseId={leaseId}", path, leaseId);
+        return _keyStore.RenewLease(path, leaseId);
     }
 }

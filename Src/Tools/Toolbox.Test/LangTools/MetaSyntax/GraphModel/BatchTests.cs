@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
@@ -12,7 +13,7 @@ public class BatchTests : TestBase<BatchTests>
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
+    private readonly ILogger _logger;
 
     public BatchTests(ITestOutputHelper output) : base(output)
     {
@@ -22,7 +23,7 @@ public class BatchTests : TestBase<BatchTests>
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _context = GetScopeContext();
+        _logger = GetLogger();
         _parser = new SyntaxParser(_root);
     }
 
@@ -35,7 +36,7 @@ public class BatchTests : TestBase<BatchTests>
             "add node key=k2;",
         }.Join(Environment.NewLine);
 
-        var parse = _parser.Parse(lines, _context);
+        var parse = _parser.Parse(lines, _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -71,7 +72,7 @@ public class BatchTests : TestBase<BatchTests>
             "select (userEmail) a1 -> [roles] a2 -> (*) a3 return data, entity;",
         }.Join(Environment.NewLine);
 
-        var parse = _parser.Parse(lines, _context);
+        var parse = _parser.Parse(lines, _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

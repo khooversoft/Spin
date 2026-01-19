@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -23,7 +24,7 @@ public class TerminalTests
 
         var parser = new SyntaxParser(schema);
 
-        var parse = parser.Parse("3;", NullScopeContext.Instance);
+        var parse = parser.Parse("3;", NullLogger.Instance);
         parse.Status.IsOk().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -74,7 +75,7 @@ public class TerminalTests
 
         var parser = new SyntaxParser(schema);
 
-        var parse = parser.Parse("A ;", NullScopeContext.Instance);
+        var parse = parser.Parse("A ;", NullLogger.Instance);
         parse.Status.IsError().BeTrue(parse.Status.Error);
         parse.Status.Error.Be("No rules matched");
     }

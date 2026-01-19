@@ -1,6 +1,5 @@
 ﻿using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
-using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
@@ -28,17 +27,16 @@ public class OperationQueue : IAsyncDisposable
             SingleWriter = false, // multiple producers can call Send/Get concurrently
         });
 
-        var processContext = _logger.ToScopeContext();
         _runState = RunState.Run;
-        _processingTask = Task.Run(() => ProcessQueueAsync(processContext));
+        _processingTask = Task.Run(() => ProcessQueueAsync());
     }
 
-    public async Task Complete(ScopeContext context)
+    public async Task Complete()
     {
         var currentState = Interlocked.CompareExchange(ref _runState, RunState.Stopped, RunState.Run);
         if (currentState == RunState.Stopped) return;
 
-        context.LogDebug("Completing operations");
+        _logger.LogDebug("Completing operations");
 
         // Signal shutdown and drain remaining operations.
         _channel.Writer.Complete();
@@ -46,11 +44,10 @@ public class OperationQueue : IAsyncDisposable
         await _processingTask;
     }
 
-    public async Task Drain(ScopeContext context)
+    public async Task Drain()
     {
         if (_runState != RunState.Run) throw new InvalidOperationException("Not running");
-        context = context.With(_logger);
-        context.LogDebug("Enqueuing drain marker");
+        _logger.LogDebug("Enqueuing drain marker");
 
         var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -58,13 +55,13 @@ public class OperationQueue : IAsyncDisposable
         {
             try
             {
-                context.Location().LogDebug("Processing drain marker");
+                _logger.LogDebug("Processing drain marker");
                 tcs.SetResult();
                 return Task.CompletedTask;
             }
             catch (Exception ex)
             {
-                context.Location().LogError(ex, "Error processing drain marker");
+                _logger.LogError(ex, "Error processing drain marker");
                 tcs.SetException(ex);
                 return Task.CompletedTask;
             }
@@ -74,11 +71,10 @@ public class OperationQueue : IAsyncDisposable
         await tcs.Task;
     }
 
-    public async Task<T> Get<T>(Func<Task<T>> readOperation, ScopeContext context)
+    public async Task<T> Get<T>(Func<Task<T>> readOperation)
     {
         if (_runState != RunState.Run) throw new InvalidOperationException("Not running");
-        context = context.With(_logger);
-        context.LogDebug("Enqueuing reader (get)");
+        _logger.LogDebug("Enqueuing reader (get)");
 
         var tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -86,44 +82,44 @@ public class OperationQueue : IAsyncDisposable
         {
             try
             {
-                context.LogDebug("Processing ReadOperation");
-                using (var timeScope = context.LogDuration(nameof(Get), "ReadOperation - timing"))
+                _logger.LogDebug("Processing ReadOperation");
+                using (var timeScope = _logger.LogDuration(nameof(Get), "ReadOperation - timing"))
                 {
                     var result = await readOperation();
                     tcs.SetResult(result);
                     Interlocked.Increment(ref _getExecuteCount);
                 }
 
-                LogStats(context);
-                context.LogDebug("Get readOperation completed");
+                LogStats();
+                _logger.LogDebug("Get readOperation completed");
             }
             catch (Exception ex)
             {
-                context.Location().LogError(ex, "Error processing enqueued reader");
+                _logger.LogError(ex, "Error processing enqueued reader");
                 tcs.SetException(ex);
             }
         };
 
         await _channel.Writer.WriteAsync(wrapper);
         Interlocked.Increment(ref _getEnqueueCount);
-        LogStats(context);
+        LogStats();
 
         return await tcs.Task;
     }
 
-    public async Task Send(Func<Task> sendOperation, ScopeContext context)
+    public async Task Send(Func<Task> sendOperation)
     {
         if (_runState != RunState.Run) throw new InvalidOperationException("Not running");
-        context.With(_logger).LogDebug("Enqueue writer (send)");
+        _logger.LogDebug("Enqueue writer (send)");
 
         await _channel.Writer.WriteAsync(sendOperation);
         Interlocked.Increment(ref _sendEnqueueCount);
-        LogStats(context);
+        LogStats();
     }
 
-    private async Task ProcessQueueAsync(ScopeContext context)
+    private async Task ProcessQueueAsync()
     {
-        context.With(_logger).LogDebug("Starting background processing of channel");
+        _logger.LogDebug("Starting background processing of channel");
 
         try
         {
@@ -131,31 +127,31 @@ public class OperationQueue : IAsyncDisposable
             {
                 try
                 {
-                    context.Location().LogDebug("OperationQueue: Process operations");
-                    using (var timeScope = context.LogDuration(nameof(ProcessQueueAsync), "OperationQueue: Process operations - timing"))
+                    _logger.LogDebug("OperationQueue: Process operations");
+                    using (var timeScope = _logger.LogDuration(nameof(ProcessQueueAsync), "OperationQueue: Process operations - timing"))
                     {
                         Interlocked.Increment(ref _processCount);
                         await operation();
-                        LogStats(context);
+                        LogStats();
                     }
                 }
                 catch (Exception ex)
                 {
-                    context.LogError(ex, "Process operations failed");
+                    _logger.LogError(ex, "Process operations failed");
                 }
             }
 
-            context.LogDebug("Process operations completed - channel closed");
+            _logger.LogDebug("Process operations completed - channel closed");
         }
         catch (Exception ex)
         {
-            context.LogError(ex, "Unexpected error in ProcessQueueAsync");
+            _logger.LogError(ex, "Unexpected error in ProcessQueueAsync");
         }
     }
 
-    public async ValueTask DisposeAsync() => await Complete(_logger.ToScopeContext());
+    public async ValueTask DisposeAsync() => await Complete();
 
-    private void LogStats(ScopeContext context) => context.LogDebug(
+    private void LogStats() => _logger.LogDebug(
         "OperationQueue Stats: GetEnqueue={getEnqueue}, GetExecute={getExecute}, SendEnqueue={sendEnqueue}, ProcessCount={processCount}",
         _getEnqueueCount,
         _getExecuteCount,

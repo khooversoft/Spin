@@ -39,7 +39,7 @@ public class EdgeSpecStatement : TestBase
     public void FailedReturn(string command)
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse(command, logger);
         parse.Status.IsError().BeTrue(parse.Status.Error);
@@ -49,7 +49,7 @@ public class EdgeSpecStatement : TestBase
     public void WildcardSearchOfNode()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("[*]", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -106,7 +106,7 @@ public class EdgeSpecStatement : TestBase
     public void WildcardSearchOfNodeWithAlias()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("[*] a1", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -172,7 +172,7 @@ public class EdgeSpecStatement : TestBase
     public void FilterOnTag()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("[t1]", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -229,7 +229,7 @@ public class EdgeSpecStatement : TestBase
     public void FilterOnNodeKey()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("[ key = k1]", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -297,7 +297,7 @@ public class EdgeSpecStatement : TestBase
     public void FilterOnNodeKeyAndTag()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("[ key = k1, t2] a2", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

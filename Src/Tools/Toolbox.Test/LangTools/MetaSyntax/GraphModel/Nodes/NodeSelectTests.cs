@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
@@ -12,7 +13,7 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
+    private readonly ILogger _logger;
 
     public NodeSelectTests(ITestOutputHelper output) : base(output)
     {
@@ -22,14 +23,14 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _context = GetScopeContext();
+        _logger = GetLogger();
         _parser = new SyntaxParser(_root);
     }
 
     [Fact]
     public void SelectAllNodesCommand()
     {
-        var parse = _parser.Parse("select (*) ;", _context);
+        var parse = _parser.Parse("select (*) ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -50,7 +51,7 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
     [Fact]
     public void SelectAllNodesAndReturnDataCommand()
     {
-        var parse = _parser.Parse("select (*) return data, entity ;", _context);
+        var parse = _parser.Parse("select (*) return data, entity ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -75,7 +76,7 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
     [Fact]
     public void SelectNodeAndReturnDataCommand()
     {
-        var parse = _parser.Parse("select (key=k1, t2) a1 return data, entity ;", _context);
+        var parse = _parser.Parse("select (key=k1, t2) a1 return data, entity ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -105,7 +106,7 @@ public class NodeSelectTests : TestBase<NodeSelectTests>
     [Fact]
     public void SelectNodeByTypeCommand()
     {
-        var parse = _parser.Parse("select (label) a1 ;", _context);
+        var parse = _parser.Parse("select (label) a1 ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

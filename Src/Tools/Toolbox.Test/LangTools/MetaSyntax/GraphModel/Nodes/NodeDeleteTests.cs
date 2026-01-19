@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
@@ -12,7 +13,7 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
+    private readonly ILogger _logger;
 
     public NodeDeleteTests(ITestOutputHelper output) : base(output)
     {
@@ -22,14 +23,14 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _context = GetScopeContext();
+        _logger = GetLogger();
         _parser = new SyntaxParser(_root);
     }
 
     [Fact]
     public void DeleteAll()
     {
-        var parse = _parser.Parse("delete (*) ;", _context);
+        var parse = _parser.Parse("delete (*) ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -50,7 +51,7 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
     [Fact]
     public void DeleteNodeByKey()
     {
-        var parse = _parser.Parse("delete (key=k1) a1 ;", _context);
+        var parse = _parser.Parse("delete (key=k1) a1 ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -74,7 +75,7 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
     [Fact]
     public void DeleteNodeByKeyAndTag()
     {
-        var parse = _parser.Parse("delete (key=k1, t2) a1 ;", _context);
+        var parse = _parser.Parse("delete (key=k1, t2) a1 ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

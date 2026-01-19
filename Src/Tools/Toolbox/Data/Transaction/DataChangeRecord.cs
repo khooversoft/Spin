@@ -1,4 +1,5 @@
-﻿using Toolbox.Data;
+﻿using System.Text.Json.Serialization;
+using Toolbox.Data;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -77,4 +78,14 @@ public static class DataChangeRecordTool
 
         return result;
     }
+}
+
+[JsonSourceGenerationOptions(
+    WriteIndented = false,
+    DefaultIgnoreCondition = JsonIgnoreCondition.Never
+)]
+[JsonSerializable(typeof(DataChangeRecord))]
+[JsonSerializable(typeof(DataChangeEntry))]
+public partial class DataChangeRecordJsonContext : JsonSerializerContext
+{
 }

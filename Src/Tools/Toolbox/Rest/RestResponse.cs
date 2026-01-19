@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using Toolbox.Types;
+using Microsoft.Extensions.Logging;
 
 namespace Toolbox.Rest;
 
@@ -7,5 +7,5 @@ public readonly record struct RestResponse
 {
     public required HttpStatusCode StatusCode { get; init; }
     public string? Content { get; init; }
-    public required ScopeContext Context { get; init; }
+    public required ILogger Logger { get; init; }
 }

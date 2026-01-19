@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -8,7 +9,7 @@ internal static class NodeInstruction
 {
     public static async Task<Option> Process(GiNode giNode, GraphTrxContext pContext)
     {
-        pContext.Context.Location().LogDebug("Process giNode={giNode}, changeType={changeType}", giNode, giNode.ChangeType);
+        pContext.Logger.LogDebug("Process giNode={giNode}, changeType={changeType}", giNode, giNode.ChangeType);
 
         var result = giNode.ChangeType switch
         {
@@ -20,7 +21,7 @@ internal static class NodeInstruction
 
         pContext.AddQueryResult(result);
 
-        result.LogStatus(pContext.Context, "Completed processing of giNode={giNode}", [giNode]);
+        pContext.Logger.LogStatus(result, "Completed processing of giNode={giNode}", [giNode]);
         return result;
     }
 
@@ -29,7 +30,7 @@ internal static class NodeInstruction
         giNode.NotNull();
         pContext.NotNull();
 
-        pContext.Context.LogDebug("Adding giNode={giNode}", giNode);
+        pContext.Logger.LogDebug("Adding giNode={giNode}", giNode);
 
         var dataMapOption = await NodeDataTool.AddData(giNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
@@ -53,7 +54,7 @@ internal static class NodeInstruction
         var fk = AddForeignKeys(giNode.Key, foreignKeys, tags, pContext);
         if (fk.IsError()) return fk;
 
-        pContext.Context.LogDebug("Added giNode={giNode}", giNode);
+        pContext.Logger.LogDebug("Added giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
@@ -62,7 +63,7 @@ internal static class NodeInstruction
         giNode.NotNull();
         pContext.NotNull();
 
-        pContext.Context.LogDebug("Deleting giNode={giNode}", giNode);
+        pContext.Logger.LogDebug("Deleting giNode={giNode}", giNode);
 
         if (pContext.GetMap().Nodes.TryGetValue(giNode.Key, out var readGraphNode))
         {
@@ -73,7 +74,7 @@ internal static class NodeInstruction
         var graphResult = pContext.GetMap().Nodes.Remove(giNode.Key, pContext);
         if (!giNode.IfExist && graphResult.IsError()) return graphResult;
 
-        pContext.Context.LogDebug("Deleting giNode={giNode}", giNode);
+        pContext.Logger.LogDebug("Deleting giNode={giNode}", giNode);
         return StatusCode.OK;
     }
 
@@ -81,11 +82,11 @@ internal static class NodeInstruction
     {
         if (!pContext.GetMap().Nodes.TryGetValue(giNode.Key, out var currentGraphNode))
         {
-            pContext.Context.LogDebug("Node key={key} not found, adding node for upsert", giNode.Key);
+            pContext.Logger.LogDebug("Node key={key} not found, adding node for upsert", giNode.Key);
             return await Add(giNode, pContext);
         }
 
-        pContext.Context.LogDebug("Updating giNode={giNode}", giNode);
+        pContext.Logger.LogDebug("Updating giNode={giNode}", giNode);
 
         var dataMapOption = await NodeDataTool.MergeData(giNode, currentGraphNode, pContext);
         if (dataMapOption.IsError()) return dataMapOption.ToOptionStatus();
@@ -104,7 +105,7 @@ internal static class NodeInstruction
             );
 
         var updateOption = pContext.GetMap().Nodes.Set(graphNode, pContext);
-        if (updateOption.IsError()) return updateOption.LogStatus(pContext.Context, "Failed to set node nodeKey={nodeKey}", [giNode.Key]);
+        if (updateOption.IsError()) return pContext.Logger.LogStatus(updateOption, "Failed to set node nodeKey={nodeKey}", [giNode.Key]);
 
         var fkAdd = AddForeignKeys(giNode.Key, foreignKeys, tags, pContext);
         if (fkAdd.IsError()) return fkAdd;
@@ -129,7 +130,7 @@ internal static class NodeInstruction
 
         if (foreignKeys.Count == 0) return StatusCode.OK;
 
-        pContext.Context.LogDebug(
+        pContext.Logger.LogDebug(
             "Add foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}, tags={tags}",
             fromKey,
             foreignKeys.ToTagsString(),
@@ -149,7 +150,7 @@ internal static class NodeInstruction
             .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.NotEmpty()))
             .ToArray();
 
-        pContext.Context.LogDebug("Foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}", fromKey, fkTags);
+        pContext.Logger.LogDebug("Foreign keys fromKey={fromKey}, foreignKeys={foreignKeys}", fromKey, fkTags);
 
         var missingEdges = fkTags
             .Where(x => x.Value.IsNotEmpty())
@@ -158,7 +159,7 @@ internal static class NodeInstruction
             .Select(x => new GraphEdge(x.FromKey, x.ToKey, x.EdgeType))
             .ToArray();
 
-        pContext.Context.LogDebug(
+        pContext.Logger.LogDebug(
             "Missing edges fromKey={fromKey}, missingEdges={missingEdges}",
             fromKey,
             missingEdges.Select(x => x.ToString()).Join(',')
@@ -169,7 +170,6 @@ internal static class NodeInstruction
             .ToArray();
 
         var status = ScanOptions(allStatus);
-        pContext.GetMap().Nodes.NodeCounter?.ForeignKeyAdded.Add(missingEdges.Length > 0 && status.IsOk());
         return status;
     }
 
@@ -218,7 +218,6 @@ internal static class NodeInstruction
             .ToArray();
 
         var status = ScanOptions(allStatus);
-        pContext.GetMap().Nodes.NodeCounter.ForeignKeyRemoved.Add(currentEdgesNotValid.Length > 0 && status.IsOk());
         return status;
 
         bool isEdgeTypeValid(string edgeType) => foreignKeys.ContainsKey(edgeType);

@@ -32,7 +32,7 @@ public class OptionalRuleOnly : TestBase
     public void FailMatches(string rawValue)
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse(rawValue, logger);
         parse.Status.IsError().BeTrue(parse.Status.Error);
@@ -42,7 +42,7 @@ public class OptionalRuleOnly : TestBase
     public void LeftJoin()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("->", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -88,7 +88,7 @@ public class OptionalRuleOnly : TestBase
     public void FullJoin()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("<->", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

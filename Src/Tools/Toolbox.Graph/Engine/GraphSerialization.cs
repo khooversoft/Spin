@@ -1,6 +1,9 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
+using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
@@ -11,10 +14,19 @@ public class GraphSerialization
     public IEnumerable<GraphEdge> Edges { get; init; } = Array.Empty<GraphEdge>();
     public IEnumerable<GroupPolicy> SecurityGroups { get; init; } = Array.Empty<GroupPolicy>();
     public IEnumerable<PrincipalIdentity> PrincipalIdentities { get; init; } = Array.Empty<PrincipalIdentity>();
+
+    public static IValidator<GraphSerialization> Validator { get; } = new Validator<GraphSerialization>()
+        .RuleFor(x => x.Nodes).NotNull()
+        .RuleFor(x => x.Edges).NotNull()
+        .RuleFor(x => x.SecurityGroups).NotNull()
+        .RuleFor(x => x.PrincipalIdentities).NotNull()
+        .Build();
 }
 
 public static class GraphSerializationTool
 {
+    public static Option Validate(this GraphSerialization subject) => GraphSerialization.Validator.Validate(subject).ToOptionStatus();
+
     public static string ToJson(this GraphMap subject) => subject.ToSerialization().ToJson();
 
     public static GraphSerialization ToSerialization(this GraphMap subject) => new GraphSerialization
@@ -26,27 +38,34 @@ public static class GraphSerializationTool
         PrincipalIdentities = subject.GrantControl.Principals
     };
 
-    public static string SerializeMap(this GraphMap subject)
+    public static GraphMap FromSerialization(this GraphSerialization subject, IServiceProvider service)
     {
-        var data = subject.ToSerialization();
-        return JsonSerializer.Serialize(data, GraphJsonContext.Default.GraphSerialization);
+        subject.NotNull();
+        service.NotNull();
+
+        return ActivatorUtilities.CreateInstance<GraphMap>(service, subject);
     }
 
-    public static GraphMap DeserializeMap(string json)
+    public static void BuildSerializer()
     {
-        var data = JsonSerializer.Deserialize(json, GraphJsonContext.Default.GraphSerialization).NotNull();
-        return data.FromSerialization();
+        var o = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true),
+                new ImmutableByteArrayConverter(),
+            },
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+        };
+
+        o.TypeInfoResolverChain.Add(GraphJsonContext.Default);
     }
-
-    public static GraphMap FromSerialization(this GraphSerialization subject) =>
-        new GraphMap(subject, new GraphMapCounter());
-
-    public static GraphMap FromSerialization(this GraphSerialization subject, GraphMapCounter mapCounters) =>
-        new GraphMap(subject, mapCounters);
 }
 
-// System.Text.Json source generation context for fast serialization/deserialization.
-//namespace Toolbox.Graph;
 
 [JsonSourceGenerationOptions(
     WriteIndented = false,

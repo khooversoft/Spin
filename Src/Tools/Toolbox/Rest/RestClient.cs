@@ -64,11 +64,11 @@ public class RestClient
         return this;
     }
 
-    public async Task<RestResponse> SendAsync(HttpRequestMessage requestMessage, ScopeContext context)
+    public async Task<RestResponse> SendAsync(HttpRequestMessage requestMessage, ILogger logger, CancellationToken cancellationToken = default)
     {
         string? requestPayload = (await requestMessage.GetContent()).Return(false);
 
-        context.Location().LogDebug(
+        logger.LogDebug(
             "[RestClient-Calling] {uri}, method={method}, request={request}",
             requestMessage.RequestUri?.ToString() ?? "<no uri>",
             requestMessage.Method,
@@ -87,10 +87,10 @@ public class RestClient
             HttpResponseMessage response;
             string content;
 
-            response = await _client.SendAsync(requestMessage.NotNull(), context);
+            response = await _client.SendAsync(requestMessage.NotNull(), cancellationToken);
             content = await response.Content.ReadAsStringAsync();
 
-            context.Location().Log(
+            logger.Log(
                 setLogLevel(response),
                 "[RestClient-Response] from {uri}, method={method}, StatusCode={statusCode}, request={request}, response={response}",
                 requestMessage.RequestUri?.ToString(),
@@ -100,7 +100,7 @@ public class RestClient
                 (content.ToNullIfEmpty() ?? "<no content>").Truncate(100, true)
                 );
 
-            context.Location().LogTrace(
+            logger.LogTrace(
                 "[RestClient-Response] from {uri}, method={method}, StatusCode={statusCode}, response={response}",
                 requestMessage.RequestUri?.ToString(),
                 requestMessage.Method,
@@ -112,7 +112,7 @@ public class RestClient
             {
                 StatusCode = response.StatusCode,
                 Content = content,
-                Context = context
+                Logger = logger
             };
 
             if (EnsureSuccessStatusCode) response.EnsureSuccessStatusCode();
@@ -120,7 +120,7 @@ public class RestClient
         }
         catch (Exception ex)
         {
-            context.Location().LogError("[RestClient-Error] call to {uri} failed, method={method}, request={request}",
+            logger.LogError("[RestClient-Error] call to {uri} failed, method={method}, request={request}",
                 requestMessage.RequestUri?.ToString(),
                 requestMessage.Method,
                 requestPayload
@@ -130,7 +130,7 @@ public class RestClient
             {
                 StatusCode = StatusCode.InternalServerError.ToHttpStatusCode(),
                 Content = ex.ToString(),
-                Context = context
+                Logger = logger
             };
 
             return result;
@@ -148,11 +148,11 @@ public class RestClient
         };
     }
 
-    public Task<RestResponse> GetAsync(ScopeContext context) => SendAsync(BuildRequestMessage(HttpMethod.Get), context);
-    public Task<RestResponse> DeleteAsync(ScopeContext context) => SendAsync(BuildRequestMessage(HttpMethod.Delete), context);
-    public Task<RestResponse> PostAsync(ScopeContext context) => SendAsync(BuildRequestMessage(HttpMethod.Post), context);
-    public Task<RestResponse> PutAsync(ScopeContext context) => SendAsync(BuildRequestMessage(HttpMethod.Put), context);
-    public Task<RestResponse> PatchAsync(ScopeContext context) => SendAsync(BuildRequestMessage(HttpMethod.Patch), context);
+    public Task<RestResponse> GetAsync(ILogger logger, CancellationToken cancellationToken = default) => SendAsync(BuildRequestMessage(HttpMethod.Get), logger, cancellationToken);
+    public Task<RestResponse> DeleteAsync(ILogger logger, CancellationToken cancellationToken = default) => SendAsync(BuildRequestMessage(HttpMethod.Delete), logger, cancellationToken);
+    public Task<RestResponse> PostAsync(ILogger logger, CancellationToken cancellationToken = default) => SendAsync(BuildRequestMessage(HttpMethod.Post), logger, cancellationToken);
+    public Task<RestResponse> PutAsync(ILogger logger, CancellationToken cancellationToken = default) => SendAsync(BuildRequestMessage(HttpMethod.Put), logger, cancellationToken);
+    public Task<RestResponse> PatchAsync(ILogger logger, CancellationToken cancellationToken = default) => SendAsync(BuildRequestMessage(HttpMethod.Patch), logger, cancellationToken);
 
     private HttpRequestMessage BuildRequestMessage(HttpMethod method)
     {

@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Types;
 
@@ -12,9 +13,9 @@ public static class FileTool
         public string Hash { get; init; }
     }
 
-    public static async Task<Option<IReadOnlyList<FileHash>>> GetFileHashes(IEnumerable<string> files, ScopeContext context)
+    public static async Task<Option<IReadOnlyList<FileHash>>> GetFileHashes(IEnumerable<string> files, ILogger logger)
     {
-        context.LogInformation("Calculating hash for all files");
+        logger.LogInformation("Calculating hash for all files");
 
         var fileList = files.ToArray();
 
@@ -29,10 +30,10 @@ public static class FileTool
 
         async Task<Option<FileHash>> getHash(string file)
         {
-            var result = await GetFileHash(file, context);
+            var result = await GetFileHash(file, logger);
             if (result.IsError())
             {
-                context.Location().LogError("Failed to get hash of file, file={file}", file);
+                logger.LogError("Failed to get hash of file, file={file}", file);
                 return (StatusCode.Conflict, $"Failed to get hash of file, file={file}");
             }
 
@@ -40,7 +41,7 @@ public static class FileTool
         }
     }
 
-    public static async Task<Option<FileHash>> GetFileHash(string file, ScopeContext context)
+    public static async Task<Option<FileHash>> GetFileHash(string file, ILogger logger)
     {
         if (!File.Exists(file)) return StatusCode.NotFound;
 
@@ -62,54 +63,54 @@ public static class FileTool
         }
         catch (IOException ex)
         {
-            context.Location().LogError(ex, "Failed to hash file={file}", file);
+            logger.LogError(ex, "Failed to hash file={file}", file);
             return StatusCode.InternalServerError;
         }
         catch (UnauthorizedAccessException ex)
         {
-            context.Location().LogError(ex, "Access Exception for hash file={file}", file);
+            logger.LogError(ex, "Access Exception for hash file={file}", file);
             return StatusCode.InternalServerError;
         }
     }
 
-    public static Option<string> ReadFile(string file, ScopeContext context)
+    public static Option<string> ReadFile(string file, ILogger logger)
     {
         file.NotEmpty();
 
         if (!File.Exists(file))
         {
-            context.LogError("Cannot find file={file}", file);
+            logger.LogError("Cannot find file={file}", file);
             return StatusCode.NotFound;
         }
 
         string configJson = File.ReadAllText(file);
         if (configJson.IsEmpty())
         {
-            context.LogError("File={file} is empty", file);
+            logger.LogError("File={file} is empty", file);
             return StatusCode.NotFound;
         }
 
         return configJson;
     }
 
-    public static Option<T> ReadFileAndDeserialize<T>(string file, IValidator<T> validator, ScopeContext context)
+    public static Option<T> ReadFileAndDeserialize<T>(string file, IValidator<T> validator, ILogger logger)
     {
         validator.NotNull();
 
-        var readOption = ReadFile(file, context);
+        var readOption = ReadFile(file, logger);
         if (readOption.IsError()) return readOption.ToOptionStatus<T>();
 
         var instance = readOption.Return().ToObject<T>();
         if (instance == null)
         {
-            context.LogError("Failed to deserialize configuration file={file}", file);
+            logger.LogError("Failed to deserialize configuration file={file}", file);
             return StatusCode.BadRequest;
         }
 
         var validation = validator.Validate(instance);
         if (validation.IsError())
         {
-            context.LogError("Configuration file={file} is invalid, error={error}", file, validation.ToString());
+            logger.LogError("Configuration file={file} is invalid, error={error}", file, validation.ToString());
             return StatusCode.BadRequest;
         }
 

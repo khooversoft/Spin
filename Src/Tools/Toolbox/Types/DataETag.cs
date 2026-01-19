@@ -94,6 +94,16 @@ public static class DataETagExtensions
         false => data.Data.AsSpan().ToObject<T>().NotNull("Serialization failed"),
     };
 
+    public static string GetJson(this DataETag subject)
+    {
+        if (subject.Data.Length == 0) return string.Empty;
+
+        string jsonString = subject.Data.BytesToString();
+        using JsonDocument jsonDocument = JsonDocument.Parse(jsonString);
+        var result = JsonSerializer.Serialize(jsonDocument.RootElement, Json.JsonSerializerFormatOption);
+        return result;
+    }
+
     public static string ToJsonFromData(this DataETag subject)
     {
         if (subject.Data.Length == 0) return string.Empty;

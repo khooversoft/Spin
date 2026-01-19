@@ -3,11 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Toolbox.Data;
 using Toolbox.Extensions;
+using Toolbox.Telemetry;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
-
 
 public class GraphEdgeIndex : IEnumerable<GraphEdge>
 {
@@ -18,8 +18,13 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     private readonly TagIndex<GraphEdgePrimaryKey> _tagIndex;
     private readonly object _lock;
     private readonly GraphMap _map;
+    private readonly ITelemetryCounter<long>? _addedCounter;
+    private readonly ITelemetryCounter<long>? _deletedCounter;
+    private readonly ITelemetryCounter<long>? _updatedCounter;
+    private readonly ITelemetryCounter<long>? _indexScanCounter;
+    private readonly ITelemetryRecorder<long>? _countGauge;
 
-    internal GraphEdgeIndex(GraphMap map, object syncLock, IEqualityComparer<string>? keyComparer = null, GraphMapCounter? mapCounters = null)
+    internal GraphEdgeIndex(GraphMap map, object syncLock, ITelemetry? telemetry = null, IEqualityComparer<string>? keyComparer = null)
     {
         _map = map.NotNull();
         _lock = syncLock.NotNull();
@@ -30,11 +35,14 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         _edgesEdges = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
         _tagIndex = new TagIndex<GraphEdgePrimaryKey>(GraphEdgePrimaryKeyComparer.Default);
 
-        EdgeCounter = mapCounters?.Edges;
+        _addedCounter = telemetry?.CreateCounter<long>("graph.edge.add", "Number of edges added", unit: "count");
+        _deletedCounter = telemetry?.CreateCounter<long>("graph.edge.delete", "Number of edges deleted", unit: "count");
+        _updatedCounter = telemetry?.CreateCounter<long>("graph.edge.update", "Number of edges updated", unit: "count");
+        _indexScanCounter = telemetry?.CreateCounter<long>("graph.edge.index.scan", "Number of index scans", unit: "count");
+        _countGauge = telemetry?.CreateGauge<long>("graph.edge.count", "Current edge count", unit: "count");
     }
 
     public int Count => _index.Count;
-    internal EdgeCounter? EdgeCounter;
 
     public GraphEdge this[GraphEdgePrimaryKey key]
     {
@@ -52,7 +60,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
             var pk = edge.GetPrimaryKey();
             if (!_index.TryAdd(pk, edge)) return (StatusCode.Conflict, $"key={pk} already exist");
-            EdgeCounter?.Count.Record(_index.Count);
+            RecordCount();
 
             _edgesFrom.Set(edge.FromKey, pk);
             _edgesTo.Set(edge.ToKey, pk);
@@ -60,10 +68,11 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _tagIndex.Set(pk, edge.Tags);
 
             graphContext?.TransactionScope.EdgeAdd(edge);
-            EdgeCounter?.Added.Add();
+            _addedCounter?.Increment();
             return StatusCode.OK;
         }
     }
+    public void AddIndexScan(int count = 1) => _indexScanCounter?.Add(count);
 
     public bool ContainsKey(GraphEdgePrimaryKey key) => _index.ContainsKey(key);
 
@@ -73,29 +82,24 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         .OfType<GraphEdge>()
         .ToImmutableArray();
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupTag(string tag) => _tagIndex.Lookup(tag)
-        .Action(x => EdgeCounter?.Index(x.Count > 0));
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupTag(string tag) => _tagIndex.Lookup(tag);
 
     public IReadOnlyList<GraphEdgePrimaryKey> LookupByNodeKey(IEnumerable<string> nodeKeys) => nodeKeys
         .SelectMany(x => _edgesFrom.Lookup(x))
         .Concat(nodeKeys.SelectMany(x => _edgesTo.Lookup(x)))
-        .ToImmutableArray()
-        .Action(x => EdgeCounter?.Index(x.Length > 0));
+        .ToImmutableArray();
 
     public IReadOnlyList<GraphEdgePrimaryKey> LookupByFromKey(IEnumerable<string> fromNodesKeys) => fromNodesKeys
         .SelectMany(x => _edgesFrom.Lookup(x))
-        .ToImmutableArray()
-        .Action(x => EdgeCounter?.Index(x.Length > 0));
+        .ToImmutableArray();
 
     public IReadOnlyList<GraphEdgePrimaryKey> LookupByToKey(IEnumerable<string> toNodesKeys) => toNodesKeys
         .SelectMany(x => _edgesTo.Lookup(x))
-        .ToImmutableArray()
-        .Action(x => EdgeCounter?.Index(x.Length > 0));
+        .ToImmutableArray();
 
     public IReadOnlyList<GraphEdgePrimaryKey> LookupByEdgeType(IEnumerable<string> edgeTypes) => edgeTypes
         .SelectMany(x => _edgesEdges.Lookup(x))
-        .ToImmutableArray()
-        .Action(x => EdgeCounter?.Index(x.Length > 0));
+        .ToImmutableArray();
 
     public Option Remove(GraphEdgePrimaryKey edgeKey, GraphTrxContext? graphContext = null)
     {
@@ -109,8 +113,8 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _tagIndex.Remove(edgeKey);
 
             graphContext?.TransactionScope.EdgeDelete(edgeValue);
-            EdgeCounter?.Deleted.Add();
-            EdgeCounter?.Count.Record(_index.Count);
+            _deletedCounter?.Increment();
+            RecordCount();
             return StatusCode.OK;
         }
     }
@@ -137,10 +141,14 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
             var pk = edge.GetPrimaryKey();
             var addResult = tryAdd(pk, edge);
-            if (addResult.IsOk()) return addResult;
-            EdgeCounter?.Count.Record(_index.Count);
+            if (addResult.IsOk())
+            {
+                RecordCount();
+                return addResult;
+            }
 
             var updateResult = update(edge, graphContext);
+            RecordCount();
             return updateResult;
         }
 
@@ -154,7 +162,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _tagIndex.Set(pk, edge.Tags);
 
             graphContext?.TransactionScope.EdgeAdd(edge);
-            EdgeCounter?.Added.Add();
+            _addedCounter?.Increment();
             return StatusCode.OK;
         }
 
@@ -191,13 +199,13 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
                 }
 
                 graphContext?.TransactionScope.EdgeChange(readEdge, edge);
-                EdgeCounter?.Updated.Add();
+                _updatedCounter?.Increment();
                 return StatusCode.OK;
             }
         }
     }
 
-    public bool TryGetValue(GraphEdgePrimaryKey key, out GraphEdge? edge) => _index.TryGetValue(key, out edge).Action(x => EdgeCounter?.Index(x));
+    public bool TryGetValue(GraphEdgePrimaryKey key, out GraphEdge? edge) => _index.TryGetValue(key, out edge);
 
     public IEnumerator<GraphEdge> GetEnumerator() => _index.Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -220,7 +228,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         return true;
     }
 
-    internal void UpdateCounters() => EdgeCounter?.Count.Record(_index.Count);
+    private void RecordCount() => _countGauge?.Post(_index.Count);
 }
 
 public static class GraphEdgeIndexExtensions

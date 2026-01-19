@@ -70,29 +70,35 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static IServiceCollection AddKeyStore<T>(this IServiceCollection services, string spaceName)
+    public static IServiceCollection AddKeyStore<T>(this IServiceCollection services, string spaceName, Action<SpaceOption<T>>? configure = null)
     {
         services.NotNull();
         spaceName.NotEmpty();
 
+        var options = new SpaceOption<T>();
+        configure?.Invoke(options);
+
         services.AddSingleton<IKeyStore<T>>(services =>
         {
             var dataSpace = services.GetRequiredService<DataSpace>();
-            return dataSpace.GetFileStore<T>(spaceName);
+            return dataSpace.GetFileStore<T>(spaceName, options);
         });
 
         return services;
     }
 
-    public static IServiceCollection AddListStore<T>(this IServiceCollection services, string spaceName)
+    public static IServiceCollection AddListStore<T>(this IServiceCollection services, string spaceName, Action<SpaceOption<T>>? configure = null)
     {
         services.NotNull();
         spaceName.NotEmpty();
 
+        var options = new SpaceOption<T>();
+        configure?.Invoke(options);
+
         services.AddTransient<IListStore<T>>(services =>
         {
             var dataSpace = services.GetRequiredService<DataSpace>();
-            return dataSpace.GetListStore<T>(spaceName);
+            return dataSpace.GetListStore<T>(spaceName, options);
         });
 
         return services;

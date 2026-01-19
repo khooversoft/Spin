@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
-using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.Tools;
@@ -13,7 +12,7 @@ public class OperationQueueTaskProcessorTests
 {
     private ITestOutputHelper _testOutputHelper;
     private IHost _host;
-    private ScopeContext _context;
+    private ILogger _logger;
 
     public OperationQueueTaskProcessorTests(ITestOutputHelper testOutputHelper)
     {
@@ -26,7 +25,7 @@ public class OperationQueueTaskProcessorTests
             })
             .Build();
 
-        _context = _host.Services.GetRequiredService<ILogger<OperationQueueTests>>().ToScopeContext();
+        _logger = _host.Services.GetRequiredService<ILogger<OperationQueueTests>>();
     }
 
     [Fact]
@@ -47,7 +46,7 @@ public class OperationQueueTaskProcessorTests
             }))
             .ToArray();
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
         results.All(x => x.State == TaskState.Succeeded).BeTrue();
     }
 
@@ -65,7 +64,7 @@ public class OperationQueueTaskProcessorTests
             }))
             .ToArray();
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
 
         results.Count.Be(taskCount);
         results.All(x => x.State == TaskState.Abandoned).BeTrue();
@@ -94,7 +93,7 @@ public class OperationQueueTaskProcessorTests
             }))
             .ToArray();
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
 
         results.Count.Be(10);
         var succeeded = results.Where(x => x.State == TaskState.Succeeded).ToArray();
@@ -112,7 +111,7 @@ public class OperationQueueTaskProcessorTests
         var processor = ActivatorUtilities.CreateInstance<TasksProcessor>(_host.Services, 3);
 
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            processor.Run(null!, _context));
+            processor.Run(null!));
     }
 
     [Fact]
@@ -121,7 +120,7 @@ public class OperationQueueTaskProcessorTests
         var processor = ActivatorUtilities.CreateInstance<TasksProcessor>(_host.Services, 3);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            processor.Run(Array.Empty<TaskInvoke>(), _context));
+            processor.Run(Array.Empty<TaskInvoke>()));
     }
 
     [Fact]
@@ -138,7 +137,7 @@ public class OperationQueueTaskProcessorTests
             })
         };
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
 
         results.Count.Be(1);
         results[0].State.Be(TaskState.Succeeded);
@@ -159,7 +158,7 @@ public class OperationQueueTaskProcessorTests
             })
         };
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
 
         results.Count.Be(1);
         results[0].State.Be(TaskState.Abandoned);
@@ -183,7 +182,7 @@ public class OperationQueueTaskProcessorTests
             }))
             .ToArray();
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
 
         results.Count.Be(5);
         results.All(x => x.State == TaskState.Succeeded).BeTrue();
@@ -214,7 +213,7 @@ public class OperationQueueTaskProcessorTests
         tasks[0].State.Be(TaskState.NotRun);
         tasks[0].AttemptCount.Be(0);
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
 
         // Verify final state
         results[0].State.Be(TaskState.Succeeded);
@@ -235,7 +234,7 @@ public class OperationQueueTaskProcessorTests
             }))
             .ToArray();
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
 
         results.Count.Be(taskCount);
         results.All(x => x.State == TaskState.Succeeded).BeTrue();
@@ -260,7 +259,7 @@ public class OperationQueueTaskProcessorTests
             }))
             .ToArray();
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
 
         results.Count.Be(10);
         results.All(x => x.State == TaskState.Succeeded).BeTrue();
@@ -290,7 +289,7 @@ public class OperationQueueTaskProcessorTests
             })
         };
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
 
         results.Count.Be(1);
         results[0].State.Be(TaskState.Succeeded);
@@ -311,7 +310,7 @@ public class OperationQueueTaskProcessorTests
             })
         };
 
-        var results = await processor.Run(tasks, _context);
+        var results = await processor.Run(tasks);
 
         results.Count.Be(1);
         results[0].State.Be(TaskState.Abandoned);
@@ -332,7 +331,7 @@ public class TasksProcessor
         _logger = logger;
     }
 
-    public async Task<IReadOnlyList<TaskInvoke>> Run(IReadOnlyList<TaskInvoke> functions, ScopeContext context)
+    public async Task<IReadOnlyList<TaskInvoke>> Run(IReadOnlyList<TaskInvoke> functions)
     {
         if (functions == null) throw new ArgumentNullException(nameof(functions));
         if (functions.Count == 0) throw new ArgumentException($"At least one function is required", nameof(functions));
@@ -365,18 +364,18 @@ public class TasksProcessor
                         var success = await func.Function();
                         func.State = success ? TaskState.Succeeded : TaskState.Failed;
                         func.AttemptCount++;
-                    }, context);
+                    });
                 }
 
                 await Task.Delay(RandomNumberGenerator.GetInt32(100, maxDelayMs));
                 return false;
-            }, context);
+            });
 
             if (getStats) break;
         }
 
-        await operationQueue.Drain(context);
-        await operationQueue.Complete(context);
+        await operationQueue.Drain();
+        await operationQueue.Complete();
 
         return dict.Values.ToArray();
 
@@ -393,7 +392,7 @@ public class TasksProcessor
                     var success = await func.Function();
                     func.State = success ? TaskState.Succeeded : TaskState.Failed;
                     func.AttemptCount++;
-                }, context);
+                });
             }
         }
     }

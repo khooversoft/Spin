@@ -1,4 +1,5 @@
-﻿using Toolbox.Data;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -7,25 +8,26 @@ namespace Toolbox.Graph;
 
 public static class NodeCompensate
 {
-    public static Task<Option> Compensate(GraphMap map, DataChangeEntry entry, ScopeContext context)
+    public static Task<Option> Compensate(GraphMap map, DataChangeEntry entry, ILogger logger)
     {
         map.NotNull();
         entry.NotNull();
+        logger.NotNull();
 
         switch (entry.SourceName, entry.Action)
         {
             case (ChangeSource.Node, ChangeOperation.Add):
-                return UndoAdd(map, entry, context).ThrowOnError().ToTaskResult();
+                return UndoAdd(map, entry, logger).ThrowOnError().ToTaskResult();
 
             case (ChangeSource.Node, ChangeOperation.Delete):
             case (ChangeSource.Node, ChangeOperation.Update):
-                return UndoUpdate(map, entry, context).ThrowOnError().ToTaskResult();
+                return UndoUpdate(map, entry, logger).ThrowOnError().ToTaskResult();
         }
 
         return new Option(StatusCode.NotFound).ToTaskResult();
     }
 
-    private static Option UndoAdd(GraphMap map, DataChangeEntry entry, ScopeContext context)
+    private static Option UndoAdd(GraphMap map, DataChangeEntry entry, ILogger logger)
     {
         if (entry.After == null) throw new ArgumentNullException($"{entry.Action} command does not have 'After' DataETag data");
         GraphNode node = entry.After.Value.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
@@ -33,14 +35,15 @@ public static class NodeCompensate
 
         if (map.NotNull().Nodes.Remove(node.Key).IsError())
         {
-            context.LogError("Rollback: Failed to remove node key={key}, entry={entry}", node.Key, entry);
+            logger.LogError("Rollback: Failed to remove node key={key}, entry={entry}", node.Key, entry);
             return (StatusCode.Conflict, $"Failed to remove node key={node.Key}");
         }
 
-        context.LogDebug("Rollback: removed node key={key}, entry={entry}", node.Key, entry);
+        logger.LogDebug("Rollback: removed node key={key}, entry={entry}", node.Key, entry);
         return StatusCode.OK;
     }
-    private static Option UndoUpdate(GraphMap map, DataChangeEntry entry, ScopeContext context)
+
+    private static Option UndoUpdate(GraphMap map, DataChangeEntry entry, ILogger logger)
     {
         if (entry.Before == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 
@@ -49,7 +52,7 @@ public static class NodeCompensate
 
         map.Nodes[node.Key] = node;
 
-        context.LogDebug("Rollback: restored node nodeKey={nodeKey}, entity={entity}", node.Key, entry);
+        logger.LogDebug("Rollback: restored node nodeKey={nodeKey}, entity={entity}", node.Key, entry);
         return StatusCode.OK;
     }
 }

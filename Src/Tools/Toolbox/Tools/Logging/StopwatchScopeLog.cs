@@ -1,65 +1,18 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Toolbox.Types;
 
 namespace Toolbox.Tools;
 
 public static class StopwatchScopeTool
 {
-    public static StopwatchScopeLog LogDuration(this ScopeContext context, string metricName, string? message = null, params object?[] args)
-    {
-        return new StopwatchScopeLog(context, metricName, message, args);
-    }
-
-    public static StopwatchScope LogDuration(this ScopeContext context, Action<string?, TimeSpan> action)
-    {
-        return new StopwatchScope(context, action);
-    }
-
     public static StopwatchScopeLog LogDuration(this ILogger logger, string metricName, string? message = null, params object?[] args)
     {
         return new StopwatchScopeLog(logger, metricName, message, args);
     }
-
-    public static StopwatchScope LogDuration(this ILogger logger, Action<string?, TimeSpan> action)
-    {
-        return new StopwatchScope(logger, action);
-    }
 }
-
-public readonly struct StopwatchScope : IDisposable
-{
-    private readonly ILogger? _logger;
-    private readonly Action<string?, TimeSpan> _action;
-
-    public StopwatchScope(ScopeContext context, Action<string?, TimeSpan> action)
-        : this(context.Logger, action)
-    {
-    }
-
-    public StopwatchScope(ILogger logger, Action<string?, TimeSpan> action)
-    {
-        _logger = logger.NotNull();
-        _action = action.NotNull();
-        Timestamp = Stopwatch.GetTimestamp();
-    }
-
-    public long Timestamp { get; }
-    public TimeSpan Elapsed => Stopwatch.GetElapsedTime(Timestamp);
-    public void Dispose() => Log("Dispose");
-
-    public TimeSpan Log(string? tag = null)
-    {
-        TimeSpan current = Elapsed;
-        _action(tag, current);
-        return current;
-    }
-}
-
 
 public readonly struct StopwatchScopeLog : IDisposable
 {
-    private readonly ScopeContext? _context = null;
     private readonly ILogger? _logger;
     private readonly string? _metricName;
     private readonly string? _message = null;
@@ -74,11 +27,6 @@ public readonly struct StopwatchScopeLog : IDisposable
         Timestamp = Stopwatch.GetTimestamp();
     }
 
-    public StopwatchScopeLog(ScopeContext context, string metricName, string? message = null, params object?[] args)
-        : this(context.Logger, metricName, message, args)
-    {
-    }
-
     public long Timestamp { get; }
     public TimeSpan Elapsed => Stopwatch.GetElapsedTime(Timestamp);
     public void Dispose() => Log("Dispose");
@@ -86,7 +34,15 @@ public readonly struct StopwatchScopeLog : IDisposable
     public TimeSpan Log(string? tag = null)
     {
         string name = _metricName.NotNull() + (tag == null ? string.Empty : "." + tag);
-        _context?.LogMetric(name, "ms", Elapsed.TotalMilliseconds, _message, _args);
+
+        var record = StructureLineBuilder.Start()
+            .Add(_message, _args)
+            .Add("metric:{metricName}", name)
+            .Add("value={value}", Elapsed.TotalMilliseconds)
+            .Add("unit={unit}", "ms")
+            .Build();
+
+        _logger?.LogDebug(record.Message, record.Args);
         return Elapsed;
     }
 }

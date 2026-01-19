@@ -9,12 +9,10 @@ namespace Toolbox.LangTools;
 internal class SyntaxParserContext
 {
     private readonly Stack<int> _position = new Stack<int>();
-    private readonly ScopeContext _context;
 
-    public SyntaxParserContext(IReadOnlyList<IToken> tokens, ScopeContext context)
+    public SyntaxParserContext(IReadOnlyList<IToken> tokens)
     {
         TokensCursor = new Cursor<IToken>(tokens.ToImmutableArray());
-        _context = context;
     }
 
     public Cursor<IToken> TokensCursor { get; }

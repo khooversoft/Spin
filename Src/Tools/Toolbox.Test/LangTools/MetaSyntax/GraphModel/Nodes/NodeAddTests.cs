@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
@@ -12,7 +13,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
+    private readonly ILogger _logger;
 
     public NodeAddTests(ITestOutputHelper output) : base(output)
     {
@@ -22,7 +23,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _context = GetScopeContext();
+        _logger = GetLogger();
         _parser = new SyntaxParser(_root);
     }
 
@@ -36,14 +37,14 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [InlineData("data { hexdata };")]
     public void FailedReturn(string command)
     {
-        var parse = _parser.Parse(command, _context);
+        var parse = _parser.Parse(command, _logger);
         parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void MinAddCommand()
     {
-        var parse = _parser.Parse("add node key=k1;", _context);
+        var parse = _parser.Parse("add node key=k1;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -65,7 +66,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithTag()
     {
-        var parse = _parser.Parse("add node key=k1 set t1;", _context);
+        var parse = _parser.Parse("add node key=k1 set t1;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -89,7 +90,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithTwoTag()
     {
-        var parse = _parser.Parse("add node key=k1 set t1, t2=v2 ;", _context);
+        var parse = _parser.Parse("add node key=k1 set t1, t2=v2 ;", _logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -117,7 +118,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithData()
     {
-        var parse = _parser.Parse("add node key=k1 set data { base64 } ;", _context);
+        var parse = _parser.Parse("add node key=k1 set data { base64 } ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -144,7 +145,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithTwoData()
     {
-        var parse = _parser.Parse("add node key=k1 set data { base64 }, entity { entityData64 } ;", _context);
+        var parse = _parser.Parse("add node key=k1 set data { base64 }, entity { entityData64 } ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -176,7 +177,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithTagsData()
     {
-        var parse = _parser.Parse("add node key=k1 set t1, t2=v3, t3, data { base64 } ;", _context);
+        var parse = _parser.Parse("add node key=k1 set t1, t2=v3, t3, data { base64 } ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -211,7 +212,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithTagsTwoData()
     {
-        var parse = _parser.Parse("add node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 } ;", _context);
+        var parse = _parser.Parse("add node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 } ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

@@ -28,7 +28,7 @@ public class OptionalRuleTests : TestBase
     public void OnlyRequiredOfOptional()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("t1", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);
@@ -67,7 +67,7 @@ public class OptionalRuleTests : TestBase
     public void OnlyRequiredAndOptional()
     {
         var parser = new SyntaxParser(_schema);
-        var logger = GetScopeContext<OrRuleTests>();
+        var logger = GetLogger<OrRuleTests>();
 
         var parse = parser.Parse("t1 = v1", logger);
         parse.Status.IsOk().BeTrue(parse.Status.Error);

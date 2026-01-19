@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Rest;
 using Toolbox.TestApi;
 using Toolbox.Tools;
@@ -9,7 +10,7 @@ namespace Toolbox.Test.Rest;
 public class RestNormalCalls : IClassFixture<TestApiHost>
 {
     private readonly TestApiHost _testApiHost;
-    private readonly ScopeContext _context = new ScopeContext(NullLogger.Instance);
+    private readonly ILogger _logger = NullLogger.Instance;
     public RestNormalCalls(TestApiHost testApiHost) => _testApiHost = testApiHost;
 
 
@@ -29,7 +30,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         Option<string> response = await new RestClient(client)
             .SetPath("/hello")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .GetContent<string>();
 
         response.HasValue.BeTrue();
@@ -44,7 +45,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         Option<string> response = await new RestClient(client)
             .SetPath("/helloWithError")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .GetContent<string>();
 
         response.IsError().BeTrue();
@@ -60,7 +61,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         Option response = await new RestClient(client)
             .SetPath("/statusCodeOnlyCall")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .ToOption();
 
         response.StatusCode.IsError().BeTrue();
@@ -75,7 +76,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         Option<string> response = await new RestClient(client)
             .SetPath("/statusCodeOnlyCall")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .GetContent<string>();
 
         response.IsError().BeTrue();
@@ -92,7 +93,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         Option response = await new RestClient(client)
             .SetPath("/justOk")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .ToOption();
 
         response.StatusCode.Be(StatusCode.OK);
@@ -107,7 +108,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         Option<TestModel> response = await new RestClient(client)
             .SetPath("/justOkWithModel")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .GetContent<TestModel>();
 
         response.StatusCode.Be(StatusCode.OK);
@@ -123,7 +124,7 @@ public class RestNormalCalls : IClassFixture<TestApiHost>
 
         Option response = await new RestClient(client)
             .SetPath("/justOkWithMessage")
-            .GetAsync(_context)
+            .GetAsync(_logger)
             .ToOption();
 
         response.StatusCode.Be(StatusCode.OK);

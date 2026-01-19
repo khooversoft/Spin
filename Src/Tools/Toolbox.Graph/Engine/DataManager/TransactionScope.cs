@@ -11,15 +11,15 @@ namespace Toolbox.Graph;
 
 public class TransactionScope : IAsyncDisposable
 {
-    private readonly Func<DataChangeRecord, ScopeContext, Task<Option>> _commitFunc;
-    private readonly Func<DataChangeRecord, ScopeContext, Task<Option>> _rollback;
+    private readonly Func<DataChangeRecord, Task<Option>> _commitFunc;
+    private readonly Func<DataChangeRecord, Task<Option>> _rollback;
     private readonly ILogger _logger;
     private readonly ConcurrentQueue<DataChangeEntry> _queue = new();
     private bool _isCommitted = false;
 
     internal TransactionScope(
-        Func<DataChangeRecord, ScopeContext, Task<Option>> commitFunc,
-        Func<DataChangeRecord, ScopeContext, Task<Option>> rollback,
+        Func<DataChangeRecord, Task<Option>> commitFunc,
+        Func<DataChangeRecord, Task<Option>> rollback,
         LogSequenceNumber logSequenceNumber,
         ILogger logger
         )
@@ -36,18 +36,16 @@ public class TransactionScope : IAsyncDisposable
 
     public void Enqueue(DataChangeEntry entry) => _queue.Enqueue(entry);
 
-    public async Task<Option> Commit(ScopeContext context)
+    public async Task<Option> Commit()
     {
-        context = context.With(_logger);
-
         var committed = Interlocked.CompareExchange(ref _isCommitted, true, false);
         if (committed) throw new InvalidOperationException();
 
-        context.LogDebug("Committing changes for transaction");
-        var commitOption = await _commitFunc(GetChangeRecords(), context);
+        _logger.LogDebug("Committing changes for transaction");
+        var commitOption = await _commitFunc(GetChangeRecords());
         if (commitOption.IsError())
         {
-            commitOption.LogStatus(context, "Failed to commit changes");
+            _logger.LogStatus(commitOption, "Failed to commit changes");
             throw new InvalidOperationException($"Failed to commit changes: statusCode={commitOption.StatusCode}, error={commitOption.Error}");
         }
 
@@ -55,7 +53,7 @@ public class TransactionScope : IAsyncDisposable
         return commitOption;
     }
 
-    public async Task Rollback(ScopeContext context)
+    public async Task Rollback()
     {
         var current = Interlocked.CompareExchange(ref _isCommitted, true, false);
         if (current)
@@ -65,7 +63,7 @@ public class TransactionScope : IAsyncDisposable
 
             foreach (var item in _queue)
             {
-                context.LogDebug("Rollback entry: {Entry}", item);
+                _logger.LogDebug("Rollback entry: {Entry}", item);
                 str.Append(item.ToString() + Environment.NewLine);
             }
 
@@ -74,18 +72,18 @@ public class TransactionScope : IAsyncDisposable
 
         if (_queue.Count == 0) return;
 
-        context.LogDebug("Rolling back changes for transaction");
-        var rollbackOption = await _rollback(GetChangeRecords(), context);
+        _logger.LogDebug("Rolling back changes for transaction");
+        var rollbackOption = await _rollback(GetChangeRecords());
         if (rollbackOption.IsError())
         {
-            context.LogError("Failed to rollback changes: {Error}", rollbackOption.Error);
+            _logger.LogError("Failed to rollback changes: {Error}", rollbackOption.Error);
             throw new InvalidOperationException($"Failed to rollback changes: {rollbackOption.Error}");
         }
 
         _queue.Clear();
     }
 
-    public async ValueTask DisposeAsync() => await Rollback(_logger.ToScopeContext());
+    public async ValueTask DisposeAsync() => await Rollback();
 
     private DataChangeRecord GetChangeRecords() => new DataChangeRecord
     {

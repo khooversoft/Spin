@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -6,7 +7,7 @@ namespace Toolbox.Graph;
 
 public interface ICommandBatchBuilder
 {
-    Option<string> BuildQuery(ScopeContext context);
+    Option<string> BuildQuery(ILogger logger);
 }
 
 public class CommandBatchBuilder
@@ -19,21 +20,21 @@ public class CommandBatchBuilder
         return this;
     }
 
-    public CommandBatchBuilder Add(Func<ScopeContext, string> buildQuery)
+    public CommandBatchBuilder Add(Func<ILogger, string> buildQuery)
     {
         _commandBatchBuilders.Add(new FuncProxy(x => buildQuery(x)));
         return this;
     }
 
-    public CommandBatchBuilder Add(Func<ScopeContext, Option<string>> buildQuery)
+    public CommandBatchBuilder Add(Func<ILogger, Option<string>> buildQuery)
     {
         _commandBatchBuilders.Add(new FuncProxy(buildQuery));
         return this;
     }
 
-    public Option<string> Build(ScopeContext context)
+    public Option<string> Build(ILogger logger)
     {
-        Option<string>[] stats = _commandBatchBuilders.Select(x => x.BuildQuery(context)).ToArray();
+        Option<string>[] stats = _commandBatchBuilders.Select(x => x.BuildQuery(logger)).ToArray();
         var error = stats.FirstOrDefault(x => x.IsError(), new Option<string>(StatusCode.OK));
         if (error.IsError()) return error;
 
@@ -43,9 +44,9 @@ public class CommandBatchBuilder
 
     private readonly struct FuncProxy : ICommandBatchBuilder
     {
-        private readonly Func<ScopeContext, Option<string>> _buildQuery;
-        public FuncProxy(Func<ScopeContext, Option<string>> buildQuery) => _buildQuery = buildQuery.NotNull();
+        private readonly Func<ILogger, Option<string>> _buildQuery;
+        public FuncProxy(Func<ILogger, Option<string>> buildQuery) => _buildQuery = buildQuery.NotNull();
 
-        public Option<string> BuildQuery(ScopeContext context) => _buildQuery(context);
+        public Option<string> BuildQuery(ILogger logger) => _buildQuery(logger);
     }
 }

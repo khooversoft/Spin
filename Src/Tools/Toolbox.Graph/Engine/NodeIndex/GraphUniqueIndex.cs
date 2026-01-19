@@ -74,7 +74,7 @@ internal class GraphUniqueIndex
         lock (_syncLock)
         {
             Option status = _tagIndex.RemoveNodeKey(nodeKey);
-            trxContext?.Action(x => status.LogStatus(x.Context, "nodeKey={nodeKey}", [nodeKey]));
+            trxContext?.Action(x => x.Logger.LogStatus(status, "nodeKey={nodeKey}", [nodeKey]));
         }
     }
 
@@ -88,7 +88,7 @@ internal class GraphUniqueIndex
         indexedTags.ForEach(x =>
         {
             var option = _tagIndex.Add(x.Key, x.Value, newNode.Key);
-            trxContext?.Action(y => option.LogStatus(y.Context, "Add index={index}={value} for nodeKey={nodeKey}", [x.Key, x.Value, newNode.Key]));
+            trxContext?.Action(y => y.Logger.LogStatus(option, "Add index={index}={value} for nodeKey={nodeKey}", [x.Key, x.Value, newNode.Key]));
         });
     }
 

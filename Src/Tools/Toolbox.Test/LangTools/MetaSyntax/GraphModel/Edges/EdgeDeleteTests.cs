@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
@@ -12,7 +13,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
+    private readonly ILogger _logger;
 
     public EdgeDeleteTests(ITestOutputHelper output) : base(output)
     {
@@ -22,14 +23,14 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _context = GetScopeContext();
+        _logger = GetLogger();
         _parser = new SyntaxParser(_root);
     }
 
     [Fact]
     public void DeleteAllCommand()
     {
-        var parse = _parser.Parse("delete [*] ;", _context);
+        var parse = _parser.Parse("delete [*] ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -50,7 +51,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     [Fact]
     public void DeleteByLabel()
     {
-        var parse = _parser.Parse("delete [person] ;", _context);
+        var parse = _parser.Parse("delete [person] ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -71,7 +72,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     [Fact]
     public void DeleteCommand()
     {
-        var parse = _parser.Parse("delete [key=k1] ;", _context);
+        var parse = _parser.Parse("delete [key=k1] ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -94,7 +95,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     [Fact]
     public void DeleteExact()
     {
-        var parse = _parser.Parse("delete [from=k1, to=k1, type=t1] ;", _context);
+        var parse = _parser.Parse("delete [from=k1, to=k1, type=t1] ;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

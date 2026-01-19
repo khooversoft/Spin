@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Test.Application;
 using Toolbox.Tools;
@@ -12,7 +13,7 @@ public class EdgeAddTests : TestBase<EdgeAddTests>
     private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
+    private readonly ILogger _logger;
 
     public EdgeAddTests(ITestOutputHelper output) : base(output)
     {
@@ -21,7 +22,7 @@ public class EdgeAddTests : TestBase<EdgeAddTests>
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
-        _context = GetScopeContext();
+        _logger = GetLogger();
 
         _parser = new SyntaxParser(_root);
     }
@@ -41,14 +42,14 @@ public class EdgeAddTests : TestBase<EdgeAddTests>
     [InlineData("data { hexdata };")]
     public void FailedReturn(string command)
     {
-        var parse = _parser.Parse(command, _context);
+        var parse = _parser.Parse(command, _logger);
         parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void MinAddCommand()
     {
-        var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label;", _context);
+        var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -78,7 +79,7 @@ public class EdgeAddTests : TestBase<EdgeAddTests>
     [Fact]
     public void AddWithSetTagCommand()
     {
-        var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label set t1;", _context);
+        var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label set t1;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -110,7 +111,7 @@ public class EdgeAddTests : TestBase<EdgeAddTests>
     [Fact]
     public void AddWithSetMultipleTagCommand()
     {
-        var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label set t1, t2=v3, t3;", _context);
+        var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label set t1, t2=v3, t3;", _logger);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

@@ -18,12 +18,12 @@ public class ListStoreProvider : IStoreListProvider
 
     public string Name { get; }
 
-    public IListStore<T> GetStore<T>(SpaceDefinition definition)
+    public IListStore<T> GetStore<T>(SpaceDefinition definition, SpaceOption<T> options)
     {
         definition.SpaceFormat.Assert(x => x == SpaceFormat.List, $"Invalid space format {definition.SpaceFormat} for list store");
 
         ListKeySystem<T> listKeySystem = new(definition.BasePath);
-        var store = ActivatorUtilities.CreateInstance<ListSpace<T>>(_serviceProvider, listKeySystem);
+        var store = ActivatorUtilities.CreateInstance<ListSpace<T>>(_serviceProvider, listKeySystem, options);
 
         return store;
     }
