@@ -1,4 +1,5 @@
-﻿using Toolbox.Graph.test.Application;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -6,23 +7,22 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class GroupTests : TestBase<NodeTests>
+public class GroupTests
 {
-    private readonly ITestOutputHelper _output;
-    private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
 
-    public GroupTests(ITestOutputHelper output) : base(output)
+    public GroupTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryKeyStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
 
-        string schema = GraphLanguageTool.ReadGraphLanguageRules();
-        _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().BeTrue(_root.Error);
-
-        _context = GetScopeContext();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
     }
 
     [Theory]
@@ -32,7 +32,7 @@ public class GroupTests : TestBase<NodeTests>
     [InlineData("select group badname = admins ;")]
     public void TestBadPatterns(string cmd)
     {
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeError();
     }
 
@@ -46,7 +46,7 @@ public class GroupTests : TestBase<NodeTests>
     [InlineData("delete user1 from org:eng group ;", GiGroupCommand.Delete, "user1", "org:eng")]
     public void AddDeleteUserFromGroup(string cmd, GiGroupCommand command, string? user, string group)
     {
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -70,7 +70,7 @@ public class GroupTests : TestBase<NodeTests>
     [InlineData("select groups where member = admins ;", "groups", "member", "admins")]
     public void Select(string cmd, string objectName, string attributeName, string value)
     {
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -103,7 +103,7 @@ public class GroupTests : TestBase<NodeTests>
     [InlineData("select groups where name = admins")]       // missing ';'
     public void TestBadSelectManagementPatterns(string cmd)
     {
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeError();
     }
 
@@ -112,7 +112,7 @@ public class GroupTests : TestBase<NodeTests>
     {
         string cmd = "add user1 to admins group ; delete user1 from admins group ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var instructions = InterLangTool.Build(parse.SyntaxTree.GetAllSyntaxPairs().ToArray());
@@ -131,7 +131,7 @@ public class GroupTests : TestBase<NodeTests>
     {
         string cmd = "add user1 to admins group ; select groups where member = user1 ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var instructions = InterLangTool.Build(parse.SyntaxTree.GetAllSyntaxPairs().ToArray());

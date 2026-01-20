@@ -1,36 +1,35 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel.Relationships;
 
-public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
+public class DeleteRelationshipTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ILogger _logger;
 
-    public DeleteRelationshipTests(ITestOutputHelper output) : base(output)
+    public DeleteRelationshipTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _logger = GetLogger();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _root);
     }
 
     [Fact]
     public void DeleteNodesRelationship()
     {
-        var parse = _parser.Parse("delete (*) ;", _logger);
+        var parse = _parser.Parse("delete (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -51,7 +50,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void DeleteAllRelationshipsAndReturnDataCommand()
     {
-        var parse = _parser.Parse("delete [*] ;", _logger);
+        var parse = _parser.Parse("delete [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -72,7 +71,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void DeleteNodesToEdgeRelationship()
     {
-        var parse = _parser.Parse("delete (*) -> [*] ;", _logger);
+        var parse = _parser.Parse("delete (*) -> [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -80,7 +79,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), Name = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
             new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
@@ -97,7 +96,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void DeleteNodesWithAliasToEdgeRelationship()
     {
-        var parse = _parser.Parse("delete (*) a1 -> [*] ;", _logger);
+        var parse = _parser.Parse("delete (*) a1 -> [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -105,7 +104,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), Name = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
             new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
@@ -123,7 +122,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void DeleteNodesToEdgeToNodeRelationship()
     {
-        var parse = _parser.Parse("delete (*) -> [*] -> (*) ;", _logger);
+        var parse = _parser.Parse("delete (*) -> [*] -> (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -131,7 +130,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), Name = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
             new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },
@@ -152,7 +151,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void DeleteNodesToEdgeToNodeWithAliasRelationship()
     {
-        var parse = _parser.Parse("delete (*) a1 -> [*] a2 -> (*) a3 ;", _logger);
+        var parse = _parser.Parse("delete (*) a1 -> [*] a2 -> (*) a3 ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -184,7 +183,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void DeleteNotCorrectButWorksRelationship()
     {
-        var parse = _parser.Parse("delete  (*) -> (*) -> (*) ;", _logger);
+        var parse = _parser.Parse("delete  (*) -> (*) -> (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -192,7 +191,7 @@ public class DeleteRelationshipTests : TestBase<LeftJoinRelationshipTests>
 
         var expectedPairs = new[]
         {
-            new SyntaxPair {Token = new TokenValue("delete"), Name = "delete-sym"},
+            new SyntaxPair { Token = new TokenValue("delete"), Name = "delete-sym" },
             new SyntaxPair { Token = new TokenValue("("), Name = "open-param" },
             new SyntaxPair { Token = new TokenValue("*"), Name = "tagKey" },
             new SyntaxPair { Token = new TokenValue(")"), Name = "close-param" },

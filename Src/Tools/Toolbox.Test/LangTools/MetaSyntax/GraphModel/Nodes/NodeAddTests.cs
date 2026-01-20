@@ -1,30 +1,29 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel.Nodes;
 
-public class NodeAddTests : TestBase<NodeAddTests>
+public class NodeAddTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ILogger _logger;
 
-    public NodeAddTests(ITestOutputHelper output) : base(output)
+    public NodeAddTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _logger = GetLogger();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _root);
     }
 
     [Theory]
@@ -37,14 +36,14 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [InlineData("data { hexdata };")]
     public void FailedReturn(string command)
     {
-        var parse = _parser.Parse(command, _logger);
+        var parse = _parser.Parse(command);
         parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void MinAddCommand()
     {
-        var parse = _parser.Parse("add node key=k1;", _logger);
+        var parse = _parser.Parse("add node key=k1;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -66,7 +65,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithTag()
     {
-        var parse = _parser.Parse("add node key=k1 set t1;", _logger);
+        var parse = _parser.Parse("add node key=k1 set t1;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -90,7 +89,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithTwoTag()
     {
-        var parse = _parser.Parse("add node key=k1 set t1, t2=v2 ;", _logger);
+        var parse = _parser.Parse("add node key=k1 set t1, t2=v2 ;");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -118,7 +117,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithData()
     {
-        var parse = _parser.Parse("add node key=k1 set data { base64 } ;", _logger);
+        var parse = _parser.Parse("add node key=k1 set data { base64 } ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -145,7 +144,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithTwoData()
     {
-        var parse = _parser.Parse("add node key=k1 set data { base64 }, entity { entityData64 } ;", _logger);
+        var parse = _parser.Parse("add node key=k1 set data { base64 }, entity { entityData64 } ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -177,7 +176,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithTagsData()
     {
-        var parse = _parser.Parse("add node key=k1 set t1, t2=v3, t3, data { base64 } ;", _logger);
+        var parse = _parser.Parse("add node key=k1 set t1, t2=v3, t3, data { base64 } ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -212,7 +211,7 @@ public class NodeAddTests : TestBase<NodeAddTests>
     [Fact]
     public void AddCommandWithTagsTwoData()
     {
-        var parse = _parser.Parse("add node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 } ;", _logger);
+        var parse = _parser.Parse("add node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 } ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

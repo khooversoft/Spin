@@ -1,30 +1,29 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel.Edges;
 
-public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
+public class EdgeUpsertTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ILogger _logger;
 
-    public EdgeUpsertTests(ITestOutputHelper output) : base(output)
+    public EdgeUpsertTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _logger = GetLogger();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _root);
     }
 
     [Theory]
@@ -42,14 +41,14 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
     [InlineData("data { hexdata };")]
     public void FailedReturn(string command)
     {
-        var parse = _parser.Parse(command, _logger);
+        var parse = _parser.Parse(command);
         parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void MinAddCommand()
     {
-        var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label;", _logger);
+        var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -79,7 +78,7 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
     [Fact]
     public void AddWithSetTagCommand()
     {
-        var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label set t1;", _logger);
+        var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label set t1;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -111,7 +110,7 @@ public class EdgeUpsertTests : TestBase<EdgeUpsertTests>
     [Fact]
     public void AddWithSetMultipleTagCommand()
     {
-        var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label set t1, t2=v3, t3;", _logger);
+        var parse = _parser.Parse("upsert edge from=fkey1, to=tkey1, type=label set t1, t2=v3, t3;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

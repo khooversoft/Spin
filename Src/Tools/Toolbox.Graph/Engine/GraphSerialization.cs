@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -27,7 +26,17 @@ public static class GraphSerializationTool
 {
     public static Option Validate(this GraphSerialization subject) => GraphSerialization.Validator.Validate(subject).ToOptionStatus();
 
-    public static string ToJson(this GraphMap subject) => subject.ToSerialization().ToJson();
+    public static string ToJson(this GraphMap subject)
+    {
+        var payload = subject.ToSerialization();
+        return JsonSerializer.Serialize(subject, GraphJsonContext.Default.GraphSerialization);
+    }
+
+    public static GraphMap FromJson(string json, IServiceProvider serviceProvider)
+    {
+        var gs = JsonSerializer.Deserialize(json, GraphJsonContext.Default.GraphSerialization).NotNull("Deserialization failed");
+        return gs.FromSerialization(serviceProvider);
+    }
 
     public static GraphSerialization ToSerialization(this GraphMap subject) => new GraphSerialization
     {
@@ -44,25 +53,6 @@ public static class GraphSerializationTool
         service.NotNull();
 
         return ActivatorUtilities.CreateInstance<GraphMap>(service, subject);
-    }
-
-    public static void BuildSerializer()
-    {
-        var o = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            Converters =
-            {
-                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true),
-                new ImmutableByteArrayConverter(),
-            },
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
-        };
-
-        o.TypeInfoResolverChain.Add(GraphJsonContext.Default);
     }
 }
 

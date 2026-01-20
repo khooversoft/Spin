@@ -1,17 +1,20 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
-public class AndRuleTests : TestBase
+public class AndRuleTests
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly IHost _host;
+    private readonly SyntaxParser _parser;
 
-    public AndRuleTests(ITestOutputHelper output) : base(output)
+    public AndRuleTests(ITestOutputHelper output)
     {
         string schemaText = new[]
         {
@@ -26,6 +29,12 @@ public class AndRuleTests : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue();
+
+        _host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
     }
 
     [Theory]
@@ -36,19 +45,13 @@ public class AndRuleTests : TestBase
     [InlineData("{ hello };")]
     public void SimpleAndSymbolFail(string rawData)
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        parser.Parse(rawData, logger).Status.IsError().BeTrue();
+        _parser.Parse(rawData).Status.IsError().BeTrue();
     }
 
     [Fact]
     public void SimpleAndSymbol()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("alias { hello };", logger);
+        var parse = _parser.Parse("alias { hello };");
         parse.Status.IsOk().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -92,10 +95,7 @@ public class AndRuleTests : TestBase
     [Fact]
     public void SimpleAndSymbolWithQuote()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("data { 'this is a test' };", logger);
+        var parse = _parser.Parse("data { 'this is a test' };");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);

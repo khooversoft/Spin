@@ -1,26 +1,44 @@
-﻿using Toolbox.Tools;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Toolbox.Tools;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
 public class NodeIndexTests
 {
-    private readonly GraphMap _map = new GraphMap()
-    {
-        new GraphNode("node1", tags: "name=marko,age=29", indexes: "name"),
-        new GraphNode("node2", tags: "name=vadas,age=27"),
-        new GraphNode("node3", tags: "name=lop,lang=java"),
-        new GraphNode("node4", tags: "name=josh,age=32"),
-        new GraphNode("node5", tags: "name=ripple,lang=java", indexes: "lang, name"),
-        new GraphNode("node6", tags: "name=peter,age=35"),
-        new GraphNode("node7", tags: "lang=java"),
+    private readonly ILogger<GraphMap> _logger;
+    private readonly IServiceProvider _services;
+    private readonly GraphMap _map;
 
-        new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
-    };
+    public NodeIndexTests(ITestOutputHelper output)
+    {
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
+        _logger = host.Services.GetRequiredService<ILogger<GraphMap>>();
+        _services = host.Services;
+
+        _map = new GraphMap(_logger)
+        {
+            new GraphNode("node1", tags: "name=marko,age=29", indexes: "name"),
+            new GraphNode("node2", tags: "name=vadas,age=27"),
+            new GraphNode("node3", tags: "name=lop,lang=java"),
+            new GraphNode("node4", tags: "name=josh,age=32"),
+            new GraphNode("node5", tags: "name=ripple,lang=java", indexes: "lang, name"),
+            new GraphNode("node6", tags: "name=peter,age=35"),
+            new GraphNode("node7", tags: "lang=java"),
+
+            new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
+            new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
+            new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
+        };
+    }
 
     [Fact]
     public void VerifyTagIndex1()

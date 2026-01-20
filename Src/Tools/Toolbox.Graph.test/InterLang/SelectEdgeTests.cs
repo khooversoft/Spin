@@ -1,4 +1,6 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
@@ -7,29 +9,28 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class SelectEdgeTests : TestBase<SelectEdgeTests>
+public class SelectEdgeTests
 {
-    private readonly ITestOutputHelper _output;
-    private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
 
-    public SelectEdgeTests(ITestOutputHelper output) : base(output)
+    public SelectEdgeTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryKeyStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
 
-        string schema = GraphLanguageTool.ReadGraphLanguageRules();
-        _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().BeTrue(_root.Error);
-
-        _context = GetScopeContext();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
     }
 
     [Fact]
     public void SelectAllEdges()
     {
-        var parse = _parser.Parse("select [*] ;", _context);
+        var parse = _parser.Parse("select [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -59,7 +60,7 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
     [Fact]
     public void SelectEdge()
     {
-        var parse = _parser.Parse("select [from=user:f1, to=t1, type=user] ;", _context);
+        var parse = _parser.Parse("select [from=user:f1, to=t1, type=user] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -88,7 +89,7 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
     [Fact]
     public void SelectEdgeWithTag()
     {
-        var parse = _parser.Parse("select [from=user:f1, to=t1, type=user, t1=contact*] ;", _context);
+        var parse = _parser.Parse("select [from=user:f1, to=t1, type=user, t1=contact*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -122,7 +123,7 @@ public class SelectEdgeTests : TestBase<SelectEdgeTests>
     [Fact]
     public void SelectEdgeWithData()
     {
-        var parse = _parser.Parse("select [from=user:f1, to=t1, type=user, t1=contact*] return entity, data ;", _context);
+        var parse = _parser.Parse("select [from=user:f1, to=t1, type=user, t1=contact*] return entity, data ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

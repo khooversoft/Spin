@@ -1,17 +1,19 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel;
 
-public class SelectEdgeQueryTests : TestBase
+public class SelectEdgeQueryTests
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly IHost _host;
 
-    public SelectEdgeQueryTests(ITestOutputHelper output) : base(output)
+    public SelectEdgeQueryTests(ITestOutputHelper output)
     {
         string schemaText = new[]
         {
@@ -37,6 +39,11 @@ public class SelectEdgeQueryTests : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue(_schema.Error);
+
+        _host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
     }
 
     [Theory]
@@ -46,10 +53,9 @@ public class SelectEdgeQueryTests : TestBase
     [InlineData("[!*]")]
     public void FailedReturn(string command)
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse(command, logger);
+        var parse = parser.Parse(command);
         parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
@@ -57,10 +63,9 @@ public class SelectEdgeQueryTests : TestBase
     [Fact]
     public void SelectEdge()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("[*]", logger);
+        var parse = parser.Parse("[*]");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
@@ -121,10 +126,9 @@ public class SelectEdgeQueryTests : TestBase
     [Fact]
     public void SelectEdgeToNode()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("[*] -> (*)", logger);
+        var parse = parser.Parse("[*] -> (*)");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
@@ -249,10 +253,9 @@ public class SelectEdgeQueryTests : TestBase
     [Fact]
     public void SelectNodeToEdgeWithLabel()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("[label] -> (*)", logger);
+        var parse = parser.Parse("[label] -> (*)");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
@@ -377,10 +380,9 @@ public class SelectEdgeQueryTests : TestBase
     [Fact]
     public void SelectNodeToEdgeToNode()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("[label] -> (key=k1)", logger);
+        var parse = parser.Parse("[label] -> (key=k1)");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);

@@ -164,9 +164,9 @@
 
 //        await Task.WhenAll(t1, t2);
 
-//        static async Task<Option<QueryResult>> query(GraphHostService host, ScopeContext context)
+//        static async Task<Option<QueryResult>> query(GraphHostService host)
 //        {
-//            var s1 = await host.Execute("select (key=node1);", context);
+//            var s1 = await host.Execute("select (key=node1);");
 //            s1.Action(x =>
 //            {
 //                x.BeOk();

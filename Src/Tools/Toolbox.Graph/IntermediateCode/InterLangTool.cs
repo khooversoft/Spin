@@ -262,6 +262,6 @@ public static class InterLangTool
     internal static bool IsGroupBreak(SyntaxPair syntaxPair) => syntaxPair switch
     {
         { Name: "term" } => true,
-        var v => GraphLanguageTool.GetMetaSyntaxRoot().IsReserveWord(v.Token.Value),
+        var v => GraphLanguageParser.Root.IsReserveWord(v.Token.Value),
     };
 }

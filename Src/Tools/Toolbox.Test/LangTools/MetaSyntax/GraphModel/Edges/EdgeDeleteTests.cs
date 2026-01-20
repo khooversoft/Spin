@@ -1,36 +1,35 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel.Edges;
 
-public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
+public class EdgeDeleteTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ILogger _logger;
 
-    public EdgeDeleteTests(ITestOutputHelper output) : base(output)
+    public EdgeDeleteTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _logger = GetLogger();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _root);
     }
 
     [Fact]
     public void DeleteAllCommand()
     {
-        var parse = _parser.Parse("delete [*] ;", _logger);
+        var parse = _parser.Parse("delete [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -51,7 +50,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     [Fact]
     public void DeleteByLabel()
     {
-        var parse = _parser.Parse("delete [person] ;", _logger);
+        var parse = _parser.Parse("delete [person] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -72,7 +71,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     [Fact]
     public void DeleteCommand()
     {
-        var parse = _parser.Parse("delete [key=k1] ;", _logger);
+        var parse = _parser.Parse("delete [key=k1] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -95,7 +94,7 @@ public class EdgeDeleteTests : TestBase<EdgeDeleteTests>
     [Fact]
     public void DeleteExact()
     {
-        var parse = _parser.Parse("delete [from=k1, to=k1, type=t1] ;", _logger);
+        var parse = _parser.Parse("delete [from=k1, to=k1, type=t1] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

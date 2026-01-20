@@ -1,17 +1,19 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
-public class RepeatBaseRuleTests : TestBase
+public class RepeatBaseRuleTests
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly SyntaxParser _parser;
 
-    public RepeatBaseRuleTests(ITestOutputHelper output) : base(output)
+    public RepeatBaseRuleTests(ITestOutputHelper output)
     {
         string schemaText = new[]
         {
@@ -23,15 +25,18 @@ public class RepeatBaseRuleTests : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue();
+
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _schema);
     }
 
     [Fact]
     public void SimpleRepeat()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("t1", logger);
+        var parse = _parser.Parse("t1");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -67,10 +72,7 @@ public class RepeatBaseRuleTests : TestBase
     [Fact]
     public void SimpleTwoRepeat()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("t1, t2", logger);
+        var parse = _parser.Parse("t1, t2");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -117,10 +119,7 @@ public class RepeatBaseRuleTests : TestBase
     [Fact]
     public void SimpleWithValueRepeat()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("t1, v1, t2", logger);
+        var parse = _parser.Parse("t1, v1, t2");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);

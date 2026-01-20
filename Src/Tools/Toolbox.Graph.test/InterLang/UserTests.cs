@@ -1,4 +1,5 @@
-﻿using Toolbox.Graph.test.Application;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -6,23 +7,22 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class UserTests : TestBase<NodeTests>
+public class UserTests
 {
-    private readonly ITestOutputHelper _output;
-    private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
 
-    public UserTests(ITestOutputHelper output) : base(output)
+    public UserTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryKeyStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
 
-        string schema = GraphLanguageTool.ReadGraphLanguageRules();
-        _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().BeTrue(_root.Error);
-
-        _context = GetScopeContext();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class UserTests : TestBase<NodeTests>
     {
         string cmd = "add user user1 set ni=v1, name=v2, email=v3, emailConfirmed=true ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -57,7 +57,7 @@ public class UserTests : TestBase<NodeTests>
     {
         string cmd = "update user user1 set email=v3, emailConfirmed=true ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -82,7 +82,7 @@ public class UserTests : TestBase<NodeTests>
     {
         string cmd = "delete user user1 ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -100,7 +100,7 @@ public class UserTests : TestBase<NodeTests>
         Enumerable.SequenceEqual(instructions.Return(), expected).BeTrue();
 
         cmd = "delete user ;";
-        parse = _parser.Parse(cmd, _context);
+        parse = _parser.Parse(cmd);
         parse.Status.BeError();
     }
 
@@ -120,7 +120,7 @@ public class UserTests : TestBase<NodeTests>
     [InlineData("delete user user1 ;", true)]
     public void TestPatterns(string cmd, bool pass)
     {
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -135,7 +135,7 @@ public class UserTests : TestBase<NodeTests>
     {
         string cmd = "add user u1 set ni=a, name=b, email=c, emailConfirmed=false ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var instructions = InterLangTool.Build(parse.SyntaxTree.GetAllSyntaxPairs().ToArray());
@@ -161,7 +161,7 @@ public class UserTests : TestBase<NodeTests>
     [InlineData("add user u1 set name=b, emailConfirmed=true, email=c, ni=a ;")]
     public void AddUser_OrderIrrelevant(string cmd)
     {
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var instructions = InterLangTool.Build(parse.SyntaxTree.GetAllSyntaxPairs().ToArray());
@@ -183,7 +183,7 @@ public class UserTests : TestBase<NodeTests>
         // 'EmailConfirmed' wrong case should fail (keys are case-sensitive)
         string cmd = "add user u1 set ni=a, name=b, email=c, EmailConfirmed=true ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var instructions = InterLangTool.Build(parse.SyntaxTree.GetAllSyntaxPairs().ToArray());
@@ -195,7 +195,7 @@ public class UserTests : TestBase<NodeTests>
     {
         string cmd = "add user u1 set ni=a, name=b, email=c, emailConfirmed=TRUE ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var instructions = InterLangTool.Build(parse.SyntaxTree.GetAllSyntaxPairs().ToArray());
@@ -211,7 +211,7 @@ public class UserTests : TestBase<NodeTests>
         // Current behavior: invalid bool parses to null; add still succeeds because only keys are validated
         string cmd = "add user u1 set ni=a, name=b, email=c, emailConfirmed=notBool ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var instructions = InterLangTool.Build(parse.SyntaxTree.GetAllSyntaxPairs().ToArray());
@@ -226,7 +226,7 @@ public class UserTests : TestBase<NodeTests>
     {
         string cmd = "update user u1 set ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeError();
     }
 
@@ -235,7 +235,7 @@ public class UserTests : TestBase<NodeTests>
     {
         string cmd = "delete user u1 set x=y ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeError();
     }
 
@@ -244,7 +244,7 @@ public class UserTests : TestBase<NodeTests>
     {
         string cmd = "add user u1 set ni=a, name=b, email=c, emailConfirmed=true";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeError();
     }
 
@@ -255,7 +255,7 @@ public class UserTests : TestBase<NodeTests>
             "add user u1 set ni=a, name=b, email=c, emailConfirmed=true ; " +
             "update user u1 set email=c2 ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var instructions = InterLangTool.Build(parse.SyntaxTree.GetAllSyntaxPairs().ToArray());
@@ -288,7 +288,7 @@ public class UserTests : TestBase<NodeTests>
         // Current implementation uses Dictionary.Add() and will throw on duplicate keys
         string cmd = "update user u1 set email=v1, email=v2 ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         Action act = () => InterLangTool.Build(parse.SyntaxTree.GetAllSyntaxPairs().ToArray());

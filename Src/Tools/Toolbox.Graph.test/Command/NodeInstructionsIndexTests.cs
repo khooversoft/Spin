@@ -11,78 +11,60 @@ namespace Toolbox.Graph.test.Command;
 
 public class NodeInstructionsIndexTests
 {
-    private readonly GraphMap _map = new GraphMap()
+    private static GraphMap CreateGraphMap(IHost host)
     {
-        new GraphNode("node1", tags: "name=marko,age=29"),
-        new GraphNode("node2", tags: "name=vadas,age=27"),
-        new GraphNode("node3", tags: "name=lop,lang=java"),
-        new GraphNode("node4", tags: "name=josh,age=32"),
-        new GraphNode("node5", tags: "name=ripple,lang=java"),
-        new GraphNode("node6", tags: "name=peter,age=35"),
-        new GraphNode("node7", tags: "lang=java"),
+        ILogger<GraphMap> logger = host.Services.GetRequiredService<ILogger<GraphMap>>();
 
-        new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
-    };
+        return new GraphMap(logger)
+        {
+            new GraphNode("node1", tags: "name=marko,age=29"),
+            new GraphNode("node2", tags: "name=vadas,age=27"),
+            new GraphNode("node3", tags: "name=lop,lang=java"),
+            new GraphNode("node4", tags: "name=josh,age=32"),
+            new GraphNode("node5", tags: "name=ripple,lang=java"),
+            new GraphNode("node6", tags: "name=peter,age=35"),
+            new GraphNode("node7", tags: "lang=java"),
+
+            new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
+            new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
+            new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
+        };
+    }
 
     private readonly ITestOutputHelper _logOutput;
+    private GraphMap _map = null!;
+
     public NodeInstructionsIndexTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
 
     private async Task<IHost> CreateService()
     {
         var host = Host.CreateDefaultBuilder()
-            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .AddDebugLogging(x => _logOutput.WriteLine(x))
             .ConfigureServices((context, services) =>
             {
-                services.AddInMemoryFileStore();
+                services.AddInMemoryKeyStore();
                 services.AddGraphEngine(config => config.BasePath = "basePath");
             })
             .Build();
 
+        _map = CreateGraphMap(host);
+
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var context = host.Services.GetRequiredService<ILogger<NodeInstructionsIndexTests>>().ToScopeContext();
-        await graphEngine.DataManager.SetMap(_map, context);
+        await graphEngine.DataManager.SetMap(_map);
 
         return host;
-    }
-
-    [Fact]
-    public async Task TestIndexCounter()
-    {
-        using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
-        var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
-
-        collector.Nodes.Count.Value.Be(7);
-        collector.Nodes.Added.Value.Be(7);
-        collector.Nodes.Deleted.Value.Be(0);
-        collector.Nodes.Updated.Value.Be(0);
-        collector.Nodes.IndexHit.Value.Be(0);
-        collector.Nodes.IndexMissed.Value.Be(0);
-
-        collector.Edges.Count.Value.Be(5);
-        collector.Edges.Added.Value.Be(5);
-        collector.Edges.Deleted.Value.Be(0);
-        collector.Edges.Updated.Value.Be(0);
-        collector.Edges.IndexHit.Value.Be(0);
-        collector.Edges.IndexMissed.Value.Be(0);
     }
 
     [Fact]
     public async Task SetNode()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;", NullScopeContext.Instance);
+        var newMapOption = await graphClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;");
         newMapOption.IsOk().BeTrue();
 
         graphEngine.DataManager.GetMap().Nodes.LookupTag("uniqueIndex").Action(x =>
@@ -90,12 +72,6 @@ public class NodeInstructionsIndexTests
             x.Count.Be(1);
             Enumerable.SequenceEqual(x, ["provider:provider1/provider1-key"]);
         });
-
-        collector.Nodes.Count.Value.Be(8);
-        collector.Nodes.Added.Value.Be(8);
-        collector.Nodes.Updated.Value.Be(0);
-        collector.Nodes.IndexHit.Value.Be(1);
-        collector.Nodes.IndexMissed.Value.Be(1);
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
@@ -114,13 +90,11 @@ public class NodeInstructionsIndexTests
     public async Task SetNodeWithIndex()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
         var cmd = "set node key=user:username1@company.com set loginProvider=userEmail:username1@domain1.com, email=userEmail:username1@domain1.com index loginProvider ;";
-        var newMapOption = await graphClient.ExecuteBatch(cmd, context);
+        var newMapOption = await graphClient.ExecuteBatch(cmd);
         newMapOption.IsOk().BeTrue();
 
         var uniqueIndex = new UniqueIndex("loginProvider", "userEmail", "userEmail:username1@domain1.com");
@@ -142,12 +116,6 @@ public class NodeInstructionsIndexTests
             x.Return().NodeKey.Be("user:username1@company.com");
         });
 
-        collector.Nodes.Count.Value.Be(8);
-        collector.Nodes.Added.Value.Be(8);
-        collector.Nodes.Updated.Value.Be(0);
-        collector.Nodes.IndexHit.Value.Be(3);
-        collector.Nodes.IndexMissed.Value.Be(1);
-
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
 
@@ -166,13 +134,11 @@ public class NodeInstructionsIndexTests
     public async Task SetNodeWithTwoIndex()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
         var cmd = "set node key=user:username1@company.com set loginProvider=provider:provider1/provider1-key, email=userEmail:username1@domain1.com index loginProvider, email ;";
-        var newMapOption = await graphClient.ExecuteBatch(cmd, context);
+        var newMapOption = await graphClient.ExecuteBatch(cmd);
         newMapOption.IsOk().BeTrue();
 
         UniqueIndex[] indexes = [
@@ -200,12 +166,6 @@ public class NodeInstructionsIndexTests
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("user:username1@company.com");
         });
-
-        collector.Nodes.Count.Value.Be(8);
-        collector.Nodes.Added.Value.Be(8);
-        collector.Nodes.Updated.Value.Be(0);
-        collector.Nodes.IndexHit.Value.Be(3);
-        collector.Nodes.IndexMissed.Value.Be(1);
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());

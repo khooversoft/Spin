@@ -1,17 +1,19 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel;
 
-public class SetTagsValuesStatement : TestBase
+public class SetTagsValuesStatement
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly IHost _host;
 
-    public SetTagsValuesStatement(ITestOutputHelper output) : base(output)
+    public SetTagsValuesStatement(ITestOutputHelper output)
     {
         string schemaText = new[]
         {
@@ -27,6 +29,10 @@ public class SetTagsValuesStatement : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue(_schema.Error);
+
+        _host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
     }
 
     [Theory]
@@ -35,20 +41,18 @@ public class SetTagsValuesStatement : TestBase
     [InlineData("{ base64data }")]
     public void FailedReturn(string command)
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse(command, logger);
+        var parse = parser.Parse(command);
         parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void SingleSet()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("set t1", logger);
+        var parse = parser.Parse("set t1");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
@@ -101,10 +105,9 @@ public class SetTagsValuesStatement : TestBase
     [Fact]
     public void TwoTagsSet()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("set t1, t2", logger);
+        var parse = parser.Parse("set t1, t2");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
@@ -175,10 +178,9 @@ public class SetTagsValuesStatement : TestBase
     [Fact]
     public void TwoValuesSet()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("set t1=v1, t2, t3=v3", logger);
+        var parse = parser.Parse("set t1=v1, t2, t3=v3");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);

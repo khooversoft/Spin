@@ -1,4 +1,6 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
@@ -7,30 +9,28 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
+public class SelectNodesAndEdges
 {
-    private readonly ITestOutputHelper _output;
-    private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
 
-    public SelectNodesAndEdges(ITestOutputHelper output) : base(output)
+    public SelectNodesAndEdges(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryKeyStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
 
-        string schema = GraphLanguageTool.ReadGraphLanguageRules();
-        _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().BeTrue(_root.Error);
-
-        _context = GetScopeContext();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
     }
-
 
     [Fact]
     public void SelectAllNodesToEdgesLeftJoin()
     {
-        var parse = _parser.Parse("select (*) -> [*] ;", _context);
+        var parse = _parser.Parse("select (*) -> [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -68,7 +68,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     [Fact]
     public void SelectAllNodesToEdgesRightJoin()
     {
-        var parse = _parser.Parse("select (*) <- [*] ;", _context);
+        var parse = _parser.Parse("select (*) <- [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -106,7 +106,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     [Fact]
     public void SelectAllNodesToEdgesToNodesLeftJoin()
     {
-        var parse = _parser.Parse("select (*) -> [*] -> (*) ;", _context);
+        var parse = _parser.Parse("select (*) -> [*] -> (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -152,7 +152,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     [Fact]
     public void SelectAllNodesToEdgesToNodesRightJoin()
     {
-        var parse = _parser.Parse("select (*) <- [*] <- (*) ;", _context);
+        var parse = _parser.Parse("select (*) <- [*] <- (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -198,7 +198,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     [Fact]
     public void SelectFullNodesToEdgesToNodes()
     {
-        var parse = _parser.Parse("select (*) <-> [*] <-> (*) ;", _context);
+        var parse = _parser.Parse("select (*) <-> [*] <-> (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -244,7 +244,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     [Fact]
     public void SelectFullAndRightNodesToEdgesToNodes()
     {
-        var parse = _parser.Parse("select (*) <-> [*] <- (*) ;", _context);
+        var parse = _parser.Parse("select (*) <-> [*] <- (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -290,7 +290,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     [Fact]
     public void SelectAllIncorrectJoinsShouldFailAnalysis()
     {
-        var parse = _parser.Parse("select (*) -> (*) -> (*) ;", _context);
+        var parse = _parser.Parse("select (*) -> (*) -> (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -301,7 +301,7 @@ public class SelectNodesAndEdges : TestBase<SelectNodesAndEdges>
     [Fact]
     public void SelectRelationship()
     {
-        var parse = _parser.Parse("select (key=userEmail:user.com, indexer) <-> [userProfile] -> (*) return data, entity, player ;", _context);
+        var parse = _parser.Parse("select (key=userEmail:user.com, indexer) <-> [userProfile] -> (*) return data, entity, player ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

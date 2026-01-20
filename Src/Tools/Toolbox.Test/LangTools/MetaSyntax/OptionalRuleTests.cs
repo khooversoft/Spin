@@ -1,18 +1,23 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
-public class OptionalRuleTests : TestBase
+public class OptionalRuleTests
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly IHost _host;
+    private readonly ITestOutputHelper _output;
 
-    public OptionalRuleTests(ITestOutputHelper output) : base(output)
+    public OptionalRuleTests(ITestOutputHelper output)
     {
+        _output = output;
+
         string schemaText = new[]
         {
             "delimiters          = [ ] = ;",
@@ -22,15 +27,18 @@ public class OptionalRuleTests : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue();
+
+        _host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
     }
 
     [Fact]
     public void OnlyRequiredOfOptional()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("t1", logger);
+        var parse = parser.Parse("t1");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -66,10 +74,9 @@ public class OptionalRuleTests : TestBase
     [Fact]
     public void OnlyRequiredAndOptional()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("t1 = v1", logger);
+        var parse = parser.Parse("t1 = v1");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);

@@ -9,62 +9,65 @@ namespace Toolbox.Graph.test.Command;
 
 public class NodeInstructionDataTest
 {
-    private readonly GraphMap _map = new GraphMap()
-    {
-        new GraphNode("node1", tags: "name=marko,age=29"),
-        new GraphNode("node2", tags: "name=vadas,age=27"),
-        new GraphNode("node3", tags: "name=lop,lang=java"),
-        new GraphNode("node4", tags: "name=josh,age=32"),
-        new GraphNode("node5", tags: "name=ripple,lang=java"),
-        new GraphNode("node6", tags: "name=peter,age=35"),
-        new GraphNode("node7", tags: "lang=java"),
-
-        new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
-    };
-
     private readonly ITestOutputHelper _logOutput;
     public NodeInstructionDataTest(ITestOutputHelper logOutput) => _logOutput = logOutput;
 
     private async Task<IHost> CreateService()
     {
         var host = Host.CreateDefaultBuilder()
-            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .AddDebugLogging(x => _logOutput.WriteLine(x))
             .ConfigureServices((context, services) =>
             {
-                services.AddInMemoryFileStore();
+                services.AddInMemoryKeyStore();
                 services.AddGraphEngine(config => config.BasePath = "basePath");
             })
             .Build();
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var context = host.Services.GetRequiredService<ILogger<NodeInstructionDataTest>>().ToScopeContext();
-        await graphEngine.DataManager.SetMap(_map, context);
+        await graphEngine.DataManager.SetMap(CreateGraphMap(host));
 
         return host;
+    }
+
+    private GraphMap CreateGraphMap(IHost host)
+    {
+        ILogger<GraphMap> logger = host.Services.GetRequiredService<ILogger<GraphMap>>();
+
+        return new GraphMap(logger)
+        {
+            new GraphNode("node1", tags: "name=marko,age=29"),
+            new GraphNode("node2", tags: "name=vadas,age=27"),
+            new GraphNode("node3", tags: "name=lop,lang=java"),
+            new GraphNode("node4", tags: "name=josh,age=32"),
+            new GraphNode("node5", tags: "name=ripple,lang=java"),
+            new GraphNode("node6", tags: "name=peter,age=35"),
+            new GraphNode("node7", tags: "lang=java"),
+
+            new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
+            new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
+            new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
+        };
     }
 
     [Fact]
     public async Task SingleNodeWithData()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
         var nodeData = new NodeData { Name = "node8", Age = 40 };
 
-        await CreateNode("node10", nodeData, graphClient, context);
+        await CreateNode("node10", nodeData, graphClient);
 
         var getNode = new SelectCommandBuilder()
             .AddNodeSearch(x => x.SetNodeKey("node10"))
             .AddDataName("entity")
             .Build();
 
-        var readOption = await graphClient.Execute(getNode, context);
+        var readOption = await graphClient.Execute(getNode);
         readOption.IsOk().BeTrue();
         var read = readOption.Return();
         read.Nodes.Count.Be(1);
@@ -78,22 +81,21 @@ public class NodeInstructionDataTest
     public async Task TwoNodeWithData()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>(); ;
 
         var nodeData1 = new NodeData { Name = "node10", Age = 40 };
-        await CreateNode("node10", nodeData1, graphClient, context);
+        await CreateNode("node10", nodeData1, graphClient);
 
         var nodeData2 = new NodeData { Name = "node11", Age = 55 };
-        await CreateNode("node11", nodeData2, graphClient, context);
+        await CreateNode("node11", nodeData2, graphClient);
 
         var getNode = new SelectCommandBuilder()
             .AddNodeSearch()
             .AddDataName("entity")
             .Build();
 
-        var readOption = await graphClient.Execute(getNode, context);
+        var readOption = await graphClient.Execute(getNode);
         readOption.IsOk().BeTrue();
         var read = readOption.Return();
         read.Nodes.Count.Be(9);
@@ -111,14 +113,14 @@ public class NodeInstructionDataTest
         failRead.IsError().BeTrue();
     }
 
-    private static async Task CreateNode(string nodeKey, NodeData nodeData, IGraphClient graphClient, ScopeContext context)
+    private static async Task CreateNode(string nodeKey, NodeData nodeData, IGraphClient graphClient)
     {
         var cmd = new NodeCommandBuilder()
             .SetNodeKey(nodeKey)
             .AddData("entity", nodeData)
             .Build();
 
-        var newMapOption = await graphClient.Execute(cmd, context);
+        var newMapOption = await graphClient.Execute(cmd);
         newMapOption.IsOk().BeTrue();
     }
 

@@ -1,6 +1,4 @@
-﻿using Toolbox.Extensions;
-using Toolbox.LangTools;
-using Toolbox.Test.Application;
+﻿using Toolbox.LangTools;
 using Toolbox.Types;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
@@ -84,14 +82,14 @@ internal static class SyntaxTestTool
         _ => chr.ToString(),
     };
 
-    private static IReadOnlyList<string> GenerateMetaSyntax(IMetaSyntax metaSyntax) => metaSyntax switch
-    {
-        ProductionRule v => MetaTestTool.GenerateProductionRule(v),
-        TerminalSymbol v => MetaTestTool.GenerateTerminalSymbol(v).ToEnumerable().ToArray(),
-        VirtualTerminalSymbol v => MetaTestTool.GenerateVirtualTerminalSymbol(v).ToEnumerable().ToArray(),
+    //private static IReadOnlyList<string> GenerateMetaSyntax(IMetaSyntax metaSyntax) => metaSyntax switch
+    //{
+    //    ProductionRule v => MetaTestTool.GenerateProductionRule(v),
+    //    TerminalSymbol v => MetaTestTool.GenerateTerminalSymbol(v).ToEnumerable().ToArray(),
+    //    VirtualTerminalSymbol v => MetaTestTool.GenerateVirtualTerminalSymbol(v).ToEnumerable().ToArray(),
 
-        _ => throw new InvalidOperationException(),
-    };
+    //    _ => throw new InvalidOperationException(),
+    //};
 
     private static IReadOnlyList<string> HandleIndent(IReadOnlyList<string> lines)
     {

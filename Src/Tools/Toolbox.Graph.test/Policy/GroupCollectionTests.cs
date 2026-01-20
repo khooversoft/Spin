@@ -193,7 +193,7 @@ public class GroupCollectionTests
         var subject = new GroupCollection();
 
         // default(GroupPolicy) fails validation (empty NameIdentifier)
-        Assert.Throws<ArgumentException>(() => subject.Add(default));
+        Assert.Throws<ArgumentException>(() => subject.Add(default!));
 
         // Indexer set should also validate
         Assert.Throws<ArgumentNullException>(() => subject[""] = new GroupPolicy("", new[] { "u1" }));

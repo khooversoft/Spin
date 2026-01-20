@@ -1,5 +1,6 @@
-﻿using Toolbox.Extensions;
-using Toolbox.Graph.test.Application;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -7,23 +8,22 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class GrantTests : TestBase<NodeTests>
+public class GrantTests
 {
-    private readonly ITestOutputHelper _output;
-    private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
 
-    public GrantTests(ITestOutputHelper output) : base(output)
+    public GrantTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryKeyStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
 
-        string schema = GraphLanguageTool.ReadGraphLanguageRules();
-        _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().BeTrue(_root.Error);
-
-        _context = GetScopeContext();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class GrantTests : TestBase<NodeTests>
     {
         string cmd = "grant user1 reader on ticket:001 ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -56,7 +56,7 @@ public class GrantTests : TestBase<NodeTests>
     {
         string cmd = "revoke user1 reader on ticket:001 ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -84,7 +84,7 @@ public class GrantTests : TestBase<NodeTests>
     [InlineData("revoke badrole to user1 on user:user1;")]
     public void FailTest(string command)
     {
-        var parse = _parser.Parse(command, _context);
+        var parse = _parser.Parse(command);
         parse.Status.IsError().BeTrue();
     }
 
@@ -97,7 +97,7 @@ public class GrantTests : TestBase<NodeTests>
     [InlineData("revoke user1 owner on user:user1;", GrantCommand.Revoke, GrantType.Owner, "user1", "user:user1")]
     public void GrantPermission(string cmd, GrantCommand grantCmd, GrantType grantType, string user, string nameIdentifier)
     {
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -122,7 +122,7 @@ public class GrantTests : TestBase<NodeTests>
     {
         string cmd = "select grants where role = reader ;";
 
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -145,7 +145,7 @@ public class GrantTests : TestBase<NodeTests>
     [InlineData("select grants where pi = user:user1 ;", "grants", "pi", "user:user1")]
     public void SelectGrant(string cmd, string objectName, string attributeName, string value)
     {
-        var parse = _parser.Parse(cmd, _context);
+        var parse = _parser.Parse(cmd);
         parse.Status.BeOk();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

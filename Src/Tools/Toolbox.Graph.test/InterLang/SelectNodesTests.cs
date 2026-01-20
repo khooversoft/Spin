@@ -1,4 +1,6 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
@@ -8,29 +10,28 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class SelectNodesTests : TestBase<SelectNodesTests>
+public class SelectNodesTests
 {
-    private readonly ITestOutputHelper _output;
-    private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
 
-    public SelectNodesTests(ITestOutputHelper output) : base(output)
+    public SelectNodesTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryKeyStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
 
-        string schema = GraphLanguageTool.ReadGraphLanguageRules();
-        _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().BeTrue(_root.Error);
-
-        _context = GetScopeContext();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
     }
 
     [Fact]
     public void SelectAllNodes()
     {
-        var parse = _parser.Parse("select (*) ;", _context);
+        var parse = _parser.Parse("select (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -60,7 +61,7 @@ public class SelectNodesTests : TestBase<SelectNodesTests>
     [Fact]
     public void SelectNodeWithTag()
     {
-        var parse = _parser.Parse("select (key=k1, t1) ;", _context);
+        var parse = _parser.Parse("select (key=k1, t1) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -91,7 +92,7 @@ public class SelectNodesTests : TestBase<SelectNodesTests>
     [Fact]
     public void SelectNode()
     {
-        var parse = _parser.Parse("select (key=k1) ;", _context);
+        var parse = _parser.Parse("select (key=k1) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -118,7 +119,7 @@ public class SelectNodesTests : TestBase<SelectNodesTests>
     [Fact]
     public void SelectNodeAndTag()
     {
-        var parse = _parser.Parse("select (key=user:k1, t1=first*) ;", _context);
+        var parse = _parser.Parse("select (key=user:k1, t1=first*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -149,7 +150,7 @@ public class SelectNodesTests : TestBase<SelectNodesTests>
     [Fact]
     public void SelectNodeAndTag2AndData()
     {
-        var parse = _parser.Parse("select (key=user:k1, t1=first*, t2) return data ;", _context);
+        var parse = _parser.Parse("select (key=user:k1, t1=first*, t2) return data ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

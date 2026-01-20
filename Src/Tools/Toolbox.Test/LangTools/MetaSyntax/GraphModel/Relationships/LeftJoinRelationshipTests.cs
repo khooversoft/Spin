@@ -1,36 +1,35 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel.Relationships;
 
-public class LeftJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
+public class LeftJoinRelationshipTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ILogger _logger;
 
-    public LeftJoinRelationshipTests(ITestOutputHelper output) : base(output)
+    public LeftJoinRelationshipTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _logger = GetLogger();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _root);
     }
 
     [Fact]
     public void SelectNodesToEdgeRelationship()
     {
-        var parse = _parser.Parse("select (*) -> [*] ;", _logger);
+        var parse = _parser.Parse("select (*) -> [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -55,7 +54,7 @@ public class LeftJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNodesWithAliasToEdgeRelationship()
     {
-        var parse = _parser.Parse("select (*) a1 -> [*] ;", _logger);
+        var parse = _parser.Parse("select (*) a1 -> [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -81,7 +80,7 @@ public class LeftJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNodesToEdgeToNodeRelationship()
     {
-        var parse = _parser.Parse("select (*) -> [*] -> (*) ;", _logger);
+        var parse = _parser.Parse("select (*) -> [*] -> (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -110,7 +109,7 @@ public class LeftJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNodesToEdgeToNodeWithAliasRelationship()
     {
-        var parse = _parser.Parse("select (*) a1 -> [*] a2 -> (*) a3 ;", _logger);
+        var parse = _parser.Parse("select (*) a1 -> [*] a2 -> (*) a3 ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -142,7 +141,7 @@ public class LeftJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNodesToEdgeToNodeRelationshipWithDataReturn()
     {
-        var parse = _parser.Parse("select (*) -> [*] -> (*) return entity, data ;", _logger);
+        var parse = _parser.Parse("select (*) -> [*] -> (*) return entity, data ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -175,7 +174,7 @@ public class LeftJoinRelationshipTests : TestBase<LeftJoinRelationshipTests>
     [Fact]
     public void SelectNotCorrectButWorksRelationship()
     {
-        var parse = _parser.Parse("select (*) -> (*) -> (*) ;", _logger);
+        var parse = _parser.Parse("select (*) -> (*) -> (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

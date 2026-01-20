@@ -1,17 +1,19 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
-public class OrRuleTests : TestBase
+public class OrRuleTests
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly SyntaxParser _parser;
 
-    public OrRuleTests(ITestOutputHelper output) : base(output)
+    public OrRuleTests(ITestOutputHelper output)
     {
         string schemaText = new[]
         {
@@ -23,15 +25,18 @@ public class OrRuleTests : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue();
+
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _schema);
     }
 
     [Fact]
     public void SimpleOrSymbol()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("node", logger);
+        var parse = _parser.Parse("node");
         parse.Status.IsOk().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -74,10 +79,7 @@ public class OrRuleTests : TestBase
     [Fact]
     public void SimpleOrSymbolSecond()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("edge", logger);
+        var parse = _parser.Parse("edge");
         parse.Status.IsOk().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -120,10 +122,7 @@ public class OrRuleTests : TestBase
     [Fact]
     public void SimpleOrSymbolFail()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("edxxxge", logger);
+        var parse = _parser.Parse("edxxxge");
         parse.Status.IsError().BeTrue();
     }
 }

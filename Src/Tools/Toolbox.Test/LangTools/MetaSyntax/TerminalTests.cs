@@ -1,13 +1,24 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
 public class TerminalTests
 {
+    private readonly IHost _host;
+
+    public TerminalTests(ITestOutputHelper output)
+    {
+        _host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+    }
+
     [Fact]
     public void TerminalSymbol()
     {
@@ -22,9 +33,9 @@ public class TerminalTests
         var schema = MetaParser.ParseRules(schemaText);
         schema.StatusCode.IsOk().BeTrue(schema.Error);
 
-        var parser = new SyntaxParser(schema);
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, schema);
 
-        var parse = parser.Parse("3;", NullLogger.Instance);
+        var parse = parser.Parse("3;");
         parse.Status.IsOk().BeTrue();
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -73,9 +84,9 @@ public class TerminalTests
         var schema = MetaParser.ParseRules(schemaText);
         schema.StatusCode.IsOk().BeTrue();
 
-        var parser = new SyntaxParser(schema);
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, schema);
 
-        var parse = parser.Parse("A ;", NullLogger.Instance);
+        var parse = parser.Parse("A ;");
         parse.Status.IsError().BeTrue(parse.Status.Error);
         parse.Status.Error.Be("No rules matched");
     }

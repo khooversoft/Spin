@@ -1,18 +1,35 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
 public class GraphMapSerializationTests
 {
+    private ILogger<GraphMap> _logger;
+    private IServiceProvider _services;
+
+    public GraphMapSerializationTests(ITestOutputHelper output)
+    {
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
+        _logger = host.Services.GetRequiredService<ILogger<GraphMap>>();
+        _services = host.Services;
+    }
+
     [Fact]
     public void EmptyMapString()
     {
-        var map = new GraphMap();
+        var map = new GraphMap(_logger);
 
         var json = map.ToJson();
 
-        var mapResult = GraphMapTool.FromJson(json).NotNull();
+        var mapResult = GraphSerializationTool.FromJson(json, _services).NotNull();
         mapResult.NotNull();
         mapResult.Count().Be(0);
         mapResult.Nodes.Count.Be(0);
@@ -22,14 +39,14 @@ public class GraphMapSerializationTests
     [Fact]
     public void SingleNodeMap()
     {
-        new GraphMap()
+        new GraphMap(_logger)
         {
             new GraphNode("Node1"),
         }.Action(x =>
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMapTool.FromJson(json).NotNull();
+            var mapResult = GraphSerializationTool.FromJson(json, _services).NotNull();
             mapResult.NotNull();
             mapResult.Count().Be(1);
             mapResult.Edges.Count.Be(0);
@@ -43,14 +60,14 @@ public class GraphMapSerializationTests
             });
         });
 
-        new GraphMap()
+        new GraphMap(_logger)
         {
             new GraphNode("Node1"),
         }.Action(x =>
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMapTool.FromJson(json).NotNull();
+            var mapResult = GraphSerializationTool.FromJson(json, _services).NotNull();
             mapResult.NotNull();
             mapResult.Count().Be(1);
             mapResult.Edges.Count.Be(0);
@@ -64,14 +81,14 @@ public class GraphMapSerializationTests
             });
         });
 
-        new GraphMap()
+        new GraphMap(_logger)
         {
             new GraphNode("Node1", tags: "t1,t2=v2"),
         }.Action(x =>
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMapTool.FromJson(json).NotNull();
+            var mapResult = GraphSerializationTool.FromJson(json, _services).NotNull();
             mapResult.NotNull();
             mapResult.Count().Be(1);
             mapResult.Edges.Count.Be(0);
@@ -87,14 +104,14 @@ public class GraphMapSerializationTests
             });
         });
 
-        new GraphMap()
+        new GraphMap(_logger)
         {
             new GraphNode("Node1", tags: "t1,t2=v2"),
         }.Action(x =>
         {
             var json = x.ToJson();
 
-            var mapResult = GraphMapTool.FromJson(json).NotNull();
+            var mapResult = GraphSerializationTool.FromJson(json, _services);
             mapResult.NotNull();
             mapResult.Count().Be(1);
             mapResult.Edges.Count.Be(0);
@@ -114,7 +131,7 @@ public class GraphMapSerializationTests
     [Fact]
     public void GraphMapSample1()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("node1"),
             new GraphNode("node2"),
@@ -128,7 +145,7 @@ public class GraphMapSerializationTests
 
         string json = map.ToJson();
 
-        var mapRead = GraphMapTool.FromJson(json).NotNull();
+        var mapRead = GraphSerializationTool.FromJson(json, _services);
         mapRead.Nodes.Count.Be(4);
         mapRead.Edges.Count.Be(3);
 
@@ -146,7 +163,7 @@ public class GraphMapSerializationTests
     {
         var created = new DateTime(2024, 05, 01, 10, 30, 00, DateTimeKind.Utc);
 
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("N1"),
             new GraphNode("N2"),
@@ -154,7 +171,7 @@ public class GraphMapSerializationTests
         };
 
         var json = map.ToJson();
-        var mapResult = GraphMapTool.FromJson(json).NotNull();
+        var mapResult = GraphSerializationTool.FromJson(json, _services);
 
         mapResult.Edges.Count.Be(1);
         mapResult.Edges.First().Action(e =>
@@ -190,10 +207,10 @@ public class GraphMapSerializationTests
 
         var node = new GraphNode("N1", tags, created, dataMap, indexes, foreignKeys, grants);
 
-        var map = new GraphMap() { node };
+        var map = new GraphMap(_logger) { node };
 
         var json = map.ToJson();
-        var mapResult = GraphMapTool.FromJson(json).NotNull();
+        var mapResult = GraphSerializationTool.FromJson(json, _services).NotNull();
 
         mapResult.Nodes.Count.Be(1);
         var n = mapResult.Nodes.First();
@@ -203,7 +220,7 @@ public class GraphMapSerializationTests
     [Fact]
     public void RoundTrip_LastLogSequenceNumber_And_GrantControl()
     {
-        var map = new GraphMap();
+        var map = new GraphMap(_logger);
         map.SetLastLogSequenceNumber("lsn-123");
 
         var alice = new PrincipalIdentity("pi:alice", "alice", "alice@contoso.com", emailConfirmed: true);
@@ -213,7 +230,7 @@ public class GraphMapSerializationTests
         map.GrantControl.Groups.Add(devs);
 
         var json = map.ToJson();
-        var mapResult = GraphMapTool.FromJson(json).NotNull();
+        var mapResult = GraphSerializationTool.FromJson(json, _services);
 
         mapResult.LastLogSequenceNumber.Be("lsn-123");
         mapResult.GrantControl.Principals.Count.Be(1);
@@ -230,7 +247,7 @@ public class GraphMapSerializationTests
     [Fact]
     public void SourceGen_SerializeMap_DeserializeMap_RoundTrip()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("A", tags: "k=v"),
             new GraphNode("B"),
@@ -238,8 +255,8 @@ public class GraphMapSerializationTests
         };
         map.SetLastLogSequenceNumber("lsn-999");
 
-        var json = map.SerializeMap();
-        var map2 = GraphSerializationTool.DeserializeMap(json).NotNull();
+        var json = map.ToJson();
+        var map2 = GraphSerializationTool.FromJson(json, _services);
 
         map2.Nodes.Count.Be(2);
         map2.Edges.Count.Be(1);
@@ -250,6 +267,6 @@ public class GraphMapSerializationTests
     public void FromJson_Invalid_Throws()
     {
         var badJson = "{ notValid: true ";
-        Assert.ThrowsAny<Exception>(() => GraphMapTool.FromJson(badJson));
+        Assert.ThrowsAny<Exception>(() => GraphSerializationTool.FromJson(badJson, _services));
     }
 }

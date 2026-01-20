@@ -1,17 +1,19 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
-public class OptionalRuleOnly : TestBase
+public class OptionalRuleOnly
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly IHost _host;
 
-    public OptionalRuleOnly(ITestOutputHelper output) : base(output)
+    public OptionalRuleOnly(ITestOutputHelper output)
     {
         string schemaText = new[]
         {
@@ -23,6 +25,10 @@ public class OptionalRuleOnly : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue();
+
+        _host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
     }
 
     [Theory]
@@ -31,20 +37,18 @@ public class OptionalRuleOnly : TestBase
     [InlineData("raw")]
     public void FailMatches(string rawValue)
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse(rawValue, logger);
+        var parse = parser.Parse(rawValue);
         parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void LeftJoin()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("->", logger);
+        var parse = parser.Parse("->");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -87,10 +91,9 @@ public class OptionalRuleOnly : TestBase
     [Fact]
     public void FullJoin()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
+        var parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
 
-        var parse = parser.Parse("<->", logger);
+        var parse = parser.Parse("<->");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);

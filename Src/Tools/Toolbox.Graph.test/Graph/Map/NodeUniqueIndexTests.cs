@@ -1,15 +1,30 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
 public class NodeUniqueIndexTests
 {
+    private readonly ILogger<GraphMap> _logger;
+
+    public NodeUniqueIndexTests(ITestOutputHelper output)
+    {
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
+        _logger = host.Services.GetRequiredService<ILogger<GraphMap>>();
+    }
+
     [Fact]
     public void SingleNodeIndexed()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("node1", tags: "name=marko,age=29", indexes: "name"),
         };
@@ -52,7 +67,7 @@ public class NodeUniqueIndexTests
     [Fact]
     public void RemoveSingleNodeIndexed()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("node1", tags: "name=marko,age=29", indexes: "name"),
         };
@@ -80,7 +95,7 @@ public class NodeUniqueIndexTests
     [Fact]
     public void SingleNodeTwoTagsIndexed()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("node5", tags: "name=ripple,lang=java", indexes: "lang, name"),
         };
@@ -114,7 +129,7 @@ public class NodeUniqueIndexTests
     [Fact]
     public void TwoNodeIndexed()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("node2", tags: "name=vadas,age=27"),
             new GraphNode("node1", tags: "name=marko,age=29", indexes: "name"),
@@ -161,7 +176,7 @@ public class NodeUniqueIndexTests
     [Fact]
     public void UpdateIndexOnOneNode()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("node2", tags: "name=vadas,age=27"),
             new GraphNode("node1", tags: "name=marko,age=29", indexes: "name"),
@@ -197,7 +212,7 @@ public class NodeUniqueIndexTests
     [Fact]
     public void UpdateIndexOnOneNodeIndexCarryForward()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("node2", tags: "name=vadas,age=27"),
             new GraphNode("node1", tags: "name=marko,age=29", indexes: "name"),
@@ -242,7 +257,7 @@ public class NodeUniqueIndexTests
     [Fact]
     public void RemoveIndexFromMultipleIndexes()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("node2", tags: "name=vadas,age=27"),
             new GraphNode("node1", tags: "name=marko,age=29", indexes: "name"),
@@ -316,7 +331,7 @@ public class NodeUniqueIndexTests
     [Fact]
     public void RemoveNameIndexFromMultipleIndexes()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("node2", tags: "name=vadas,age=27"),
             new GraphNode("node1", tags: "name=marko,age=29", indexes: "name"),
@@ -375,5 +390,4 @@ public class NodeUniqueIndexTests
         readNode!.Key.Be("node5");
         readNode.Tags.Count.Be(0);
     }
-
 }

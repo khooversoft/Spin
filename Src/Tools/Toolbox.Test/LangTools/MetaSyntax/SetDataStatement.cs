@@ -1,17 +1,20 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
-public class SetDataStatement : TestBase
+public class SetDataStatement
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly IHost _host;
+    private readonly SyntaxParser _parser;
 
-    public SetDataStatement(ITestOutputHelper output) : base(output)
+    public SetDataStatement(ITestOutputHelper output)
     {
         string schemaText = new[]
         {
@@ -25,8 +28,13 @@ public class SetDataStatement : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue();
-    }
 
+        _host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _schema);
+    }
 
     [Theory]
     [InlineData("")]
@@ -38,20 +46,14 @@ public class SetDataStatement : TestBase
     [InlineData("{ base64data }")]
     public void FailedReturn(string command)
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse(command, logger);
+        var parse = _parser.Parse(command);
         parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void SingleSetData()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("data { base64data }", logger);
+        var parse = _parser.Parse("data { base64data }");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);

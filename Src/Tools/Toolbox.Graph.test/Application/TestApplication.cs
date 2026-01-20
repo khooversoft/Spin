@@ -67,7 +67,7 @@ public static class TestApplication
 //        return graphHostService;
 //    }
 
-//    public static async Task<(GraphHostService testClient, ScopeContext context)> CreateInMemory<T>(ITestOutputHelper output)
+//    public static async Task<(GraphHostService testClient)> CreateInMemory<T>(ITestOutputHelper output)
 //    {
 //        var testClient = await new GraphHostBuilder()
 //            .UseInMemoryStore()
@@ -79,7 +79,7 @@ public static class TestApplication
 //            .BuildAndRun();
 
 //        var context = testClient.CreateScopeContext<T>();
-//        return (testClient, context);
+//        return (testClient);
 //    }
 
 //    public static (IHost Host, ScopeContext Context) CreateDatalakeDirect<T>(string basePath, ITestOutputHelper output)
@@ -102,10 +102,10 @@ public static class TestApplication
 //            .Build();
 
 //        ScopeContext context = new ScopeContext(host.Services.GetRequiredService<ILogger<T>>());
-//        return (host, context);
+//        return (host);
 //    }
 
-//    public static async Task<(GraphHostService testClient, ScopeContext context)> CreateDatalake<T>(string basePath, ITestOutputHelper output, bool noClear = false)
+//    public static async Task<(GraphHostService testClient)> CreateDatalake<T>(string basePath, ITestOutputHelper output, bool noClear = false)
 //    {
 //        DatalakeOption datalakeOption = ReadOption(basePath);
 
@@ -122,12 +122,12 @@ public static class TestApplication
 
 //        var context = testClient.CreateScopeContext<T>();
 
-//        if (!noClear) (await testClient.Execute("delete (*) ;", context)).BeOk();
+//        if (!noClear) (await testClient.Execute("delete (*) ;")).BeOk();
 
-//        return (testClient, context);
+//        return (testClient);
 //    }
 
-//    public static async Task<(GraphHostService client1, GraphHostService client2, ScopeContext context)> CreateTwoLinkedForInMemory<T>(ITestOutputHelper output)
+//    public static async Task<(GraphHostService client1, GraphHostService client2)> CreateTwoLinkedForInMemory<T>(ITestOutputHelper output)
 //    {
 //        var firstClient = await create(null, x => output.WriteLine($"1st: {x}"));
 
@@ -135,8 +135,8 @@ public static class TestApplication
 //        var secondClient = await create(memoryStore, x => output.WriteLine($"2nd: {x}"));
 
 //        var context = firstClient.CreateScopeContext<T>();
-//        (await firstClient.Execute("delete (*) ;", context)).IsOk().BeTrue();
-//        return (firstClient, secondClient, context);
+//        (await firstClient.Execute("delete (*) ;")).IsOk().BeTrue();
+//        return (firstClient, secondClient);
 
 //        async Task<GraphHostService> create(MemoryStore? memoryStore, Action<string> outputFunc)
 //        {
@@ -154,15 +154,15 @@ public static class TestApplication
 //        }
 //    }
 
-//    public static async Task<(GraphHostService client1, GraphHostService client2, ScopeContext context)> CreateTwoLinkClientsForDatalake<T>(string basePath, ITestOutputHelper output)
+//    public static async Task<(GraphHostService client1, GraphHostService client2)> CreateTwoLinkClientsForDatalake<T>(string basePath, ITestOutputHelper output)
 //    {
 //        var firstClient = await TestApplication.CreateTestGraphServiceWithDatalake(basePath, logOutput: x => output.WriteLine($"1st: {x}"), shareMode: true);
 //        var secondClient = await TestApplication.CreateTestGraphServiceWithDatalake(basePath, logOutput: x => output.WriteLine($"2nd: {x}"), shareMode: true);
 
 //        var context = firstClient.CreateScopeContext<T>();
-//        (await firstClient.Execute("delete (*) ;", context)).IsOk().BeTrue();
+//        (await firstClient.Execute("delete (*) ;")).IsOk().BeTrue();
 
-//        return (firstClient, secondClient, context);
+//        return (firstClient, secondClient);
 //    }
 
 //    private static DatalakeOption ReadOption(string basePath) => new ConfigurationBuilder()

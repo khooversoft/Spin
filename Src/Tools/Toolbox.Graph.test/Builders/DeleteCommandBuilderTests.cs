@@ -1,10 +1,21 @@
-﻿using Toolbox.Tools;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Builders;
 
 public class DeleteCommandBuilderTests
 {
+    private GraphLanguageParser BuildLanguageParser()
+    {
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureServices(service => service.AddSingleton<GraphLanguageParser>())
+            .Build();
+
+        return host.Services.GetRequiredService<GraphLanguageParser>();
+    }
+
     [Fact]
     public void DeleteNode()
     {
@@ -14,7 +25,7 @@ public class DeleteCommandBuilderTests
 
         graphQuery.Be("delete node key=nodeKey1 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
+        var parse = BuildLanguageParser().Parse(graphQuery);
         parse.Status.IsOk().BeTrue();
     }
 
@@ -28,7 +39,7 @@ public class DeleteCommandBuilderTests
 
         graphQuery.Be("delete node ifexist key=nodeKey1 ;");
 
-        var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, NullScopeContext.Instance);
+        var parse = BuildLanguageParser().Parse(graphQuery);
         parse.Status.IsOk().BeTrue();
     }
 }

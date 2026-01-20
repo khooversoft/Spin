@@ -1,17 +1,19 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
-public class OptionalWithSuffix : TestBase
+public class OptionalWithSuffix
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly SyntaxParser _parser;
 
-    public OptionalWithSuffix(ITestOutputHelper output) : base(output)
+    public OptionalWithSuffix(ITestOutputHelper output)
     {
         string schemaText = new[]
         {
@@ -24,15 +26,18 @@ public class OptionalWithSuffix : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue();
+
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _schema);
     }
 
     [Fact]
     public void NoJoin()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OptionalRuleOnly>();
-
-        var parse = parser.Parse("first", logger);
+        var parse = _parser.Parse("first");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -68,10 +73,7 @@ public class OptionalWithSuffix : TestBase
     [Fact]
     public void LeftJoin()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OptionalRuleOnly>();
-
-        var parse = parser.Parse("-> first", logger);
+        var parse = _parser.Parse("-> first");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -123,10 +125,7 @@ public class OptionalWithSuffix : TestBase
     [Fact]
     public void InnerJoin()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OptionalRuleOnly>();
-
-        var parse = parser.Parse("<-> first", logger);
+        var parse = _parser.Parse("<-> first");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);

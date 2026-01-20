@@ -1,36 +1,35 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel.Nodes;
 
-public class NodeDeleteTests : TestBase<NodeDeleteTests>
+public class NodeDeleteTests
 {
-    private readonly ITestOutputHelper _output;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ILogger _logger;
 
-    public NodeDeleteTests(ITestOutputHelper output) : base(output)
+    public NodeDeleteTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _logger = GetLogger();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _root);
     }
 
     [Fact]
     public void DeleteAll()
     {
-        var parse = _parser.Parse("delete (*) ;", _logger);
+        var parse = _parser.Parse("delete (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -51,7 +50,7 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
     [Fact]
     public void DeleteNodeByKey()
     {
-        var parse = _parser.Parse("delete (key=k1) a1 ;", _logger);
+        var parse = _parser.Parse("delete (key=k1) a1 ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -75,7 +74,7 @@ public class NodeDeleteTests : TestBase<NodeDeleteTests>
     [Fact]
     public void DeleteNodeByKeyAndTag()
     {
-        var parse = _parser.Parse("delete (key=k1, t2) a1 ;", _logger);
+        var parse = _parser.Parse("delete (key=k1, t2) a1 ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

@@ -1,36 +1,42 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel;
 
-public class SelectMultipleNodesEdgesTests : TestBase<SelectMultipleNodesEdgesTests>
+public class SelectMultipleNodesEdgesTests
 {
     private readonly ITestOutputHelper _output;
+    private readonly IHost _host;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
     private readonly ILogger _logger;
 
-    public SelectMultipleNodesEdgesTests(ITestOutputHelper output) : base(output)
+    public SelectMultipleNodesEdgesTests(ITestOutputHelper output)
     {
         _output = output.NotNull();
+
+        _host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _logger = GetLogger();
-        _parser = new SyntaxParser(_root);
+        _logger = _host.Services.GetRequiredService<ILogger<BatchTests>>();
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _root);
     }
 
     [Fact]
     public void SelectCommand()
     {
-        var parse = _parser.Parse("upsert node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 } ;", _logger);
+        var parse = _parser.Parse("upsert node key=k1 set t1, entity { entityBase64 }, t2=v3, t3, data { base64 } ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

@@ -21,7 +21,7 @@ public class GroupTests
         var deserializedUserGroup = json.ToObject<GroupPolicy>();
 
         // Assert
-        (deserializedUserGroup != default).BeTrue();
+        deserializedUserGroup.NotNull();
         (originalUserGroup == deserializedUserGroup).BeTrue();
     }
 
@@ -348,7 +348,7 @@ public class GroupTests
 
         // Assert
         found.BeFalse();
-        (result == default).BeTrue();
+        result.BeNull();
     }
 
     [Fact]
@@ -408,7 +408,7 @@ public class GroupTests
         collection.CopyTo(array, 1);
 
         // Assert
-        (array[0] == default).BeTrue();
+        array[0].BeNull();
         collection.Contains(array[1]).BeTrue();
         collection.Contains(array[2]).BeTrue();
     }

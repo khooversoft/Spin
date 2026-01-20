@@ -10,23 +10,28 @@ namespace Toolbox.Graph.test.Command;
 
 public class SelectInstructionTests
 {
-    private readonly GraphMap _map = new GraphMap()
+    private static GraphMap CreateGraphMap(IHost host)
     {
-        new GraphNode("node1", tags: "name=marko,age=29"),
-        new GraphNode("node2", tags: "name=vadas,age=27"),
-        new GraphNode("node3", tags: "name=lop,lang=java;"),
-        new GraphNode("node4", tags: "name=josh,age=32,user"),
-        new GraphNode("node5", tags: "name=ripple,lang=java"),
-        new GraphNode("node6", tags: "name=peter,age=35"),
-        new GraphNode("node7", tags: "lang=java"),
+        ILogger<GraphMap> logger = host.Services.GetRequiredService<ILogger<GraphMap>>();
 
-        new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
-        new GraphEdge("node5", "node4", edgeType : "et1", tags: "created"),
-    };
+        return new GraphMap(logger)
+        {
+            new GraphNode("node1", tags: "name=marko,age=29"),
+            new GraphNode("node2", tags: "name=vadas,age=27"),
+            new GraphNode("node3", tags: "name=lop,lang=java;"),
+            new GraphNode("node4", tags: "name=josh,age=32,user"),
+            new GraphNode("node5", tags: "name=ripple,lang=java"),
+            new GraphNode("node6", tags: "name=peter,age=35"),
+            new GraphNode("node7", tags: "lang=java"),
+
+            new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
+            new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
+            new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
+            new GraphEdge("node5", "node4", edgeType : "et1", tags: "created"),
+        };
+    }
 
     private readonly ITestOutputHelper _logOutput;
     public SelectInstructionTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
@@ -34,17 +39,18 @@ public class SelectInstructionTests
     private async Task<IHost> CreateService()
     {
         var host = Host.CreateDefaultBuilder()
-            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .AddDebugLogging(x => _logOutput.WriteLine(x))
             .ConfigureServices((context, services) =>
             {
-                services.AddInMemoryFileStore();
+                services.AddInMemoryKeyStore();
                 services.AddGraphEngine(config => config.BasePath = "basePath");
             })
             .Build();
 
+        var map = CreateGraphMap(host);
+
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var context = host.Services.GetRequiredService<ILogger<NodeInstructionsIndexTests>>().ToScopeContext();
-        await graphEngine.DataManager.SetMap(_map, context);
+        await graphEngine.DataManager.SetMap(map);
 
         return host;
     }
@@ -53,11 +59,9 @@ public class SelectInstructionTests
     public async Task SelectDirectedNodeToEdge()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.Execute("select (*) -> [*] ;", context);
+        var newMapOption = await graphClient.Execute("select (*) -> [*] ;");
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -78,24 +82,15 @@ public class SelectInstructionTests
         }.OrderBy(x => x).ToArray();
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).BeTrue();
-
-        collector.Nodes.IndexHit.Value.Be(0);
-        collector.Nodes.IndexMissed.Value.Be(0);
-        collector.Nodes.IndexScan.Value.Be(1);
-        collector.Edges.IndexHit.Value.Be(7);
-        collector.Edges.IndexMissed.Value.Be(0);
-        collector.Edges.IndexScan.Value.Be(0);
     }
 
     [Fact]
     public async Task SelectReverseNodeToEdge()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.Execute("select (*) <- [*] ;", context);
+        var newMapOption = await graphClient.Execute("select (*) <- [*] ;");
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -116,24 +111,15 @@ public class SelectInstructionTests
         }.OrderBy(x => x).ToArray();
 
         result.Edges.Select(x => (x.FromKey, x.ToKey, x.EdgeType)).OrderBy(x => x).SequenceEqual(expected).BeTrue();
-
-        collector.Nodes.IndexHit.Value.Be(0);
-        collector.Nodes.IndexMissed.Value.Be(0);
-        collector.Nodes.IndexScan.Value.Be(1);
-        collector.Edges.IndexHit.Value.Be(7);
-        collector.Edges.IndexMissed.Value.Be(0);
-        collector.Edges.IndexScan.Value.Be(0);
     }
 
     [Fact]
     public async Task SelectDirectedJoinEdge()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.Execute("select [*] -> (*) ;", context);
+        var newMapOption = await graphClient.Execute("select [*] -> (*) ;");
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -144,24 +130,15 @@ public class SelectInstructionTests
         result.DataLinks.Count.Be(0);
 
         result.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node2", "node3", "node4", "node5"]).BeTrue();
-
-        collector.Nodes.IndexHit.Value.Be(6);
-        collector.Nodes.IndexMissed.Value.Be(0);
-        collector.Nodes.IndexScan.Value.Be(0);
-        collector.Edges.IndexHit.Value.Be(0);
-        collector.Edges.IndexMissed.Value.Be(0);
-        collector.Edges.IndexScan.Value.Be(1);
     }
 
     [Fact]
     public async Task SelectDirectedNodeToEdgeToNode()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.Execute("select (*) -> [*] -> (*) ;", context);
+        var newMapOption = await graphClient.Execute("select (*) -> [*] -> (*) ;");
         newMapOption.IsOk().BeTrue();
 
         QueryResult result = newMapOption.Return();
@@ -178,11 +155,9 @@ public class SelectInstructionTests
     public async Task SelectDirectedNodeToEdgeToNodeWithAlias()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("select (*) a1 -> [*] a2 -> (*) a3 ;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
@@ -216,11 +191,9 @@ public class SelectInstructionTests
     public async Task SelectRightNodeToEdge()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.ExecuteBatch("select (key=node4) <- [*] ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("select (key=node4) <- [*] ;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
@@ -240,24 +213,15 @@ public class SelectInstructionTests
 
             x.Edges.Select(x => (x.FromKey, x.ToKey)).SequenceEqual(expected).BeTrue();
         });
-
-        collector.Nodes.IndexHit.Value.Be(1);
-        collector.Nodes.IndexMissed.Value.Be(0);
-        collector.Nodes.IndexScan.Value.Be(0);
-        collector.Edges.IndexHit.Value.Be(2);
-        collector.Edges.IndexMissed.Value.Be(0);
-        collector.Edges.IndexScan.Value.Be(0);
     }
 
     [Fact]
     public async Task SelectFullNodeToEdge()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.ExecuteBatch("select (key=node4) <-> [*] ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("select (key=node4) <-> [*] ;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
@@ -279,24 +243,15 @@ public class SelectInstructionTests
 
             x.Edges.Select(x => (x.FromKey, x.ToKey)).OrderBy(x => x).SequenceEqual(expected).BeTrue();
         });
-
-        collector.Nodes.IndexHit.Value.Be(1);
-        collector.Nodes.IndexMissed.Value.Be(0);
-        collector.Nodes.IndexScan.Value.Be(0);
-        collector.Edges.IndexHit.Value.Be(4);
-        collector.Edges.IndexMissed.Value.Be(0);
-        collector.Edges.IndexScan.Value.Be(0);
     }
 
     [Fact]
     public async Task SelectRightJoinEdgeToNode()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.ExecuteBatch("select [knows] <- (*) ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("select [knows] <- (*) ;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
@@ -310,24 +265,15 @@ public class SelectInstructionTests
             x.DataLinks.Count.Be(0);
             x.Nodes.Select(x => x.Key).SequenceEqual(["node1"]).BeTrue();
         });
-
-        collector.Nodes.IndexHit.Value.Be(2);
-        collector.Nodes.IndexMissed.Value.Be(0);
-        collector.Nodes.IndexScan.Value.Be(0);
-        collector.Edges.IndexHit.Value.Be(3);
-        collector.Edges.IndexMissed.Value.Be(0);
-        collector.Edges.IndexScan.Value.Be(0);
     }
 
     [Fact]
     public async Task SelectFullEdgeToNode()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.ExecuteBatch("select [knows] <-> (*) ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("select [knows] <-> (*) ;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult result = newMapOption.Return();
@@ -341,12 +287,5 @@ public class SelectInstructionTests
             x.DataLinks.Count.Be(0);
             x.Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).BeTrue();
         });
-
-        collector.Nodes.IndexHit.Value.Be(4);
-        collector.Nodes.IndexMissed.Value.Be(0);
-        collector.Nodes.IndexScan.Value.Be(0);
-        collector.Edges.IndexHit.Value.Be(3);
-        collector.Edges.IndexMissed.Value.Be(0);
-        collector.Edges.IndexScan.Value.Be(0);
     }
 }

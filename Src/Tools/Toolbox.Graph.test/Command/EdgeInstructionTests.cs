@@ -11,22 +11,29 @@ namespace Toolbox.Graph.test.Command;
 
 public class EdgeInstructionTests
 {
-    private readonly GraphMap _map = new GraphMap()
-    {
-        new GraphNode("node1", tags: "name=marko,age=29"),
-        new GraphNode("node2", tags: "name=vadas,age=27"),
-        new GraphNode("node3", tags: "name=lop,lang=java"),
-        new GraphNode("node4", tags: "name=josh,age=32"),
-        new GraphNode("node5", tags: "name=ripple,lang=java"),
-        new GraphNode("node6", tags: "name=peter,age=35"),
-        new GraphNode("node7", tags: "lang=java"),
+    private GraphMap _map = null!;
 
-        new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node6", "node3", edgeType: "et2", tags: "created"),
-        new GraphEdge("node4", "node5", edgeType: "et2", tags: "created"),
-        new GraphEdge("node4", "node3", edgeType: "et3", tags: "created"),
-    };
+    private static GraphMap CreateGraphMap(IHost host)
+    {
+        ILogger<GraphMap> logger = host.Services.GetRequiredService<ILogger<GraphMap>>();
+
+        return new GraphMap(logger)
+        {
+            new GraphNode("node1", tags: "name=marko,age=29"),
+            new GraphNode("node2", tags: "name=vadas,age=27"),
+            new GraphNode("node3", tags: "name=lop,lang=java"),
+            new GraphNode("node4", tags: "name=josh,age=32"),
+            new GraphNode("node5", tags: "name=ripple,lang=java"),
+            new GraphNode("node6", tags: "name=peter,age=35"),
+            new GraphNode("node7", tags: "lang=java"),
+
+            new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node6", "node3", edgeType: "et2", tags: "created"),
+            new GraphEdge("node4", "node5", edgeType: "et2", tags: "created"),
+            new GraphEdge("node4", "node3", edgeType: "et3", tags: "created"),
+        };
+    }
 
     private readonly ITestOutputHelper _logOutput;
     public EdgeInstructionTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
@@ -34,17 +41,19 @@ public class EdgeInstructionTests
     private async Task<IHost> CreateService()
     {
         var host = Host.CreateDefaultBuilder()
-            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .AddDebugLogging(x => _logOutput.WriteLine(x))
             .ConfigureServices((context, services) =>
             {
-                services.AddInMemoryFileStore();
+                services.AddInMemoryKeyStore();
                 services.AddGraphEngine(config => config.BasePath = "basePath");
             })
             .Build();
 
+        _map = CreateGraphMap(host);
+
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>().ToScopeContext();
-        await graphEngine.DataManager.SetMap(_map, context);
+        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>();
+        await graphEngine.DataManager.SetMap(_map);
 
         return host;
     }
@@ -55,10 +64,10 @@ public class EdgeInstructionTests
     public async Task Failures(string query)
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>().ToScopeContext();
+        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
 
-        var newMapOption = await graphClient.ExecuteBatch(query, context);
+        var newMapOption = await graphClient.ExecuteBatch(query);
         newMapOption.IsError().BeTrue();
     }
 
@@ -109,13 +118,10 @@ public class EdgeInstructionTests
     public async Task AddEdge()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
-
-        var newMapOption = await graphClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;");
         newMapOption.IsOk().BeTrue();
 
         var pk = new GraphEdgePrimaryKey { FromKey = "node7", ToKey = "node1", EdgeType = "newEdgeType" };
@@ -128,12 +134,6 @@ public class EdgeInstructionTests
 
         var edgeType = graphEngine.DataManager.GetMap().Edges.LookupByEdgeType(["newEdgeType"]);
         Enumerable.SequenceEqual(edgeType, [pk]).BeTrue();
-
-        collector.Edges.Count.Value.Be(6);
-        collector.Edges.Added.Value.Be(6);
-        collector.Edges.Updated.Value.Be(0);
-        collector.Edges.IndexHit.Value.Be(3);
-        collector.Edges.IndexMissed.Value.Be(0);
 
         QueryBatchResult commandResults = newMapOption.Return();
         var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
@@ -163,11 +163,10 @@ public class EdgeInstructionTests
     public async Task AddEdgeWithRemoveTagCommandFilterOut()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set -newTags;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set -newTags;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -189,11 +188,10 @@ public class EdgeInstructionTests
     public async Task AddEdgeWithTag()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add edge from=node7, to=node1, type=newEdgeType set newTags;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -215,11 +213,10 @@ public class EdgeInstructionTests
     public async Task DeleteEdge()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphClient.ExecuteBatch("delete edge from=node1, to=node3, type=et1 ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("delete edge from=node1, to=node3, type=et1 ;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -241,16 +238,15 @@ public class EdgeInstructionTests
     public async Task DeleteEdgeIfExist()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
         // Verify delete will fail
-        var newMapOption = await graphClient.ExecuteBatch("delete edge from=node7, to=node2, type=et1 ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("delete edge from=node7, to=node2, type=et1 ;");
         newMapOption.IsError().BeTrue();
 
         // Delet should not fail because of 'ifexist'
-        newMapOption = await graphClient.ExecuteBatch("delete edge ifexist from=node7, to=node2, type=et1 ;", context);
+        newMapOption = await graphClient.ExecuteBatch("delete edge ifexist from=node7, to=node2, type=et1 ;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -264,11 +260,10 @@ public class EdgeInstructionTests
     public async Task SetEdge()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphClient.ExecuteBatch("set edge from=node4, to=node3, type=et3 set t1, t2=v2 ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("set edge from=node4, to=node3, type=et3 set t1, t2=v2 ;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
@@ -290,11 +285,10 @@ public class EdgeInstructionTests
     public async Task SetEdgeRemoveTag()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var newMapOption = await graphClient.ExecuteBatch("set edge from=node1, to=node2, type=et1 set t1, t2=v2, -knows ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("set edge from=node1, to=node2, type=et1 set t1, t2=v2, -knows ;");
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();

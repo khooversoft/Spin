@@ -10,24 +10,29 @@ namespace Toolbox.Graph.test.Command;
 
 public class SelectInstructionSearchTests
 {
-    private readonly GraphMap _map = new GraphMap()
+    private static GraphMap CreateGraphMap(IHost host)
     {
-        new GraphNode("user:fred", tags: "name=marko,age=29"),
-        new GraphNode("user:alice", tags: "name=vadas,age=27"),
-        new GraphNode("user:bob", tags: "name=lop,lang=java;"),
-        new GraphNode("user:charlie", tags: "name=josh,age=32,user"),
-        new GraphNode("user:diana", tags: "name=ripple,lang=java"),
-        new GraphNode("user:eve", tags: "name=peter,age=35"),
-        new GraphNode("account:sam", tags: "name=peter,age=35"),
-        new GraphNode("account:eve", tags: "name=peter,age=35"),
+        ILogger<GraphMap> logger = host.Services.GetRequiredService<ILogger<GraphMap>>();
 
-        new GraphEdge("user:fred", "user:alice", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("user:alice", "user:charlie", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("user:fred", "user:diana", edgeType: "et1", tags: "created"),
-        new GraphEdge("user:bob", "user:fred", edgeType: "et1", tags: "created"),
-        new GraphEdge("user:charlie", "user:fred", edgeType : "et1", tags: "created"),
-        new GraphEdge("user:diana", "user:bob", edgeType : "et1", tags: "created"),
-    };
+        return new GraphMap(logger)
+        {
+            new GraphNode("user:fred", tags: "name=marko,age=29"),
+            new GraphNode("user:alice", tags: "name=vadas,age=27"),
+            new GraphNode("user:bob", tags: "name=lop,lang=java;"),
+            new GraphNode("user:charlie", tags: "name=josh,age=32,user"),
+            new GraphNode("user:diana", tags: "name=ripple,lang=java"),
+            new GraphNode("user:eve", tags: "name=peter,age=35"),
+            new GraphNode("account:sam", tags: "name=peter,age=35"),
+            new GraphNode("account:eve", tags: "name=peter,age=35"),
+
+            new GraphEdge("user:fred", "user:alice", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("user:alice", "user:charlie", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("user:fred", "user:diana", edgeType: "et1", tags: "created"),
+            new GraphEdge("user:bob", "user:fred", edgeType: "et1", tags: "created"),
+            new GraphEdge("user:charlie", "user:fred", edgeType : "et1", tags: "created"),
+            new GraphEdge("user:diana", "user:bob", edgeType : "et1", tags: "created"),
+        };
+    }
 
     private readonly ITestOutputHelper _logOutput;
     public SelectInstructionSearchTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
@@ -35,17 +40,19 @@ public class SelectInstructionSearchTests
     private async Task<IHost> CreateService()
     {
         var host = Host.CreateDefaultBuilder()
-            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .AddDebugLogging(x => _logOutput.WriteLine(x))
             .ConfigureServices((context, services) =>
             {
-                services.AddInMemoryFileStore();
+                services.AddInMemoryKeyStore();
                 services.AddGraphEngine(config => config.BasePath = "basePath");
             })
             .Build();
 
+        var map = CreateGraphMap(host);
+
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var context = host.Services.GetRequiredService<ILogger<NodeInstructionsIndexTests>>().ToScopeContext();
-        await graphEngine.DataManager.SetMap(_map, context);
+        var context = host.Services.GetRequiredService<ILogger<NodeInstructionsIndexTests>>();
+        await graphEngine.DataManager.SetMap(map);
 
         return host;
     }
@@ -54,10 +61,9 @@ public class SelectInstructionSearchTests
     public async Task SelectAllUsers()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
 
-        var resultOption = await graphClient.Execute("select (key=account:*) ;", context);
+        var resultOption = await graphClient.Execute("select (key=account:*) ;");
         resultOption.IsOk().BeTrue();
 
         QueryResult result = resultOption.Return();
@@ -70,10 +76,9 @@ public class SelectInstructionSearchTests
     public async Task SelectEdgeSubset()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
 
-        var resultOption = await graphClient.Execute("select [from=user:f*] ;", context);
+        var resultOption = await graphClient.Execute("select [from=user:f*] ;");
         resultOption.IsOk().BeTrue();
 
         QueryResult result = resultOption.Return();
@@ -86,10 +91,9 @@ public class SelectInstructionSearchTests
     public async Task SelectNodesFromEdgeSubset()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
 
-        var resultOption = await graphClient.Execute("select [from=user:f*] -> (*) ;", context);
+        var resultOption = await graphClient.Execute("select [from=user:f*] -> (*) ;");
         resultOption.IsOk().BeTrue();
 
         QueryResult result = resultOption.Return();

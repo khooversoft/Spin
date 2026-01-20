@@ -67,7 +67,7 @@
 //        using GraphHostService graphTestClient = await GraphTestStartup.CreateGraphService(map, logOutput: x => _outputHelper.WriteLine(x));
 //        var context = graphTestClient.CreateScopeContext<GraphDirectoryTests>();
 
-//        var search = (await graphTestClient.ExecuteBatch("select [from=system:schedule-work, type=scheduleWorkType:*];", context)).ThrowOnError().Return();
+//        var search = (await graphTestClient.ExecuteBatch("select [from=system:schedule-work, type=scheduleWorkType:*];")).ThrowOnError().Return();
 //        Assert.NotNull(search);
 //        search.NotNull();
 //        search.Items.Count.Be(1);
@@ -106,7 +106,7 @@
 //    //        .Add("set edgeType=scheduleWorkType:Completed")
 //    //        .Join(" ") + ";";
 
-//    //    var result = await testClient.ExecuteBatch(command, NullScopeContext.Instance);
+//    //    var result = await testClient.ExecuteBatch(command);
 //    //    result.NotBeNull();
 //    //    result.IsOk().BeTrue(result.ToString());
 
@@ -125,7 +125,7 @@
 //    //    });
 
 
-//    //    Option<GraphQueryResults> rOption = await testClient.ExecuteBatch($"select {search};", NullScopeContext.Instance);
+//    //    Option<GraphQueryResults> rOption = await testClient.ExecuteBatch($"select {search};");
 //    //    rOption.IsOk().BeTrue();
 
 //    //    GraphQueryResults r = rOption.Return();

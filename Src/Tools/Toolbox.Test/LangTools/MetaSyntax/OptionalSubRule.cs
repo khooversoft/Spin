@@ -1,20 +1,19 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
-public class OptionalSubRule : TestBase
+public class OptionalSubRule
 {
-    public OptionalSubRule(ITestOutputHelper output) : base(output)
-    {
-    }
+    private readonly MetaSyntaxRoot _schema;
+    private readonly SyntaxParser _parser;
 
-    [Fact]
-    public void LeftJoin()
+    public OptionalSubRule(ITestOutputHelper output)
     {
         string schemaText = new[]
         {
@@ -26,13 +25,20 @@ public class OptionalSubRule : TestBase
             "select              = symbol, [ join ] ;",
         }.Join(Environment.NewLine);
 
-        var schema = MetaParser.ParseRules(schemaText);
-        schema.StatusCode.IsOk().BeTrue(schema.Error);
+        _schema = MetaParser.ParseRules(schemaText);
+        _schema.StatusCode.IsOk().BeTrue(_schema.Error);
 
-        var parser = new SyntaxParser(schema);
-        var logger = GetLogger<OrRuleTests>();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
 
-        var parse = parser.Parse("sym", logger);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _schema);
+    }
+
+    [Fact]
+    public void LeftJoin()
+    {
+        var parse = _parser.Parse("sym");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);

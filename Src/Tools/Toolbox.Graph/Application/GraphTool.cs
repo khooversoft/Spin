@@ -65,16 +65,16 @@ public static class GraphTool
 
     public static string ToHashTag(string tag, string value) => $"{tag.NotEmpty()}-{RandomNumberGenerator.GetHexString(6)}";
 
-    public static string ApplyIfRequired(string value, Func<string, string> apply)
-    {
-        if (value.IsEmpty()) return value;
+    //public static string ApplyIfRequired(string value, Func<string, string> apply)
+    //{
+    //    if (value.IsEmpty()) return value;
 
-        var result = value.Split(':') switch
-        {
-            { Length: 1 } => apply(value),
-            _ => value,
-        };
+    //    var result = value.Split(':') switch
+    //    {
+    //        { Length: 1 } => apply(value),
+    //        _ => value,
+    //    };
 
-        return result;
-    }
+    //    return result;
+    //}
 }

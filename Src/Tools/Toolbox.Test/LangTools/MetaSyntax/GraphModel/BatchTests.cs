@@ -1,30 +1,32 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel;
 
-public class BatchTests : TestBase<BatchTests>
+public class BatchTests
 {
-    private readonly ITestOutputHelper _output;
+    private readonly IHost _host;
     private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ILogger _logger;
 
-    public BatchTests(ITestOutputHelper output) : base(output)
+    public BatchTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        output.NotNull();
+
+        _host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
 
         string schema = GraphModelTool.ReadGraphLanauge2();
         _root = MetaParser.ParseRules(schema);
         _root.StatusCode.IsOk().BeTrue(_root.Error);
 
-        _logger = GetLogger();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(_host.Services, _root);
     }
 
     [Fact]
@@ -36,7 +38,7 @@ public class BatchTests : TestBase<BatchTests>
             "add node key=k2;",
         }.Join(Environment.NewLine);
 
-        var parse = _parser.Parse(lines, _logger);
+        var parse = _parser.Parse(lines);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -72,7 +74,7 @@ public class BatchTests : TestBase<BatchTests>
             "select (userEmail) a1 -> [roles] a2 -> (*) a3 return data, entity;",
         }.Join(Environment.NewLine);
 
-        var parse = _parser.Parse(lines, _logger);
+        var parse = _parser.Parse(lines);
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

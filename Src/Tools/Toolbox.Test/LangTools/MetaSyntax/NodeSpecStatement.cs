@@ -1,17 +1,19 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax;
 
-public class NodeSpecStatement : TestBase
+public class NodeSpecStatement
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly SyntaxParser _parser;
 
-    public NodeSpecStatement(ITestOutputHelper output) : base(output)
+    public NodeSpecStatement(ITestOutputHelper output)
     {
         string schemaText = new[]
 {
@@ -29,6 +31,12 @@ public class NodeSpecStatement : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue(_schema.Error);
+
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _schema);
     }
 
     [Theory]
@@ -36,20 +44,14 @@ public class NodeSpecStatement : TestBase
     [InlineData("()")]
     public void FailedReturn(string command)
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse(command, logger);
+        var parse = _parser.Parse(command);
         parse.Status.IsError().BeTrue(parse.Status.Error);
     }
 
     [Fact]
     public void WildcardSearchOfNode()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("(*)", logger);
+        var parse = _parser.Parse("(*)");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -103,10 +105,7 @@ public class NodeSpecStatement : TestBase
     [Fact]
     public void WildcardSearchOfNodeWithAlias()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("(*) a1", logger);
+        var parse = _parser.Parse("(*) a1");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -169,10 +168,7 @@ public class NodeSpecStatement : TestBase
     [Fact]
     public void FilterOnTag()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("(t1)", logger);
+        var parse = _parser.Parse("(t1)");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -226,10 +222,7 @@ public class NodeSpecStatement : TestBase
     [Fact]
     public void FilterOnNodeKey()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("(key=k1)", logger);
+        var parse = _parser.Parse("(key=k1)");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);
@@ -294,10 +287,7 @@ public class NodeSpecStatement : TestBase
     [Fact]
     public void FilterOnNodeKeyAndTag()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("(key=k1, t2) a2", logger);
+        var parse = _parser.Parse("(key=k1, t2) a2");
         parse.Status.IsOk().BeTrue(parse.Status.Error);
 
         var lines = SyntaxTestTool.GenerateTestCodeSyntaxTree(parse.SyntaxTree).Join(Environment.NewLine);

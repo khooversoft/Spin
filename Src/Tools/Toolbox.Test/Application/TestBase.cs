@@ -1,37 +1,32 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Toolbox.Tools;
-using Xunit.Abstractions;
+﻿namespace Toolbox.Test.Application;
 
-namespace Toolbox.Test.Application;
-
-public abstract class TestBase
-{
-    private readonly ITestOutputHelper _output;
+//public abstract class TestBase
+//{
+//    private readonly ITestOutputHelper _output;
 
 
-    public TestBase(ITestOutputHelper output)
-    {
-        _output = output.NotNull();
+//    public TestBase(ITestOutputHelper output)
+//    {
+//        _output = output.NotNull();
 
-        Services = new ServiceCollection()
-            .AddLogging(x =>
-            {
-                x.AddLambda(_output.WriteLine);
-                x.AddDebug();
-                x.AddConsole();
-            })
-            .BuildServiceProvider();
-    }
+//        Services = new ServiceCollection()
+//            .AddLogging(x =>
+//            {
+//                x.AddLambda(_output.WriteLine);
+//                x.AddDebug();
+//                x.AddConsole();
+//            })
+//            .BuildServiceProvider();
+//    }
 
-    public ServiceProvider Services { get; }
+//    public ServiceProvider Services { get; }
 
-    public ILogger<T> GetLogger<T>() where T : notnull => Services.GetRequiredService<ILogger<T>>();
-}
+//    public ILogger<T> GetLogger<T>() where T : notnull => Services.GetRequiredService<ILogger<T>>();
+//}
 
-public abstract class TestBase<T> : TestBase where T : notnull
-{
-    public TestBase(ITestOutputHelper output) : base(output) { }
+//public abstract class TestBase<T> : TestBase where T : notnull
+//{
+//    public TestBase(ITestOutputHelper output) : base(output) { }
 
-    public ILogger GetLogger() => Services.GetRequiredService<ILogger<T>>();
-}
+//    public ILogger GetLogger() => Services.GetRequiredService<ILogger<T>>();
+//}

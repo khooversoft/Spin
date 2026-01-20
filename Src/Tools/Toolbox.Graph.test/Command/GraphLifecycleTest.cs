@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -16,17 +15,16 @@ public class GraphLifecycleTest
     private async Task<IHost> CreateService()
     {
         var host = Host.CreateDefaultBuilder()
-            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .AddDebugLogging(x => _logOutput.WriteLine(x))
             .ConfigureServices((context, services) =>
             {
-                services.AddInMemoryFileStore();
+                services.AddInMemoryKeyStore();
                 services.AddGraphEngine(config => config.BasePath = "basePath");
             })
             .Build();
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var context = host.Services.GetRequiredService<ILogger<GraphLifecycleTest>>().ToScopeContext();
-        await graphEngine.DataManager.LoadDatabase(context);
+        await graphEngine.DataManager.LoadDatabase();
 
         return host;
     }
@@ -35,17 +33,16 @@ public class GraphLifecycleTest
     public async Task SingleNode()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<GraphLifecycleTest>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        Option<QueryBatchResult> addResult = await graphClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", context);
+        Option<QueryBatchResult> addResult = await graphClient.ExecuteBatch("set node key=node1 set t1,t2=v1;");
         addResult.IsOk().BeTrue();
 
         graphEngine.DataManager.GetMap().Nodes.Count.Be(1);
         graphEngine.DataManager.GetMap().Edges.Count.Be(0);
 
-        (await graphClient.Execute("select (key=node1);", context)).ThrowOnError().Return().Action(x =>
+        (await graphClient.Execute("select (key=node1);")).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().BeTrue();
             x.Nodes.Count.Be(1);
@@ -59,12 +56,12 @@ public class GraphLifecycleTest
             });
         });
 
-        Option<QueryBatchResult> removeResult = await graphClient.ExecuteBatch("delete node key=node1;", context);
+        Option<QueryBatchResult> removeResult = await graphClient.ExecuteBatch("delete node key=node1;");
         removeResult.IsOk().BeTrue();
         graphEngine.DataManager.GetMap().Nodes.Count.Be(0);
         graphEngine.DataManager.GetMap().Edges.Count.Be(0);
 
-        (await graphClient.Execute("select (key=node1);", context)).ThrowOnError().Return().Action(x =>
+        (await graphClient.Execute("select (key=node1);")).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().BeTrue();
             x.Nodes.Count.Be(0);
@@ -77,22 +74,21 @@ public class GraphLifecycleTest
     public async Task TwoNodes()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<GraphLifecycleTest>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        Option<QueryBatchResult> addResult1 = await graphClient.ExecuteBatch("set node key=node1 set t1,t2=v1;", context);
+        Option<QueryBatchResult> addResult1 = await graphClient.ExecuteBatch("set node key=node1 set t1,t2=v1;");
         addResult1.IsOk().BeTrue();
 
         graphEngine.DataManager.GetMap().Nodes.Count.Be(1);
         graphEngine.DataManager.GetMap().Edges.Count.Be(0);
 
-        Option<QueryBatchResult> addResult2 = await graphClient.ExecuteBatch("set node key=node2 set t10,t20=v10;", context);
+        Option<QueryBatchResult> addResult2 = await graphClient.ExecuteBatch("set node key=node2 set t10,t20=v10;");
         addResult2.IsOk().BeTrue();
         graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
         graphEngine.DataManager.GetMap().Edges.Count.Be(0);
 
-        (await graphClient.Execute("select (key=node1);", context)).ThrowOnError().Return().Action(x =>
+        (await graphClient.Execute("select (key=node1);")).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().BeTrue();
             x.Nodes.Count.Be(1);
@@ -106,7 +102,7 @@ public class GraphLifecycleTest
             });
         });
 
-        (await graphClient.Execute("select (key=node2);", context)).ThrowOnError().Return().Action(x =>
+        (await graphClient.Execute("select (key=node2);")).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().BeTrue();
             x.Nodes.Count.Be(1);
@@ -120,14 +116,14 @@ public class GraphLifecycleTest
             });
         });
 
-        (await graphClient.ExecuteBatch("delete node key=node1;", context)).Action(x =>
+        (await graphClient.ExecuteBatch("delete node key=node1;")).Action(x =>
         {
             x.IsOk().BeTrue();
             graphEngine.DataManager.GetMap().Nodes.Count.Be(1);
             graphEngine.DataManager.GetMap().Edges.Count.Be(0);
         });
 
-        (await graphClient.Execute("select (key=node1);", context)).ThrowOnError().Return().Action(x =>
+        (await graphClient.Execute("select (key=node1);")).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().BeTrue();
             x.Nodes.Count.Be(0);
@@ -135,7 +131,7 @@ public class GraphLifecycleTest
             x.DataLinks.Count.Be(0);
         });
 
-        (await graphClient.Execute("select (key=node2);", context)).ThrowOnError().Return().Action(x =>
+        (await graphClient.Execute("select (key=node2);")).ThrowOnError().Return().Action(x =>
         {
             x.Option.IsOk().BeTrue();
             x.Nodes.Count.Be(1);
@@ -149,7 +145,7 @@ public class GraphLifecycleTest
             });
         });
 
-        (await graphClient.ExecuteBatch("delete node key=node2;", context)).Action(x =>
+        (await graphClient.ExecuteBatch("delete node key=node2;")).Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().Items.Count.Be(1);
@@ -163,7 +159,6 @@ public class GraphLifecycleTest
     public async Task UpdateTags()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<GraphLifecycleTest>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
@@ -172,7 +167,7 @@ public class GraphLifecycleTest
             set node key=node1 set t2,client;
             """;
 
-        (await graphClient.ExecuteBatch(q, context)).Action(x =>
+        (await graphClient.ExecuteBatch(q)).Action(x =>
         {
             x.IsOk().BeTrue();
             x.Value.Items.Count.Be(2);
@@ -199,7 +194,6 @@ public class GraphLifecycleTest
     public async Task TwoNodesWithRelationship()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<GraphLifecycleTest>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
@@ -209,7 +203,7 @@ public class GraphLifecycleTest
             set edge from=node1 ,to=node2, type=et set e2, worksFor;
             """;
 
-        (await graphClient.ExecuteBatch(q, context)).Action(x =>
+        (await graphClient.ExecuteBatch(q)).Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().Items.Count.Be(3);
@@ -218,7 +212,7 @@ public class GraphLifecycleTest
         graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
         graphEngine.DataManager.GetMap().Edges.Count.Be(1);
 
-        QueryBatchResult batch = (await graphClient.ExecuteBatch("select (key=node1) a0 -> [*] a1 -> (*) a2;", context)).ThrowOnError().Return();
+        QueryBatchResult batch = (await graphClient.ExecuteBatch("select (key=node1) a0 -> [*] a1 -> (*) a2;")).ThrowOnError().Return();
         batch.Option.IsOk().Be(true);
         batch.Items.Count.Be(3);
 
@@ -259,7 +253,6 @@ public class GraphLifecycleTest
     public async Task TwoNodesWithFullRelationship()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<GraphLifecycleTest>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
@@ -269,7 +262,7 @@ public class GraphLifecycleTest
             set edge from=node1 ,to=node2, type=et set e2, worksFor;
             """;
 
-        (await graphClient.ExecuteBatch(q, context)).Action(x =>
+        (await graphClient.ExecuteBatch(q)).Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().Items.Count.Be(3);
@@ -278,7 +271,7 @@ public class GraphLifecycleTest
         graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
         graphEngine.DataManager.GetMap().Edges.Count.Be(1);
 
-        QueryBatchResult batch = (await graphClient.ExecuteBatch("select (key=node2) a0 <-> [*] a1 <-> (*) a2;", context)).ThrowOnError().Return();
+        QueryBatchResult batch = (await graphClient.ExecuteBatch("select (key=node2) a0 <-> [*] a1 <-> (*) a2;")).ThrowOnError().Return();
         batch.Option.IsOk().Be(true);
         batch.Items.Count.Be(3);
 
@@ -324,7 +317,6 @@ public class GraphLifecycleTest
     public async Task TwoNodesWithRelationshipLargerSet()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<GraphLifecycleTest>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
@@ -338,7 +330,7 @@ public class GraphLifecycleTest
             set edge from=node3,to=node4,type=et set e3,worksFor;
             """;
 
-        (await graphClient.ExecuteBatch(q, context)).Action(x =>
+        (await graphClient.ExecuteBatch(q)).Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().Items.Count.Be(7);
@@ -347,7 +339,7 @@ public class GraphLifecycleTest
         graphEngine.DataManager.GetMap().Nodes.Count.Be(5);
         graphEngine.DataManager.GetMap().Edges.Count.Be(2);
 
-        (await graphClient.ExecuteBatch("select (key=node3) a0 -> [*] a1 -> (*) a2;", context)).ThrowOnError().Return().Action(batch =>
+        (await graphClient.ExecuteBatch("select (key=node3) a0 -> [*] a1 -> (*) a2;")).ThrowOnError().Return().Action(batch =>
         {
             batch.Option.IsOk().Be(true);
             batch.Items.Count.Be(3);

@@ -1,4 +1,6 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
@@ -7,30 +9,29 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
+public class DeleteNodeAndEdges
 {
-    private readonly ITestOutputHelper _output;
-    private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
 
-    public DeleteNodeAndEdges(ITestOutputHelper output) : base(output)
+    public DeleteNodeAndEdges(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryKeyStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
 
-        string schema = GraphLanguageTool.ReadGraphLanguageRules();
-        _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().BeTrue(_root.Error);
-
-        _context = GetScopeContext();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
     }
 
 
     [Fact]
     public void DeleteAllNodes()
     {
-        var parse = _parser.Parse("delete (*) ;", _context);
+        var parse = _parser.Parse("delete (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -60,7 +61,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     [Fact]
     public void DeleteAllEdges()
     {
-        var parse = _parser.Parse("delete [*] ;", _context);
+        var parse = _parser.Parse("delete [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -90,7 +91,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     [Fact]
     public void DeleteEdgesWithTag()
     {
-        var parse = _parser.Parse("delete [user] ;", _context);
+        var parse = _parser.Parse("delete [user] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -120,7 +121,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     [Fact]
     public void DeleteUserEdges()
     {
-        var parse = _parser.Parse("delete (user) -> [*] ;", _context);
+        var parse = _parser.Parse("delete (user) -> [*] ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -158,7 +159,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     [Fact]
     public void DeleteAllNodesToEdgesToNodes()
     {
-        var parse = _parser.Parse("delete (*) -> [*] -> (*) ;", _context);
+        var parse = _parser.Parse("delete (*) -> [*] -> (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -204,7 +205,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     [Fact]
     public void deleteFullNodesToEdgesToNodes()
     {
-        var parse = _parser.Parse("delete (*) <-> [*] <-> (*) ;", _context);
+        var parse = _parser.Parse("delete (*) <-> [*] <-> (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -250,7 +251,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     [Fact]
     public void DeleteAllIncorrectJoinsShouldFailAnalysis()
     {
-        var parse = _parser.Parse("delete (*) -> (*) -> (*) ;", _context);
+        var parse = _parser.Parse("delete (*) -> (*) -> (*) ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -261,7 +262,7 @@ public class DeleteNodeAndEdges : TestBase<DeleteNodeAndEdges>
     [Fact]
     public void SelectRelationship()
     {
-        var parse = _parser.Parse("select (key=userEmail:user.com, indexer) <-> [userProfile] -> (*) return data, entity, player ;", _context);
+        var parse = _parser.Parse("select (key=userEmail:user.com, indexer) <-> [userProfile] -> (*) return data, entity, player ;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();

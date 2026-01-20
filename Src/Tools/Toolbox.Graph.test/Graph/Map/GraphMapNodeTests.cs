@@ -1,16 +1,31 @@
-﻿using Toolbox.Data;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Tools;
+using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.Graph.Map;
 
 public class GraphMapNodeTests
 {
+    private ILogger<GraphMap> _logger;
+
+    public GraphMapNodeTests(ITestOutputHelper output)
+    {
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
+        _logger = host.Services.GetRequiredService<ILogger<GraphMap>>();
+    }
+
     [Fact]
     public void EmptyNode()
     {
-        var map = new GraphMap();
+        var map = new GraphMap(_logger);
     }
 
     [Fact]
@@ -28,7 +43,7 @@ public class GraphMapNodeTests
     [Fact]
     public void OneNode()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("Node1"),
         };
@@ -41,7 +56,7 @@ public class GraphMapNodeTests
     [Fact]
     public void TwoNodes()
     {
-        var map = new GraphMap()
+        var map = new GraphMap(_logger)
         {
             new GraphNode("Node1"),
             new GraphNode("Node2"),
@@ -58,7 +73,7 @@ public class GraphMapNodeTests
     {
         const int count = 100;
         const string sampleKey = "Node_10";
-        var map = new GraphMap();
+        var map = new GraphMap(_logger);
 
         Enumerable.Range(0, count).ForEach(x => map.Add(new GraphNode($"Node_{x}")));
         map.Nodes.Count.Be(count);
@@ -85,13 +100,13 @@ public class GraphMapNodeTests
     {
         GraphMap map = null!;
 
-        Verify.Throws<ArgumentException>(() => map = new GraphMap()
+        Verify.Throws<ArgumentException>(() => map = new GraphMap(_logger)
         {
             new GraphNode("Node1"),
             new GraphNode("Node1"),
         });
 
-        Verify.Throws<ArgumentException>(() => map = new GraphMap()
+        Verify.Throws<ArgumentException>(() => map = new GraphMap(_logger)
         {
             new GraphNode("Node1"),
             new GraphNode("node1"),

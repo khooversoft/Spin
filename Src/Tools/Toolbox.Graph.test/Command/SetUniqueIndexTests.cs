@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -16,17 +15,16 @@ public class SetUniqueIndexTests
     private async Task<IHost> CreateService()
     {
         var host = Host.CreateDefaultBuilder()
-            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .AddDebugLogging(x => _logOutput.WriteLine(x))
             .ConfigureServices((context, services) =>
             {
-                services.AddInMemoryFileStore();
+                services.AddInMemoryKeyStore();
                 services.AddGraphEngine(config => config.BasePath = "basePath");
             })
             .Build();
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var context = host.Services.GetRequiredService<ILogger<SetUniqueIndexTests>>().ToScopeContext();
-        await graphEngine.DataManager.LoadDatabase(context);
+        await graphEngine.DataManager.LoadDatabase();
 
         return host;
     }
@@ -35,11 +33,10 @@ public class SetUniqueIndexTests
     public async Task SetMultipleIndexes()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
+        var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;");
         e1.IsOk().BeTrue(e1.ToString());
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -50,7 +47,7 @@ public class SetUniqueIndexTests
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t3", "v3").IsOk().BeFalse();
 
-        var e2 = await graphClient.Execute("set node key=node2 set t3=v3 index t3 ;", context);
+        var e2 = await graphClient.Execute("set node key=node2 set t3=v3 index t3 ;");
         e2.IsOk().BeTrue(e1.ToString());
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -72,11 +69,10 @@ public class SetUniqueIndexTests
     public async Task SetMultipleIndexesDifferentValue()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
+        var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;");
         e1.IsOk().BeTrue(e1.ToString());
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -87,7 +83,7 @@ public class SetUniqueIndexTests
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t3", "v3").IsOk().BeFalse();
 
-        var e2 = await graphClient.Execute("set node key=node2 set t1=v2 index t1 ;", context);
+        var e2 = await graphClient.Execute("set node key=node2 set t1=v2 index t1 ;");
         e2.IsOk().BeTrue(e1.ToString());
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -107,11 +103,10 @@ public class SetUniqueIndexTests
     public async Task SetUniqueIndexViolation()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
+        var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;");
         e1.IsOk().BeTrue(e1.ToString());
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -120,7 +115,7 @@ public class SetUniqueIndexTests
             x.Return().NodeKey.Be("node1");
         });
 
-        var e2 = await graphClient.Execute("set node key=node2 set t1=v1 index t1 ;", context);
+        var e2 = await graphClient.Execute("set node key=node2 set t1=v1 index t1 ;");
         e2.IsError().BeTrue(e1.ToString());
 
         graphEngine.DataManager.GetMap().Nodes.ContainsKey("node1").BeTrue();
@@ -137,11 +132,10 @@ public class SetUniqueIndexTests
     public async Task SetUniqueIndexViolation2()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
+        var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;");
         e1.IsOk().BeTrue(e1.ToString());
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -150,10 +144,10 @@ public class SetUniqueIndexTests
             x.Return().NodeKey.Be("node1");
         });
 
-        var e2 = await graphClient.Execute("set node key=node3 set t1=v2 index t1 ;", context);
+        var e2 = await graphClient.Execute("set node key=node3 set t1=v2 index t1 ;");
         e2.IsOk().BeTrue(e1.ToString());
 
-        var e3 = await graphClient.Execute("set node key=node2 set t1=v1 index t1 ;", context);
+        var e3 = await graphClient.Execute("set node key=node2 set t1=v1 index t1 ;");
         e3.IsError().BeTrue(e1.ToString());
 
         graphEngine.DataManager.GetMap().Nodes.ContainsKey("node1").BeTrue();
@@ -171,11 +165,10 @@ public class SetUniqueIndexTests
     public async Task SetAndUpdateIndex()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<AddEdgeCommandTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
-        var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;", context);
+        var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;");
         e1.IsOk().BeTrue(e1.ToString());
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
@@ -186,7 +179,7 @@ public class SetUniqueIndexTests
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v2").IsError().BeTrue();
 
-        var e2 = await graphClient.Execute("set node key=node1 set t1=v2 ;", context);
+        var e2 = await graphClient.Execute("set node key=node1 set t1=v2 ;");
         e2.IsOk().BeTrue(e1.ToString());
 
         graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").IsError().BeTrue();

@@ -53,7 +53,7 @@ public class GraphQueryExecute : IGraphClient
         using (_logger.LogDuration("queryExecution-parseQuery"))
         {
             _logger.LogDebug("Parsing query: {graphQuery}", graphQuery);
-            var parse = GraphLanguageTool.GetSyntaxRoot().Parse(graphQuery, _logger);
+            var parse = _graphEngine.LanguageParser.Parse(graphQuery);
             if (parse.Status.IsError()) return _logger.LogStatus(parse.Status, graphQuery).ToOptionStatus<IReadOnlyList<IGraphInstruction>>();
 
             var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs();

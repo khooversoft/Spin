@@ -1,18 +1,24 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.LangTools;
-using Toolbox.Test.Application;
 using Toolbox.Tools;
 using Toolbox.Types;
 using Xunit.Abstractions;
 
 namespace Toolbox.Test.LangTools.MetaSyntax.GraphModel.Nodes;
 
-public class SelectNodeQueryTests : TestBase
+public class SelectNodeQueryTests
 {
     private readonly MetaSyntaxRoot _schema;
+    private readonly SyntaxParser _parser;
 
-    public SelectNodeQueryTests(ITestOutputHelper output) : base(output)
+    public SelectNodeQueryTests(ITestOutputHelper output)
     {
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .Build();
+
         string schemaText = new[]
         {
             "delimiters          = , [ ] = ( ) -> <-> { } ;",
@@ -37,6 +43,8 @@ public class SelectNodeQueryTests : TestBase
 
         _schema = MetaParser.ParseRules(schemaText);
         _schema.StatusCode.IsOk().BeTrue(_schema.Error);
+
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services, _schema);
     }
 
     [Theory]
@@ -46,22 +54,15 @@ public class SelectNodeQueryTests : TestBase
     [InlineData("[!*]")]
     public void FailedReturn(string command)
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse(command, logger);
-        parse.Status.IsError().BeTrue(parse.Status.Error);
+        var parse = _parser.Parse(command);
+        parse.Status.BeError(parse.Status.Error);
     }
-
 
     [Fact]
     public void SelectNode()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("(*)", logger);
-        parse.Status.IsOk().BeTrue(parse.Status.Error);
+        var parse = _parser.Parse("(*)");
+        parse.Status.BeOk(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -121,11 +122,8 @@ public class SelectNodeQueryTests : TestBase
     [Fact]
     public void SelectNodeToEdge()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("(*) -> [*]", logger);
-        parse.Status.IsOk().BeTrue(parse.Status.Error);
+        var parse = _parser.Parse("(*) -> [*]");
+        parse.Status.BeOk(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -249,11 +247,8 @@ public class SelectNodeQueryTests : TestBase
     [Fact]
     public void SelectNodeToEdgeWithLabel()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("(*) -> [label]", logger);
-        parse.Status.IsOk().BeTrue(parse.Status.Error);
+        var parse = _parser.Parse("(*) -> [label]");
+        parse.Status.BeOk(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -377,11 +372,8 @@ public class SelectNodeQueryTests : TestBase
     [Fact]
     public void SelectNodeToEdgeToNode()
     {
-        var parser = new SyntaxParser(_schema);
-        var logger = GetLogger<OrRuleTests>();
-
-        var parse = parser.Parse("(key=k1) -> [label] ", logger);
-        parse.Status.IsOk().BeTrue(parse.Status.Error);
+        var parse = _parser.Parse("(key=k1) -> [label] ");
+        parse.Status.BeOk(parse.Status.Error);
 
         var lines = parse.SyntaxTree.GenerateTestCodeSyntaxTree().Join(Environment.NewLine);
 
@@ -512,6 +504,4 @@ public class SelectNodeQueryTests : TestBase
 
         syntaxPairs.SequenceEqual(expectedPairs).BeTrue();
     }
-
-
 }

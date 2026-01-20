@@ -11,22 +11,29 @@ namespace Toolbox.Graph.test.Command;
 
 public class NodeForeignKeyTests
 {
-    private readonly GraphMap _map = new GraphMap()
-    {
-        new GraphNode("node1", tags: "name=marko,age=29"),
-        new GraphNode("node2", tags: "name=vadas,age=27"),
-        new GraphNode("node3", tags: "name=lop,lang=java"),
-        new GraphNode("node4", tags: "name=josh,age=32"),
-        new GraphNode("node5", tags: "name=ripple,lang=java"),
-        new GraphNode("node6", tags: "name=peter,age=35"),
-        new GraphNode("node7", tags: "lang=java"),
+    private GraphMap _map = null!;
 
-        new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
-        new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
-        new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
-    };
+    private static GraphMap CreateGraphMap(IHost host)
+    {
+        ILogger<GraphMap> logger = host.Services.GetRequiredService<ILogger<GraphMap>>();
+
+        return new GraphMap(logger)
+        {
+            new GraphNode("node1", tags: "name=marko,age=29"),
+            new GraphNode("node2", tags: "name=vadas,age=27"),
+            new GraphNode("node3", tags: "name=lop,lang=java"),
+            new GraphNode("node4", tags: "name=josh,age=32"),
+            new GraphNode("node5", tags: "name=ripple,lang=java"),
+            new GraphNode("node6", tags: "name=peter,age=35"),
+            new GraphNode("node7", tags: "lang=java"),
+
+            new GraphEdge("node1", "node2", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node1", "node3", edgeType: "et1", tags: "knows,level=1"),
+            new GraphEdge("node6", "node3", edgeType: "et1", tags: "created"),
+            new GraphEdge("node4", "node5", edgeType: "et1", tags: "created"),
+            new GraphEdge("node4", "node3", edgeType : "et1", tags: "created"),
+        };
+    }
 
     private readonly ITestOutputHelper _logOutput;
     public NodeForeignKeyTests(ITestOutputHelper logOutput) => _logOutput = logOutput;
@@ -34,69 +41,33 @@ public class NodeForeignKeyTests
     private async Task<IHost> CreateService()
     {
         var host = Host.CreateDefaultBuilder()
-            .ConfigureLogging(config => config.AddFilter(x => true).AddLambda(x => _logOutput.WriteLine(x)))
+            .AddDebugLogging(x => _logOutput.WriteLine(x))
             .ConfigureServices((context, services) =>
             {
-                services.AddInMemoryFileStore();
+                services.AddInMemoryKeyStore();
                 services.AddGraphEngine(config => config.BasePath = "basePath");
             })
             .Build();
 
+        _map = CreateGraphMap(host);
+
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
-        await graphEngine.DataManager.SetMap(_map, context);
+        await graphEngine.DataManager.SetMap(_map);
 
         return host;
-    }
-
-    [Fact]
-    public async Task TestLoadedCounters()
-    {
-        using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
-        var graphClient = host.Services.GetRequiredService<IGraphClient>();
-        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
-
-        collector.Nodes.Count.Value.Be(7);
-        collector.Nodes.Added.Value.Be(7);
-        collector.Nodes.Deleted.Value.Be(0);
-        collector.Nodes.Updated.Value.Be(0);
-        collector.Nodes.IndexHit.Value.Be(0);
-        collector.Nodes.IndexMissed.Value.Be(0);
-        collector.Nodes.IndexScan.Value.Be(0);
-        collector.Nodes.ForeignKeyAdded.Value.Be(0);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(0);
-
-        collector.Edges.Count.Value.Be(5);
-        collector.Edges.Added.Value.Be(5);
-        collector.Edges.Deleted.Value.Be(0);
-        collector.Edges.Updated.Value.Be(0);
-        collector.Edges.IndexHit.Value.Be(0);
-        collector.Edges.IndexMissed.Value.Be(0);
-        collector.Edges.IndexScan.Value.Be(0);
-
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
-        compareMap.Count.Be(0);
     }
 
     [Fact]
     public async Task NoForeignKey()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set t1=v1;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set t1=v1;");
         newMapOption.IsOk().BeTrue();
 
-        collector.Nodes.Count.Value.Be(8);
-        collector.Nodes.ForeignKeyAdded.Value.Be(0);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(0);
-
-        var result = await graphClient.Execute("select (key=node8) -> [*] ;", context);
+        var result = await graphClient.Execute("select (key=node8) -> [*] ;");
         result.IsOk().BeTrue();
 
         var queryResult = result.Return();
@@ -112,19 +83,13 @@ public class NodeForeignKeyTests
     public async Task ForeignKeyButNotInTag()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey t1;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey t1;");
         newMapOption.IsOk().BeTrue();
 
-        collector.Nodes.Count.Value.Be(8);
-        collector.Nodes.ForeignKeyAdded.Value.Be(0);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(0);
-
-        var result = await graphClient.Execute("select (key=node8) -> [*] ;", context);
+        var result = await graphClient.Execute("select (key=node8) -> [*] ;");
         result.IsOk().BeTrue();
 
         var queryResult = result.Return();
@@ -141,19 +106,13 @@ public class NodeForeignKeyTests
     public async Task ForeignKeyInTagButNoReferenceNode()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;");
         newMapOption.IsOk().BeFalse();
 
-        collector.Nodes.Count.Value.Be(7);
-        collector.Nodes.ForeignKeyAdded.Value.Be(0);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(0);
-
-        var result = await graphClient.Execute("select (key=node8) -> [*] ;", context);
+        var result = await graphClient.Execute("select (key=node8) -> [*] ;");
         result.IsOk().BeTrue();
 
         var queryResult = result.Return();
@@ -165,22 +124,17 @@ public class NodeForeignKeyTests
     public async Task ForeignKeyInTagWithNodeReference()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
+        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var addOption = await graphClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
+        var addOption = await graphClient.ExecuteBatch("add node key=email:name@domain.com ;");
         addOption.IsOk().BeTrue();
 
-        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;");
         newMapOption.IsOk().BeTrue();
 
-        collector.Nodes.Count.Value.Be(9);
-        collector.Nodes.ForeignKeyAdded.Value.Be(1);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(0);
-
-        var readOption = await graphClient.Execute("select (key=node8) ;", context);
+        var readOption = await graphClient.Execute("select (key=node8) ;");
         readOption.IsOk().BeTrue();
         readOption.Return().Action(x =>
         {
@@ -200,7 +154,7 @@ public class NodeForeignKeyTests
         });
 
 
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -217,7 +171,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] -> (*) ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -232,7 +186,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -253,22 +207,16 @@ public class NodeForeignKeyTests
     public async Task ForeignKeyInTagWithNodeReferenceWithWildcard()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        var addOption = await graphClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
+        var addOption = await graphClient.ExecuteBatch("add node key=email:name@domain.com ;");
         addOption.IsOk().BeTrue();
 
-        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email=*;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email=*;");
         newMapOption.IsOk().BeTrue();
 
-        collector.Nodes.Count.Value.Be(9);
-        collector.Nodes.ForeignKeyAdded.Value.Be(1);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(0);
-
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -285,7 +233,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] -> (*) ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -300,7 +248,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=email:name@domain.com) <- [*] <- (*) ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -321,22 +269,16 @@ public class NodeForeignKeyTests
     public async Task ForeignKeyInTagWithTwoNodeReferenceUsingMatching()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        (await graphClient.ExecuteBatch("add node key=email:name1@domain.com ;", context)).IsOk().BeTrue();
-        (await graphClient.ExecuteBatch("add node key=email:name2@domain.com ;", context)).IsOk().BeTrue();
+        (await graphClient.ExecuteBatch("add node key=email:name1@domain.com ;")).IsOk().BeTrue();
+        (await graphClient.ExecuteBatch("add node key=email:name2@domain.com ;")).IsOk().BeTrue();
 
-        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email*;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email*;");
         newMapOption.IsOk().BeTrue();
 
-        collector.Nodes.Count.Value.Be(10);
-        collector.Nodes.ForeignKeyAdded.Value.Be(1);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(0);
-
-        var readOption = await graphClient.Execute("select (key=node8) ;", context);
+        var readOption = await graphClient.Execute("select (key=node8) ;");
         readOption.IsOk().BeTrue();
         readOption.Return().Action(x =>
         {
@@ -352,7 +294,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -375,7 +317,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.Execute("select (key=node8) -> [*] -> (*) ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] -> (*) ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -390,7 +332,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.Execute("select (key=email:name1@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=email:name1@domain.com) <- [*] <- (*) ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -405,7 +347,7 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.Execute("select (key=email:name2@domain.com) <- [*] <- (*) ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=email:name2@domain.com) <- [*] <- (*) ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -425,30 +367,16 @@ public class NodeForeignKeyTests
     public async Task ForeignKeyRemoved()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        collector.Nodes.Count.Value.Be(7);
-        collector.Edges.Count.Value.Be(5);
-
-        var addOption = await graphClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
+        var addOption = await graphClient.ExecuteBatch("add node key=email:name@domain.com ;");
         addOption.IsOk().BeTrue();
-        collector.Nodes.Count.Value.Be(8);
-        collector.Edges.Count.Value.Be(5);
 
-        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;");
         newMapOption.IsOk().BeTrue();
 
-        collector.Nodes.Count.Value.Be(9);
-        collector.Nodes.ForeignKeyAdded.Value.Be(1);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(0);
-        collector.Edges.Count.Value.Be(6);
-        collector.Edges.Added.Value.Be(6);
-        collector.Edges.Deleted.Value.Be(0);
-
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -465,19 +393,12 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.ExecuteBatch("set node key=node8 foreignkey -email;", context)).Action(result =>
+        (await graphClient.ExecuteBatch("set node key=node8 foreignkey -email;")).Action(result =>
         {
             result.IsOk().BeTrue();
         });
 
-        collector.Nodes.Count.Value.Be(9);
-        collector.Nodes.ForeignKeyAdded.Value.Be(1);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(1);
-        collector.Edges.Count.Value.Be(5);
-        collector.Edges.Added.Value.Be(6);
-        collector.Edges.Deleted.Value.Be(1);
-
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -493,30 +414,16 @@ public class NodeForeignKeyTests
     public async Task ForeignKeyTagRemoved()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        collector.Nodes.Count.Value.Be(7);
-        collector.Edges.Count.Value.Be(5);
-
-        var addOption = await graphClient.ExecuteBatch("add node key=email:name@domain.com ;", context);
+        var addOption = await graphClient.ExecuteBatch("add node key=email:name@domain.com ;");
         addOption.IsOk().BeTrue();
-        collector.Nodes.Count.Value.Be(8);
-        collector.Edges.Count.Value.Be(5);
 
-        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;");
         newMapOption.IsOk().BeTrue();
 
-        collector.Nodes.Count.Value.Be(9);
-        collector.Nodes.ForeignKeyAdded.Value.Be(1);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(0);
-        collector.Edges.Count.Value.Be(6);
-        collector.Edges.Added.Value.Be(6);
-        collector.Edges.Deleted.Value.Be(0);
-
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -533,19 +440,12 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.ExecuteBatch("set node key=node8 set -email;", context)).Action(result =>
+        (await graphClient.ExecuteBatch("set node key=node8 set -email;")).Action(result =>
         {
             result.IsOk().BeTrue();
         });
 
-        collector.Nodes.Count.Value.Be(9);
-        collector.Nodes.ForeignKeyAdded.Value.Be(1);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(1);
-        collector.Edges.Count.Value.Be(5);
-        collector.Edges.Added.Value.Be(6);
-        collector.Edges.Deleted.Value.Be(1);
-
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -556,19 +456,12 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.ExecuteBatch("set node key=node8 set email=email:name@domain.com;", context)).Action(result =>
+        (await graphClient.ExecuteBatch("set node key=node8 set email=email:name@domain.com;")).Action(result =>
         {
             result.IsOk().BeTrue();
         });
 
-        collector.Nodes.Count.Value.Be(9);
-        collector.Nodes.ForeignKeyAdded.Value.Be(2);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(1);
-        collector.Edges.Count.Value.Be(6);
-        collector.Edges.Added.Value.Be(7);
-        collector.Edges.Deleted.Value.Be(1);
-
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -590,26 +483,17 @@ public class NodeForeignKeyTests
     public async Task TwoForeignKeyTagRemoved()
     {
         using var host = await CreateService();
-        var context = host.Services.GetRequiredService<ILogger<NodeForeignKeyTests>>().ToScopeContext();
         var graphClient = host.Services.GetRequiredService<IGraphClient>();
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        var collector = host.Services.GetRequiredService<GraphMapCounter>();
 
-        (await graphClient.ExecuteBatch("add node key=email:name1@domain.com ;", context)).IsOk().BeTrue();
-        (await graphClient.ExecuteBatch("add node key=email:name2@domain.com ;", context)).IsOk().BeTrue();
-        (await graphClient.ExecuteBatch("add node key=email:name3@domain.com ;", context)).IsOk().BeTrue();
+        (await graphClient.ExecuteBatch("add node key=email:name1@domain.com ;")).IsOk().BeTrue();
+        (await graphClient.ExecuteBatch("add node key=email:name2@domain.com ;")).IsOk().BeTrue();
+        (await graphClient.ExecuteBatch("add node key=email:name3@domain.com ;")).IsOk().BeTrue();
 
-        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email* ;", context);
+        var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email1=email:name1@domain.com, email2=email:name2@domain.com foreignkey email=email* ;");
         newMapOption.IsOk().BeTrue();
 
-        collector.Nodes.Count.Value.Be(11);
-        collector.Nodes.ForeignKeyAdded.Value.Be(1);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(0);
-        collector.Edges.Count.Value.Be(7);
-        collector.Edges.Added.Value.Be(7);
-        collector.Edges.Deleted.Value.Be(0);
-
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -632,19 +516,12 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.ExecuteBatch("set node key=node8 set -email1;", context)).Action(result =>
+        (await graphClient.ExecuteBatch("set node key=node8 set -email1;")).Action(result =>
         {
             result.IsOk().BeTrue();
         });
 
-        collector.Nodes.Count.Value.Be(11);
-        collector.Nodes.ForeignKeyAdded.Value.Be(1);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(1);
-        collector.Edges.Count.Value.Be(5);
-        collector.Edges.Added.Value.Be(7);
-        collector.Edges.Deleted.Value.Be(2);
-
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 
@@ -658,19 +535,12 @@ public class NodeForeignKeyTests
             });
         });
 
-        (await graphClient.ExecuteBatch("set node key=node8 set email1=email:name3@domain.com ;", context)).Action(result =>
+        (await graphClient.ExecuteBatch("set node key=node8 set email1=email:name3@domain.com ;")).Action(result =>
         {
             result.IsOk().BeTrue();
         });
 
-        collector.Nodes.Count.Value.Be(11);
-        collector.Nodes.ForeignKeyAdded.Value.Be(2);
-        collector.Nodes.ForeignKeyRemoved.Value.Be(1);
-        collector.Edges.Count.Value.Be(7);
-        collector.Edges.Added.Value.Be(9);
-        collector.Edges.Deleted.Value.Be(2);
-
-        (await graphClient.Execute("select (key=node8) -> [*] ;", context)).Action(result =>
+        (await graphClient.Execute("select (key=node8) -> [*] ;")).Action(result =>
         {
             result.IsOk().BeTrue();
 

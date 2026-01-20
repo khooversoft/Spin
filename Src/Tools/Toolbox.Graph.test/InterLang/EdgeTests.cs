@@ -1,4 +1,6 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Toolbox.Extensions;
 using Toolbox.Graph.test.Application;
 using Toolbox.LangTools;
 using Toolbox.Tools;
@@ -7,23 +9,22 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Graph.test.InterLang;
 
-public class EdgeTests : TestBase<EdgeTests>
+public class EdgeTests
 {
-    private readonly ITestOutputHelper _output;
-    private readonly MetaSyntaxRoot _root;
     private readonly SyntaxParser _parser;
-    private readonly ScopeContext _context;
 
-    public EdgeTests(ITestOutputHelper output) : base(output)
+    public EdgeTests(ITestOutputHelper output)
     {
-        _output = output.NotNull();
+        var host = Host.CreateDefaultBuilder()
+            .AddDebugLogging(x => output.WriteLine(x))
+            .ConfigureServices((context, services) =>
+            {
+                services.AddInMemoryKeyStore();
+                services.AddGraphEngine(config => config.BasePath = "basePath");
+            })
+            .Build();
 
-        string schema = GraphLanguageTool.ReadGraphLanguageRules();
-        _root = MetaParser.ParseRules(schema);
-        _root.StatusCode.IsOk().BeTrue(_root.Error);
-
-        _context = GetScopeContext();
-        _parser = new SyntaxParser(_root);
+        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
     }
 
     [Theory]
@@ -33,14 +34,14 @@ public class EdgeTests : TestBase<EdgeTests>
     [InlineData("delete edge from=fkey1, to=tkey1, type=label set t1;")]
     public void FailTest(string command)
     {
-        var parse = _parser.Parse(command, _context);
+        var parse = _parser.Parse(command);
         parse.Status.IsError().BeTrue();
     }
 
     [Fact]
     public void MinAddEdge()
     {
-        var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label;", _context);
+        var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -65,7 +66,7 @@ public class EdgeTests : TestBase<EdgeTests>
     [Fact]
     public void MinSetEdge()
     {
-        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label;", _context);
+        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -90,7 +91,7 @@ public class EdgeTests : TestBase<EdgeTests>
     [Fact]
     public void MinDeleteEdge()
     {
-        var parse = _parser.Parse("delete edge from=fkey1, to=tkey1, type=label;", _context);
+        var parse = _parser.Parse("delete edge from=fkey1, to=tkey1, type=label;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -115,7 +116,7 @@ public class EdgeTests : TestBase<EdgeTests>
     [Fact]
     public void AddEdgeWithTag()
     {
-        var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label set t1=v1;", _context);
+        var parse = _parser.Parse("add edge from=fkey1, to=tkey1, type=label set t1=v1;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -144,7 +145,7 @@ public class EdgeTests : TestBase<EdgeTests>
     [Fact]
     public void SetEdge()
     {
-        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label;", _context);
+        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -169,7 +170,7 @@ public class EdgeTests : TestBase<EdgeTests>
     [Fact]
     public void SetEdge2()
     {
-        var parse = _parser.Parse("set edge from=index:name1, to=data:key1, type=uniqueIndex;", _context);
+        var parse = _parser.Parse("set edge from=index:name1, to=data:key1, type=uniqueIndex;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -194,7 +195,7 @@ public class EdgeTests : TestBase<EdgeTests>
     [Fact]
     public void SetEdgeTagCommand()
     {
-        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label set t1;", _context);
+        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label set t1;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
@@ -223,7 +224,7 @@ public class EdgeTests : TestBase<EdgeTests>
     [Fact]
     public void SetEdgeRemoveTagCommand()
     {
-        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label set -t1, t2=v2;", _context);
+        var parse = _parser.Parse("set edge from=fkey1, to=tkey1, type=label set -t1, t2=v2;");
         parse.Status.IsOk().BeTrue();
 
         var syntaxPairs = parse.SyntaxTree.GetAllSyntaxPairs().ToArray();
