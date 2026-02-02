@@ -20,7 +20,7 @@ public static class GraphStartup
 
         services.AddSingleton(hostOption);
         services.AddSingleton<IGraphEngine, GraphEngine>();
-        services.AddSingleton<GraphMapDataManager>();
+        services.AddSingleton<GraphMapManager>();
         services.AddSingleton<GraphLanguageParser>();
         services.AddSingleton<IGraphClient, GraphQueryExecute>();
 

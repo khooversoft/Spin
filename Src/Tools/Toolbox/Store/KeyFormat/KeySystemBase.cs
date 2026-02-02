@@ -2,7 +2,7 @@
 
 namespace Toolbox.Store;
 
-public record KeySystemBase
+public class KeySystemBase
 {
     private readonly string _pathPrefix;
 

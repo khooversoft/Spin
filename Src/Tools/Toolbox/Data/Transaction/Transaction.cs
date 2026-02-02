@@ -49,7 +49,7 @@ public class Transaction
 
     public async Task Start()
     {
-        _providers.Count.Assert(x => x > 0, "No rollback functions or enlistment registered");
+        _providers.Count.Assert(x => x > 0, "No providers registered");
         _queue.Count.Assert(x => x == 0, "Transaction queue is not empty");
 
         _runState.TryMove(RunState.None, RunState.Active).BeTrue("Active is already in progress");

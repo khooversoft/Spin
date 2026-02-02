@@ -26,7 +26,6 @@ public class GroupPolicy : IEquatable<GroupPolicy>
     public IReadOnlyCollection<string> Members
     {
         get => _members;
-        //init => _members = value.NotNull().ToFrozenSet<string>(StringComparer.OrdinalIgnoreCase);
     }
 
     public bool IsMember(string principalIdentifier) => Members.Contains(principalIdentifier.NotEmpty());

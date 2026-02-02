@@ -1,4 +1,5 @@
-﻿using Toolbox.Tools;
+﻿using Toolbox.Extensions;
+using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Store;
@@ -41,8 +42,7 @@ public class KeySpace<T> : IKeyStore<T>
         Option<DataETag> getOption = await _keySpace.Get(key);
         if (getOption.IsError()) return getOption.ToOptionStatus<T>();
 
-        var json = getOption.Return().GetJson().NotEmpty();
-        T value = _options.Deserializer(json).NotNull();
+        var value = getOption.Return().ToObject<T>();
         return value;
     }
 

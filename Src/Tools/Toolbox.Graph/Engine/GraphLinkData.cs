@@ -8,7 +8,7 @@ public sealed record GraphLinkData : IGraphCommon
     public string NodeKey { get; init; } = null!;
     public string Name { get; init; } = null!;
     public string FileId { get; init; } = null!;
-    public DataETag Data { get; init; }
+    public DataETag Data { get; init; } = null!;
 
     public override string ToString() => $"NodeKey={NodeKey}, Name={Name}, FileId={FileId}";
 

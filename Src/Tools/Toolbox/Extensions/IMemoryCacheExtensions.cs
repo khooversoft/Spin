@@ -43,10 +43,11 @@ public static class IMemoryCacheExtensions
         return StatusCode.NotFound;
     }
 
-    public static bool TryGetValue(this IMemoryCache memoryCache, string path, out DataETag data, ILogger logger)
+    public static bool TryGetValue(this IMemoryCache memoryCache, string path, out DataETag? data, ILogger logger)
     {
-        if (memoryCache.TryGetValue(path, out DataETag dataETag))
+        if (memoryCache.TryGetValue(path, out DataETag? dataETag))
         {
+            dataETag.NotNull();
             dataETag.Assert(x => x.Data.Length > 0, "Data length must be greater than zero");
             data = dataETag;
 
@@ -55,7 +56,7 @@ public static class IMemoryCacheExtensions
         }
 
         logger.LogDebug("Failed to get data from cache, path={path}", path);
-        data = default;
+        data = null;
         return false;
     }
 

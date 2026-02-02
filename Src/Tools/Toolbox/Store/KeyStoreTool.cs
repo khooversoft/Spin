@@ -48,7 +48,7 @@ public static class KeyStoreTool
         return await keyStore.NotNull().Set(key, data);
     }
 
-    public static Task<Option<T>> Get<T>(this IKeyStore keyStore, string key) => Get<T>(keyStore, key, data => data.ToObject<T>());
+    public static Task<Option<T>> Get<T>(this IKeyStore keyStore, string key) => Get<T>(keyStore, key, data => data.ToObject<T>().NotNull());
 
     public static async Task<Option<T>> Get<T>(this IKeyStore keyStore, string key, Func<DataETag, Option<T>> converter)
     {

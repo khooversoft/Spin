@@ -23,7 +23,6 @@ public class TrxProviderLambda : ITrxProvider
     public Task<Option> Commit() => new Option(StatusCode.OK).ToTaskResult();
 
     public Task<Option> Rollback(DataChangeEntry dataChangeRecord) => _rollback(dataChangeRecord);
-
 }
 
 public static class TrxProviderLambdaExtensions

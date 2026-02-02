@@ -36,7 +36,7 @@ public class ListSpace<T> : IListStore<T>
 
     public ListKeySystem<T> ListKeySystem => _fileSystem;
 
-    public async Task<Option<string>> Append(string key, IEnumerable<T> data)
+    public async Task<Option<string>> Append(string key, params IEnumerable<T> data)
     {
         var dataItems = data.NotNull().Select(x => _options.Serializer(x)).ToArray();
         if (dataItems.Length == 0) return StatusCode.OK;

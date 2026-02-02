@@ -24,18 +24,18 @@ public partial class MemoryStore : ITrxProvider
         switch (entry.Action)
         {
             case ChangeOperation.Add:
-                entry.After.HasValue.BeTrue("After value must be present for add operation.");
+                entry.After.NotNull("After value must be present for add operation.");
                 _store.TryRemove(entry.ObjectId, out var _);
                 break;
 
             case ChangeOperation.Delete:
-                entry.Before.HasValue.BeTrue("After value must be present for add operation.");
-                _store[entry.ObjectId] = entry.Before!.Value.ToObject<DirectoryDetail>();
+                entry.Before.NotNull("After value must be present for add operation.");
+                _store[entry.ObjectId] = entry.Before.ToObject<DirectoryDetail>();
                 break;
 
             case ChangeOperation.Update:
-                entry.Before.HasValue.BeTrue("After value must be present for add operation.");
-                _store[entry.ObjectId] = entry.Before!.Value.ToObject<DirectoryDetail>();
+                entry.Before.NotNull("Before value must be present for update operation.");
+                _store[entry.ObjectId] = entry.Before.ToObject<DirectoryDetail>();
                 break;
         }
 

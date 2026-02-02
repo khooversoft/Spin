@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Toolbox.Tools;
 
@@ -163,5 +164,35 @@ public static class EnumerableExtensions
             .ToImmutableArray();
 
         return result;
+    }
+
+    /// <summary>
+    /// Returns a <see cref="ReadOnlySpan{T}"/> over the sequence.
+    /// Null yields an empty span. Arrays, <see cref="List{T}"/>,
+    /// <see cref="ImmutableArray{T}"/>, and <see cref="ArraySegment{T}"/>
+    /// are returned without copying; other sequences are materialized once.
+    /// The caller must not use the returned span beyond the lifetime of the source.
+    /// </summary>
+    public static ReadOnlySpan<T> AsReadOnlySpan<T>(this IEnumerable<T>? source)
+    {
+        if (source == null) return ReadOnlySpan<T>.Empty;
+
+        switch (source)
+        {
+            case T[] arr:
+                return arr;
+
+            case List<T> list:
+                return CollectionsMarshal.AsSpan(list);
+
+            case ImmutableArray<T> ia:
+                return ia.AsSpan();
+
+            case ArraySegment<T> segment:
+                return segment.AsSpan();
+
+            default:
+                return source.ToArray();
+        }
     }
 }

@@ -13,9 +13,9 @@ public class GraphQueryExecute : IGraphClient
     private readonly ILogger<GraphQueryExecute> _logger;
     private readonly string _instanceId = Guid.NewGuid().ToString();
     private readonly AsyncReaderWriterLock _rwLock = new AsyncReaderWriterLock();
-    private readonly GraphMapDataManager _graphDataManager;
+    private readonly GraphMapManager _graphDataManager;
 
-    public GraphQueryExecute(IGraphEngine graphEngine, GraphMapDataManager graphDataManager, ILogger<GraphQueryExecute> logger)
+    public GraphQueryExecute(IGraphEngine graphEngine, GraphMapManager graphDataManager, ILogger<GraphQueryExecute> logger)
     {
         _graphEngine = graphEngine.NotNull();
         _graphDataManager = graphDataManager.NotNull();

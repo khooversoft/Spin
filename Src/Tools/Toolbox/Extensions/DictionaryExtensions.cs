@@ -61,25 +61,6 @@ public static class DictionaryExtensions
     }
 
     /// <summary>
-    /// To object based on type
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="values"></param>
-    /// <returns></returns>
-    public static T ToObject<T>(this IEnumerable<KeyValuePair<string, string?>> values) where T : new()
-    {
-        values.NotNull();
-        var dict = values.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
-
-        T result = new ConfigurationBuilder()
-            .AddInMemoryCollection(values!)
-            .Build()
-            .Get<T>().NotNull();
-
-        return result;
-    }
-
-    /// <summary>
     /// Deep equality for sequences of key/value pairs.
     /// If both sides are real dictionaries and no custom key comparer is provided, a fast path is used.
     /// Otherwise treats the inputs as multisets of (key,value) pairs (supports duplicate keys).

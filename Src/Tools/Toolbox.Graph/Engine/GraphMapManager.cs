@@ -9,23 +9,23 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphMapDataManager
+public class GraphMapManager : ICheckpoint
 {
     private GraphMap? _map;
     private readonly MapPartition _mapPartition;
     private readonly IKeyStore<GraphSerialization> _graphDataClient;
     private readonly IListStore<DataChangeRecord> _changeClient;
-    private readonly ILogger<GraphMapDataManager> _logger;
+    private readonly ILogger<GraphMapManager> _logger;
     private readonly IKeyStore<DataETag> _dataFileClient;
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private readonly LogSequenceNumber _logSequenceNumber = new LogSequenceNumber();
     private readonly IServiceProvider _serviceProvider;
 
-    public GraphMapDataManager(
+    public GraphMapManager(
         IKeyStore<GraphSerialization> graphDataClient,
         IListStore<DataChangeRecord> changeClient,
         IKeyStore<DataETag> dataFileClient,
-        ILogger<GraphMapDataManager> logger,
+        ILogger<GraphMapManager> logger,
         IServiceProvider serviceProvider
         )
     {
@@ -39,6 +39,8 @@ public class GraphMapDataManager
     }
 
     public GraphMap GetMap() => _map.NotNull("Database has not been loaded");
+    public Task<string> Checkpoint() => _mapPartition.Checkpoint();
+    public Task<Option> Recovery(string json) => _mapPartition.Recovery(json);
 
     public async Task<Option> SetMap(GraphMap map)
     {

@@ -35,4 +35,11 @@ public sealed class TrxRecorder
         var current = currentValue.ToDataETagWithHash();
         _transaction.Enqueue<T>(sourceName, id, ChangeOperation.Update, current, nv);
     }
+
+    public void Checkpoint<T>(string sourceName, T currentValue) where T : notnull
+    {
+        sourceName.NotEmpty();
+        var current = currentValue.ToDataETagWithHash();
+        _transaction.Enqueue<T>(sourceName, "checkpoint", ChangeOperation.Checkpoint, current, null);
+    }
 }

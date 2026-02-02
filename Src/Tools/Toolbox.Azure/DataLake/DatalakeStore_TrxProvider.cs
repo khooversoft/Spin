@@ -25,7 +25,7 @@ public partial class DatalakeStore : ITrxProvider
         switch (entry.Action)
         {
             case ChangeOperation.Add:
-                entry.After.HasValue.BeTrue("After value must be present for add operation.");
+                entry.After.NotNull("After value must be present for add operation.");
                 var deleteOption = await this.ForceDelete(entry.ObjectId);
                 if (deleteOption.IsError())
                 {
@@ -35,8 +35,8 @@ public partial class DatalakeStore : ITrxProvider
                 break;
 
             case ChangeOperation.Delete:
-                entry.Before.HasValue.BeTrue("After value must be present for add operation.");
-                var setOption = await this.ForceSet(entry.ObjectId, entry.Before!.Value);
+                entry.Before.NotNull("After value must be present for add operation.");
+                var setOption = await this.ForceSet(entry.ObjectId, entry.Before);
                 if (setOption.IsError())
                 {
                     _logger.LogCritical("Rollback failed to set objectId: {ObjectId} with error: {Error}", entry.ObjectId, setOption.Error);
@@ -45,8 +45,8 @@ public partial class DatalakeStore : ITrxProvider
                 break;
 
             case ChangeOperation.Update:
-                entry.Before.HasValue.BeTrue("After value must be present for add operation.");
-                var updateOption = await this.ForceSet(entry.ObjectId, entry.Before!.Value);
+                entry.Before.NotNull("Before value must be present for update operation.");
+                var updateOption = await this.ForceSet(entry.ObjectId, entry.Before);
                 if (updateOption.IsError())
                 {
                     _logger.LogCritical("Rollback failed to set objectId: {ObjectId} with error: {Error}", entry.ObjectId, updateOption.Error);

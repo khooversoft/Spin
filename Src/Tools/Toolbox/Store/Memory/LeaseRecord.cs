@@ -17,7 +17,7 @@ public record class LeaseRecord
     }
 
     public string Path { get; }
-    public string LeaseId { get; } = Guid.NewGuid().ToString();
+    public string LeaseId { get; } = Guid.NewGuid().ToString();  // PK
     public bool Infinite { get; }
     public TimeSpan Duration { get; }
     public DateTimeOffset Expiration { get; private set; }

@@ -57,10 +57,7 @@ public static class GraphSerializationTool
 }
 
 
-[JsonSourceGenerationOptions(
-    WriteIndented = false,
-    DefaultIgnoreCondition = JsonIgnoreCondition.Never
-)]
+[JsonSourceGenerationOptions(WriteIndented = false, DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
 [JsonSerializable(typeof(GraphSerialization))]
 [JsonSerializable(typeof(GraphNode))]
 [JsonSerializable(typeof(GraphEdge))]

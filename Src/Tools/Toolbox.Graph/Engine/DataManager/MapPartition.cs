@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.Logging;
+using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class MapPartition
+public class MapPartition : ICheckpoint
 {
     private readonly IServiceProvider _serviceProvider;
     private GraphMap? _map;
@@ -45,7 +47,7 @@ public class MapPartition
         }
     }
 
-    public async Task<Option<string>> Save(GraphSerialization data)
+    public async Task<Option<string>> Save()
     {
         _map.NotNull("MapPartition not loaded");
 
@@ -53,10 +55,40 @@ public class MapPartition
 
         try
         {
+            GraphSerialization data = _map.ToSerialization();
             var setOption = await _keyStore.Set(GraphConstants.GraphMap.Key, data);
             if (setOption.IsError()) _logger.LogError("Failed to set map partition data from key={key}", GraphConstants.GraphMap.Key);
 
             return setOption;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    public Task<string> Checkpoint()
+    {
+        _map.NotNull();
+
+        var json = _map.ToSerialization().ToJson();
+        return json.ToTaskResult();
+    }
+
+    public async Task<Option> Recovery(string json)
+    {
+        _map.NotNull();
+
+        await _gate.WaitAsync();
+
+        try
+        {
+            var gs = json.ToObject<GraphSerialization>().NotNull();
+            gs.Validate().ThrowOnError();
+
+            Interlocked.Exchange(ref _map, gs.FromSerialization(_serviceProvider));
+
+            return StatusCode.OK;
         }
         finally
         {

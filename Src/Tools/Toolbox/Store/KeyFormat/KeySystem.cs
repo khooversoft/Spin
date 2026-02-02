@@ -2,7 +2,7 @@
 
 namespace Toolbox.Store;
 
-public record KeySystem : KeySystemBase, IKeySystem
+public class KeySystem : KeySystemBase, IKeySystem
 {
     public KeySystem(string basePath, bool useCache)
         : base(basePath, KeySystemType.Key)

@@ -20,22 +20,10 @@ public class JsonSerializationTests
     }
 
     [Fact]
-    public void StandardPascalClassSerialization()
-    {
-        var t1 = new TestRecord("name1", 10);
-        string data = t1.ToJsonPascal();
-        data.NotEmpty();
-        data.Be("{\"Name\":\"name1\",\"Age\":10}");
-
-        var t2 = data.ToObject<TestRecord>().NotNull();
-        (t1 == t2).BeTrue();
-    }
-
-    [Fact]
     public void StandardFormatClassSerialization()
     {
         var t1 = new TestRecord("name1", 10);
-        string data = t1.ToJsonFormat();
+        string data = Json.Default.SerializeFormat(t1);
         data.NotEmpty();
         data.Be("""
             {

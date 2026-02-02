@@ -8,22 +8,6 @@ public static class ObjectExtensions
 {
     public static string GetMethodName(this object obj, [CallerMemberName] string function = "") => $"{obj.GetType().Name}.{function}";
 
-    public static T? ToObject<T>(this string json)
-    {
-        try
-        {
-            return json switch
-            {
-                string v when v.IsEmpty() => default,
-                _ => Json.Default.Deserialize<T>(json),
-            };
-        }
-        catch (Exception ex)
-        {
-            throw new AggregateException($"json='{json}' failed", ex);
-        }
-    }
-
     public static T SafeCast<T>(this object subject)
     {
         return subject is T to ? to : default!;

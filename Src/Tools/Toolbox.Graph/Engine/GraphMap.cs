@@ -16,18 +16,14 @@ public class GraphMap : IEnumerable<IGraphCommon>
     {
         _logger = logger.NotNull();
         _telemetry = telemetry;
+
         Nodes = new GraphNodeIndex(this, _lock, telemetry);
         Edges = new GraphEdgeIndex(this, _lock, telemetry);
     }
 
     public GraphMap(GraphSerialization graphSerialization, ILogger<GraphMap> logger, ITelemetry? telemetry = null)
+        : this(logger, telemetry)
     {
-        _logger = logger.NotNull();
-        _telemetry = telemetry;
-
-        Nodes = new GraphNodeIndex(this, _lock, telemetry);
-        Edges = new GraphEdgeIndex(this, _lock, telemetry);
-
         graphSerialization.NotNull();
         LoadRowsAndEdges(graphSerialization.Nodes, graphSerialization.Edges);
         LastLogSequenceNumber = graphSerialization.LastLogSequenceNumber;

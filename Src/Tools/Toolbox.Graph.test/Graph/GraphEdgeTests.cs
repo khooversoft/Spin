@@ -1,7 +1,6 @@
 ﻿using Toolbox.Extensions;
 using Toolbox.Graph;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph;
 

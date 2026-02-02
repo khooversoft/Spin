@@ -15,3 +15,8 @@ public interface IStoreListProvider : IStoreProvider
 {
     IListStore<T> GetStore<T>(SpaceDefinition definition, SpaceOption<T> options);
 }
+
+public interface IStoreSequenceProvider : IStoreProvider
+{
+    ISequenceStore<T> GetStore<T>(SpaceDefinition definition, SpaceOption<T> options);
+}

@@ -58,7 +58,7 @@ public class MemoryStoreTrxTests
                 {
                     config.ListSpaceName = "list";
                     config.JournalKey = "TestJournal";
-                    config.Providers.Add<MemoryStore>();
+                    config.TrxProviders.Add<MemoryStore>();
                 });
             })
             .Build();
@@ -100,11 +100,11 @@ public class MemoryStoreTrxTests
                 entry.SourceName.Be(MemoryStore.SourceNameText);
                 entry.ObjectId.Be(fullPath);
                 entry.Action.Be(ChangeOperation.Add);
-                entry.Before.HasValue.BeFalse();
-                entry.After.HasValue.BeTrue();
+                entry.Before.BeNull();
+                entry.After.NotNull();
 
                 entry.TypeName.Be(nameof(DirectoryDetail));
-                var detail = entry.After!.Value.ToObject<DirectoryDetail>().NotNull();
+                var detail = entry.After.ToObject<DirectoryDetail>().NotNull();
                 detail.PathDetail.Path.Be(fullPath);
 
                 var data = detail.Data.ToObject<MapRecord>().NotNull();
@@ -149,10 +149,10 @@ public class MemoryStoreTrxTests
                 entry.SourceName.Be(MemoryStore.SourceNameText);
                 entry.ObjectId.Be(fullPath);
                 entry.Action.Be(ChangeOperation.Add);
-                entry.Before.HasValue.BeFalse();
-                entry.After.HasValue.BeTrue();
+                entry.Before.BeNull();
+                entry.After.NotNull();
 
-                var detail = entry.After!.Value.ToObject<DirectoryDetail>().NotNull();
+                var detail = entry.After.ToObject<DirectoryDetail>().NotNull();
                 var data = detail.Data.ToObject<MapRecord>().NotNull();
                 data.Name.Be("Alice");
                 data.Age.Be(30);
@@ -164,15 +164,15 @@ public class MemoryStoreTrxTests
                 entry.SourceName.Be(MemoryStore.SourceNameText);
                 entry.ObjectId.Be(fullPath);
                 entry.Action.Be(ChangeOperation.Update);
-                entry.Before.HasValue.BeTrue();
-                entry.After.HasValue.BeTrue();
+                entry.Before.NotNull();
+                entry.After.NotNull();
 
-                var beforeDetail = entry.Before!.Value.ToObject<DirectoryDetail>().NotNull();
+                var beforeDetail = entry.Before.ToObject<DirectoryDetail>().NotNull();
                 var beforeData = beforeDetail.Data.ToObject<MapRecord>().NotNull();
                 beforeData.Name.Be("Alice");
                 beforeData.Age.Be(30);
 
-                var afterDetail = entry.After!.Value.ToObject<DirectoryDetail>().NotNull();
+                var afterDetail = entry.After.ToObject<DirectoryDetail>().NotNull();
                 var afterData = afterDetail.Data.ToObject<MapRecord>().NotNull();
                 afterData.Name.Be("Alice");
                 afterData.Age.Be(35);
@@ -217,10 +217,10 @@ public class MemoryStoreTrxTests
                 entry.SourceName.Be(MemoryStore.SourceNameText);
                 entry.ObjectId.Be(fullPath);
                 entry.Action.Be(ChangeOperation.Delete);
-                entry.Before.HasValue.BeTrue();
-                entry.After.HasValue.BeFalse();
+                entry.Before.NotNull();
+                entry.After.BeNull();
 
-                var beforeDetail = entry.Before!.Value.ToObject<DirectoryDetail>().NotNull();
+                var beforeDetail = entry.Before.ToObject<DirectoryDetail>().NotNull();
                 var beforeData = beforeDetail.Data.ToObject<MapRecord>().NotNull();
                 beforeData.Name.Be("Alice");
                 beforeData.Age.Be(30);
@@ -469,13 +469,13 @@ public class MemoryStoreTrxTests
 
             // First operation is Add
             list[0].Action.Be(ChangeOperation.Add);
-            list[0].Before.HasValue.BeFalse();
+            list[0].Before.BeNull();
 
             // Second and third operations are Updates
             list[1].Action.Be(ChangeOperation.Update);
-            list[1].Before.HasValue.BeTrue();
+            list[1].Before.NotNull();
             list[2].Action.Be(ChangeOperation.Update);
-            list[2].Before.HasValue.BeTrue();
+            list[2].Before.NotNull();
         });
 
         // Verify final state
@@ -485,5 +485,4 @@ public class MemoryStoreTrxTests
             final.Age.Be(40);
         });
     }
-
 }

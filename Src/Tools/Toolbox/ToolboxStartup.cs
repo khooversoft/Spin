@@ -95,10 +95,27 @@ public static class ToolboxStartup
         var options = new SpaceOption<T>();
         configure?.Invoke(options);
 
-        services.AddTransient<IListStore<T>>(services =>
+        services.AddSingleton<IListStore<T>>(services =>
         {
             var dataSpace = services.GetRequiredService<DataSpace>();
             return dataSpace.GetListStore<T>(spaceName, options);
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddSequenceStore<T>(this IServiceCollection services, string spaceName, Action<SpaceOption<T>>? configure = null)
+    {
+        services.NotNull();
+        spaceName.NotEmpty();
+
+        var options = new SpaceOption<T>();
+        configure?.Invoke(options);
+
+        services.AddSingleton<ISequenceStore<T>>(services =>
+        {
+            var dataSpace = services.GetRequiredService<DataSpace>();
+            return dataSpace.GetSequenceStore<T>(spaceName, options);
         });
 
         return services;
@@ -113,21 +130,25 @@ public static class ToolboxStartup
         option.NotNull().Validate().ThrowOnError();
 
         services.TryAddSingleton<LogSequenceNumber>();
-
         services.AddKeyedSingleton<TransactionOption>(name, option);
 
         services.AddKeyedSingleton<Transaction>(name, (service, _) =>
         {
             var option = service.GetRequiredKeyedService<TransactionOption>(name);
 
-            var providers = option.Providers
+            var trxProviders = option.TrxProviders
                 .Select(f => f(service))
                 .ToList();
 
-            var instance = ActivatorUtilities.CreateInstance<Transaction>(service, option);
-            foreach (var p in providers) instance.Providers.Enlist(p);
+            var checkpointProviders = option.CheckpointProviders
+                .Select(f => f(service))
+                .ToList();
 
-            return instance;
+            var trx = ActivatorUtilities.CreateInstance<Transaction>(service, option);
+            foreach (var p in trxProviders) trx.Providers.Enlist(p);
+            foreach (var p in checkpointProviders) trx.Providers.Attach($"{name}-checkpoint", p);
+
+            return trx;
         });
 
         return services;

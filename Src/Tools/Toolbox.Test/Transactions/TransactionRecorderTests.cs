@@ -10,12 +10,12 @@ using Xunit.Abstractions;
 
 namespace Toolbox.Test.Transactions;
 
-public class TransactionTests
+public class TransactionRecorderTests
 {
     private ITestOutputHelper _outputHelper;
     private record JournalEntry(string Name, int Age);
 
-    public TransactionTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+    public TransactionRecorderTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     private IHost BuildService()
     {
@@ -200,7 +200,7 @@ public class TransactionTests
         list.Select(x => x.Action).SequenceEqual([ChangeOperation.Add, ChangeOperation.Add, ChangeOperation.Add]);
         list.Count(x => x.Before == null).Be(3);
         list.Count(x => x.After != null).Be(3);
-        list.Select(x => x.After!.Value.ToObject<JournalEntry>()).SequenceEqual([j1, j2, j3]).BeTrue();
+        list.Select(x => x.After.ToObject<JournalEntry>()).SequenceEqual([j1, j2, j3]).BeTrue();
     }
 
     [Fact]

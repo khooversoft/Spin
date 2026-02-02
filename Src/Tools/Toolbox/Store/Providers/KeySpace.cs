@@ -44,9 +44,12 @@ public class KeySpace : IKeyStore
         _logger.LogDebug("Add path={path}", path);
 
         var result = await _keyStore.Add(path, data);
-        if (result.IsOk()) _memoryCache?.Set(path, data);
+        if (result.IsOk())
+        {
+            _memoryCache?.Set(path, data);
+            _addCounter?.Increment();
+        }
 
-        _addCounter?.Increment();
         return result;
     }
 
@@ -55,10 +58,11 @@ public class KeySpace : IKeyStore
         var path = _keySystem.PathBuilder(key);
         _logger.LogDebug("Appending path={path}", path);
 
-        var result = await _keyStore.Append(path, data, leaseId: leaseId);
-        if (result.IsOk()) _memoryCache?.Remove(path);
+        _memoryCache?.Remove(path);
 
-        _appendCounter?.Increment();
+        var result = await _keyStore.Append(path, data, leaseId: leaseId);
+        if (result.IsOk()) _appendCounter?.Increment();
+
         return result;
     }
 
@@ -67,10 +71,11 @@ public class KeySpace : IKeyStore
         var path = _keySystem.PathBuilder(key);
         _logger.LogDebug("Delete path={path}", path);
 
-        var result = await _keyStore.Delete(path, leaseId: leaseId);
-        if (result.IsOk()) _memoryCache?.Remove(path);
+        _memoryCache?.Remove(path);
 
-        _deleteCounter?.Increment();
+        var result = await _keyStore.Delete(path, leaseId: leaseId);
+        if (result.IsOk()) _deleteCounter?.Increment();
+
         return result;
     }
 
@@ -87,10 +92,10 @@ public class KeySpace : IKeyStore
         var path = _keySystem.PathBuilder(key);
         _logger.LogDebug("Get path={path}", path);
 
-        if (_memoryCache?.TryGetValue(path, out DataETag cachedData) == true)
+        if (_memoryCache?.TryGetValue(path, out DataETag? cachedData) == true)
         {
             _cacheHitCounter?.Increment();
-            return cachedData;
+            return cachedData.NotNull();
         }
 
         var result = await _keyStore.Get(path);
@@ -109,9 +114,12 @@ public class KeySpace : IKeyStore
         _logger.LogDebug("Set path={path}", path);
 
         var result = await _keyStore.Set(path, data, leaseId: leaseId);
-        if (result.IsOk()) _memoryCache?.Set(path, data);
+        if (result.IsOk())
+        {
+            _memoryCache?.Set(path, data);
+            _setCounter?.Increment();
+        }
 
-        _setCounter?.Increment();
         return result;
     }
 

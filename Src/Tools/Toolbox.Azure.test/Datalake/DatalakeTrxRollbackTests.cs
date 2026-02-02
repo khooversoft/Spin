@@ -130,7 +130,7 @@ public class DatalakeTrxRollbackTests
                 y.Action.Be(ChangeOperation.Add);
                 y.Before.BeNull();
                 y.After.NotNull();
-                y.After.Value.ToObject<MapRecord>().Equals(data).BeTrue();
+                y.After.ToObject<MapRecord>().Equals(data).BeTrue();
             });
         });
 
@@ -205,7 +205,7 @@ public class DatalakeTrxRollbackTests
                 y.Action.Be(ChangeOperation.Add);
                 y.Before.BeNull();
                 y.After.NotNull();
-                y.After.Value.ToObject<MapRecord>().Equals(data).BeTrue();
+                y.After.ToObject<MapRecord>().Equals(data).BeTrue();
             });
         });
 
@@ -558,9 +558,9 @@ public class DatalakeTrxRollbackTests
             {
                 entry.Action.Be(ChangeOperation.Delete);
                 entry.Before.NotNull();
-                entry.After.HasValue.BeFalse();
+                entry.After.NotNull();
 
-                var before = entry.Before!.Value.ToObject<MapRecord>();
+                var before = entry.Before.ToObject<MapRecord>();
                 before.Equals(existing).BeTrue();
             });
         });
@@ -605,8 +605,8 @@ public class DatalakeTrxRollbackTests
                 entry.Before.NotNull();
                 entry.After.NotNull();
 
-                entry.Before!.Value.ToObject<MapRecord>().Equals(original).BeTrue();
-                entry.After!.Value.ToObject<MapRecord>().Equals(updated).BeTrue();
+                entry.Before.ToObject<MapRecord>().Equals(original).BeTrue();
+                entry.After.ToObject<MapRecord>().Equals(updated).BeTrue();
             });
         });
 

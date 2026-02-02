@@ -25,6 +25,12 @@ public class GrantControl : IEquatable<GrantControl>
     public PrincipalCollection Principals { get; init; } = new();
     public GroupCollection Groups { get; init; } = new();
 
+    public void Clear()
+    {
+        Principals.Clear();
+        Groups.Clear();
+    }
+
     public bool HasAccess(AccessRequest securityRequest, IReadOnlyCollection<GrantPolicy> grantCollections)
     {
         // Check if user exist

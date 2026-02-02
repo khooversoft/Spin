@@ -9,7 +9,8 @@ public enum SpaceFormat
     None,
     Key,
     Hash,
-    List
+    List,
+    Sequence
 }
 
 public class DataSpaceOption

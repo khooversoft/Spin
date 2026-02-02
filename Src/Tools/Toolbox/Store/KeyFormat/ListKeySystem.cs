@@ -3,7 +3,7 @@
 namespace Toolbox.Store;
 
 
-public record ListKeySystem<T> : KeySystemBase
+public class ListKeySystem<T> : KeySystemBase
 {
     public ListKeySystem(string basePath)
         : base(basePath, KeySystemType.List)

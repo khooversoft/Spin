@@ -10,7 +10,9 @@ public enum KeySystemType
     Hash,       // {basePath}/{hash}/{hash}/{key}
                 // {basePath}/{hash}/{hash}/{key}.{typeName}.json
 
-    List,       // {basePath}/{listType}/{key}.{listType}.json
+    List,       // {basePath}/{key}/{yearMonth}/{key}-{yearMonth}-{hour}.{listType}.json
+
+    Sequence,   // {basePath}/{key}/{key}-{sequenceNumber}.{typeName}.json
 }
 
 public interface IKeySystem

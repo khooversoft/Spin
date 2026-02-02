@@ -2,7 +2,7 @@
 
 namespace Toolbox.Store;
 
-public record HashKeySystem : KeySystemBase, IKeySystem
+public class HashKeySystem : KeySystemBase, IKeySystem
 {
     public HashKeySystem(string basePath) : base(basePath, KeySystemType.Hash) { }
 

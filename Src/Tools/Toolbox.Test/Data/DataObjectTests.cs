@@ -7,14 +7,10 @@ namespace Toolbox.Test.Data;
 
 public class DataObjectTests
 {
-
     [Fact]
-    public void EmptyDataObjectSetValidation()
+    public void TestSerializerRegistery()
     {
-        DataObjectSet model = new DataObjectSet();
-
-        Option v = model.Validate().ToOptionStatus();
-        v.IsOk().BeTrue();
+        JsonSerializerContextRegistered.Find<DataObject>().BeOk();
     }
 
     [Fact]
@@ -32,7 +28,11 @@ public class DataObjectTests
         d.TypeName.Be("TestClass");
         d.JsonData.NotEmpty();
 
-        TestClass rt = d.ToObject<TestClass>();
+        string json = d.ToJson();
+
+        var rd = json.ToObject<DataObject>();
+
+        TestClass rt = rd.ToObject<TestClass>();
         rt.NotNull();
         rt.Name.Be("test");
         rt.Value.Be("value");
@@ -41,49 +41,75 @@ public class DataObjectTests
     }
 
     [Fact]
-    public void DataObjectCollection()
+    public void DataObjectCreateWithCustomKeyAndTags()
     {
-        var t1 = new TestClass
+        var t = new TestClass
         {
             Name = "test",
             Value = "value",
         };
 
-        var t2 = new TestClass2
+        DataObject d = DataObject.Create(t, key: "customKey") with { Tags = "tag1,tag2" };
+
+        d.Key.Be("customKey");
+        d.TypeName.Be("TestClass");
+        d.Tags.Be("tag1,tag2");
+
+        Option validation = d.Validate();
+        validation.IsOk().BeTrue();
+
+        string json = d.ToJson();
+        DataObject? roundTrip = json.ToObject<DataObject>();
+        roundTrip.NotNull();
+        roundTrip!.Tags.Be("tag1,tag2");
+        roundTrip.Key.Be("customKey");
+    }
+
+    [Fact]
+    public void DataObjectValidationShouldFailWhenKeyMissing()
+    {
+        var invalid = new DataObject
         {
-            Id = "id",
-            Description = "description",
+            Key = "",
+            TypeName = "TestClass",
+            JsonData = "{}",
+            CreatedDate = DateTime.UtcNow,
         };
 
-        DataObjectSet set = new DataObjectSet().Set(t1).Set(t2);
+        invalid.Validate().BeError();
+    }
 
-        set.Count.Be(2);
+    [Fact]
+    public void DataObjectCreatedDateDefaultsToUtcNow()
+    {
+        DateTime before = DateTime.UtcNow;
 
-        Option<TestClass> rt1 = set.GetObject<TestClass>();
-        rt1.IsOk().BeTrue();
-        rt1.Return().Name.Be("test");
-        rt1.Return().Value.Be("value");
+        DataObject d = DataObject.Create(new TestClass { Name = "test", Value = "value" });
 
-        Option<TestClass2> rt2 = set.GetObject<TestClass2>();
-        rt2.IsOk().BeTrue();
-        rt2.Return().Id.Be("id");
-        rt2.Return().Description.Be("description");
+        (d.CreatedDate.Kind == DateTimeKind.Utc).BeTrue();
+        (d.CreatedDate >= before && d.CreatedDate <= DateTime.UtcNow).BeTrue();
+    }
 
-        string json = set.ToJson();
+    [Fact]
+    public void DataObjectEqualityRespectsCreatedDate()
+    {
+        DateTime timestamp = DateTime.UtcNow;
 
-        DataObjectSet? read = json.ToObject<DataObjectSet>();
-        read.NotNull();
-        read!.Count.Be(2);
+        DataObject a = new DataObject
+        {
+            Key = "key",
+            TypeName = "type",
+            JsonData = "{}",
+            CreatedDate = timestamp,
+        };
 
-        Option<TestClass> r_rt1 = read.GetObject<TestClass>();
-        r_rt1.IsOk().BeTrue();
-        r_rt1.Return().Name.Be("test");
-        r_rt1.Return().Value.Be("value");
+        DataObject b = a with { };
+        (a == b).BeTrue();
+        a.Equals(b).BeTrue();
 
-        Option<TestClass2> r_rt2 = read.GetObject<TestClass2>();
-        r_rt2.IsOk().BeTrue();
-        r_rt2.Return().Id.Be("id");
-        r_rt2.Return().Description.Be("description");
+        DataObject c = a with { CreatedDate = timestamp.AddSeconds(1) };
+        (a == c).BeFalse();
+        a.Equals(c).BeFalse();
     }
 
     private record TestClass

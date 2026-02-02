@@ -1,4 +1,4 @@
-﻿using Toolbox.Data;
+﻿using System.Text.Json.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -41,13 +41,17 @@ public sealed record DataObject
 public static class DataObjectValidator
 {
     public static Option Validate(this DataObject subject) => DataObject.Validator.Validate(subject).ToOptionStatus();
+}
 
-    public static T ToObject<T>(this DataObject dataObject)
-    {
-        return dataObject switch
-        {
-            var v when typeof(T) == typeof(string) => (T)(object)v.JsonData,
-            var v => v.JsonData.ToObject<T>().NotNull(),
-        };
-    }
+
+[JsonSourceGenerationOptions(
+    WriteIndented = false,
+    DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+    Converters = new[] { typeof(ImmutableByteArrayConverter) })
+    ]
+[JsonSerializable(typeof(DataObject))]
+[JsonRegister(typeof(DataObject))]
+internal partial class DataObjectJsonContext : JsonSerializerContext
+{
 }

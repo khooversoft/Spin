@@ -30,7 +30,7 @@ public static class NodeCompensate
     private static Option UndoAdd(GraphMap map, DataChangeEntry entry, ILogger logger)
     {
         if (entry.After == null) throw new ArgumentNullException($"{entry.Action} command does not have 'After' DataETag data");
-        GraphNode node = entry.After.Value.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
+        GraphNode node = entry.After.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
         node.Validate().ThrowOnError("Validation failure");
 
         if (map.NotNull().Nodes.Remove(node.Key).IsError())
@@ -47,7 +47,7 @@ public static class NodeCompensate
     {
         if (entry.Before == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 
-        GraphNode node = entry.Before.Value.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
+        GraphNode node = entry.Before.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
         node.Validate().ThrowOnError("Validation failure");
 
         map.Nodes[node.Key] = node;

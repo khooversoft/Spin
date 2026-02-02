@@ -80,11 +80,6 @@ internal static class QueryExecutionContextTool
                 { Count: 1 } => subject.QueryResult.ToImmutableArray(),
 
                 _ => buildResults(subject),
-                //_ => subject.QueryResult
-                //    .Take(subject.QueryResult.Count - 1)
-                //    .Where(x => x.Alias == null || !x.Alias.StartsWith('_'))
-                //    .Append(subject.QueryResult.Last())
-                //    .ToImmutableArray(),
             },
         };
 

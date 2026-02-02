@@ -31,7 +31,7 @@ public static class DataBuild
     {
         if (entry.After == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 
-        var setOption = await dataFileClient.Set(entry.ObjectId, entry.After.Value);
+        var setOption = await dataFileClient.Set(entry.ObjectId, entry.After);
         if (setOption.IsError())
         {
             logger.LogError("Cannot set fileId={fileId}", entry.ObjectId);

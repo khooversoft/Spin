@@ -31,7 +31,7 @@ public static class NodeBuild
     private static Option Add(GraphMap map, DataChangeEntry entry, ILogger logger)
     {
         if (entry.After == null) throw new ArgumentNullException($"{entry.Action} command does not have 'After' DataETag data");
-        GraphNode node = entry.After.Value.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
+        GraphNode node = entry.After.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
         node.Validate().ThrowOnError("Validation failure");
 
         if (map.Nodes.Add(node).IsError())
@@ -48,7 +48,7 @@ public static class NodeBuild
     private static Option Delete(GraphMap map, DataChangeEntry entry, ILogger logger)
     {
         if (entry.Before == null) throw new ArgumentNullException($"{entry.Action} command does not have 'After' DataETag data");
-        GraphNode node = entry.Before.Value.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
+        GraphNode node = entry.Before.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
         node.Validate().ThrowOnError("Validation failure");
 
         if (map.Nodes.Remove(node.Key).IsError())
@@ -66,7 +66,7 @@ public static class NodeBuild
     {
         if (entry.Before == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 
-        GraphNode node = entry.Before.Value.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
+        GraphNode node = entry.Before.ToObject<GraphNode>() ?? throw new InvalidOperationException("Failed to deserialize node from entry");
         node.Validate().ThrowOnError("Validation failure");
 
         var setOption = map.Nodes.Set(node);

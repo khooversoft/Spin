@@ -45,7 +45,7 @@ public static class DataCompensate
     {
         if (entry.Before == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 
-        var setOption = await dataFileClient.Set(entry.ObjectId, entry.Before.Value);
+        var setOption = await dataFileClient.Set(entry.ObjectId, entry.Before);
         if (setOption.IsError())
         {
             logger.LogError("Cannot set objectId={objectId} to old data", entry.ObjectId);

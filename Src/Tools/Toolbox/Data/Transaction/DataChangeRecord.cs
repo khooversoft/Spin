@@ -10,6 +10,7 @@ public static class ChangeOperation
     public const string Add = "add";
     public const string Delete = "delete";
     public const string Update = "update";
+    public const string Checkpoint = "checkpoint";
 }
 
 public static class ChangeSource
