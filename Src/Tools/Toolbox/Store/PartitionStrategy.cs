@@ -23,10 +23,6 @@ public static partial class PartitionSchemas
 
         match = ExtractDateWithSecondsString().Match(path);
         if (match.Success) return parseExactSeconds(match.Groups[1].Value);
-
-        match = ExtractSequenceNumberString().Match(path);
-        if (match.Success) return parseUnixMilliseconds(match.Groups[1].Value);
-
         throw new ArgumentException($"Invalid format path={path}", nameof(path));
 
         static DateTime parseExact(string timeValue) =>
@@ -37,6 +33,16 @@ public static partial class PartitionSchemas
 
         static DateTime parseExactSeconds(string timeValue) =>
             DateTime.ParseExact(timeValue, "yyyyMMdd-HHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None);
+    }
+
+    public static (DateTime LogTime, long Counter) ExtractSequenceNumberIndex(string path)
+    {
+        var match = ExtractSequenceNumberString().Match(path);
+        if (!match.Success) throw new ArgumentException($"Invalid format path={path}", nameof(path));
+
+        DateTime logTime = parseUnixMilliseconds(match.Groups[1].Value);
+        var counter = long.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
+        return (logTime, counter);
 
         static DateTime parseUnixMilliseconds(string timeValue) =>
             DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(timeValue, CultureInfo.InvariantCulture)).UtcDateTime;
@@ -51,6 +57,6 @@ public static partial class PartitionSchemas
     [GeneratedRegex(@"^[\w.-]+\/\d{6}\/[\w.-]+-(\d{8}-\d{6})\.[\w.-]+\.json$", RegexOptions.CultureInvariant)]
     private static partial Regex ExtractDateWithSecondsString();
 
-    [GeneratedRegex(@"^[\w.-]+\/[\w.-]+-(\d{15})-\d{6}-[A-Fa-f0-9]+\.[\w.-]+\.json$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^[\w.-]+\/[\w.-]+-(\d{15})-(\d{6})-[A-Fa-f0-9]+\.[\w.-]+\.json$", RegexOptions.CultureInvariant)]
     private static partial Regex ExtractSequenceNumberString();
 }

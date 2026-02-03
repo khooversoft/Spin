@@ -58,18 +58,8 @@ public static class GraphStartup
 
         services.AddKeyStore("graphFile");
         services.AddKeyStore<DataETag>("graphFile");
-
-        services.AddKeyStore<GraphSerialization>("graphDb", option =>
-        {
-            option.Serializer = x => JsonSerializer.Serialize(x, GraphJsonContext.Default.GraphSerialization);
-            option.Deserializer = x => JsonSerializer.Deserialize(x, GraphJsonContext.Default.GraphSerialization);
-        });
-
-        services.AddListStore<DataChangeRecord>("journal", option =>
-        {
-            option.Serializer = x => JsonSerializer.Serialize(x, DataChangeRecordJsonContext.Default.DataChangeRecord);
-            option.Deserializer = x => JsonSerializer.Deserialize(x, DataChangeRecordJsonContext.Default.DataChangeRecord);
-        });
+        services.AddKeyStore<GraphSerialization>("graphDb");
+        services.AddListStore<DataChangeRecord>("journal");
 
         return services;
     }

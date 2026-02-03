@@ -26,7 +26,7 @@ public partial class MemoryStore
     {
         if (path.IsEmpty()) return (StatusCode.BadRequest, "Path is required");
         path = StorePathTool.RemoveForwardSlash(path);
-        _logger.LogDebug("Appending path={path}", path);
+        _logger.LogDebug("Adding path={path}", path);
         data = data.WithHash();
 
         if (!PathValidator.IsPathValid(path)) return (StatusCode.BadRequest, "Path is invalid");

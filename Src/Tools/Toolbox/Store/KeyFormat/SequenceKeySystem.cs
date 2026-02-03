@@ -21,5 +21,5 @@ public class SequenceKeySystem<T> : KeySystemBase
         return result.ToLowerInvariant();
     }
 
-    public DateTime ExtractTimeIndex(string path) => PartitionSchemas.ExtractTimeIndex(path);
+    public DateTime ExtractTimeIndex(string path) => PartitionSchemas.ExtractSequenceNumberIndex(path).LogTime;
 }

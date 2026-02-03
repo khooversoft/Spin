@@ -7,19 +7,13 @@ namespace Toolbox.Store;
 public class KeySpace<T> : IKeyStore<T>
 {
     private readonly KeySpace _keySpace;
-    private readonly SpaceOption<T> _options;
-
-    public KeySpace(KeySpace keySpace, SpaceOption<T> options)
-    {
-        _keySpace = keySpace.NotNull();
-        _options = options.NotNull();
-    }
+    public KeySpace(KeySpace keySpace) => _keySpace = keySpace.NotNull();
 
     public Task<Option<string>> Add(string key, T data)
     {
         data.NotNull();
 
-        DataETag dataEtag = _options.Serializer(data).ToDataETag();
+        DataETag dataEtag = data.ToJson().ToDataETag();
         return _keySpace.Add(key, dataEtag);
     }
 
@@ -27,7 +21,7 @@ public class KeySpace<T> : IKeyStore<T>
     {
         data.NotNull();
 
-        DataETag dataEtag = _options.Serializer(data).ToDataETag();
+        DataETag dataEtag = data.ToJson().ToDataETag();
         return _keySpace.Append(key, dataEtag, leaseId);
     }
 
@@ -52,7 +46,7 @@ public class KeySpace<T> : IKeyStore<T>
 
     public Task<Option<string>> Set(string key, T data, string? leaseId = null)
     {
-        DataETag dataEtag = _options.Serializer(data).ToDataETag();
+        DataETag dataEtag = data.ToJson().ToDataETag();
         return _keySpace.Set(key, dataEtag, leaseId);
     }
 

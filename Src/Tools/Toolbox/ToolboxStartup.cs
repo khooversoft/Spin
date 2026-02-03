@@ -70,52 +70,65 @@ public static class ToolboxStartup
         return services;
     }
 
-    public static IServiceCollection AddKeyStore<T>(this IServiceCollection services, string spaceName, Action<SpaceOption<T>>? configure = null)
+    public static IServiceCollection AddKeyStore<T>(this IServiceCollection services, string spaceName)
     {
         services.NotNull();
         spaceName.NotEmpty();
-
-        var options = new SpaceOption<T>();
-        configure?.Invoke(options);
 
         services.AddSingleton<IKeyStore<T>>(services =>
         {
             var dataSpace = services.GetRequiredService<DataSpace>();
-            return dataSpace.GetFileStore<T>(spaceName, options);
+            return dataSpace.GetFileStore<T>(spaceName);
         });
 
         return services;
     }
 
-    public static IServiceCollection AddListStore<T>(this IServiceCollection services, string spaceName, Action<SpaceOption<T>>? configure = null)
+    public static IServiceCollection AddListStore<T>(this IServiceCollection services, string spaceName)
     {
         services.NotNull();
         spaceName.NotEmpty();
-
-        var options = new SpaceOption<T>();
-        configure?.Invoke(options);
 
         services.AddSingleton<IListStore<T>>(services =>
         {
             var dataSpace = services.GetRequiredService<DataSpace>();
-            return dataSpace.GetListStore<T>(spaceName, options);
+            return dataSpace.GetListStore<T>(spaceName);
         });
 
         return services;
     }
 
-    public static IServiceCollection AddSequenceStore<T>(this IServiceCollection services, string spaceName, Action<SpaceOption<T>>? configure = null)
+    public static IServiceCollection AddSequenceStore<T>(this IServiceCollection services, string spaceName)
     {
         services.NotNull();
         spaceName.NotEmpty();
 
-        var options = new SpaceOption<T>();
-        configure?.Invoke(options);
-
         services.AddSingleton<ISequenceStore<T>>(services =>
         {
             var dataSpace = services.GetRequiredService<DataSpace>();
-            return dataSpace.GetSequenceStore<T>(spaceName, options);
+            return dataSpace.GetSequenceStore<T>(spaceName);
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddSequenceLimit<T>(this IServiceCollection services, Action<SequenceSizeLimitOption<T>> config)
+    {
+        services.NotNull();
+        config.NotNull();
+
+        var option = new SequenceSizeLimitOption<T>();
+        config?.Invoke(option);
+
+        services.AddSingleton<SequenceSizeLimitOption<T>>(option);
+        services.AddSingleton<SequenceSizeLimit<T>>(service =>
+        {
+            var sequenceStore = service.GetRequiredService<ISequenceStore<T>>();
+            var limiter = ActivatorUtilities.CreateInstance<SequenceSizeLimit<T>>(service, sequenceStore);
+
+            var space = service.GetRequiredService<ISequenceStore<T>>() as SequenceSpace<T> ?? throw new ArgumentException("ISequenceStore<T> is not SequenceSpace<T>");
+            space.SetLimiter(limiter);
+            return limiter;
         });
 
         return services;
@@ -146,7 +159,7 @@ public static class ToolboxStartup
 
             var trx = ActivatorUtilities.CreateInstance<Transaction>(service, option);
             foreach (var p in trxProviders) trx.Providers.Enlist(p);
-            foreach (var p in checkpointProviders) trx.Providers.Attach($"{name}-checkpoint", p);
+            foreach (var p in checkpointProviders) trx.CheckpointProviders.Attach($"{name}-checkpoint", p);
 
             return trx;
         });

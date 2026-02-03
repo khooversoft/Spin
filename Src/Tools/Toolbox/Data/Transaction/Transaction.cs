@@ -23,8 +23,9 @@ public class Transaction
     private readonly LogSequenceNumber _logSequenceNumber;
     private readonly IListStore<DataChangeRecord> _changeClient;
     private readonly ILogger<Transaction> _logger;
+    private readonly TransactionProviders _providers;
+    private readonly CheckpointProviders _checkpointProviders;
     private EnumState<RunState> _runState = new(RunState.None);
-    private TransactionProviders _providers;
 
     public Transaction(
         TransactionOption trxOption,
@@ -39,13 +40,15 @@ public class Transaction
         _logger = logger.NotNull();
 
         TrxRecorder = new TrxRecorder(this);
-        _providers = new TransactionProviders(this, () => _runState.IfValue(RunState.None), _logger);
+        _providers = new TransactionProviders(this, () => _runState.IfValue(RunState.None).BeTrue("Transaction is not in progress"), _logger);
+        _checkpointProviders = new CheckpointProviders(this, () => _runState.IfValue(RunState.None).BeTrue("Transaction is not in progress"), _logger);
     }
 
     public string TransactionId { get; private set; } = Guid.NewGuid().ToString();
     public TrxRecorder TrxRecorder { get; }
     public RunState RunState => _runState.Value;
     public TransactionProviders Providers => _providers;
+    public CheckpointProviders CheckpointProviders => _checkpointProviders;
 
     public async Task Start()
     {
@@ -110,6 +113,10 @@ public class Transaction
 
         await Providers.Commit();
         _logger.LogTrace("Completed committing journal to store");
+
+        await CheckpointProviders.Checkpoint();
+        _logger.LogTrace("Completed committing checkpoint to store");
+
         return StatusCode.OK;
     }
 

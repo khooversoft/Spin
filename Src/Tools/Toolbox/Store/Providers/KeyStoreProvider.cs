@@ -31,11 +31,11 @@ public class KeyStoreProvider : IStoreKeyProvider
         return store;
     }
 
-    public IKeyStore<T> GetStore<T>(SpaceDefinition definition, SpaceOption<T> options)
+    public IKeyStore<T> GetStore<T>(SpaceDefinition definition)
     {
         var keySpace = GetStore(definition);
 
-        var store = ActivatorUtilities.CreateInstance<KeySpace<T>>(_serviceProvider, keySpace, options);
+        var store = ActivatorUtilities.CreateInstance<KeySpace<T>>(_serviceProvider, keySpace);
         return store;
     }
 }

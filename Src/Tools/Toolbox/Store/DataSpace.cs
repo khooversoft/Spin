@@ -44,7 +44,7 @@ public class DataSpace
         return keyStore.GetStore(definition).NotNull();
     }
 
-    public IKeyStore<T> GetFileStore<T>(string path, SpaceOption<T> options)
+    public IKeyStore<T> GetFileStore<T>(string path)
     {
         (IStoreProvider provider, SpaceDefinition definition) = GetProvider(path);
 
@@ -52,10 +52,10 @@ public class DataSpace
             throw new ArgumentException($"provider={definition.ProviderName} does not implement IStoreFileProvider");
 
         _logger.LogTrace("Getting file store for path={path}, provider={provider}", path, provider.Name);
-        return keyStore.GetStore<T>(definition, options).NotNull();
+        return keyStore.GetStore<T>(definition).NotNull();
     }
 
-    public IListStore<T> GetListStore<T>(string key, SpaceOption<T>? options = null)
+    public IListStore<T> GetListStore<T>(string key)
     {
         (IStoreProvider provider, SpaceDefinition definition) = GetProvider(key);
 
@@ -64,11 +64,10 @@ public class DataSpace
 
         _logger.LogTrace("Getting list store for key={key}, provider={provider}", key, provider.Name);
 
-        options ??= new SpaceOption<T>();
-        return keyStore.GetStore<T>(definition, options).NotNull();
+        return keyStore.GetStore<T>(definition).NotNull();
     }
 
-    public ISequenceStore<T> GetSequenceStore<T>(string key, SpaceOption<T>? options = null)
+    public ISequenceStore<T> GetSequenceStore<T>(string key)
     {
         (IStoreProvider provider, SpaceDefinition definition) = GetProvider(key);
 
@@ -77,15 +76,19 @@ public class DataSpace
 
         _logger.LogTrace("Getting list store for key={key}, provider={provider}", key, provider.Name);
 
-        options ??= new SpaceOption<T>();
-        return keyStore.GetStore<T>(definition, options).NotNull();
+        return keyStore.GetStore<T>(definition).NotNull();
     }
 
-    private (IStoreProvider storeProvider, SpaceDefinition definition) GetProvider(string path)
+    public SpaceDefinition GetSpaceDefinition(string key)
     {
-        string storeName = GetStoreName(path);
-
+        string storeName = GetStoreName(key);
         _spaces.TryGetValue(storeName, out var definition).BeTrue($"storeName={storeName} not defined");
+        return definition.NotNull();
+    }
+
+    private (IStoreProvider storeProvider, SpaceDefinition definition) GetProvider(string key)
+    {
+        SpaceDefinition definition = GetSpaceDefinition(key);
         _providers.TryGetValue(definition.NotNull().ProviderName, out var provider).BeTrue($"provider={definition.ProviderName} not registered");
 
         return (provider.NotNull(), definition);

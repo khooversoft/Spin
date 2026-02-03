@@ -8,15 +8,15 @@ public interface IStoreProvider
 public interface IStoreKeyProvider : IStoreProvider
 {
     IKeyStore GetStore(SpaceDefinition definition);
-    IKeyStore<T> GetStore<T>(SpaceDefinition definition, SpaceOption<T> options);
+    IKeyStore<T> GetStore<T>(SpaceDefinition definition);
 }
 
 public interface IStoreListProvider : IStoreProvider
 {
-    IListStore<T> GetStore<T>(SpaceDefinition definition, SpaceOption<T> options);
+    IListStore<T> GetStore<T>(SpaceDefinition definition);
 }
 
 public interface IStoreSequenceProvider : IStoreProvider
 {
-    ISequenceStore<T> GetStore<T>(SpaceDefinition definition, SpaceOption<T> options);
+    ISequenceStore<T> GetStore<T>(SpaceDefinition definition);
 }

@@ -8,44 +8,35 @@ namespace Toolbox.Data;
 
 public class TransactionProviders
 {
-    private readonly ConcurrentDictionary<string, ITrxProvider> _enlistedProviders = new(StringComparer.OrdinalIgnoreCase);
-    private readonly ConcurrentDictionary<string, ICheckpoint> _enlistedCheckpoint = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, ITrxProvider> _dict = new(StringComparer.OrdinalIgnoreCase);
     private readonly Transaction _parent;
-    private readonly Func<bool> _isOpen;
+    private readonly Action _testOpen;
     private readonly ILogger _logger;
-    private readonly object _lock = new();
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    public TransactionProviders(Transaction parent, Func<bool> isOpen, ILogger logger)
+    public TransactionProviders(Transaction parent, Action testOpen, ILogger logger)
     {
         _parent = parent.NotNull();
-        _isOpen = isOpen;
+        _testOpen = testOpen.NotNull();
         _logger = logger;
     }
 
-    public int Count => _enlistedProviders.Count;
+    public int Count => _dict.Count;
 
     public void Enlist(ITrxProvider provider)
     {
         provider.NotNull();
-        _isOpen().BeTrue("Transaction is in progress");
-        _enlistedProviders.TryAdd(provider.SourceName, provider).BeTrue($"Provider with sourceName={provider.SourceName} is already enlisted");
+        _testOpen();
+        _dict.TryAdd(provider.SourceName, provider).BeTrue($"Provider with sourceName={provider.SourceName} is already enlisted");
 
         provider.AttachRecorder(_parent.TrxRecorder);
     }
 
-    public void Attach(string name, ICheckpoint p)
-    {
-        p.NotNull();
-        _isOpen().BeTrue("Transaction is not in progress");
-        _enlistedCheckpoint.TryAdd(name, p).BeTrue($"Checkpoint with name={name} is already enlisted");
-    }
-
     public void Delist(ITrxProvider provider)
     {
-        _isOpen().BeTrue("Transaction is not in progress");
+        _testOpen();
         provider.NotNull();
-        _enlistedProviders.TryRemove(provider.SourceName, out var _).BeTrue($"Provider with sourceName={provider.SourceName} is not enlisted");
+        _dict.TryRemove(provider.SourceName, out var _).BeTrue($"Provider with sourceName={provider.SourceName} is not enlisted");
 
         lock (provider)
         {
@@ -53,24 +44,14 @@ public class TransactionProviders
         }
     }
 
-    public void Detach(string name)
-    {
-        _isOpen().BeTrue("Transaction is not in progress");
-        name.NotEmpty();
-        _enlistedCheckpoint.TryRemove(name, out var _).BeTrue($"Checkpoint with name={name} is not enlisted");
-    }
-
     public void DelistAll()
     {
-        _isOpen().BeTrue("Transaction is not in progress");
+        _testOpen();
 
-        lock (_enlistedProviders)
+        lock (_dict)
         {
-            var providers = _enlistedProviders.Values.ToList();
-            var checkpointNames = _enlistedCheckpoint.Keys.ToList();
-
+            var providers = _dict.Values.ToList();
             foreach (var provider in providers) Delist(provider);
-            foreach (var checkpointName in checkpointNames) Detach(checkpointName);
         }
     }
 
@@ -80,7 +61,7 @@ public class TransactionProviders
 
         try
         {
-            foreach (var action in _enlistedProviders.Values)
+            foreach (var action in _dict.Values)
             {
                 var result = await action.Start();
                 if (result.IsError())
@@ -104,7 +85,7 @@ public class TransactionProviders
 
         try
         {
-            foreach (var action in _enlistedProviders.Values)
+            foreach (var action in _dict.Values)
             {
                 var result = await action.Commit();
                 if (result.IsError())
@@ -113,16 +94,6 @@ public class TransactionProviders
                     return result;
                 }
             }
-
-            //foreach (var action in _enlistedCheckpoint.Values)
-            //{
-            //    var result = await action.Checkpoint();
-            //    if (result.IsError())
-            //    {
-            //        LogError("Failed commit action for transaction", action.SourceName, result);
-            //        return result;
-            //    }
-            //}
 
             return StatusCode.OK;
         }
@@ -138,7 +109,7 @@ public class TransactionProviders
 
         try
         {
-            if (!_enlistedProviders.TryGetValue(entry.SourceName, out var provider)) return StatusCode.OK;
+            if (!_dict.TryGetValue(entry.SourceName, out var provider)) return StatusCode.OK;
 
             var result = await provider.Rollback(entry);
             if (result.IsError())

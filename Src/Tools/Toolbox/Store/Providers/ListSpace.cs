@@ -18,13 +18,11 @@ public class ListSpace<T> : IListStore<T>
     private readonly ITelemetryCounter<long>? _getCounter;
     private readonly ITelemetryCounter<long>? _getHistoryCounter;
     private readonly ITelemetryCounter<long>? _searchCounter;
-    private readonly SpaceOption<T> _options;
 
-    public ListSpace(IKeyStore keyStore, ListKeySystem<T> listKeySystem, SpaceOption<T> options, ILogger<ListSpace<T>> logger, ITelemetry? telemetry = null)
+    public ListSpace(IKeyStore keyStore, ListKeySystem<T> listKeySystem, ILogger<ListSpace<T>> logger, ITelemetry? telemetry = null)
     {
         _keyStore = keyStore.NotNull();
         _fileSystem = listKeySystem.NotNull();
-        _options = options.NotNull();
         _logger = logger.NotNull();
 
         _appendCounter = telemetry?.CreateCounter<long>("listspace.append", "Number of Append operations", unit: "count");
@@ -38,7 +36,7 @@ public class ListSpace<T> : IListStore<T>
 
     public async Task<Option<string>> Append(string key, params IEnumerable<T> data)
     {
-        var dataItems = data.NotNull().Select(x => _options.Serializer(x)).ToArray();
+        var dataItems = data.NotNull().Select(x => x.ToJson()).ToArray();
         if (dataItems.Length == 0) return StatusCode.OK;
 
         string path = _fileSystem.PathBuilder(key);
@@ -157,7 +155,7 @@ public class ListSpace<T> : IListStore<T>
             var result = readOption.Return()
                 .DataToString()
                 .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => _options.Deserializer(x).NotNull())
+                .Select(x => x.ToObject<T>().NotNull())
                 .ToArray();
 
             return result;
