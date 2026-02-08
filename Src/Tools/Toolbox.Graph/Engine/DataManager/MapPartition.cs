@@ -7,13 +7,14 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class MapPartition : ICheckpoint
+public class MapPartition
 {
     private readonly IServiceProvider _serviceProvider;
-    private GraphMap? _map;
     private readonly IKeyStore<GraphSerialization> _keyStore;
     private readonly ILogger _logger;
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(1, 1);
+    private GraphMap? _map;
+    private string? _logSequenceNumber;
 
     public MapPartition(IKeyStore<GraphSerialization> keyStore, IServiceProvider serviceProvider, ILogger logger, GraphMap? map = null)
     {
@@ -24,7 +25,10 @@ public class MapPartition : ICheckpoint
         _map = map;
     }
 
+    public string StoreName => "graphMapPartition";
     public GraphMap Map => _map ?? throw new InvalidOperationException("MapPartition not loaded");
+    public string? GetLogSequenceNumber() => _logSequenceNumber;
+    public void SetLogSequenceNumber(string lsn) => Interlocked.Exchange(ref _logSequenceNumber, lsn.NotEmpty());
 
     public async Task<Option> Load()
     {
@@ -67,7 +71,7 @@ public class MapPartition : ICheckpoint
         }
     }
 
-    public Task<string> Checkpoint()
+    public Task<string> GetSnapshot()
     {
         _map.NotNull();
 
@@ -75,24 +79,32 @@ public class MapPartition : ICheckpoint
         return json.ToTaskResult();
     }
 
-    public async Task<Option> Recovery(string json)
+    public Task<Option> Checkpoint() => new Option(StatusCode.OK).ToTaskResult();
+
+    public async Task<Option> Recovery(IEnumerable<DataChangeRecord> records)
     {
         _map.NotNull();
+        throw new NotImplementedException();
 
-        await _gate.WaitAsync();
+        //await _gate.WaitAsync();
 
-        try
-        {
-            var gs = json.ToObject<GraphSerialization>().NotNull();
-            gs.Validate().ThrowOnError();
+        //try
+        //{
+        //    var gs = json.ToObject<GraphSerialization>().NotNull();
+        //    gs.Validate().ThrowOnError();
 
-            Interlocked.Exchange(ref _map, gs.FromSerialization(_serviceProvider));
+        //    Interlocked.Exchange(ref _map, gs.FromSerialization(_serviceProvider));
 
-            return StatusCode.OK;
-        }
-        finally
-        {
-            _gate.Release();
-        }
+        //    return StatusCode.OK;
+        //}
+        //finally
+        //{
+        //    _gate.Release();
+        //}
+    }
+
+    public Task<Option> Restore(string json)
+    {
+        throw new NotImplementedException();
     }
 }

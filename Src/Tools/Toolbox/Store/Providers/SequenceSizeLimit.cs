@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Telemetry;
@@ -15,7 +10,7 @@ namespace Toolbox.Store;
 public class SequenceSizeLimit<T>
 {
     private readonly ILogger<SequenceSizeLimit<T>> _logger;
-    private readonly OperationQueue _queue;
+    private readonly SequentialAsyncQueue _queue;
     private readonly ISequenceStore<T> _sequenceStore;
     private readonly SequenceSizeLimitOption<T> _option;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -29,7 +24,7 @@ public class SequenceSizeLimit<T>
         _option = option.NotNull().Action(x => x.Validate().ThrowOnError());
         _logger = logger.NotNull();
 
-        _queue = ActivatorUtilities.CreateInstance<OperationQueue>(serviceProvider.NotNull(), 10);
+        _queue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(serviceProvider.NotNull(), 10);
         _signalCounter = telemetry?.CreateCounter<long>("SequenceSizeLimit.signalCounter", "Current signal count", unit: "count");
         _deleteCounter = telemetry?.CreateCounter<long>("SequenceSizeLimit.deleteCounter", "Current delete count", unit: "count");
     }

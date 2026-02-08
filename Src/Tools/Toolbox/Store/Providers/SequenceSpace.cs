@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Telemetry;
@@ -128,7 +127,7 @@ public class SequenceSpace<T> : ISequenceStore<T>
     {
         var journalQueue = new ConcurrentQueue<(DateTime logTime, long counter, T value)>();
 
-        var scale = new ActionQueue<string>(async path =>
+        var scale = new ActionBlock2<string>(async path =>
         {
             var result = await reader(path);
             (DateTime logTime, long counter) = PartitionSchemas.ExtractSequenceNumberIndex(path);

@@ -2,11 +2,11 @@
 
 namespace Toolbox.Tools;
 
-public class ActionQueue<T> : IAsyncDisposable
+public class ActionBlock2<T> : IAsyncDisposable
 {
     private readonly ActionBlock<T> _actionBlock;
 
-    public ActionQueue(Action<T> action, int maxQueue = 100, int maxWorkers = 1)
+    public ActionBlock2(Action<T> action, int maxQueue = 100, int maxWorkers = 1)
     {
         action.NotNull();
         maxQueue.Assert(x => x > 0, "Invalid maxQueue value");
@@ -16,7 +16,7 @@ public class ActionQueue<T> : IAsyncDisposable
         _actionBlock = new ActionBlock<T>(action, dataflowBlockOptions);
     }
 
-    public ActionQueue(Func<T, Task> action, int maxQueue = 100, int maxWorkers = 1)
+    public ActionBlock2(Func<T, Task> action, int maxQueue = 100, int maxWorkers = 1)
     {
         action.NotNull();
         maxQueue.Assert(x => x > 0, "Invalid maxQueue value");

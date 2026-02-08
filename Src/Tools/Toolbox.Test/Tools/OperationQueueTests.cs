@@ -31,7 +31,7 @@ public class OperationQueueTests
     {
         int count = 100;
         var queue = new ConcurrentQueue<int>();
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 100);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 100);
 
         foreach (var x in Enumerable.Range(0, count))
         {
@@ -54,7 +54,7 @@ public class OperationQueueTests
         int[] setIndexes = [0, 10, 55, 85, 99];
         int[][] lookFor = [[-100, 0], [9, -10, 10], [54, -55, 55], [84, -85, 85], [98, -99, 99]];
         var queue = new ConcurrentQueue<int>();
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 100);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 100);
 
         await Enumerable.Range(0, count).ForEachAsync(async x =>
         {
@@ -93,7 +93,7 @@ public class OperationQueueTests
         int[] setIndexes = [0, 10, 55, 85, 99];
         int[][] lookFor = [[-100, 0], [9, -10, 10], [54, -55, 55], [84, -85, 85], [98, -99, 99]];
         var queue = new ConcurrentQueue<int>();
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 100);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 100);
 
         await Enumerable.Range(0, count).ForEachAsync(async x =>
         {
@@ -137,7 +137,7 @@ public class OperationQueueTests
     public async Task DrainFlushesPendingOperations()
     {
         var queue = new ConcurrentQueue<int>();
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 10);
 
         foreach (var x in Enumerable.Range(0, 50))
         {
@@ -170,7 +170,7 @@ public class OperationQueueTests
     [Fact]
     public async Task SendGetAndDrainThrowWhenNotRunningAndCompleteIsIdempotent()
     {
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 10);
 
         await operationQueue.Complete();
         await operationQueue.Complete(); // idempotent
@@ -190,7 +190,7 @@ public class OperationQueueTests
     public async Task SendExceptionDoesNotStopProcessing()
     {
         var queue = new ConcurrentQueue<int>();
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 10);
 
         await operationQueue.Send(() =>
         {
@@ -218,7 +218,7 @@ public class OperationQueueTests
     public async Task GetExceptionPropagatesAndDoesNotStopProcessing()
     {
         var queue = new ConcurrentQueue<int>();
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 10);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             operationQueue.Get<int>(() => throw new InvalidOperationException("bad read")));
@@ -242,7 +242,7 @@ public class OperationQueueTests
         int total = 1_000;
         int processed = 0;
 
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 4);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 4);
 
         await Enumerable.Range(0, total).ForEachAsync(async _ =>
         {
@@ -271,7 +271,7 @@ public class OperationQueueTests
         var order = new List<int>();
         object gate = new();
 
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 10);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 10);
 
         await operationQueue.Send(async () =>
         {
@@ -310,7 +310,7 @@ public class OperationQueueTests
         int total = 1_000;
         var bag = new ConcurrentBag<int>();
 
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 32);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 32);
 
         var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 };
 
@@ -341,7 +341,7 @@ public class OperationQueueTests
     public async Task DrainOnlyFlushesWorkEnqueuedBeforeCallUnderLoad()
     {
         var processed = new ConcurrentQueue<int>();
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 8);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 8);
 
         int total = 2_000;
 
@@ -374,7 +374,7 @@ public class OperationQueueTests
     {
         var q = new ConcurrentQueue<int>();
 
-        await using (var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 16))
+        await using (var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 16))
         {
             foreach (var i in Enumerable.Range(0, 500))
             {
@@ -395,7 +395,7 @@ public class OperationQueueTests
     {
         int count = 100;
         var dict = new ConcurrentDictionary<int, TaskOperation>();
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_host.Services, 100);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_host.Services, 100);
 
         int pass = 0;
         int passCount = 0;

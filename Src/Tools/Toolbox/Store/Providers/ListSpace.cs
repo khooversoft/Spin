@@ -127,7 +127,7 @@ public class ListSpace<T> : IListStore<T>
     {
         var journalQueue = new ConcurrentQueue<IReadOnlyList<T>>();
 
-        var scale = new ActionQueue<string>(async path =>
+        var scale = new ActionBlock2<string>(async path =>
         {
             var result = await reader(path);
             journalQueue.Enqueue(result);

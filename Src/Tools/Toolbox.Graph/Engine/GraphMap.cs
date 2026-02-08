@@ -37,7 +37,7 @@ public class GraphMap : IEnumerable<IGraphCommon>
     public GraphEdgeIndex Edges { get; }
     public GrantControl GrantControl { get; } = new GrantControl();
 
-    public void SetLastLogSequenceNumber(string lsn) => LastLogSequenceNumber = lsn.NotEmpty();
+    public void SetLastLogSequenceNumber(string? lsn) => LastLogSequenceNumber = lsn;
 
     public GraphMap Add(IGraphCommon element)
     {

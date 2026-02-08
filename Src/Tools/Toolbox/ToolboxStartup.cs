@@ -153,13 +153,8 @@ public static class ToolboxStartup
                 .Select(f => f(service))
                 .ToList();
 
-            var checkpointProviders = option.CheckpointProviders
-                .Select(f => f(service))
-                .ToList();
-
             var trx = ActivatorUtilities.CreateInstance<Transaction>(service, option);
             foreach (var p in trxProviders) trx.Providers.Enlist(p);
-            foreach (var p in checkpointProviders) trx.CheckpointProviders.Attach($"{name}-checkpoint", p);
 
             return trx;
         });

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -25,14 +20,15 @@ public class DataSpaceSequenceLimitTests
     protected virtual void AddStore(IServiceCollection services, string basePath) => services.AddInMemoryKeyStore();
 
 
-    private async Task<IHost> BuildService(bool deferred, [CallerMemberName] string function = "")
+    private async Task<IHost> BuildService(bool deferred, bool noLogging = false, [CallerMemberName] string function = "")
     {
         string basePath = nameof(DataSpaceSequenceLimitTests) + "/" + function;
 
         var host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
             {
-                services.AddLogging(c => c.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(_ => true));
+                if (!noLogging) services.AddLogging(c => c.AddLambda(_outputHelper.WriteLine).AddDebug().AddFilter(_ => true));
+
                 AddStore(services, basePath);
 
                 services.AddDataSpace(cnfg =>
@@ -79,40 +75,60 @@ public class DataSpaceSequenceLimitTests
         using var host = await BuildService(false);
         SequenceSizeLimit<TestRecord> limit = host.Services.GetRequiredService<SequenceSizeLimit<TestRecord>>();
         ISequenceStore<TestRecord> sequenceStore = host.Services.GetRequiredService<ISequenceStore<TestRecord>>();
+        ILogger<DataSpaceSequenceLimitTests> logger = host.Services.GetRequiredService<ILogger<DataSpaceSequenceLimitTests>>();
 
         TestRecord[] items = CreateTestEntries(10).ToArray();
 
-        foreach (var item in items)
+        const int size = 10;
+        int count = 0;
+
+        while (count++ < size)
         {
-            (await sequenceStore.Add(_key, item)).BeOk();
+            using (var scope = logger.LogDuration($"Count={count}"))
+            {
+                foreach (var item in items)
+                {
+                    (await sequenceStore.Add(_key, item)).BeOk();
+                }
+
+                await limit.Cleanup();
+
+                var result = (await sequenceStore.Get(_key)).BeOk().Return();
+                result.Count.Be(items.Length);
+                result.SequenceEqual(items).BeTrue();
+
+                (await sequenceStore.Delete(_key)).BeOk();
+            }
         }
-
-        await limit.Cleanup();
-
-        var result = (await sequenceStore.Get(_key)).BeOk().Return();
-        result.Count.Be(items.Length);
-        result.SequenceEqual(items).BeTrue();
     }
 
     [Fact]
-    public async Task ScaleSequentialAddShouldReturnAll()
+    public async Task ScaleSequentialAddShouldReturnAllNoLogging()
     {
-        using var host = await BuildService(false);
+        using var host = await BuildService(false, true);
         SequenceSizeLimit<TestRecord> limit = host.Services.GetRequiredService<SequenceSizeLimit<TestRecord>>();
         ISequenceStore<TestRecord> sequenceStore = host.Services.GetRequiredService<ISequenceStore<TestRecord>>();
 
-        TestRecord[] items = CreateTestEntries(100).ToArray();
+        TestRecord[] items = CreateTestEntries(1000).ToArray();
 
-        foreach (var item in items)
+        const int size = 10;
+        int count = 0;
+
+        while (count++ < size)
         {
-            (await sequenceStore.Add(_key, item)).BeOk();
+            foreach (var item in items)
+            {
+                (await sequenceStore.Add(_key, item)).BeOk();
+            }
+
+            await limit.Cleanup();
+
+            var result = (await sequenceStore.Get(_key)).BeOk().Return();
+            result.Count.Be(10);
+            result.SequenceEqual(items.Skip(items.Length - 10)).BeTrue();
+
+            (await sequenceStore.Delete(_key)).BeOk();
         }
-
-        await limit.Cleanup();
-
-        var result = (await sequenceStore.Get(_key)).BeOk().Return();
-        result.Count.Be(10);
-        result.SequenceEqual(items.Skip(items.Length-10)).BeTrue();
     }
 
     [Fact]
@@ -133,7 +149,7 @@ public class DataSpaceSequenceLimitTests
 
         var result = (await sequenceStore.Get(_key)).BeOk().Return();
         result.Count.Be(10);
-        result.SequenceEqual(items.Skip(items.Length-10)).BeTrue();
+        result.SequenceEqual(items.Skip(items.Length - 10)).BeTrue();
     }
 
     private class TestTelemetryCollector : ITelemetryCollector

@@ -3,12 +3,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Toolbox.Tools;
 
-public class OperationQueue : IAsyncDisposable
+/// <summary>
+/// A bounded, single-consumer queue that executes enqueued work items sequentially
+/// on a background task. Supports concurrent producers. Use <see cref="Send"/> for
+/// fire-and-forget work, <see cref="Get{T}"/> for work that returns a value, and
+/// <see cref="Drain"/> / <see cref="Complete"/> to flush or stop processing.
+/// </summary>
+public class SequentialAsyncQueue : IAsyncDisposable
 {
     private enum RunState { None, Run, Stopped }
 
     private readonly Channel<Func<Task>> _channel;
-    private readonly ILogger<OperationQueue> _logger;
+    private readonly ILogger<SequentialAsyncQueue> _logger;
     private readonly Task _processingTask;
     private volatile RunState _runState;
     private long _getEnqueueCount;
@@ -16,7 +22,13 @@ public class OperationQueue : IAsyncDisposable
     private long _sendEnqueueCount;
     private long _processCount;
 
-    public OperationQueue(int boundedCapacity, ILogger<OperationQueue> logger)
+    /// <summary>
+    /// Create a sequential queue with a bounded capacity. When the channel is full,
+    /// producers will asynchronously wait. The queue starts its background processor immediately.
+    /// </summary>
+    /// <param name="boundedCapacity">Maximum number of pending work items.</param>
+    /// <param name="logger">Logger used for diagnostics and timing scopes.</param>
+    public SequentialAsyncQueue(int boundedCapacity, ILogger<SequentialAsyncQueue> logger)
     {
         _logger = logger.NotNull();
 
@@ -31,6 +43,10 @@ public class OperationQueue : IAsyncDisposable
         _processingTask = Task.Run(() => ProcessQueueAsync());
     }
 
+    /// <summary>
+    /// Stop accepting new work, complete the channel, and wait for all queued work to finish.
+    /// Safe to call multiple times; subsequent calls are no-ops.
+    /// </summary>
     public async Task Complete()
     {
         var currentState = Interlocked.CompareExchange(ref _runState, RunState.Stopped, RunState.Run);
@@ -44,6 +60,10 @@ public class OperationQueue : IAsyncDisposable
         await _processingTask;
     }
 
+    /// <summary>
+    /// Enqueue a barrier marker and wait until all work before it has executed.
+    /// Throws if the queue is not running.
+    /// </summary>
     public async Task Drain()
     {
         if (_runState != RunState.Run) throw new InvalidOperationException("Not running");
@@ -71,6 +91,10 @@ public class OperationQueue : IAsyncDisposable
         await tcs.Task;
     }
 
+    /// <summary>
+    /// Enqueue a function that returns a value. The function executes in order relative
+    /// to other enqueued work. Throws if the queue is stopped.
+    /// </summary>
     public async Task<T> Get<T>(Func<Task<T>> readOperation)
     {
         if (_runState != RunState.Run) throw new InvalidOperationException("Not running");
@@ -107,6 +131,9 @@ public class OperationQueue : IAsyncDisposable
         return await tcs.Task;
     }
 
+    /// <summary>
+    /// Enqueue a fire-and-forget task to be executed sequentially. Throws if the queue is stopped.
+    /// </summary>
     public async Task Send(Func<Task> sendOperation)
     {
         if (_runState != RunState.Run) throw new InvalidOperationException("Not running");
@@ -149,6 +176,9 @@ public class OperationQueue : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Dispose pattern entry point; waits for queued work to complete.
+    /// </summary>
     public async ValueTask DisposeAsync() => await Complete();
 
     private void LogStats() => _logger.LogDebug(

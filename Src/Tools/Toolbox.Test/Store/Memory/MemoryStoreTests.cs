@@ -76,8 +76,7 @@ public class MemoryStoreTests
         const string invalidPath = "";
         var data = new DataETag("data".ToBytes());
 
-        var result = ms.Add(invalidPath, data);
-        result.StatusCode.Be(StatusCode.BadRequest);
+        Verify.Throws<ArgumentNullException>(() => ms.Add(invalidPath, data));
     }
 
     [Fact]

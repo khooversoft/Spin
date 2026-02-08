@@ -57,4 +57,16 @@ public partial class DatalakeStore : ITrxProvider
 
         return StatusCode.OK;
     }
+
+    public void SetLogSequenceNumber(string lsn) => throw new NotImplementedException();
+
+    public string? GetLogSequenceNumber() => throw new NotImplementedException();
+
+    public Task<Option> Recovery(IEnumerable<DataChangeRecord> records) => throw new NotImplementedException();
+
+    public Task<Option> Checkpoint() => throw new NotImplementedException();
+
+    public Task<Option> Restore(string json) => throw new NotImplementedException();
+
+    public Task<string> GetSnapshot() => throw new NotImplementedException();
 }

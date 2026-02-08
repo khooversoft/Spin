@@ -9,7 +9,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphMapManager : ICheckpoint
+public class GraphMapManager
 {
     private GraphMap? _map;
     private readonly MapPartition _mapPartition;
@@ -39,8 +39,13 @@ public class GraphMapManager : ICheckpoint
     }
 
     public GraphMap GetMap() => _map.NotNull("Database has not been loaded");
-    public Task<string> Checkpoint() => _mapPartition.Checkpoint();
-    public Task<Option> Recovery(string json) => _mapPartition.Recovery(json);
+    public Task<string> GetSnapshot() => _mapPartition.GetSnapshot();
+    public Task<Option> Recovery(IEnumerable<DataChangeRecord> records) => _mapPartition.Recovery(records);
+    public string? GetLogSequenceNumber() => _map?.LastLogSequenceNumber;
+    public void SetLogSequenceNumber(string? lsn) => _map?.SetLastLogSequenceNumber(lsn);
+    public string StoreName => _mapPartition.StoreName;
+    public async Task<Option> Checkpoint() => await _mapPartition.Checkpoint();
+    public Task<Option> Restore(string json) => throw new NotImplementedException();
 
     public async Task<Option> SetMap(GraphMap map)
     {
@@ -49,7 +54,6 @@ public class GraphMapManager : ICheckpoint
         try
         {
             if (_map != null) return (StatusCode.Conflict, "Map already loaded");
-
             _map = map.NotNull().Clone();
 
             Option<string> setOption = await _graphDataClient.Set(GraphConstants.GraphMap.Key, _map.ToSerialization());

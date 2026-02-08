@@ -337,7 +337,7 @@ public class TasksProcessor
         if (functions.Count == 0) throw new ArgumentException($"At least one function is required", nameof(functions));
 
         var dict = new ConcurrentDictionary<int, TaskInvoke>();
-        await using var operationQueue = ActivatorUtilities.CreateInstance<OperationQueue>(_serviceProvider, 100);
+        await using var operationQueue = ActivatorUtilities.CreateInstance<SequentialAsyncQueue>(_serviceProvider, 100);
 
         await seedFunctions();
 

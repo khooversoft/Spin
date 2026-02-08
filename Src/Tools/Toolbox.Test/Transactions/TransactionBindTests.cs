@@ -108,8 +108,7 @@ public class TransactionBindTests
         var result = await transaction.Commit();
         result.BeOk();
 
-        var records = await listStore.Get("TestJournal");
-        records.BeOk();
+        var records = (await listStore.Get("TestJournal")).BeOk();
         var data = records.Return();
         data.Count.Be(1);
         data[0].Action(x =>
@@ -272,5 +271,34 @@ public class TransactionBindTests
         var currentValue = current.Return();
         currentValue.Name.Be("Alice");
         currentValue.Age.Be(30);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(10)]
+    public async Task SingleOrMultipleTransactionCommit(int trxCount)
+    {
+        var host = BuildService();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var keyStore = host.Services.GetRequiredService<IKeyStore<TestRecord>>();
+
+        await transaction.Start();
+
+        foreach (var i in Enumerable.Range(0, trxCount))
+        {
+            (await keyStore.Set("key1", new TestRecord($"Alice-{i}", 30 + i))).BeOk();
+        }
+
+        var result = await transaction.Commit();
+        result.BeOk();
+
+        var records = (await listStore.Get("TestJournal")).BeOk();
+        records.Return().Action(x =>
+        {
+            x.Count.Be(1);
+            x[0].Entries.Count.Be(trxCount);
+        });
     }
 }

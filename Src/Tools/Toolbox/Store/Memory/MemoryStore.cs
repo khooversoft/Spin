@@ -24,7 +24,8 @@ public partial class MemoryStore
 
     public Option<string> Add(string path, DataETag data)
     {
-        if (path.IsEmpty()) return (StatusCode.BadRequest, "Path is required");
+        TestModify();
+
         path = StorePathTool.RemoveForwardSlash(path);
         _logger.LogDebug("Adding path={path}", path);
         data = data.WithHash();
@@ -52,6 +53,8 @@ public partial class MemoryStore
 
     public Option<string> Append(string path, DataETag data, string? leaseId)
     {
+        TestModify();
+
         _logger.LogDebug("Appending path={path}, leaseId={leaseId}", path, leaseId);
         path = StorePathTool.RemoveForwardSlash(path);
         data = data.WithHash();
@@ -79,6 +82,8 @@ public partial class MemoryStore
 
     public Option DeleteFolder(string pattern)
     {
+        TestModify();
+
         pattern = StorePathTool.AddRecursiveSafe(pattern);
         var matcher = new GlobFileMatching(pattern.NotEmpty());
 
@@ -100,6 +105,8 @@ public partial class MemoryStore
 
     public Option Delete(string path, string? leaseId)
     {
+        TestModify();
+
         path = StorePathTool.RemoveForwardSlash(path);
 
         lock (_lock)
@@ -142,6 +149,8 @@ public partial class MemoryStore
 
     public Option<string> Set(string path, DataETag data, string? leaseId)
     {
+        TestModify();
+
         path = StorePathTool.RemoveForwardSlash(path);
         if (!PathValidator.IsPathValid(path)) return (StatusCode.BadRequest, "Path is invalid");
 

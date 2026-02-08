@@ -55,55 +55,11 @@ public class TransactionProviders
         }
     }
 
-    internal async Task<Option> Start()
-    {
-        await _gate.WaitAsync();
+    public async Task<Option> Start() => await Run(async x => await x.Start());
+    public async Task<Option> Commit() => await Run(async x => await x.Commit());
+    public async Task<Option> Checkpoint() => await Run(async x => await x.Checkpoint());
 
-        try
-        {
-            foreach (var action in _dict.Values)
-            {
-                var result = await action.Start();
-                if (result.IsError())
-                {
-                    LogError("Failed start action for transaction", action.SourceName, result);
-                    return result;
-                }
-            }
-
-            return StatusCode.OK;
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
-
-    internal async Task<Option> Commit()
-    {
-        await _gate.WaitAsync();
-
-        try
-        {
-            foreach (var action in _dict.Values)
-            {
-                var result = await action.Commit();
-                if (result.IsError())
-                {
-                    LogError("Failed commit action for transaction", action.SourceName, result);
-                    return result;
-                }
-            }
-
-            return StatusCode.OK;
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
-
-    internal async Task<Option> Rollback(DataChangeEntry entry)
+    public async Task<Option> Rollback(DataChangeEntry entry)
     {
         await _gate.WaitAsync();
 
@@ -118,6 +74,28 @@ public class TransactionProviders
                 return result;
             }
 
+            return StatusCode.OK;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    private async Task<Option> Run(Func<ITrxProvider, Task<Option>> action)
+    {
+        await _gate.WaitAsync();
+        try
+        {
+            foreach (var provider in _dict.Values)
+            {
+                var result = await action(provider);
+                if (result.IsError())
+                {
+                    LogError("Failed action for transaction", provider.SourceName, result);
+                    return result;
+                }
+            }
             return StatusCode.OK;
         }
         finally

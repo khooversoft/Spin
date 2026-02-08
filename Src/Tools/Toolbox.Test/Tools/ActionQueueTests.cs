@@ -8,7 +8,7 @@ public class ActionQueueTests
     public void ActionQueue_WithSyncAction_ShouldCreate()
     {
         // Arrange & Act
-        var queue = new ActionQueue<int>(x => { }, maxQueue: 10, maxWorkers: 1);
+        var queue = new ActionBlock2<int>(x => { }, maxQueue: 10, maxWorkers: 1);
 
         // Assert
         queue.NotNull();
@@ -20,7 +20,7 @@ public class ActionQueueTests
     public void ActionQueue_WithAsyncAction_ShouldCreate()
     {
         // Arrange & Act
-        var queue = new ActionQueue<int>(async x => await Task.CompletedTask, maxQueue: 10, maxWorkers: 1);
+        var queue = new ActionBlock2<int>(async x => await Task.CompletedTask, maxQueue: 10, maxWorkers: 1);
 
         // Assert
         queue.NotNull();
@@ -35,7 +35,7 @@ public class ActionQueueTests
         Action<int> nullAction = null!;
 
         // Act & Assert
-        Verify.Throws<ArgumentNullException>(() => new ActionQueue<int>(nullAction));
+        Verify.Throws<ArgumentNullException>(() => new ActionBlock2<int>(nullAction));
     }
 
     [Fact]
@@ -45,35 +45,35 @@ public class ActionQueueTests
         Func<int, Task> nullAction = null!;
 
         // Act & Assert
-        Verify.Throws<ArgumentNullException>(() => new ActionQueue<int>(nullAction));
+        Verify.Throws<ArgumentNullException>(() => new ActionBlock2<int>(nullAction));
     }
 
     [Fact]
     public void ActionQueue_WithInvalidMaxQueue_ShouldThrow()
     {
         // Act & Assert
-        Verify.Throws<ArgumentException>(() => new ActionQueue<int>(x => { }, maxQueue: 0, maxWorkers: 1));
+        Verify.Throws<ArgumentException>(() => new ActionBlock2<int>(x => { }, maxQueue: 0, maxWorkers: 1));
     }
 
     [Fact]
     public void ActionQueue_WithNegativeMaxQueue_ShouldThrow()
     {
         // Act & Assert
-        Verify.Throws<ArgumentException>(() => new ActionQueue<int>(x => { }, maxQueue: -1, maxWorkers: 1));
+        Verify.Throws<ArgumentException>(() => new ActionBlock2<int>(x => { }, maxQueue: -1, maxWorkers: 1));
     }
 
     [Fact]
     public void ActionQueue_WithInvalidMaxWorkers_ShouldThrow()
     {
         // Act & Assert
-        Verify.Throws<ArgumentException>(() => new ActionQueue<int>(x => { }, maxQueue: 10, maxWorkers: 0));
+        Verify.Throws<ArgumentException>(() => new ActionBlock2<int>(x => { }, maxQueue: 10, maxWorkers: 0));
     }
 
     [Fact]
     public void ActionQueue_WithNegativeMaxWorkers_ShouldThrow()
     {
         // Act & Assert
-        Verify.Throws<ArgumentException>(() => new ActionQueue<int>(x => { }, maxQueue: 10, maxWorkers: -1));
+        Verify.Throws<ArgumentException>(() => new ActionBlock2<int>(x => { }, maxQueue: 10, maxWorkers: -1));
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class ActionQueueTests
     {
         // Arrange
         int processedValue = 0;
-        var queue = new ActionQueue<int>(x => processedValue = x);
+        var queue = new ActionBlock2<int>(x => processedValue = x);
 
         // Act
         bool result = queue.Post(42);
@@ -97,7 +97,7 @@ public class ActionQueueTests
     {
         // Arrange
         var processedValues = new List<int>();
-        var queue = new ActionQueue<int>(x => processedValues.Add(x));
+        var queue = new ActionBlock2<int>(x => processedValues.Add(x));
         var items = new[] { 1, 2, 3, 4, 5 };
 
         // Act
@@ -113,7 +113,7 @@ public class ActionQueueTests
     public void Post_NullItems_ShouldThrow()
     {
         // Arrange
-        var queue = new ActionQueue<int>(x => { });
+        var queue = new ActionBlock2<int>(x => { });
         IEnumerable<int> nullItems = null!;
 
         // Act & Assert
@@ -125,7 +125,7 @@ public class ActionQueueTests
     {
         // Arrange
         int processedValue = 0;
-        var queue = new ActionQueue<int>(x => processedValue = x);
+        var queue = new ActionBlock2<int>(x => processedValue = x);
 
         // Act
         bool result = await queue.SendAsync(42);
@@ -141,7 +141,7 @@ public class ActionQueueTests
     {
         // Arrange
         int processedValue = 0;
-        var queue = new ActionQueue<int>(x => processedValue = x);
+        var queue = new ActionBlock2<int>(x => processedValue = x);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -158,7 +158,7 @@ public class ActionQueueTests
     {
         // Arrange
         var processedValues = new List<int>();
-        var queue = new ActionQueue<int>(x => processedValues.Add(x));
+        var queue = new ActionBlock2<int>(x => processedValues.Add(x));
         var items = new[] { 1, 2, 3, 4, 5 };
 
         // Act
@@ -175,7 +175,7 @@ public class ActionQueueTests
     {
         // Arrange
         var processedValues = new List<int>();
-        var queue = new ActionQueue<int>(x => processedValues.Add(x));
+        var queue = new ActionBlock2<int>(x => processedValues.Add(x));
         var items = new[] { 1, 2, 3, 4, 5 };
         var cts = new CancellationTokenSource();
 
@@ -192,7 +192,7 @@ public class ActionQueueTests
     public async Task SendAsync_NullItems_ShouldThrow()
     {
         // Arrange
-        var queue = new ActionQueue<int>(x => { });
+        var queue = new ActionBlock2<int>(x => { });
         IEnumerable<int> nullItems = null!;
 
         // Act & Assert
@@ -203,7 +203,7 @@ public class ActionQueueTests
     public async Task SendAsync_CancelledToken_ShouldThrowOperationCanceledException()
     {
         // Arrange
-        var queue = new ActionQueue<int>(async x => await Task.Delay(1000), maxQueue: 1);
+        var queue = new ActionBlock2<int>(async x => await Task.Delay(1000), maxQueue: 1);
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -216,7 +216,7 @@ public class ActionQueueTests
     {
         // Arrange
         var tcs = new TaskCompletionSource<bool>();
-        var queue = new ActionQueue<int>(async x => await tcs.Task, maxQueue: 10, maxWorkers: 1);
+        var queue = new ActionBlock2<int>(async x => await tcs.Task, maxQueue: 10, maxWorkers: 1);
 
         // Act
         queue.Post(1);
@@ -235,7 +235,7 @@ public class ActionQueueTests
     public async Task IsCompleted_ShouldBeTrueAfterClose()
     {
         // Arrange
-        var queue = new ActionQueue<int>(x => { });
+        var queue = new ActionBlock2<int>(x => { });
 
         // Act
         queue.IsCompleted.BeFalse();
@@ -250,7 +250,7 @@ public class ActionQueueTests
     {
         // Arrange
         int processedValue = 0;
-        var queue = new ActionQueue<int>(x => { Thread.Sleep(100); processedValue = x; });
+        var queue = new ActionBlock2<int>(x => { Thread.Sleep(100); processedValue = x; });
 
         // Act
         queue.Post(42);
@@ -266,7 +266,7 @@ public class ActionQueueTests
     {
         // Arrange
         int processedValue = 0;
-        var queue = new ActionQueue<int>(async x => { await Task.Delay(100); processedValue = x; });
+        var queue = new ActionBlock2<int>(async x => { await Task.Delay(100); processedValue = x; });
 
         // Act
         queue.Post(42);
@@ -281,7 +281,7 @@ public class ActionQueueTests
     public async Task CloseAsync_WithCancellationToken_ShouldComplete()
     {
         // Arrange
-        var queue = new ActionQueue<int>(x => { });
+        var queue = new ActionBlock2<int>(x => { });
         var cts = new CancellationTokenSource();
 
         // Act
@@ -297,7 +297,7 @@ public class ActionQueueTests
     {
         // Arrange
         int processedValue = 0;
-        var queue = new ActionQueue<int>(x => processedValue = x);
+        var queue = new ActionBlock2<int>(x => processedValue = x);
 
         // Act
         queue.Post(42);
@@ -313,7 +313,7 @@ public class ActionQueueTests
     {
         // Arrange
         var processOrder = new List<int>();
-        var queue = new ActionQueue<int>(async x =>
+        var queue = new ActionBlock2<int>(async x =>
         {
             await Task.Delay(50);
             lock (processOrder) processOrder.Add(x);
@@ -338,7 +338,7 @@ public class ActionQueueTests
         var maxConcurrent = 0;
         var lockObj = new object();
 
-        var queue = new ActionQueue<int>(async x =>
+        var queue = new ActionBlock2<int>(async x =>
         {
             lock (lockObj)
             {
@@ -371,7 +371,7 @@ public class ActionQueueTests
     {
         // Arrange
         var tcs = new TaskCompletionSource<bool>();
-        var queue = new ActionQueue<int>(async x => await tcs.Task, maxQueue: 2, maxWorkers: 1);
+        var queue = new ActionBlock2<int>(async x => await tcs.Task, maxQueue: 2, maxWorkers: 1);
 
         // Act
         var result1 = queue.Post(1);
@@ -392,7 +392,7 @@ public class ActionQueueTests
     {
         // Arrange
         var processedCount = 0;
-        var queue = new ActionQueue<int>(async x =>
+        var queue = new ActionBlock2<int>(async x =>
         {
             await Task.CompletedTask;
             if (x == 2) throw new InvalidOperationException("Test exception");
@@ -426,7 +426,7 @@ public class ActionQueueTests
     {
         // Arrange
         var processedItems = new List<string>();
-        var queue = new ActionQueue<TestItem>(x => processedItems.Add(x.Name));
+        var queue = new ActionBlock2<TestItem>(x => processedItems.Add(x.Name));
         var items = new[]
         {
             new TestItem { Id = 1, Name = "Item1" },
@@ -446,7 +446,7 @@ public class ActionQueueTests
     public async Task Post_AfterClose_ShouldReturnFalse()
     {
         // Arrange
-        var queue = new ActionQueue<int>(x => { });
+        var queue = new ActionBlock2<int>(x => { });
         await queue.CloseAsync();
 
         // Act
@@ -460,7 +460,7 @@ public class ActionQueueTests
     public async Task SendAsync_AfterClose_ShouldReturnFalse()
     {
         // Arrange
-        var queue = new ActionQueue<int>(x => { });
+        var queue = new ActionBlock2<int>(x => { });
         await queue.CloseAsync();
 
         // Act
