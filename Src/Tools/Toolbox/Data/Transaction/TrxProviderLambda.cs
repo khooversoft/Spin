@@ -21,7 +21,7 @@ public class TrxProviderLambda : ITrxProvider
     public void AttachRecorder(TrxRecorder trxRecorder) { }
     public void DetachRecorder() { }
     public Task<Option> Start() => new Option(StatusCode.OK).ToTaskResult();
-    public Task<Option> Commit() => new Option(StatusCode.OK).ToTaskResult();
+    public Task<Option> Commit(DataChangeRecord dcr) => new Option(StatusCode.OK).ToTaskResult();
 
     public Task<Option> Rollback(DataChangeEntry dataChangeRecord) => _rollback(dataChangeRecord);
 

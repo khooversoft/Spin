@@ -10,7 +10,7 @@ public interface ITrxProvider
     void DetachRecorder();
 
     public Task<Option> Start();
-    public Task<Option> Commit();
+    public Task<Option> Commit(DataChangeRecord dcr);
     public Task<Option> Rollback(DataChangeEntry dataChangeRecord);
     Task<Option> Recovery(IEnumerable<DataChangeRecord> records);
     Task<Option> Checkpoint();

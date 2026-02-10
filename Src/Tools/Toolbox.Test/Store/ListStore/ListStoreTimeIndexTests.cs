@@ -97,9 +97,8 @@ public class ListStoreTimeIndexTests
 
         async Task testEntry(DataChangeEntry selectedEntry)
         {
-            DateTime timeIndex = LogSequenceNumber.ConvertToDateTime(selectedEntry.LogSequenceNumber);
-
-            var readOption = await listStore.GetHistory(key, timeIndex);
+            Lsn timeIndex = LogSequenceNumber.Parse(selectedEntry.LogSequenceNumber);
+            var readOption = await listStore.GetHistory(key, timeIndex.TimestampDate);
 
             var list = readOption.BeOk().Return()
                 .FirstOrDefault(x => x.LogSequenceNumber == selectedEntry.LogSequenceNumber)

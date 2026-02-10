@@ -35,10 +35,13 @@ public partial class MemoryStore : ITrxProvider
         return new Option(StatusCode.OK).ToTaskResult();
     }
 
-    public Task<Option> Commit()
+    public Task<Option> Commit(DataChangeRecord dcr)
     {
+        dcr.NotNull();
         _recorder.NotNull("Record not attached");
         _runState.TryMove(RunState.TransactionRunning, RunState.Ready).BeTrue("MemoryStore is not in transaction.");
+
+        _logSequenceNumber = dcr.GetLastLogSequenceNumber();
         return new Option(StatusCode.OK).ToTaskResult();
     }
 
@@ -47,7 +50,6 @@ public partial class MemoryStore : ITrxProvider
         switch (entry.Action)
         {
             case ChangeOperation.Add:
-                entry.After.NotNull("After value must be present for add operation.");
                 _store.TryRemove(entry.ObjectId, out var _);
                 break;
 
@@ -77,7 +79,39 @@ public partial class MemoryStore : ITrxProvider
 
     public Task<Option> Recovery(IEnumerable<DataChangeRecord> records)
     {
-        throw new NotImplementedException();
+        records.NotNull();
+
+        var storeLastLsn = LogSequenceNumber.Parse(_logSequenceNumber);
+
+        foreach (var record in records)
+        {
+            var lsn = record.GetLastLogSequenceNumber().NotNull().Func(x => LogSequenceNumber.Parse(x));
+            if ( lsn <= storeLastLsn ) continue;
+
+            foreach (var entry in record.Entries)
+            {
+                switch (entry.Action)
+                {
+                    case ChangeOperation.Add:
+                        entry.After.NotNull("After value must be present for add operation.");
+                        _store.TryAdd(entry.ObjectId, entry.After.ToObject<DirectoryDetail>());
+                        break;
+
+                    case ChangeOperation.Delete:
+                        _store.TryRemove(entry.ObjectId, out var _).BeTrue();
+                        break;
+
+                    case ChangeOperation.Update:
+                        entry.After.NotNull("Before value must be present for update operation.");
+                        _store[entry.ObjectId] = entry.After.ToObject<DirectoryDetail>();
+                        break;
+                }
+
+                _logSequenceNumber = entry.LogSequenceNumber;
+            }
+        }
+
+        return new Option(StatusCode.OK).ToTaskResult();
     }
 
     public Task<Option> Checkpoint() => new Option(StatusCode.OK).ToTaskResult();

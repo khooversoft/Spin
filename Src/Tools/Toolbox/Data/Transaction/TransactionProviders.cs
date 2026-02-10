@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -6,9 +8,9 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public class TransactionProviders
+public class TransactionProviders : IEnumerable<ITrxProvider>
 {
-    private readonly ConcurrentDictionary<string, ITrxProvider> _dict = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, ITrxProvider> _providers = new(StringComparer.OrdinalIgnoreCase);
     private readonly Transaction _parent;
     private readonly Action _testOpen;
     private readonly ILogger _logger;
@@ -21,13 +23,13 @@ public class TransactionProviders
         _logger = logger;
     }
 
-    public int Count => _dict.Count;
+    public int Count => _providers.Count;
 
     public void Enlist(ITrxProvider provider)
     {
         provider.NotNull();
         _testOpen();
-        _dict.TryAdd(provider.SourceName, provider).BeTrue($"Provider with sourceName={provider.SourceName} is already enlisted");
+        _providers.TryAdd(provider.SourceName, provider).BeTrue($"Provider with sourceName={provider.SourceName} is already enlisted");
 
         provider.AttachRecorder(_parent.TrxRecorder);
     }
@@ -36,7 +38,7 @@ public class TransactionProviders
     {
         _testOpen();
         provider.NotNull();
-        _dict.TryRemove(provider.SourceName, out var _).BeTrue($"Provider with sourceName={provider.SourceName} is not enlisted");
+        _providers.TryRemove(provider.SourceName, out var _).BeTrue($"Provider with sourceName={provider.SourceName} is not enlisted");
 
         lock (provider)
         {
@@ -48,16 +50,17 @@ public class TransactionProviders
     {
         _testOpen();
 
-        lock (_dict)
+        lock (_providers)
         {
-            var providers = _dict.Values.ToList();
+            var providers = _providers.Values.ToList();
             foreach (var provider in providers) Delist(provider);
         }
     }
 
     public async Task<Option> Start() => await Run(async x => await x.Start());
-    public async Task<Option> Commit() => await Run(async x => await x.Commit());
+    public async Task<Option> Commit(DataChangeRecord dcr) => await Run(async x => await x.Commit(dcr));
     public async Task<Option> Checkpoint() => await Run(async x => await x.Checkpoint());
+    public async Task<Option> Recovery(IReadOnlyList<DataChangeRecord> records) => await Run(async x => await x.Recovery(records));
 
     public async Task<Option> Rollback(DataChangeEntry entry)
     {
@@ -65,7 +68,7 @@ public class TransactionProviders
 
         try
         {
-            if (!_dict.TryGetValue(entry.SourceName, out var provider)) return StatusCode.OK;
+            if (!_providers.TryGetValue(entry.SourceName, out var provider)) return StatusCode.OK;
 
             var result = await provider.Rollback(entry);
             if (result.IsError())
@@ -82,12 +85,13 @@ public class TransactionProviders
         }
     }
 
+
     private async Task<Option> Run(Func<ITrxProvider, Task<Option>> action)
     {
         await _gate.WaitAsync();
         try
         {
-            foreach (var provider in _dict.Values)
+            foreach (var provider in _providers.Values)
             {
                 var result = await action(provider);
                 if (result.IsError())
@@ -113,4 +117,12 @@ public class TransactionProviders
             result.Error
             );
     }
+
+    public IEnumerator<ITrxProvider> GetEnumerator()
+    {
+        var snapshot = _providers.Values.ToArray();
+        foreach (var provider in snapshot) yield return provider;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

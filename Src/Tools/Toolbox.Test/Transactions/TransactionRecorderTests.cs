@@ -340,15 +340,15 @@ public class TransactionRecorderTests
 
         transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
-        transaction.RunState.Be(RunState.None);
+        transaction.RunState.Be(TrxRunState.None);
 
         await transaction.Start();
-        transaction.RunState.Be(RunState.Active);
+        transaction.RunState.Be(TrxRunState.Active);
 
         transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
 
         await transaction.Rollback();
-        transaction.RunState.Be(RunState.None);
+        transaction.RunState.Be(TrxRunState.None);
     }
 
     [Fact]
@@ -386,7 +386,7 @@ public class TransactionRecorderTests
 
         var result = await transaction.Rollback();
         result.StatusCode.Be(StatusCode.InternalServerError);
-        transaction.RunState.Be(RunState.None);
+        transaction.RunState.Be(TrxRunState.None);
 
         (handler1Count + handler2Count + handler3Count).Be(2);
     }
@@ -791,23 +791,23 @@ public class TransactionRecorderTests
         transaction.EnlistLambda("source1", entry => new Option(StatusCode.OK).ToTaskResult());
 
         // Initial state
-        transaction.RunState.Be(RunState.None);
+        transaction.RunState.Be(TrxRunState.None);
 
         // After start
         await transaction.Start();
-        transaction.RunState.Be(RunState.Active);
+        transaction.RunState.Be(TrxRunState.Active);
 
         // After commit
         await transaction.Commit();
-        transaction.RunState.Be(RunState.None);
+        transaction.RunState.Be(TrxRunState.None);
 
         // Start again for rollback test
         await transaction.Start();
-        transaction.RunState.Be(RunState.Active);
+        transaction.RunState.Be(TrxRunState.Active);
         transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
 
         // After rollback
         await transaction.Rollback();
-        transaction.RunState.Be(RunState.None);
+        transaction.RunState.Be(TrxRunState.None);
     }
 }

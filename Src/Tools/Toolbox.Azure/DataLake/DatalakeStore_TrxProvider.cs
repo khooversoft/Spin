@@ -18,7 +18,7 @@ public partial class DatalakeStore : ITrxProvider
     public void DetachRecorder() => _recorder = null;
 
     public Task<Option> Start() => new Option(StatusCode.OK).ToTaskResult();
-    public Task<Option> Commit() => new Option(StatusCode.OK).ToTaskResult();
+    public Task<Option> Commit(DataChangeRecord dcr) => new Option(StatusCode.OK).ToTaskResult();
 
     public async Task<Option> Rollback(DataChangeEntry entry)
     {

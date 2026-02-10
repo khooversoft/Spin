@@ -7,7 +7,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public enum RunState
+public enum TrxRunState
 {
     None,
     Active,
@@ -16,7 +16,7 @@ public enum RunState
     Failed,
 }
 
-public class Transaction
+public partial class Transaction
 {
     private readonly ConcurrentQueue<DataChangeEntry> _queue = new();
     private readonly TransactionOption _trxOption;
@@ -24,7 +24,7 @@ public class Transaction
     private readonly IListStore<DataChangeRecord> _changeClient;
     private readonly ILogger<Transaction> _logger;
     private readonly TransactionProviders _providers;
-    private EnumState<RunState> _runState = new(RunState.None);
+    private EnumState<TrxRunState> _runState = new(TrxRunState.None);
 
     public Transaction(
         TransactionOption trxOption,
@@ -38,7 +38,7 @@ public class Transaction
         _changeClient = changeClient.NotNull();
         _logger = logger.NotNull();
 
-        Action testRunning = () => _runState.IfValue(RunState.None).BeTrue("Transaction most not be started");
+        Action testRunning = () => _runState.IfValue(TrxRunState.None).BeTrue("Transaction most not be started");
 
         TrxRecorder = new TrxRecorder(this);
         _providers = new TransactionProviders(this, testRunning, _logger);
@@ -46,7 +46,7 @@ public class Transaction
 
     public string TransactionId { get; private set; } = Guid.NewGuid().ToString();
     public TrxRecorder TrxRecorder { get; }
-    public RunState RunState => _runState.Value;
+    public TrxRunState RunState => _runState.Value;
     public TransactionProviders Providers => _providers;
 
     public async Task Start()
@@ -54,7 +54,7 @@ public class Transaction
         _providers.Count.Assert(x => x > 0, "No providers registered");
         _queue.Count.Assert(x => x == 0, "Transaction queue is not empty");
 
-        _runState.TryMove(RunState.None, RunState.Active).BeTrue("Active is already in progress");
+        _runState.TryMove(TrxRunState.None, TrxRunState.Active).BeTrue("Active is already in progress");
         TransactionId = Guid.NewGuid().ToString();
         await Providers.Start();
 
@@ -63,7 +63,7 @@ public class Transaction
 
     public void Enqueue(DataChangeEntry entry)
     {
-        _runState.IfValue(RunState.Active).BeTrue("Transaction is not in progress");
+        _runState.IfValue(TrxRunState.Active).BeTrue("Transaction is not in progress");
         entry.NotNull().Validate().ThrowOnError();
         _logger.LogTrace("Enqueue Transaction Entry: {entry}", entry);
 
@@ -72,9 +72,9 @@ public class Transaction
 
     public void Enqueue<T>(string sourceName, string objectId, string action, DataETag? before, DataETag? after)
     {
-        if (_runState.IfValue(RunState.RollingBack)) return;
+        if (_runState.IfValue(TrxRunState.RollingBack)) return;
 
-        _runState.IfValue(RunState.Active).BeTrue("Transaction is not in progress");
+        _runState.IfValue(TrxRunState.Active).BeTrue("Transaction is not in progress");
         _logger.LogTrace("Enqueue Transaction sourceName={sourceName}, objectId={objectId}", sourceName, objectId);
 
         var entry = new DataChangeEntry
@@ -96,7 +96,7 @@ public class Transaction
 
     public async Task<Option> Commit()
     {
-        _runState.TryMove(RunState.Active, RunState.Committing).BeTrue("Transaction is not in progress");
+        _runState.TryMove(TrxRunState.Active, TrxRunState.Committing).BeTrue("Transaction is not in progress");
         _logger.LogTrace("Committing transaction with count={count}", _queue.Count);
 
         var dataChangeRecord = new DataChangeRecord
@@ -107,10 +107,10 @@ public class Transaction
 
         _queue.Clear();
         var r1 = await CommitJournal(dataChangeRecord);
-        _runState.TryMove(RunState.Committing, RunState.None).BeTrue("Transaction is not in finalized");
+        _runState.TryMove(TrxRunState.Committing, TrxRunState.None).BeTrue("Transaction is not in finalized");
         if (r1.IsError()) return r1;
 
-        await Providers.Commit();
+        await Providers.Commit(dataChangeRecord);
         _logger.LogTrace("Completed committing journal to store");
 
         await Providers.Checkpoint();
@@ -121,7 +121,7 @@ public class Transaction
 
     public async Task<Option> Rollback()
     {
-        _runState.TryMove(RunState.Active, RunState.RollingBack).BeTrue("Transaction is not in progress");
+        _runState.TryMove(TrxRunState.Active, TrxRunState.RollingBack).BeTrue("Transaction is not in progress");
         _logger.LogTrace("Rolling back transaction with count={count}", _queue.Count);
 
         // snap shot queue and clear
@@ -134,12 +134,12 @@ public class Transaction
             if (result.IsError())
             {
                 _logger.LogError("Failed to rollback transaction entry: {entry}, error={error}", journalEntry, result.Error);
-                _runState.TryMove(RunState.RollingBack, RunState.None).BeTrue("Transaction is aborted");
+                _runState.TryMove(TrxRunState.RollingBack, TrxRunState.None).BeTrue("Transaction is aborted");
                 return result;
             }
         }
 
-        _runState.TryMove(RunState.RollingBack, RunState.None).BeTrue("Transaction is rollback");
+        _runState.TryMove(TrxRunState.RollingBack, TrxRunState.None).BeTrue("Transaction is rollback");
         _logger.LogTrace("Completed rollback");
         return StatusCode.OK;
     }

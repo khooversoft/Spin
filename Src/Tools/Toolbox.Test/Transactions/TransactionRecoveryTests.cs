@@ -57,7 +57,7 @@ public class TransactionRecoveryTests
                 {
                     config.ListSpaceName = "list";
                     config.JournalKey = "TestJournal";
-                    config.TrxProviders.Add(x => x.GetRequiredService<MemoryStore>());
+                    config.TrxProviders.Add<MemoryStore>();
                 });
             })
             .Build();
@@ -72,6 +72,17 @@ public class TransactionRecoveryTests
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
 
         await transaction.Start();
+    }
+
+    [Fact]
+    public async Task RecoveryFailsWhenTransactionIsActive()
+    {
+        var host = BuildService();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
+
+        await transaction.Start();
+
+        await Verify.ThrowsAsync<ArgumentException>(async () => await transaction.Recovery());
     }
 
     [Fact]
@@ -150,6 +161,105 @@ public class TransactionRecoveryTests
     }
 
     [Fact]
+    public async Task RecoveryAtStartupWithEmpty()
+    {
+        var host = BuildService();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var keyStore = host.Services.GetRequiredService<IKeyStore<TestRecord>>();
+        var memoryStore = host.Services.GetRequiredService<MemoryStore>();
+
+        (await transaction.Recovery()).BeOk();
+
+        (await listStore.Get("TestJournal")).BeOk().Return().Action(x =>
+        {
+            x.Count.Be(0);
+        });
+    }
+
+    [Fact]
+    public async Task RecoveryAtStartupWithData()
+    {
+        var host = BuildService();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var keyStore = host.Services.GetRequiredService<IKeyStore<TestRecord>>();
+        var memoryStore = host.Services.GetRequiredService<MemoryStore>();
+
+        const string aliceKey = "key1";
+        TestRecord alice = new("Alice", 10);
+
+        const string bobKey = "key2";
+        TestRecord bob = new("Bob", 20);
+
+        // First transaction
+        await transaction.Start();
+        (await keyStore.Set(aliceKey, alice)).BeOk();
+        (await transaction.Commit()).BeOk();
+
+        // Second transaction
+        await transaction.Start();
+        (await keyStore.Set(bobKey, bob)).BeOk();
+        (await transaction.Commit()).BeOk();
+
+        var finalSnapshot = await memoryStore.GetSnapshot();
+
+        (await transaction.Recovery()).BeOk();
+        (await memoryStore.GetSnapshot()).Be(finalSnapshot);
+
+        (await transaction.Recovery()).BeOk();
+        (await memoryStore.GetSnapshot()).Be(finalSnapshot);
+    }
+
+    [Fact]
+    public async Task RecoveryReplaysWhenLogSequenceNumberIsMissing()
+    {
+        var host = BuildService();
+        var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
+        IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
+        var keyStore = host.Services.GetRequiredService<IKeyStore<TestRecord>>();
+        var memoryStore = host.Services.GetRequiredService<MemoryStore>();
+
+        const string aliceKey = "key1";
+        TestRecord alice = new("Alice", 10);
+
+        const string bobKey = "key2";
+        TestRecord bob = new("Bob", 20);
+
+        // First transaction
+        await transaction.Start();
+        (await keyStore.Set(aliceKey, alice)).BeOk();
+        (await transaction.Commit()).BeOk();
+
+        // Second transaction
+        await transaction.Start();
+        (await keyStore.Set(bobKey, bob)).BeOk();
+        (await transaction.Commit()).BeOk();
+
+        var finalSnapshot = await memoryStore.GetSnapshot();
+        var parsedSnapshot = finalSnapshot.ToObject<MemoryStoreSerialization>().NotNull();
+
+        var journalEntries = parsedSnapshot.DirectoryDetails
+            .Where(x => x.PathDetail.Path.Like("*testjournal*"))
+            .ToArray();
+
+        var coldSnapshot = new MemoryStoreSerialization(journalEntries, logSequenceNumber: null).ToJson();
+
+        (await memoryStore.Restore(coldSnapshot)).BeOk();
+
+        var coldCurrent = await memoryStore.GetSnapshot();
+        (coldCurrent == finalSnapshot).BeFalse();
+
+        (await transaction.Recovery()).BeOk();
+
+        var recoveredSnapshot = await memoryStore.GetSnapshot();
+        (recoveredSnapshot == finalSnapshot).BeTrue();
+
+        (await keyStore.Get(aliceKey)).BeOk().Return().Be(alice);
+        (await keyStore.Get(bobKey)).BeOk().Return().Be(bob);
+    }
+
+    [Fact]
     public async Task SingleTransactionRecovery()
     {
         var host = BuildService();
@@ -178,24 +288,36 @@ public class TransactionRecoveryTests
         await transaction.Start();
         (await keyStore.Set(bobKey, bob)).BeOk();
         (await transaction.Commit()).BeOk();
-        (await listStore.Get("TestJournal")).BeOk().Return().Count.Be(2);
+        (await listStore.Get("TestJournal")).BeOk().Return().Action(x =>
+        {
+            x.Count.Be(2);
+        });
 
-        var currentJournal = s1.DirectoryDetails.Where(x => x.PathDetail.Path.Like("*testjournal*")).First();
+        var finalSnapshot = await memoryStore.GetSnapshot();
+        var s2 = finalSnapshot.ToObject<MemoryStoreSerialization>().NotNull();
+
+        var currentJournal = s2.DirectoryDetails.Where(x => x.PathDetail.Path.Like("*testjournal*")).First();
 
         var dd = s1.DirectoryDetails
             .Where(x => x.PathDetail.Path != currentJournal.PathDetail.Path)
             .Append(currentJournal)
             .ToArray();
 
-        var newSnapshot = new MemoryStoreSerialization(dd, s1.LogSequenceNumber);
+        var newSnapshot = new MemoryStoreSerialization(dd, s1.LogSequenceNumber).ToJson();
 
         // Store snapshot
-        (await memoryStore.Restore(snapshot1)).BeOk();
-        (await listStore.Get("TestJournal")).BeOk().Return().Count.Be(1);
+        (await memoryStore.Restore(newSnapshot)).BeOk();
+        (await listStore.Get("TestJournal")).BeOk().Return().Action(x =>
+        {
+            x.Count.Be(2);
+        });
 
         (await keyStore.Get(aliceKey)).BeOk().Return().Be(alice);
         (await keyStore.Get(bobKey)).BeNotFound();
 
+        (await transaction.Recovery()).BeOk();
 
+        var snapshot3 = await memoryStore.GetSnapshot();
+        (snapshot3 == finalSnapshot).BeTrue();
     }
 }
