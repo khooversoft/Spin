@@ -8,11 +8,11 @@ using Toolbox.Types;
 
 namespace Toolbox.Store;
 
-public class KeySpace : IKeyStore
+public partial class KeySpace : IKeyStore
 {
     private readonly IKeyStore _keyStore;
     private readonly ILogger<KeySpace> _logger;
-    private readonly IKeySystem _keySystem;
+    private readonly IKeyPathStrategy _keyPathStrategy;
     private readonly IMemoryCache? _memoryCache;
     private readonly ITelemetryCounter<long>? _addCounter;
     private readonly ITelemetryCounter<long>? _appendCounter;
@@ -21,10 +21,10 @@ public class KeySpace : IKeyStore
     private readonly ITelemetryCounter<long>? _setCounter;
     private readonly ITelemetryCounter<long>? _cacheHitCounter;
 
-    public KeySpace(IKeyStore keyStore, IKeySystem keySystem, ILogger<KeySpace> logger, IMemoryCache? memoryCache = null, ITelemetry? telemetry = null)
+    public KeySpace(IKeyStore keyStore, IKeyPathStrategy keySystem, ILogger<KeySpace> logger, IMemoryCache? memoryCache = null, ITelemetry? telemetry = null)
     {
         _keyStore = keyStore.NotNull();
-        _keySystem = keySystem.NotNull();
+        _keyPathStrategy = keySystem.NotNull();
         _logger = logger.NotNull();
 
         _memoryCache = memoryCache;
@@ -36,11 +36,11 @@ public class KeySpace : IKeyStore
         _cacheHitCounter = telemetry?.CreateCounter<long>("keyspace.cache.hit", "Number of Cache Hit operations", unit: "count");
     }
 
-    public IKeySystem KeySystem => _keySystem;
+    public IKeyPathStrategy KeyPathStrategy => _keyPathStrategy;
 
     public async Task<Option<string>> Add(string key, DataETag data)
     {
-        var path = _keySystem.PathBuilder(key);
+        var path = _keyPathStrategy.BuildPath(key);
         _logger.LogDebug("Add path={path}", path);
 
         var result = await _keyStore.Add(path, data);
@@ -48,6 +48,7 @@ public class KeySpace : IKeyStore
         {
             _memoryCache?.Set(path, data);
             _addCounter?.Increment();
+            _recorder?.Add(path, data);
         }
 
         return result;
@@ -55,7 +56,7 @@ public class KeySpace : IKeyStore
 
     public async Task<Option<string>> Append(string key, DataETag data, string? leaseId = null)
     {
-        var path = _keySystem.PathBuilder(key);
+        var path = _keyPathStrategy.BuildPath(key);
         _logger.LogDebug("Appending path={path}", path);
 
         _memoryCache?.Remove(path);
@@ -68,28 +69,48 @@ public class KeySpace : IKeyStore
 
     public async Task<Option> Delete(string key, string? leaseId = null)
     {
-        var path = _keySystem.PathBuilder(key);
+        var path = _keyPathStrategy.BuildPath(key);
         _logger.LogDebug("Delete path={path}", path);
 
         _memoryCache?.Remove(path);
 
+        Option<DataETag> readOption = StatusCode.NotFound;
+        if (_recorder != null)
+        {
+            readOption = await Get(key);
+            if (readOption.IsError()) return readOption.ToOptionStatus();
+        }
+
         var result = await _keyStore.Delete(path, leaseId: leaseId);
         if (result.IsOk()) _deleteCounter?.Increment();
 
+        _recorder?.Delete(path, readOption.Return());
         return result;
     }
 
-    public Task<Option> DeleteFolder(string key)
+    public async Task<Option> DeleteFolder(string key)
     {
-        var path = _keySystem.BuildDeleteFolder(key);
-        _logger.LogDebug("Delete folder path={path}", path);
+        if (_keyPathStrategy is KeyPathStrategy keyPathStrategy)
+        {
+            var path = keyPathStrategy.BuildDeleteFolder(key);
+            _logger.LogDebug("Delete folder path={path}", path);
+            return await _keyStore.DeleteFolder(path);
+        }
 
-        return _keyStore.DeleteFolder(path);
+        var keySearch = _keyPathStrategy.BuildKeySearch(key);
+        var fileList = await Search(keySearch);
+        foreach (var file in fileList)
+        {
+            string onlyKey = _keyPathStrategy.ExtractKey(file.Path);
+            await Delete(onlyKey);
+        }
+
+        return StatusCode.OK;
     }
 
     public async Task<Option<DataETag>> Get(string key)
     {
-        var path = _keySystem.PathBuilder(key);
+        var path = _keyPathStrategy.BuildPath(key);
         _logger.LogDebug("Get path={path}", path);
 
         if (_memoryCache?.TryGetValue(path, out DataETag? cachedData) == true)
@@ -110,8 +131,11 @@ public class KeySpace : IKeyStore
 
     public async Task<Option<string>> Set(string key, DataETag data, string? leaseId = null)
     {
-        var path = _keySystem.PathBuilder(key);
+        var path = _keyPathStrategy.BuildPath(key);
         _logger.LogDebug("Set path={path}", path);
+
+        Option<DataETag> currentDataOption = StatusCode.NotFound;
+        if (_recorder != null) currentDataOption = await Get(key);
 
         var result = await _keyStore.Set(path, data, leaseId: leaseId);
         if (result.IsOk())
@@ -120,12 +144,20 @@ public class KeySpace : IKeyStore
             _setCounter?.Increment();
         }
 
+        if (_recorder != null)
+        {
+            if (currentDataOption.IsOk())
+                _recorder?.Update(path, currentDataOption.Return(), data);
+            else
+                _recorder?.Add(path, data);
+        }
+
         return result;
     }
 
     public Task<Option> Exists(string key)
     {
-        var path = _keySystem.PathBuilder(key);
+        var path = _keyPathStrategy.BuildPath(key);
         _logger.LogDebug("Exists path={path}", path);
 
         return _keyStore.Exists(path);
@@ -133,65 +165,27 @@ public class KeySpace : IKeyStore
 
     public async Task<Option<StorePathDetail>> GetDetails(string key)
     {
-        var path = _keySystem.PathBuilder(key);
+        var path = _keyPathStrategy.BuildPath(key);
         _logger.LogDebug("GetDetails path={path}", path);
 
         var resultOption = await _keyStore.GetDetails(path);
         if (resultOption.IsError()) return resultOption;
 
         var result = resultOption.Return();
-        return result with { Path = _keySystem.RemovePathPrefix(result.Path) };
+        return result with { Path = _keyPathStrategy.RemoveBasePath(result.Path) };
     }
 
     public async Task<IReadOnlyList<StorePathDetail>> Search(string pattern, int index = 0, int size = -1)
     {
-        string fullPattern = _keySystem.BuildSearch(pattern);
+        string fullPattern = _keyPathStrategy.BuildSearch(pattern);
         _logger.LogDebug("Search fullPattern={fullPattern}", fullPattern);
 
         var searchResult = await _keyStore.Search(fullPattern, index, size);
 
         IReadOnlyList<StorePathDetail> result = searchResult
-            .Select(x => x with { Path = _keySystem.RemovePathPrefix(x.Path) })
+            .Select(x => x with { Path = _keyPathStrategy.RemoveBasePath(x.Path) })
             .ToImmutableArray();
 
         return result;
-    }
-
-    public Task<Option<string>> AcquireExclusiveLock(string key, bool breakLeaseIfExist)
-    {
-        var path = _keySystem.PathBuilder(key);
-        _logger.LogDebug("AcquireExclusiveLock path={path}", path);
-
-        return _keyStore.AcquireExclusiveLock(path, breakLeaseIfExist);
-    }
-
-    public Task<Option<string>> AcquireLease(string key, TimeSpan leaseDuration)
-    {
-        var path = _keySystem.PathBuilder(key);
-        _logger.LogDebug("AcquireLease path={path}", path);
-
-        return _keyStore.AcquireLease(path, leaseDuration);
-    }
-
-    public Task<Option> BreakLease(string key)
-    {
-        var path = _keySystem.PathBuilder(key);
-        _logger.LogDebug("BreakLease path={path}", path);
-
-        return _keyStore.BreakLease(path);
-    }
-
-    public Task<Option> ReleaseLease(string key, string leaseId)
-    {
-        var path = _keySystem.PathBuilder(key);
-        _logger.LogDebug("Release path={path}, leaseId={leaseId}", path, leaseId);
-        return _keyStore.ReleaseLease(path, leaseId);
-    }
-
-    public Task<Option> RenewLease(string key, string leaseId)
-    {
-        var path = _keySystem.PathBuilder(key);
-        _logger.LogDebug("RenewLease path={path}, leaseId={leaseId}", path, leaseId);
-        return _keyStore.RenewLease(path, leaseId);
     }
 }

@@ -12,14 +12,12 @@ public interface ITrxProvider
     public Task<Option> Start();
     public Task<Option> Commit(DataChangeRecord dcr);
     public Task<Option> Rollback(DataChangeEntry dataChangeRecord);
-    Task<Option> Recovery(IEnumerable<DataChangeRecord> records);
+    Task<Option> Recovery(TrxRecoveryScope trxRecoveryScope);
     Task<Option> Checkpoint();
     Task<Option> Restore(string json);
 
     void SetLogSequenceNumber(string lsn);
-    string? GetLogSequenceNumber();
-
-    Task<string> GetSnapshot();
+    Option<string> GetLogSequenceNumber();
 }
 
 public static class TrxProviderExtensions

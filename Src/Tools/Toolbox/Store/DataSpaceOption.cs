@@ -10,7 +10,6 @@ public enum SpaceFormat
     Key,
     Hash,
     List,
-    Sequence
 }
 
 public class DataSpaceOption
@@ -32,12 +31,14 @@ public record SpaceDefinition
     public string BasePath { get; init; } = null!;
     public SpaceFormat SpaceFormat { get; init; }
     public bool UseCache { get; init; }
+    public int MaxBlockSizeMB { get; init; } = 8;  // Used for list
 
     public static IValidator<SpaceDefinition> Validator { get; } = new Validator<SpaceDefinition>()
         .RuleFor(x => x.Name).NotEmpty()
         .RuleFor(x => x.ProviderName).NotEmpty()
         .RuleFor(x => x.BasePath).NotEmpty()
         .RuleFor(x => x.SpaceFormat).ValidEnum()
+        .RuleFor(x => x.MaxBlockSizeMB).Must(x => x > 0, x => $"Out of range")
         .Build();
 }
 

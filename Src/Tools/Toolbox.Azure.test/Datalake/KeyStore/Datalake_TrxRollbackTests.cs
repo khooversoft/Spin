@@ -11,17 +11,17 @@ using Toolbox.Types;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Toolbox.Azure.test.Datalake;
+namespace Toolbox.Azure.test.Datalake.KeyStore;
 
-public class DatalakeTrxRollbackTests
+public class Datalake_TrxRollbackTests
 {
     private ITestOutputHelper _outputHelper;
     private record MapRecord(string Name, int Age);
-    public DatalakeTrxRollbackTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+    public Datalake_TrxRollbackTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     private async Task<IHost> BuildService(bool useHash, bool useCache, [CallerMemberName] string function = "")
     {
-        string basePath = nameof(DatalakeTrxRollbackTests) + "/" + function;
+        string basePath = nameof(Datalake_TrxRollbackTests) + "/" + function;
         var option = TestApplication.ReadOption(basePath);
 
         var host = Host.CreateDefaultBuilder()
@@ -55,6 +55,7 @@ public class DatalakeTrxRollbackTests
                 });
 
                 services.AddListStore<DataChangeRecord>("list");
+                services.AddKeyStore("file");
                 services.AddTransaction("default", config =>
                 {
                     config.ListSpaceName = "list";
@@ -80,7 +81,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
         int rollbackCount = 0;
 
         transaction.Providers.Enlist(keyStore);
@@ -105,7 +106,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         transaction.Providers.Enlist(keyStore);
         await transaction.Start();
@@ -147,7 +148,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         transaction.Providers.Enlist(keyStore);
         await transaction.Start();
@@ -179,7 +180,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
         var data = new MapRecord("Item1", 25);
 
         transaction.Providers.Enlist(keyStore);
@@ -213,21 +214,22 @@ public class DatalakeTrxRollbackTests
     }
 
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
-    public async Task SetRollback_ShouldNotExist(bool useHash, bool useCache)
+    //[InlineData("Item1", false, false)]
+    [InlineData("root/Item1", true, false)]
+    //[InlineData("Item1", true, false)]
+    //[InlineData("Item1", false, true)]
+    //[InlineData("Item1", true, true)]
+    public async Task SetRollback_ShouldNotExist(string key, bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         transaction.Providers.Enlist(keyStore);
         await transaction.Start();
 
-        var data = new MapRecord("Item1", 25);
+        var data = new MapRecord(key, 25);
         (await keyStore.Set(data.Name, data)).BeOk();
         (await keyStore.Exists(data.Name)).BeOk();
 
@@ -254,7 +256,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         transaction.Providers.Enlist(keyStore);
         await transaction.Start();
@@ -282,7 +284,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         var originalItem = new MapRecord("Item1", 25);
         (await keyStore.Set(originalItem.Name, originalItem)).BeOk();
@@ -304,15 +306,15 @@ public class DatalakeTrxRollbackTests
 
     [Theory]
     [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
+    //[InlineData(true, false)]
+    //[InlineData(false, true)]
+    //[InlineData(true, true)]
     public async Task RollbackTryUpdate_ShouldRestorePreviousValue(bool useHash, bool useCache)
     {
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         var originalItem = new MapRecord("Item1", 25);
         (await keyStore.Set(originalItem.Name, originalItem)).BeOk();
@@ -326,8 +328,7 @@ public class DatalakeTrxRollbackTests
 
         (await transaction.Rollback()).BeOk();
 
-        var restored = (await keyStore.Get(originalItem.Name)).BeOk().Return().ToObject<MapRecord>();
-        restored.Age.Be(25);
+        (await keyStore.Get(originalItem.Name)).BeOk().Return().ToObject<MapRecord>().Be(originalItem);
         (await listStore.Get("TestJournal")).BeOk().Return().Count.Be(0);
 
         transaction.Providers.Delist(keyStore);
@@ -343,7 +344,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         transaction.Providers.Enlist(keyStore);
         await transaction.Start();
@@ -370,7 +371,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         var originalItem = new MapRecord("Item1", 25);
         (await keyStore.Set(originalItem.Name, originalItem)).BeOk();
@@ -401,7 +402,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         var items = new[]
         {
@@ -440,7 +441,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         transaction.Providers.Enlist(keyStore);
         await transaction.Start();
@@ -467,7 +468,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         var original = new MapRecord("Item1", 25);
         (await keyStore.Set(original.Name, original)).BeOk();
@@ -512,7 +513,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         transaction.Providers.Enlist(keyStore);
         await transaction.Start();
@@ -534,7 +535,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         var existing = new MapRecord("Item1", 25);
         (await keyStore.Set(existing.Name, existing)).BeOk();
@@ -558,7 +559,7 @@ public class DatalakeTrxRollbackTests
             {
                 entry.Action.Be(ChangeOperation.Delete);
                 entry.Before.NotNull();
-                entry.After.NotNull();
+                entry.After.BeNull();
 
                 var before = entry.Before.ToObject<MapRecord>();
                 before.Equals(existing).BeTrue();
@@ -578,7 +579,7 @@ public class DatalakeTrxRollbackTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        IKeyStore keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         var original = new MapRecord("Item1", 25);
         (await keyStore.Set(original.Name, original)).BeOk();

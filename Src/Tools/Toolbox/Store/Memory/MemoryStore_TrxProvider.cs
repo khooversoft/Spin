@@ -22,9 +22,6 @@ public partial class MemoryStore : ITrxProvider
     public string SourceName => SourceNameText;
     public string StoreName => SourceNameText;
 
-    public string? GetLogSequenceNumber() => _logSequenceNumber;
-    public void SetLogSequenceNumber(string lsn) => Interlocked.Exchange(ref _logSequenceNumber, lsn.NotEmpty());
-
     public void AttachRecorder(TrxRecorder trxRecorder) => _recorder = trxRecorder.NotNull().ForSource(SourceName);
     public void DetachRecorder() => _recorder = null;
 
@@ -67,26 +64,16 @@ public partial class MemoryStore : ITrxProvider
         return new Option(StatusCode.OK).ToTaskResult();
     }
 
-    public Task<string> GetSnapshot()
+    public Task<Option> Recovery(TrxRecoveryScope trxRecoveryScope)
     {
-        lock (_lock)
-        {
-            var data = new MemoryStoreSerialization(_store.Values, _logSequenceNumber);
-            var json = data.ToJson();
-            return json.ToTaskResult();
-        }
-    }
-
-    public Task<Option> Recovery(IEnumerable<DataChangeRecord> records)
-    {
-        records.NotNull();
+        trxRecoveryScope.NotNull();
 
         var storeLastLsn = LogSequenceNumber.Parse(_logSequenceNumber);
 
-        foreach (var record in records)
+        foreach (var record in trxRecoveryScope.Records)
         {
             var lsn = record.GetLastLogSequenceNumber().NotNull().Func(x => LogSequenceNumber.Parse(x));
-            if ( lsn <= storeLastLsn ) continue;
+            if (lsn <= storeLastLsn) continue;
 
             foreach (var entry in record.Entries)
             {
@@ -124,15 +111,24 @@ public partial class MemoryStore : ITrxProvider
             _store.Clear();
             _leaseStore.Clear();
 
-            foreach (var detail in data.DirectoryDetails)
-            {
-                _store[detail.PathDetail.Path] = detail;
-            }
-
+            foreach (var detail in data.DirectoryDetails) _store[detail.PathDetail.Path] = detail;
             _logSequenceNumber = data.LogSequenceNumber;
         }
 
         return new Option(StatusCode.OK).ToTaskResult();
+    }
+
+    public Option<string> GetLogSequenceNumber() => _logSequenceNumber switch { null => StatusCode.NotFound, var lsn => lsn, };
+    public void SetLogSequenceNumber(string lsn) => Interlocked.Exchange(ref _logSequenceNumber, lsn.NotEmpty());
+
+    public Task<Option<string>> GetSnapshot()
+    {
+        lock (_lock)
+        {
+            var data = new MemoryStoreSerialization(_store.Values, _logSequenceNumber);
+            var json = data.ToJson();
+            return new Option<string>(json).ToTaskResult();
+        }
     }
 
     private bool CanModify => _recorder is null || _runState.IfValue(RunState.TransactionRunning);

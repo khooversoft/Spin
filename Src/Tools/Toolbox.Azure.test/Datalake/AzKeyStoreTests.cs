@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Toolbox.Azure.test.Application;
-using Toolbox.Test.Store.ListStore;
+using Toolbox.Test.Store.KeyStore;
 using Xunit.Abstractions;
 
 namespace Toolbox.Azure.test.Datalake;
 
-public class Datalake_ListIndexTests : ListStoreTimeIndexTests
+public class AzKeyStoreTests : KeyStoreTests
 {
-    public Datalake_ListIndexTests(ITestOutputHelper outputHelper) : base(outputHelper)
+    public AzKeyStoreTests(ITestOutputHelper outputHelper) : base(outputHelper)
     {
     }
 

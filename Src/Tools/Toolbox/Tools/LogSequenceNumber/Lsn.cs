@@ -1,39 +1,7 @@
 ﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
-using Toolbox.Extensions;
+using System.Text.RegularExpressions;
 
 namespace Toolbox.Tools;
-
-public class LogSequenceNumber
-{
-    private long _counter = 0;
-
-    public long GetCounter() => _counter;
-
-    public string Next()
-    {
-        var counter = Interlocked.Increment(ref _counter);
-
-        string randString = RandomNumberGenerator.GetBytes(2).Func(x => BitConverter.ToUInt16(x, 0).ToString("X4"));
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-
-        var result = $"{now.ToUnixTimeMilliseconds():D15}-{counter.ToString("D6")}-{randString}";
-        return result;
-    }
-
-    public static Lsn Parse(string? logSequenceNumber)
-    {
-        if (logSequenceNumber.IsEmpty()) return Lsn.Default;
-
-        // format = "{timestamp in milliseconds since epoch}-{counter}-{random string}"
-        long.TryParse(logSequenceNumber[..15], out long milliseconds).Assert(x => x == true, "Invalid log sequence number format");
-        var timestamp = DateTimeOffset.FromUnixTimeMilliseconds(milliseconds).UtcDateTime;
-        long.TryParse(logSequenceNumber[16..22], out long counter).Assert(x => x == true, "Invalid log sequence number format");
-
-        return new Lsn(timestamp, counter);
-    }
-}
 
 [DebuggerDisplay("Timestamp = {Timestamp}, Counter = {Counter}, TimestampDate={TimestampDate}")]
 public readonly struct Lsn : IEquatable<Lsn>
@@ -73,4 +41,34 @@ public readonly struct Lsn : IEquatable<Lsn>
 
     public static bool operator >=(Lsn left, Lsn right) =>
         left > right || left == right;
+
+    public static Lsn Parse(string sequenceNumber) => LsnTool.Parse(sequenceNumber);
+}
+
+public static partial class LsnTool
+{
+    public static Lsn Parse(string seqNumber)
+    {
+        seqNumber.NotEmpty();
+
+        Match match = KeyWithRegex().Match(seqNumber);
+        if (!match.Success) throw new ArgumentException("Invalid log sequence number format", nameof(seqNumber));
+
+        if (!long.TryParse(match.Groups["timestamp"].Value, out long timestamp))
+        {
+            throw new ArgumentException("Invalid log sequence number format", nameof(seqNumber));
+        }
+
+        if (!long.TryParse(match.Groups["counter"].Value, out long counter))
+        {
+            throw new ArgumentException("Invalid log sequence number format", nameof(seqNumber));
+        }
+
+        return new Lsn(timestamp, counter);
+    }
+
+    // Matches LSN format: {timestampMillis:D15}-{counter:D6}-{randomHex:4 alphanumeric}
+    [GeneratedRegex(@"^(?<timestamp>\d{15})-(?<counter>\d{6})-(?<randomHex>[A-Za-z0-9]{4})$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase)]
+    private static partial Regex KeyWithRegex();
+
 }

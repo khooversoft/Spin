@@ -67,17 +67,17 @@ public class DataSpace
         return keyStore.GetStore<T>(definition).NotNull();
     }
 
-    public ISequenceStore<T> GetSequenceStore<T>(string key)
-    {
-        (IStoreProvider provider, SpaceDefinition definition) = GetProvider(key);
+    //public ISequenceStore<T> GetSequenceStore<T>(string key)
+    //{
+    //    (IStoreProvider provider, SpaceDefinition definition) = GetProvider(key);
 
-        var keyStore = provider as IStoreSequenceProvider ??
-            throw new ArgumentException($"provider={definition.ProviderName} does not implement IStoreSequenceProvider");
+    //    var keyStore = provider as IStoreSequenceProvider ??
+    //        throw new ArgumentException($"provider={definition.ProviderName} does not implement IStoreSequenceProvider");
 
-        _logger.LogTrace("Getting list store for key={key}, provider={provider}", key, provider.Name);
+    //    _logger.LogTrace("Getting list store for key={key}, provider={provider}", key, provider.Name);
 
-        return keyStore.GetStore<T>(definition).NotNull();
-    }
+    //    return keyStore.GetStore<T>(definition).NotNull();
+    //}
 
     public SpaceDefinition GetSpaceDefinition(string key)
     {

@@ -22,8 +22,13 @@ public class ListStoreProvider : IStoreListProvider
     {
         definition.SpaceFormat.Assert(x => x == SpaceFormat.List, $"Invalid space format {definition.SpaceFormat} for list store");
 
-        ListKeySystem<T> listKeySystem = new(definition.BasePath);
-        var store = ActivatorUtilities.CreateInstance<ListSpace<T>>(_serviceProvider, listKeySystem);
+        KeyListStrategy<T> strategy = ActivatorUtilities.CreateInstance<KeyListStrategy<T>>(
+            _serviceProvider,
+            definition.BasePath,
+            definition.MaxBlockSizeMB
+            );
+
+        var store = ActivatorUtilities.CreateInstance<ListSpace<T>>(_serviceProvider, strategy);
 
         return store;
     }

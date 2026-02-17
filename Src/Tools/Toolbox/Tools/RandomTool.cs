@@ -48,7 +48,7 @@ public static class RandomTool
     /// </example>
     public static string GenerateRandomSequence(int hexLength = 8)
     {
-        hexLength.Assert(x => x > 0 && (x & 1) == 0 && x < 1024 * 1024, "hexLength must be a positive even number.");
+        hexLength.Assert(x => x > 0 && (x & 1) == 0 && x < 1024 * 1024, x => $"{x} hexLength must be a positive even number.");
 
         int byteLen = hexLength / 2;
 

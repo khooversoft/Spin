@@ -13,6 +13,7 @@ public enum TrxRunState
     Active,
     Committing,
     RollingBack,
+    Recovery,
     Failed,
 }
 
@@ -49,7 +50,7 @@ public partial class Transaction
     public TrxRunState RunState => _runState.Value;
     public TransactionProviders Providers => _providers;
 
-    public async Task Start()
+    public async Task<IAsyncDisposable> Start()
     {
         _providers.Count.Assert(x => x > 0, "No providers registered");
         _queue.Count.Assert(x => x == 0, "Transaction queue is not empty");
@@ -59,6 +60,9 @@ public partial class Transaction
         await Providers.Start();
 
         _logger.LogTrace("Starting transaction with id={transactionId}", TransactionId);
+
+        var scope = new CommitTrxDispose(this);
+        return scope;
     }
 
     public void Enqueue(DataChangeEntry entry)
@@ -72,7 +76,7 @@ public partial class Transaction
 
     public void Enqueue<T>(string sourceName, string objectId, string action, DataETag? before, DataETag? after)
     {
-        if (_runState.IfValue(TrxRunState.RollingBack)) return;
+        if (_runState.IfValue(TrxRunState.RollingBack) || _runState.IfValue(TrxRunState.Recovery)) return;
 
         _runState.IfValue(TrxRunState.Active).BeTrue("Transaction is not in progress");
         _logger.LogTrace("Enqueue Transaction sourceName={sourceName}, objectId={objectId}", sourceName, objectId);
@@ -157,5 +161,12 @@ public partial class Transaction
         }
 
         return StatusCode.OK;
+    }
+
+    private class CommitTrxDispose : IAsyncDisposable
+    {
+        private readonly Transaction _trx;
+        public CommitTrxDispose(Transaction trx) => _trx = trx;
+        public async ValueTask DisposeAsync() => await _trx.Commit();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,7 @@ public class KeyStore_ReadWriteTests
 {
     private ITestOutputHelper _outputHelper;
     private record TestRecord(string Name, int Age);
+    private record LargeRecord(string Name, int Age, string data);
 
     public KeyStore_ReadWriteTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
@@ -399,4 +401,34 @@ public class KeyStore_ReadWriteTests
 
         (await keyStore.DeleteFolder("non-existent-folder")).BeNotFound();
     }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task AddLargeData(bool useHash, bool useCache)
+    {
+        var host = await BuildService(useHash, useCache);
+        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+
+        var testRecord = RandomTool.GenerateRandomSequence(10);
+
+        (await keyStore.DeleteFolder("non-existent-folder")).BeNotFound();
+    }
+
+    private static IReadOnlyList<LargeRecord> CreateTestEntries(int start, int count) => Enumerable.Range(0, count)
+        .Select(x => (i: x, index: start + x))
+        .Select(i => new LargeRecord($"Person{i.index}", i.index, GenerateRandomData()))
+        .ToArray();
+
+    private static string GenerateRandomData()
+    {
+        int size = RandomNumberGenerator.GetInt32(5000, 10000);
+        int newSize = (size & 1) == 0 ? size : size - 1; // ensure even
+        string data = RandomTool.GenerateRandomSequence(newSize);
+        int dataLength = $"{data.Length}".Length + 1 + data.Length;
+        return $"{dataLength}:{data}";
+    }
+
 }

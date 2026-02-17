@@ -20,22 +20,22 @@ public class KeyStoreProvider : IStoreKeyProvider
 
     public IKeyStore GetStore(SpaceDefinition definition)
     {
-        IKeySystem keySystem = definition.SpaceFormat switch
-        {
-            SpaceFormat.Key => new KeySystem(definition.BasePath, definition.UseCache),
-            SpaceFormat.Hash => new HashKeySystem(definition.BasePath),
-            _ => throw new Exception($"Unsupported space format {definition.SpaceFormat} for key system"),
-        };
-
+        IKeyPathStrategy keySystem = GetStoreStrategy(definition);
         var store = ActivatorUtilities.CreateInstance<KeySpace>(_serviceProvider, keySystem);
         return store;
     }
 
     public IKeyStore<T> GetStore<T>(SpaceDefinition definition)
     {
-        var keySpace = GetStore(definition);
-
-        var store = ActivatorUtilities.CreateInstance<KeySpace<T>>(_serviceProvider, keySpace);
+        var baseStore = GetStore(definition);
+        var store = ActivatorUtilities.CreateInstance<KeySpace<T>>(_serviceProvider, baseStore);
         return store;
     }
+
+    private IKeyPathStrategy GetStoreStrategy(SpaceDefinition definition) => definition.SpaceFormat switch
+    {
+        SpaceFormat.Key => new KeyPathStrategy(definition.BasePath, definition.UseCache),
+        SpaceFormat.Hash => new KeyHashStrategy(definition.BasePath, definition.UseCache),
+        _ => throw new Exception($"Unsupported space format {definition.SpaceFormat} for key system"),
+    };
 }

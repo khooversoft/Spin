@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -60,7 +59,7 @@ public class TransactionProviders : IEnumerable<ITrxProvider>
     public async Task<Option> Start() => await Run(async x => await x.Start());
     public async Task<Option> Commit(DataChangeRecord dcr) => await Run(async x => await x.Commit(dcr));
     public async Task<Option> Checkpoint() => await Run(async x => await x.Checkpoint());
-    public async Task<Option> Recovery(IReadOnlyList<DataChangeRecord> records) => await Run(async x => await x.Recovery(records));
+    public async Task<Option> Recovery(TrxRecoveryScope trxRecoveryScope) => await Run(async x => await x.Recovery(trxRecoveryScope));
 
     public async Task<Option> Rollback(DataChangeEntry entry)
     {
@@ -100,6 +99,7 @@ public class TransactionProviders : IEnumerable<ITrxProvider>
                     return result;
                 }
             }
+
             return StatusCode.OK;
         }
         finally

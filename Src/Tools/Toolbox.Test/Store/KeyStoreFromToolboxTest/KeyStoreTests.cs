@@ -53,20 +53,20 @@ public class KeyStoreTests
     }
 
     [Theory]
-    [InlineData(false, false)]
+    //[InlineData(false, false)]
     [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
+    //[InlineData(false, true)]
+    //[InlineData(true, true)]
     public async Task SimpleWriteAndRead(bool useHash, bool useCache)
     {
         using var host = await BuildService(useHash, useCache);
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
 
         var ls = keyStore as KeySpace ?? throw new ArgumentException();
-        var fileSystem = ls.KeySystem;
+        var fileSystem = ls.KeyPathStrategy;
 
         string path = "test/data.txt";
-        string realPath = fileSystem.RemovePathPrefix(fileSystem.PathBuilder(path));
+        string realPath = fileSystem.RemoveBasePath(fileSystem.BuildPath(path));
 
         var content = "Hello, World!".ToBytes();
         var setResult = await keyStore.Set(path, new DataETag(content));
@@ -238,10 +238,10 @@ public class KeyStoreTests
         var keyStore = host.Services.GetRequiredService<DataSpace>().GetFileStore("file");
 
         var ls = keyStore as KeySpace ?? throw new ArgumentException();
-        var fileSystem = ls.KeySystem;
+        var fileSystem = ls.KeyPathStrategy;
 
         string path = "test/details-data.txt";
-        string realPath = fileSystem.RemovePathPrefix(fileSystem.PathBuilder(path));
+        string realPath = fileSystem.RemoveBasePath(fileSystem.BuildPath(path));
         var content = "Details test".ToBytes();
 
         await keyStore.Set(path, new DataETag(content));

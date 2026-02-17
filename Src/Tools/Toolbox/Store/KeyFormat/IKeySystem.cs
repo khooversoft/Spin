@@ -1,28 +1,28 @@
-﻿namespace Toolbox.Store;
+﻿//namespace Toolbox.Store;
 
-public enum KeySystemType
-{
-    None,
+//public enum KeySystemType
+//{
+//    None,
 
-    Key,        // {basePath}/{key}
-                // {basePath}/{typeName}/{key}.{typeName}.json
+//    Key,        // {basePath}/{key}
+//                // {basePath}/{typeName}/{key}.{typeName}.json
 
-    Hash,       // {basePath}/{hash}/{hash}/{key}
-                // {basePath}/{hash}/{hash}/{key}.{typeName}.json
+//    Hash,       // {basePath}/{hash}/{hash}/{key}
+//                // {basePath}/{hash}/{hash}/{key}.{typeName}.json
 
-    List,       // {basePath}/{key}/{yearMonth}/{key}-{yearMonth}-{hour}.{listType}.json
+//    List,       // {basePath}/{key}/{yearMonth}/{key}-{yearMonth}-{hour}.{listType}.json
 
-    Sequence,   // {basePath}/{key}/{key}-{sequenceNumber}.{typeName}.json
-}
+//    Sequence,   // {basePath}/{key}/{key}-{sequenceNumber}.{typeName}.json
+//}
 
-public interface IKeySystem
-{
-    string? BasePath { get; }
-    KeySystemType SystemType { get; }
-    string PathBuilder(string key);
-    string PathBuilder<T>(string key);
-    string BuildKeySearch(string key);
-    string BuildSearch(string pattern);
-    string RemovePathPrefix(string path);
-    string BuildDeleteFolder(string path);
-}
+////public interface IKeySystem
+////{
+////    string? BasePath { get; }
+////    KeySystemType SystemType { get; }
+////    string PathBuilder(string key);
+////    string PathBuilder<T>(string key);
+////    string BuildKeySearch(string key);
+////    string BuildSearch(string pattern);
+////    string RemovePathPrefix(string path);
+////    string BuildDeleteFolder(string path);
+////}

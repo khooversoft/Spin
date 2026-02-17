@@ -73,10 +73,10 @@ public class DataSpaceCacheTests
         listener.GetAllEvents().Count.Be(0);
 
         var ls = keyStore as KeySpace ?? throw new ArgumentException();
-        var fileSystem = ls.KeySystem;
+        var fileSystem = ls.KeyPathStrategy;
 
         string path = "test/data.txt";
-        string realPath = fileSystem.RemovePathPrefix(fileSystem.PathBuilder(path));
+        string realPath = fileSystem.RemoveBasePath(fileSystem.BuildPath(path));
 
         var content = "Hello, World!".ToBytes();
         var setResult = await keyStore.Set(path, new DataETag(content));
@@ -347,7 +347,7 @@ public class DataSpaceCacheTests
         var listener = host.Services.GetRequiredService<TelemetryAggregator>();
 
         var ls = keyStore as KeySpace ?? throw new ArgumentException();
-        var fileSystem = ls.KeySystem;
+        var fileSystem = ls.KeyPathStrategy;
 
         string path = "test/cachemisstohit.txt";
         var content = "Test content".ToBytes();
@@ -360,7 +360,7 @@ public class DataSpaceCacheTests
         listener.GetCounterValue("keyspace.get").Be(-1);
 
         // Clear cache
-        string realPath = fileSystem.PathBuilder(path);
+        string realPath = fileSystem.BuildPath(path);
         memoryCache.Remove(realPath);
 
         // Read should be cache hit

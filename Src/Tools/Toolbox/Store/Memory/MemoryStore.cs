@@ -67,7 +67,13 @@ public partial class MemoryStore
 
             if (_store.TryGetValue(path, out var readPayload))
             {
-                var newPayload = readPayload with { Data = (readPayload.Data + data).WithHash() };
+                DataETag dataETag = (readPayload.Data + data).WithHash();
+                var newPayload = readPayload with
+                {
+                    PathDetail = readPayload.PathDetail with { ContentLength = dataETag.Data.Length },
+                    Data = dataETag,
+                };
+
                 _store[path] = newPayload;
 
                 _logger.LogDebug("Append Path={path}, length={length}", path, data.Data.Length);

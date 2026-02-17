@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
-using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -15,13 +9,16 @@ public partial class Transaction
 {
     public async Task<Option> Recovery()
     {
-        _runState.IfValue(TrxRunState.None).BeTrue("Cannot recover when transaction is in progress");
+        _runState.TryMove(TrxRunState.None, TrxRunState.Recovery).BeTrue("Transaction is not in progress");
         _logger.LogTrace("Recoverying databases");
 
         var startPoint = GetMinimalLogSequenceNumbers();
         var dataChangeRecords = await GetDataChangeEntries(startPoint);
-        await Providers.Recovery(dataChangeRecords);
 
+        var scope = new TrxRecoveryScope(dataChangeRecords, startPoint);
+        await Providers.Recovery(scope);
+
+        _runState.TryMove(TrxRunState.Recovery, TrxRunState.None).BeTrue("Transaction is not in finalized");
         _logger.LogTrace("Completed database recovery");
         return StatusCode.OK;
     }
@@ -33,9 +30,9 @@ public partial class Transaction
         foreach (var provider in Providers)
         {
             var providerLsn = provider.GetLogSequenceNumber();
-            if (providerLsn.IsEmpty()) return null;
+            if (providerLsn.IsError()) continue;
 
-            Lsn logTime = LogSequenceNumber.Parse(providerLsn);
+            Lsn logTime = LogSequenceNumber.Parse(providerLsn.Return());
             if (minLogTime is null || logTime < minLogTime)
             {
                 minLogTime = logTime;

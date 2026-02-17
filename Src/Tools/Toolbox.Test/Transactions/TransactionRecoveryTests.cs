@@ -202,13 +202,13 @@ public class TransactionRecoveryTests
         (await keyStore.Set(bobKey, bob)).BeOk();
         (await transaction.Commit()).BeOk();
 
-        var finalSnapshot = await memoryStore.GetSnapshot();
+        var finalSnapshot = (await memoryStore.GetSnapshot()).BeOk().Return();
 
         (await transaction.Recovery()).BeOk();
-        (await memoryStore.GetSnapshot()).Be(finalSnapshot);
+        (await memoryStore.GetSnapshot()).BeOk().Return().Be(finalSnapshot);
 
         (await transaction.Recovery()).BeOk();
-        (await memoryStore.GetSnapshot()).Be(finalSnapshot);
+        (await memoryStore.GetSnapshot()).BeOk().Return().Be(finalSnapshot);
     }
 
     [Fact]
@@ -236,7 +236,7 @@ public class TransactionRecoveryTests
         (await keyStore.Set(bobKey, bob)).BeOk();
         (await transaction.Commit()).BeOk();
 
-        var finalSnapshot = await memoryStore.GetSnapshot();
+        var finalSnapshot = (await memoryStore.GetSnapshot()).BeOk().Return();
         var parsedSnapshot = finalSnapshot.ToObject<MemoryStoreSerialization>().NotNull();
 
         var journalEntries = parsedSnapshot.DirectoryDetails
@@ -281,7 +281,7 @@ public class TransactionRecoveryTests
 
         (await listStore.Get("TestJournal")).BeOk().Return().Count.Be(1);
 
-        var snapshot1 = await memoryStore.GetSnapshot();
+        var snapshot1 = (await memoryStore.GetSnapshot()).BeOk().Return();
         var s1 = snapshot1.ToObject<MemoryStoreSerialization>().NotNull();
 
         // Second transaction
@@ -293,7 +293,7 @@ public class TransactionRecoveryTests
             x.Count.Be(2);
         });
 
-        var finalSnapshot = await memoryStore.GetSnapshot();
+        var finalSnapshot = (await memoryStore.GetSnapshot()).BeOk().Return();
         var s2 = finalSnapshot.ToObject<MemoryStoreSerialization>().NotNull();
 
         var currentJournal = s2.DirectoryDetails.Where(x => x.PathDetail.Path.Like("*testjournal*")).First();

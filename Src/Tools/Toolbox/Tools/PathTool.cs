@@ -43,6 +43,8 @@ public static class PathTool
         };
     }
 
+    public static string BuildSingleSegementFromMany(string path) => path.NotEmpty().Replace('/', '_');
+
     public static string CreateHashPath(string fileName, int depth = 2, int width = 2)
     {
         fileName.NotEmpty();

@@ -11,17 +11,17 @@ using Toolbox.Types;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Toolbox.Azure.test.Datalake;
+namespace Toolbox.Azure.test.KeyStore;
 
-public class DatalakeTrxRecorderTests
+public class KeySpace_TrxRecorderTests
 {
     private ITestOutputHelper _outputHelper;
     private record MapRecord(string Name, int Age);
-    public DatalakeTrxRecorderTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
+    public KeySpace_TrxRecorderTests(ITestOutputHelper outputHelper) => _outputHelper = outputHelper;
 
     private async Task<IHost> BuildService(bool useHash, bool useCache, [CallerMemberName] string function = "")
     {
-        string basePath = nameof(DatalakeTrxRecorderTests) + "/" + function;
+        string basePath = nameof(KeySpace_TrxRecorderTests) + "/" + function;
         var option = TestApplication.ReadOption(basePath);
 
         var host = Host.CreateDefaultBuilder()
@@ -54,7 +54,9 @@ public class DatalakeTrxRecorderTests
                     cnfg.Add<ListStoreProvider>("listStore");
                 });
 
+                services.AddKeyStore("file");
                 services.AddListStore<DataChangeRecord>("list");
+
                 services.AddTransaction("default", config =>
                 {
                     config.ListSpaceName = "list";
@@ -80,7 +82,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        var keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
         int rollbackCount = 0;
 
         transaction.EnlistLambda("source1", entry =>
@@ -112,7 +114,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        var keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
         int rollbackCount = 0;
 
         transaction.EnlistLambda("source1", entry =>
@@ -157,7 +159,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        var keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
         int rollbackCount = 0;
 
         transaction.EnlistLambda("source1", entry =>
@@ -175,6 +177,8 @@ public class DatalakeTrxRecorderTests
         (await transaction.Commit()).BeOk();
         rollbackCount.Be(0);
 
+        var keyPath = ((KeySpace)keyStore).KeyPathStrategy.BuildPath("Item1");
+
         (await listStore.Get("TestJournal")).Action(result =>
         {
             result.BeOk();
@@ -182,8 +186,8 @@ public class DatalakeTrxRecorderTests
             entries.Count.Be(1);
             entries[0].Action(entry =>
             {
-                entry.SourceName.Be(DatalakeStore.SourceNameText);
-                entry.ObjectId.Contains("Item1").BeTrue();
+                entry.SourceName.Be(KeySpace.SourceNameText);
+                entry.ObjectId.Contains(keyPath).BeTrue();
                 entry.Action.Be(ChangeOperation.Add);
                 (entry.Before == null).BeTrue();
 
@@ -206,7 +210,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         MapRecord r1 = new MapRecord("Item1", 25);
         (await keyStore.Add("Item1", r1)).BeOk();
@@ -225,7 +229,7 @@ public class DatalakeTrxRecorderTests
             List<DataChangeEntry> entries = result.Return().SelectMany(r => r.Entries).ToList();
             entries.Count.Be(1);
             entries[0].Action.Be(ChangeOperation.Delete);
-            entries[0].ObjectId.Contains("Item1").BeTrue();
+            entries[0].ObjectId.Contains("item1").BeTrue();
             (entries[0].Before != null).BeTrue();
             (entries[0].After == null).BeTrue();
         });
@@ -243,7 +247,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         MapRecord original = new MapRecord("Item1", 25);
         (await keyStore.Add("Item1", original)).BeOk();
@@ -263,7 +267,7 @@ public class DatalakeTrxRecorderTests
             List<DataChangeEntry> entries = result.Return().SelectMany(r => r.Entries).ToList();
             entries.Count.Be(1);
             entries[0].Action.Be(ChangeOperation.Update);
-            entries[0].ObjectId.Contains("Item1").BeTrue();
+            entries[0].ObjectId.Contains("item1").BeTrue();
 
             MapRecord before = entries[0].Before?.ToObject<MapRecord>() ?? throw new ArgumentException();
             MapRecord after = entries[0].After?.ToObject<MapRecord>() ?? throw new ArgumentException();
@@ -284,7 +288,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         keyStore.AttachRecorder(transaction.TrxRecorder);
@@ -315,7 +319,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         (await keyStore.Add("Item1", new MapRecord("Item1", 25))).BeOk();
 
@@ -348,7 +352,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         (await keyStore.Add("Item1", new MapRecord("Item1", 25))).BeOk();
         (await keyStore.Add("Item2", new MapRecord("Item2", 30))).BeOk();
@@ -383,7 +387,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         keyStore.AttachRecorder(transaction.TrxRecorder);
@@ -422,7 +426,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         transaction.EnlistLambda("source1", _ => new Option(StatusCode.OK).ToTaskResult());
         keyStore.AttachRecorder(transaction.TrxRecorder);
@@ -453,7 +457,7 @@ public class DatalakeTrxRecorderTests
         var host = await BuildService(useHash, useCache);
         var transaction = host.Services.GetRequiredKeyedService<Transaction>("default");
         IListStore<DataChangeRecord> listStore = host.Services.GetRequiredService<IListStore<DataChangeRecord>>();
-        IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
+        var keyStore = host.Services.GetRequiredKeyedService<IKeyStore>("file");
 
         (await keyStore.Add("Item1", new MapRecord("Item1", 25))).BeOk();
 

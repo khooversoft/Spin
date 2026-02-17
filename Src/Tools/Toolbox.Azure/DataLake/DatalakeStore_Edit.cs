@@ -27,7 +27,7 @@ public partial class DatalakeStore
         var fileClient = GetFileClient(key);
         var result = await Upload(fileClient, false, data, null);
 
-        if (result.IsOk()) _recorder?.Add(key, data);
+        //if (result.IsOk()) _recorder?.Add(key, data);
         return result;
     }
 
@@ -41,14 +41,6 @@ public partial class DatalakeStore
 
         try
         {
-            Option<DataETag> readOption = StatusCode.NotFound;
-
-            if (_recorder != null)
-            {
-                readOption = await Get(path);
-                if (readOption.IsError()) return readOption.ToOptionStatus();
-            }
-
             var conditions = new DataLakeRequestConditions
             {
                 LeaseId = leaseId
@@ -61,7 +53,6 @@ public partial class DatalakeStore
                 return StatusCode.NotFound;
             }
 
-            _recorder?.Delete(path, readOption.Return());
             return StatusCode.OK;
         }
         catch (RequestFailedException ex) when (ex.ErrorCode != null && _statusErrors.TryGetValue(ex.ErrorCode, out var statusError))
@@ -142,21 +133,10 @@ public partial class DatalakeStore
         path.NotEmpty();
 
         _logger.LogDebug("Getting file path={path}", path);
-        Option<DataETag> currentDataOption = StatusCode.NotFound;
-
         var fileClient = GetFileClient(path);
-        if (_recorder != null) currentDataOption = await Get(path);
 
         var setOption = await Upload(fileClient, true, data, leaseId);
         if (setOption.IsError()) return setOption;
-
-        if (_recorder != null)
-        {
-            if (currentDataOption.IsOk())
-                _recorder?.Update(path, currentDataOption.Return(), data);
-            else
-                _recorder?.Add(path, data);
-        }
 
         return setOption.Return();
     }
