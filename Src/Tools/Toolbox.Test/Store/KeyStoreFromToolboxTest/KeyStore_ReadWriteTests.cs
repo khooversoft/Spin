@@ -412,9 +412,16 @@ public class KeyStore_ReadWriteTests
         var host = await BuildService(useHash, useCache);
         IKeyStore keyStore = host.Services.GetRequiredService<IKeyStore>();
 
-        var testRecord = RandomTool.GenerateRandomSequence(10);
+        var testRecords = CreateTestEntries(0, 5000);
+        (testRecords.ToJson().Length > 10_000_000).BeTrue(); // Ensure we are testing with a large payload
 
-        (await keyStore.DeleteFolder("non-existent-folder")).BeNotFound();
+        const string key = "large-data/records.json";
+        (await keyStore.Add(key, testRecords)).BeOk();
+
+        var data = (await keyStore.Get(key)).BeOk().Return();
+        var retrievedRecords = data.ToObject<List<LargeRecord>>();
+
+        (await keyStore.Delete(key)).BeOk();
     }
 
     private static IReadOnlyList<LargeRecord> CreateTestEntries(int start, int count) => Enumerable.Range(0, count)
