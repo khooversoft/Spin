@@ -25,7 +25,7 @@ public partial class KeySpace : ITrxProvider
 
         switch (entry.Action)
         {
-            case ChangeOperation.Add:
+            case ActionOperator.Add:
                 entry.After.NotNull("After value must be present for add operation.");
                 var deleteOption = await this.ForceDelete(key);
                 if (deleteOption.IsError())
@@ -35,7 +35,7 @@ public partial class KeySpace : ITrxProvider
                 }
                 break;
 
-            case ChangeOperation.Delete:
+            case ActionOperator.Delete:
                 entry.Before.NotNull("After value must be present for add operation.");
                 var setOption = await this.ForceSet(key, entry.Before);
                 if (setOption.IsError())
@@ -45,7 +45,7 @@ public partial class KeySpace : ITrxProvider
                 }
                 break;
 
-            case ChangeOperation.Update:
+            case ActionOperator.Update:
                 entry.Before.NotNull("Before value must be present for update operation.");
                 var updateOption = await this.ForceSet(key, entry.Before);
                 if (updateOption.IsError())
@@ -76,16 +76,16 @@ public partial class KeySpace : ITrxProvider
 
                 switch (entry.Action)
                 {
-                    case ChangeOperation.Add:
+                    case ActionOperator.Add:
                         entry.After.NotNull("After value must be present for add operation.");
                         (await Add(key, entry.After)).BeOk();
                         break;
 
-                    case ChangeOperation.Delete:
+                    case ActionOperator.Delete:
                         (await Delete(key)).BeOk();
                         break;
 
-                    case ChangeOperation.Update:
+                    case ActionOperator.Update:
                         entry.After.NotNull("Before value must be present for update operation.");
                         await Set(key, entry.After);
                         break;

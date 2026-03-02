@@ -52,7 +52,7 @@ public class SelectInstructionSearchTests
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
         var context = host.Services.GetRequiredService<ILogger<NodeInstructionsIndexTests>>();
-        await graphEngine.DataManager.SetMap(map);
+        await graphEngine.GraphMapStore.SetMap(map);
 
         return host;
     }

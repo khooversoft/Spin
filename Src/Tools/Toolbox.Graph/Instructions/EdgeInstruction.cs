@@ -1,74 +1,74 @@
-﻿using Microsoft.Extensions.Logging;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿//using Microsoft.Extensions.Logging;
+//using Toolbox.Tools;
+//using Toolbox.Types;
 
-namespace Toolbox.Graph;
+//namespace Toolbox.Graph;
 
-internal class EdgeInstruction
-{
-    public static Option Process(GiEdge giEdge, GraphTrxContext pContext)
-    {
-        pContext.Logger.LogDebug("Process giEdge={giEdge}", giEdge);
+//internal class EdgeInstruction
+//{
+//    public static Option Process(GiEdge giEdge, GraphTrxContext pContext)
+//    {
+//        pContext.Logger.LogDebug("Process giEdge={giEdge}", giEdge);
 
-        var result = giEdge.ChangeType switch
-        {
-            GiChangeType.Add => Add(giEdge, pContext),
-            GiChangeType.Set => Set(giEdge, pContext),
-            GiChangeType.Delete => Delete(giEdge, pContext),
-            _ => throw new InvalidOperationException("Invalid change type"),
-        };
+//        var result = giEdge.ChangeType switch
+//        {
+//            GiChangeType.Add => Add(giEdge, pContext),
+//            GiChangeType.Set => Set(giEdge, pContext),
+//            GiChangeType.Delete => Delete(giEdge, pContext),
+//            _ => throw new InvalidOperationException("Invalid change type"),
+//        };
 
-        pContext.AddQueryResult(result);
+//        pContext.AddQueryResult(result);
 
-        pContext.Logger.LogStatus(result, "Completed processing of giEdge={giEdge}", [giEdge]);
-        return result;
-    }
+//        pContext.Logger.LogStatus(result, "Completed processing of giEdge={giEdge}", [giEdge]);
+//        return result;
+//    }
 
-    private static Option Add(GiEdge giEdge, GraphTrxContext pContext)
-    {
-        giEdge.NotNull();
-        pContext.NotNull();
+//    private static Option Add(GiEdge giEdge, GraphTrxContext pContext)
+//    {
+//        giEdge.NotNull();
+//        pContext.NotNull();
 
-        pContext.Logger.LogDebug("Adding giEdge={giEdge}", giEdge);
+//        pContext.Logger.LogDebug("Adding giEdge={giEdge}", giEdge);
 
-        var graphEdge = new GraphEdge(giEdge.From, giEdge.To, giEdge.Type, giEdge.Tags.RemoveDeleteCommands(), DateTime.UtcNow);
+//        var graphEdge = new GraphEdge(giEdge.From, giEdge.To, giEdge.Type, giEdge.Tags.RemoveDeleteCommands(), DateTime.UtcNow);
 
-        var graphResult = pContext.GetMap().Edges.Add(graphEdge, pContext);
-        if (graphResult.IsError()) return graphResult;
+//        var graphResult = pContext.GetMap().Edges.Add(graphEdge, pContext);
+//        if (graphResult.IsError()) return graphResult;
 
-        pContext.Logger.LogDebug("Added giEdge={giEdge}", giEdge);
-        return StatusCode.OK;
-    }
+//        pContext.Logger.LogDebug("Added giEdge={giEdge}", giEdge);
+//        return StatusCode.OK;
+//    }
 
-    private static Option Delete(GiEdge giEdge, GraphTrxContext pContext)
-    {
-        giEdge.NotNull();
-        pContext.NotNull();
+//    private static Option Delete(GiEdge giEdge, GraphTrxContext pContext)
+//    {
+//        giEdge.NotNull();
+//        pContext.NotNull();
 
-        pContext.Logger.LogDebug("Deleting giEdge={giEdge}", giEdge);
+//        pContext.Logger.LogDebug("Deleting giEdge={giEdge}", giEdge);
 
-        var graphResult = pContext.GetMap().Edges.Remove(giEdge.GetPrimaryKey(), pContext);
-        if (!giEdge.IfExist && graphResult.IsError()) return graphResult;
+//        var graphResult = pContext.GetMap().Edges.Remove(giEdge.GetPrimaryKey(), pContext);
+//        if (!giEdge.IfExist && graphResult.IsError()) return graphResult;
 
-        pContext.Logger.LogDebug("Deleting giEdge={giEdge}", giEdge);
-        return StatusCode.OK;
-    }
+//        pContext.Logger.LogDebug("Deleting giEdge={giEdge}", giEdge);
+//        return StatusCode.OK;
+//    }
 
-    private static Option Set(GiEdge giEdge, GraphTrxContext pContext)
-    {
-        pContext.Logger.LogDebug("Updating giEdge={giEdge}", giEdge);
+//    private static Option Set(GiEdge giEdge, GraphTrxContext pContext)
+//    {
+//        pContext.Logger.LogDebug("Updating giEdge={giEdge}", giEdge);
 
-        IReadOnlyDictionary<string, string?> tags = giEdge.Tags;
-        if (pContext.GetMap().Edges.TryGetValue(giEdge.GetPrimaryKey(), out var readGraphEdge))
-        {
-            tags = TagsTool.ProcessTags(readGraphEdge.NotNull().Tags, giEdge.Tags);
-        }
+//        IReadOnlyDictionary<string, string?> tags = giEdge.Tags;
+//        if (pContext.GetMap().Edges.TryGetValue(giEdge.GetPrimaryKey(), out var readGraphEdge))
+//        {
+//            tags = TagsTool.ProcessTags(readGraphEdge.NotNull().Tags, giEdge.Tags);
+//        }
 
-        var graphEdge = new GraphEdge(giEdge.From, giEdge.To, giEdge.Type, tags, DateTime.UtcNow);
+//        var graphEdge = new GraphEdge(giEdge.From, giEdge.To, giEdge.Type, tags, DateTime.UtcNow);
 
-        var updateOption = pContext.GetMap().Edges.Set(graphEdge, pContext);
-        if (updateOption.IsError()) return pContext.Logger.LogStatus(updateOption, "Failed to update node key={giEdge}", [giEdge]);
+//        var updateOption = pContext.GetMap().Edges.Set(graphEdge, pContext);
+//        if (updateOption.IsError()) return pContext.Logger.LogStatus(updateOption, "Failed to update node key={giEdge}", [giEdge]);
 
-        return StatusCode.OK;
-    }
-}
+//        return StatusCode.OK;
+//    }
+//}

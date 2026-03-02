@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 using Toolbox.Extensions;
 using Toolbox.Telemetry;
 using Toolbox.Tools;
@@ -24,21 +25,23 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     private readonly ITelemetryCounter<long>? _updatedCounter;
     private readonly ITelemetryCounter<long>? _indexScanCounter;
     private readonly ITelemetryRecorder<long>? _countGauge;
+    private readonly ILogger _logger;
 
-    internal GraphNodeIndex(GraphMap map, object syncLock, ITelemetry? telemetry = null)
+    internal GraphNodeIndex(GraphMap map, object syncLock, ILogger logger, ITelemetry? telemetry = null)
     {
         _map = map.NotNull();
         _lock = syncLock.NotNull();
 
         _index = new ConcurrentDictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
         _tagIndex = new TagIndex<string>(StringComparer.OrdinalIgnoreCase);
-        _uniqueIndex = new GraphUniqueIndex(_lock);
+        _uniqueIndex = new GraphUniqueIndex(_lock, logger);
 
         _addedCounter = telemetry?.CreateCounter<long>("graph.node.add", "Number of nodes added", unit: "count");
         _deletedCounter = telemetry?.CreateCounter<long>("graph.node.delete", "Number of nodes deleted", unit: "count");
         _updatedCounter = telemetry?.CreateCounter<long>("graph.node.update", "Number of nodes updated", unit: "count");
         _indexScanCounter = telemetry?.CreateCounter<long>("graph.node.index.scan", "Number of index scans", unit: "count");
         _countGauge = telemetry?.CreateGauge<long>("graph.node.count", "Current node count", unit: "count");
+        _logger = logger;
     }
 
     public GraphNode this[string key]
@@ -84,7 +87,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             _uniqueIndex.Set(node, null, trxContext).ThrowOnError();
 
             _addedCounter?.Increment();
-            trxContext?.TransactionScope.NodeAdd(newNode);
+            trxContext?.Recorder?.Add(newNode.Key, newNode);
             return StatusCode.OK;
         }
     }
@@ -109,7 +112,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             _uniqueIndex.RemoveNodeKey(key, trxContext);
             removedNodeFromEdges(oldValue!, trxContext);
 
-            trxContext?.TransactionScope.NodeDelete(oldValue);
+            trxContext?.Recorder?.Delete(key, oldValue);
             _deletedCounter?.Increment();
             GaugePostRecordCount();
             return StatusCode.OK;
@@ -144,13 +147,9 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             trxContext?.Action(x =>
             {
                 if (exist)
-                {
-                    x.TransactionScope.NodeChange(current.NotNull(), updatedNode);
-                }
+                    x.Recorder?.Update(current.NotNull().Key, current, updatedNode);
                 else
-                {
-                    x.TransactionScope.NodeAdd(updatedNode);
-                }
+                    x.Recorder?.Add(updatedNode.Key, updatedNode);
             });
 
             if (exist) _updatedCounter?.Increment(); else _addedCounter?.Increment();

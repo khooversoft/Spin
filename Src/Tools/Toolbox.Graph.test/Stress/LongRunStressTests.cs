@@ -49,7 +49,7 @@
 //        await list.ForEachAsync(async x => await fileStore.File(x.Path).Delete(context));
 
 //        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-//        await graphEngine.DataManager.LoadDatabase(context);
+//        await graphEngine.GraphMapStore.LoadDatabase(context);
 
 //        return host;
 //    }
@@ -97,7 +97,7 @@
 //        var tps = total / (DateTime.Now - start).TotalSeconds;
 //        context.LogInformation("Total nodes and edges added: {total}, tps={tps}", total, tps);
 
-//        var map = graphEngine.DataManager.GetMap();
+//        var map = graphEngine.GraphMapStore.GetMap();
 //        var mapTotal = map.Nodes.Count + map.Edges.Count;
 
 //        context.LogInformation("GraphMap: nodes={nodes}, edges={edges}, total={total}", map.Nodes.Count, map.Edges.Count, mapTotal);
@@ -133,7 +133,7 @@
 //        var tps = total / (DateTime.Now - start).TotalSeconds;
 //        context.LogInformation("Total nodes and edges added: {total}, tps={tps}", total, tps);
 
-//        var map = graphEngine.DataManager.GetMap();
+//        var map = graphEngine.GraphMapStore.GetMap();
 //        var mapTotal = map.Nodes.Count + map.Edges.Count;
 
 //        context.LogInformation("GraphMap: nodes={nodes}, edges={edges}, total={total}", map.Nodes.Count, map.Edges.Count, mapTotal);

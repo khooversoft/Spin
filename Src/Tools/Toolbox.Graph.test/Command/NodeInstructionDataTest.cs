@@ -24,7 +24,7 @@ public class NodeInstructionDataTest
             .Build();
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        await graphEngine.DataManager.SetMap(CreateGraphMap(host));
+        await graphEngine.GraphMapStore.SetMap(CreateGraphMap(host));
 
         return host;
     }

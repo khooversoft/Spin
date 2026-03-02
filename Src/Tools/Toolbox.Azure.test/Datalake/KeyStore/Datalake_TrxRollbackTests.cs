@@ -128,7 +128,7 @@ public class Datalake_TrxRollbackTests
             x.Count.Be(1);
             x[0].Action(y =>
             {
-                y.Action.Be(ChangeOperation.Add);
+                y.Action.Be(ActionOperator.Add);
                 y.Before.BeNull();
                 y.After.NotNull();
                 y.After.ToObject<MapRecord>().Equals(data).BeTrue();
@@ -203,7 +203,7 @@ public class Datalake_TrxRollbackTests
             x.Count.Be(1);
             x[0].Action(y =>
             {
-                y.Action.Be(ChangeOperation.Add);
+                y.Action.Be(ActionOperator.Add);
                 y.Before.BeNull();
                 y.After.NotNull();
                 y.After.ToObject<MapRecord>().Equals(data).BeTrue();
@@ -557,7 +557,7 @@ public class Datalake_TrxRollbackTests
             entries.Count.Be(1);
             entries[0].Action(entry =>
             {
-                entry.Action.Be(ChangeOperation.Delete);
+                entry.Action.Be(ActionOperator.Delete);
                 entry.Before.NotNull();
                 entry.After.BeNull();
 
@@ -602,7 +602,7 @@ public class Datalake_TrxRollbackTests
             entries.Count.Be(1);
             entries[0].Action(entry =>
             {
-                entry.Action.Be(ChangeOperation.Update);
+                entry.Action.Be(ActionOperator.Update);
                 entry.Before.NotNull();
                 entry.After.NotNull();
 

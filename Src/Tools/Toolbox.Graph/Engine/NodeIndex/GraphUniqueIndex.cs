@@ -1,4 +1,5 @@
-﻿using Toolbox.Extensions;
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -16,8 +17,13 @@ internal class GraphUniqueIndex
     private readonly object _syncLock;
 
     private readonly TagValueIndex _tagIndex = new TagValueIndex(); // Master index
+    private readonly ILogger _logger;
 
-    public GraphUniqueIndex(object syncLock) => _syncLock = syncLock.NotNull();
+    public GraphUniqueIndex(object syncLock, ILogger logger)
+    {
+        _syncLock = syncLock.NotNull();
+        _logger = logger.NotNull();
+    }
 
     public Option Set(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
     {
@@ -74,7 +80,7 @@ internal class GraphUniqueIndex
         lock (_syncLock)
         {
             Option status = _tagIndex.RemoveNodeKey(nodeKey);
-            trxContext?.Action(x => x.Logger.LogStatus(status, "nodeKey={nodeKey}", [nodeKey]));
+            _logger.LogStatus(status, "nodeKey={nodeKey}", [nodeKey]);
         }
     }
 
@@ -88,7 +94,7 @@ internal class GraphUniqueIndex
         indexedTags.ForEach(x =>
         {
             var option = _tagIndex.Add(x.Key, x.Value, newNode.Key);
-            trxContext?.Action(y => y.Logger.LogStatus(option, "Add index={index}={value} for nodeKey={nodeKey}", [x.Key, x.Value, newNode.Key]));
+            _logger.LogStatus(option, "Add index={index}={value} for nodeKey={nodeKey}", [x.Key, x.Value, newNode.Key]);
         });
     }
 

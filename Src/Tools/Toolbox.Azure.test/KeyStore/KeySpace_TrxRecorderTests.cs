@@ -188,7 +188,7 @@ public class KeySpace_TrxRecorderTests
             {
                 entry.SourceName.Be(KeySpace.SourceNameText);
                 entry.ObjectId.Contains(keyPath).BeTrue();
-                entry.Action.Be(ChangeOperation.Add);
+                entry.Action.Be(ActionOperator.Add);
                 (entry.Before == null).BeTrue();
 
                 MapRecord record = entry.After?.ToObject<MapRecord>() ?? throw new ArgumentException();
@@ -228,7 +228,7 @@ public class KeySpace_TrxRecorderTests
             result.BeOk();
             List<DataChangeEntry> entries = result.Return().SelectMany(r => r.Entries).ToList();
             entries.Count.Be(1);
-            entries[0].Action.Be(ChangeOperation.Delete);
+            entries[0].Action.Be(ActionOperator.Delete);
             entries[0].ObjectId.Contains("item1").BeTrue();
             (entries[0].Before != null).BeTrue();
             (entries[0].After == null).BeTrue();
@@ -266,7 +266,7 @@ public class KeySpace_TrxRecorderTests
             result.BeOk();
             List<DataChangeEntry> entries = result.Return().SelectMany(r => r.Entries).ToList();
             entries.Count.Be(1);
-            entries[0].Action.Be(ChangeOperation.Update);
+            entries[0].Action.Be(ActionOperator.Update);
             entries[0].ObjectId.Contains("item1").BeTrue();
 
             MapRecord before = entries[0].Before?.ToObject<MapRecord>() ?? throw new ArgumentException();
@@ -303,7 +303,7 @@ public class KeySpace_TrxRecorderTests
             result.BeOk();
             List<DataChangeEntry> entries = result.Return().SelectMany(r => r.Entries).ToList();
             entries.Count.Be(1);
-            entries[0].Action.Be(ChangeOperation.Add);
+            entries[0].Action.Be(ActionOperator.Add);
         });
 
         keyStore.DetachRecorder();
@@ -336,7 +336,7 @@ public class KeySpace_TrxRecorderTests
             result.BeOk();
             List<DataChangeEntry> entries = result.Return().SelectMany(r => r.Entries).ToList();
             entries.Count.Be(1);
-            entries[0].Action.Be(ChangeOperation.Update);
+            entries[0].Action.Be(ActionOperator.Update);
         });
 
         keyStore.DetachRecorder();
@@ -371,7 +371,7 @@ public class KeySpace_TrxRecorderTests
             result.BeOk();
             List<DataChangeEntry> entries = result.Return().SelectMany(r => r.Entries).ToList();
             entries.Count.Be(2);
-            entries.All(e => e.Action == ChangeOperation.Delete).BeTrue();
+            entries.All(e => e.Action == ActionOperator.Delete).BeTrue();
         });
 
         keyStore.DetachRecorder();
@@ -407,10 +407,10 @@ public class KeySpace_TrxRecorderTests
             result.BeOk();
             List<DataChangeEntry> entries = result.Return().SelectMany(r => r.Entries).ToList();
             entries.Count.Be(4);
-            entries[0].Action.Be(ChangeOperation.Add);
-            entries[1].Action.Be(ChangeOperation.Add);
-            entries[2].Action.Be(ChangeOperation.Update);
-            entries[3].Action.Be(ChangeOperation.Delete);
+            entries[0].Action.Be(ActionOperator.Add);
+            entries[1].Action.Be(ActionOperator.Add);
+            entries[2].Action.Be(ActionOperator.Update);
+            entries[3].Action.Be(ActionOperator.Delete);
         });
 
         keyStore.DetachRecorder();
@@ -441,7 +441,7 @@ public class KeySpace_TrxRecorderTests
             result.BeOk();
             List<DataChangeEntry> entries = result.Return().SelectMany(r => r.Entries).ToList();
             entries.Count.Be(1);
-            entries[0].Action.Be(ChangeOperation.Add);
+            entries[0].Action.Be(ActionOperator.Add);
         });
 
         keyStore.DetachRecorder();

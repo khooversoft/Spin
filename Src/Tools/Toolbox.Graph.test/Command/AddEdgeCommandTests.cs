@@ -33,7 +33,7 @@ public class AddEdgeCommandTests
         _map = CreateGraphMap(host);
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        await graphEngine.DataManager.SetMap(_map);
+        await graphEngine.GraphMapStore.SetMap(_map);
 
         return host;
     }
@@ -71,8 +71,8 @@ public class AddEdgeCommandTests
         newMapOption.IsError().BeTrue();
 
         // Verify nothing changed
-        graphEngine.DataManager.GetMap().Nodes.Count.Be(7);
-        graphEngine.DataManager.GetMap().Edges.Count.Be(5);
+        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(7);
+        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(5);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class AddEdgeCommandTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
@@ -120,7 +120,7 @@ public class AddEdgeCommandTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
@@ -145,7 +145,7 @@ public class AddEdgeCommandTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>

@@ -8,7 +8,7 @@ namespace Toolbox.Graph;
 
 public static class DataCompensate
 {
-    public static async Task<Option> Compensate(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ILogger logger)
+    public static async Task<Option> Compensate(GraphMap map, DataChangeEntry entry, IKeyStore dataFileClient, ILogger logger)
     {
         map.NotNull();
         entry.NotNull();
@@ -16,11 +16,11 @@ public static class DataCompensate
 
         switch (entry.SourceName, entry.Action)
         {
-            case (ChangeSource.Data, ChangeOperation.Add):
+            case (ChangeSource.Data, ActionOperator.Add):
                 return await UndoAdd(map, entry, dataFileClient, logger).ThrowOnError();
 
-            case (ChangeSource.Data, ChangeOperation.Delete):
-            case (ChangeSource.Data, ChangeOperation.Update):
+            case (ChangeSource.Data, ActionOperator.Delete):
+            case (ChangeSource.Data, ActionOperator.Update):
                 return await UndoUpdate(map, entry, dataFileClient, logger).ThrowOnError();
         }
 
@@ -28,7 +28,7 @@ public static class DataCompensate
 
     }
 
-    private static async Task<Option> UndoAdd(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ILogger logger)
+    private static async Task<Option> UndoAdd(GraphMap map, DataChangeEntry entry, IKeyStore dataFileClient, ILogger logger)
     {
         var deleteOption = await dataFileClient.Delete(entry.ObjectId);
         if (deleteOption.IsError())
@@ -41,7 +41,7 @@ public static class DataCompensate
         return StatusCode.OK;
     }
 
-    private static async Task<Option> UndoUpdate(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ILogger logger)
+    private static async Task<Option> UndoUpdate(GraphMap map, DataChangeEntry entry, IKeyStore dataFileClient, ILogger logger)
     {
         if (entry.Before == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 

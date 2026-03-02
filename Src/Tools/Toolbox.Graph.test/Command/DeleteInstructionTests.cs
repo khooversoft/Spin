@@ -52,7 +52,7 @@ public class DeleteInstructionTests
         _map = CreateGraphMap(host);
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        await graphEngine.DataManager.SetMap(_map);
+        await graphEngine.GraphMapStore.SetMap(_map);
 
         return host;
     }
@@ -73,8 +73,8 @@ public class DeleteInstructionTests
         result.Edges.Count.Be(0);
         result.DataLinks.Count.Be(0);
 
-        graphEngine.DataManager.GetMap().Nodes.Count.Be(0);
-        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(0);
+        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
     }
 
     [Fact]
@@ -93,8 +93,8 @@ public class DeleteInstructionTests
         result.Edges.Count.Be(5);
         result.DataLinks.Count.Be(0);
 
-        graphEngine.DataManager.GetMap().Nodes.Count.Be(7);
-        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(7);
+        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class DeleteInstructionTests
         result.Edges.Count.Be(0);
         result.DataLinks.Count.Be(0);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(2);
         compareMap.OfType<GraphNode>().Single().Action(x =>
@@ -144,7 +144,7 @@ public class DeleteInstructionTests
         result.Edges.Count.Be(1);
         result.DataLinks.Count.Be(0);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap.OfType<GraphEdge>().Single().Action(x =>
@@ -170,7 +170,7 @@ public class DeleteInstructionTests
         result.Edges.Count.Be(0);
         result.DataLinks.Count.Be(0);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(4);
         compareMap.OfType<GraphNode>().Single().Action(x =>

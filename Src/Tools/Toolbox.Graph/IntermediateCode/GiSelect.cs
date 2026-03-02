@@ -6,7 +6,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-internal sealed record GiSelect : IGraphInstruction
+public sealed record GiSelect : IGraphInstruction
 {
     public IReadOnlyList<ISelectInstruction> Instructions { get; init; } = Array.Empty<ISelectInstruction>();
 
@@ -21,7 +21,7 @@ internal sealed record GiSelect : IGraphInstruction
     public override int GetHashCode() => HashCode.Combine(Instructions);
 }
 
-internal static class GiSelectTool
+public static class GiSelectTool
 {
     private static readonly Func<InterContext, Option<ISelectInstruction>>[] _call = [
         GiNodeSelectTool.Build,

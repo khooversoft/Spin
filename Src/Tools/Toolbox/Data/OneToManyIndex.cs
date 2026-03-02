@@ -57,6 +57,17 @@ public class OneToManyIndex<TKey, TReferenceKey> : IEnumerable<KeyValuePair<TKey
 
     public bool ContainsKey(TKey item) => _index.ContainsKey(item);
 
+    public bool Contains(TKey item, TReferenceKey referenceKey)
+    {
+        var result = _index.TryGetValue(item, out var existing) switch
+        {
+            false => false,
+            true => existing.Contains(referenceKey),
+        };
+
+        return result;
+    }
+
     public IReadOnlyList<TReferenceKey> Get(TKey key) => _index.TryGetValue(key, out var inner)
         ? inner.ToImmutableArray()
         : Array.Empty<TReferenceKey>();

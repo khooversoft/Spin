@@ -42,7 +42,7 @@
 //        await list.ForEachAsync(async x => await fileStore.File(x.Path).Delete(context));
 
 //        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-//        await graphEngine.DataManager.LoadDatabase(context);
+//        await graphEngine.GraphMapStore.LoadDatabase(context);
 
 //        return host;
 //    }
@@ -71,8 +71,8 @@
 //            x.Value.Items[1].Action(y => TestReturn(y, StatusCode.OK));
 //        });
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(2);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 
 //        (await changeClient.Get(GraphConstants.Journal.Key, "**/*")).Action(x =>
 //        {
@@ -95,8 +95,8 @@
 //            x.Value.Items[0].Action(y => TestReturn(y, StatusCode.Conflict));
 //        });
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(2);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 
 //        (await changeClient.Get(GraphConstants.Journal.Key, "**/*")).Action(x =>
 //        {
@@ -129,8 +129,8 @@
 //            x.Value.Items[3].Action(y => TestReturn(y, StatusCode.OK));
 //        });
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(4);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(2);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(4);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(2);
 
 //        (await changeClient.Get(GraphConstants.Journal.Key, "**/*")).Action(x =>
 //        {
@@ -150,17 +150,17 @@
 //            ValidateEdge3_4(cursor);
 //        });
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(4);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(4);
 
-//        graphEngine.DataManager.GetMap().Nodes
+//        graphEngine.GraphMapStore.GetMap().Nodes
 //            .OrderBy(x => x.Key)
 //            .Select(x => x.Key)
 //            .SequenceEqual(["node1", "node2", "node3", "node4"])
 //            .BeTrue();
 
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(2);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(2);
 
-//        graphEngine.DataManager.GetMap().Edges
+//        graphEngine.GraphMapStore.GetMap().Edges
 //            .Select(x => (x.FromKey, x.ToKey))
 //            .OrderBy(x => x)
 //            .SequenceEqual([("node1", "node2"), ("node3", "node4")])

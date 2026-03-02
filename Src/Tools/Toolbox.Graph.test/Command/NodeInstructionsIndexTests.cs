@@ -52,7 +52,7 @@ public class NodeInstructionsIndexTests
         _map = CreateGraphMap(host);
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        await graphEngine.DataManager.SetMap(_map);
+        await graphEngine.GraphMapStore.SetMap(_map);
 
         return host;
     }
@@ -67,14 +67,14 @@ public class NodeInstructionsIndexTests
         var newMapOption = await graphClient.ExecuteBatch("set node key=provider:provider1/provider1-key set uniqueIndex;");
         newMapOption.IsOk().BeTrue();
 
-        graphEngine.DataManager.GetMap().Nodes.LookupTag("uniqueIndex").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupTag("uniqueIndex").Action(x =>
         {
             x.Count.Be(1);
             Enumerable.SequenceEqual(x, ["provider:provider1/provider1-key"]);
         });
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -98,26 +98,26 @@ public class NodeInstructionsIndexTests
         newMapOption.IsOk().BeTrue();
 
         var uniqueIndex = new UniqueIndex("loginProvider", "userEmail", "userEmail:username1@domain1.com");
-        graphEngine.DataManager.GetMap().Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
         {
             x.Count.Be(1);
             Enumerable.SequenceEqual(x, [uniqueIndex]);
         });
 
-        graphEngine.DataManager.GetMap().Nodes.LookupTag("email").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupTag("email").Action(x =>
         {
             x.Count.Be(1);
             Enumerable.SequenceEqual(x, ["user:username1@company.com"]);
         });
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("loginProvider", "userEmail:username1@domain1.com").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("loginProvider", "userEmail:username1@domain1.com").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("user:username1@company.com");
         });
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -146,7 +146,7 @@ public class NodeInstructionsIndexTests
             new UniqueIndex("loginProvider", "provider:provider1/provider1-key", "user:username1@company.com"),
             ];
 
-        graphEngine.DataManager.GetMap().Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupByNodeKey("user:username1@company.com").Action(x =>
         {
             x.Count.Be(indexes.Length);
             var source = x.OrderBy(x => x.PrimaryKey).ToArray();
@@ -155,20 +155,20 @@ public class NodeInstructionsIndexTests
             source.SequenceEqual(target).BeTrue();
         });
 
-        graphEngine.DataManager.GetMap().Nodes.LookupTag("email").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupTag("email").Action(x =>
         {
             x.Count.Be(1);
             x.SequenceEqual(["user:username1@company.com"]).BeTrue();
         });
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("loginProvider", "provider:provider1/provider1-key").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("loginProvider", "provider:provider1/provider1-key").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("user:username1@company.com");
         });
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>

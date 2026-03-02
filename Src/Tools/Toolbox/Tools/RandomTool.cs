@@ -74,4 +74,25 @@ public static class RandomTool
         // Lowercase hex [0-9a-f]
         static char GetHexChar(int nibble) => (char)(nibble < 10 ? ('0' + nibble) : ('a' + (nibble - 10)));
     }
+
+    public static string GenerateRandomKey(string key) => Conform(key) + GenerateRandomSequence();
+
+    private static string Conform(string value)
+    {
+        value = value.NotEmpty();
+
+        ReadOnlySpan<char> span = value.AsSpan();
+        Span<char> buffer = span.Length <= 256 ? stackalloc char[span.Length] : new char[span.Length];
+
+        int pos = 0;
+        for (int i = 0; i < span.Length; i++)
+        {
+            char c = span[i];
+            if (char.IsLetterOrDigit(c)) buffer[pos++] = c;
+        }
+
+        if (pos == 0) throw new ArgumentException("Value contains no alpha-numeric characters", nameof(value));
+
+        return new string(buffer[..pos]);
+    }
 }

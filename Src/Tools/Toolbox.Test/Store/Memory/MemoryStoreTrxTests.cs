@@ -99,7 +99,7 @@ public class MemoryStoreTrxTests
                 entry.Date.IsDateTimeValid().BeTrue();
                 entry.SourceName.Be(MemoryStore.SourceNameText);
                 entry.ObjectId.Be(fullPath);
-                entry.Action.Be(ChangeOperation.Add);
+                entry.Action.Be(ActionOperator.Add);
                 entry.Before.BeNull();
                 entry.After.NotNull();
 
@@ -148,7 +148,7 @@ public class MemoryStoreTrxTests
             {
                 entry.SourceName.Be(MemoryStore.SourceNameText);
                 entry.ObjectId.Be(fullPath);
-                entry.Action.Be(ChangeOperation.Add);
+                entry.Action.Be(ActionOperator.Add);
                 entry.Before.BeNull();
                 entry.After.NotNull();
 
@@ -163,7 +163,7 @@ public class MemoryStoreTrxTests
             {
                 entry.SourceName.Be(MemoryStore.SourceNameText);
                 entry.ObjectId.Be(fullPath);
-                entry.Action.Be(ChangeOperation.Update);
+                entry.Action.Be(ActionOperator.Update);
                 entry.Before.NotNull();
                 entry.After.NotNull();
 
@@ -209,14 +209,14 @@ public class MemoryStoreTrxTests
             list.Count.Be(2);
 
             // First operation is Add
-            list[0].Action.Be(ChangeOperation.Add);
+            list[0].Action.Be(ActionOperator.Add);
 
             // Second operation is Delete
             list[1].Action(entry =>
             {
                 entry.SourceName.Be(MemoryStore.SourceNameText);
                 entry.ObjectId.Be(fullPath);
-                entry.Action.Be(ChangeOperation.Delete);
+                entry.Action.Be(ActionOperator.Delete);
                 entry.Before.NotNull();
                 entry.After.BeNull();
 
@@ -379,7 +379,7 @@ public class MemoryStoreTrxTests
         {
             var list = x.SelectMany(x => x.Entries).ToList();
             list.Count.Be(3);
-            list.All(entry => entry.Action == ChangeOperation.Add).BeTrue();
+            list.All(entry => entry.Action == ActionOperator.Add).BeTrue();
             list.All(entry => entry.SourceName == MemoryStore.SourceNameText).BeTrue();
         });
     }
@@ -468,13 +468,13 @@ public class MemoryStoreTrxTests
             list.Count.Be(3);
 
             // First operation is Add
-            list[0].Action.Be(ChangeOperation.Add);
+            list[0].Action.Be(ActionOperator.Add);
             list[0].Before.BeNull();
 
             // Second and third operations are Updates
-            list[1].Action.Be(ChangeOperation.Update);
+            list[1].Action.Be(ActionOperator.Update);
             list[1].Before.NotNull();
-            list[2].Action.Be(ChangeOperation.Update);
+            list[2].Action.Be(ActionOperator.Update);
             list[2].Before.NotNull();
         });
 

@@ -15,11 +15,11 @@ public static class EdgeCompensate
 
         switch (entry.SourceName, entry.Action)
         {
-            case (ChangeSource.Edge, ChangeOperation.Add):
+            case (ChangeSource.Edge, ActionOperator.Add):
                 return UndoAdd(map, entry, logger).ThrowOnError().ToTaskResult();
 
-            case (ChangeSource.Edge, ChangeOperation.Delete):
-            case (ChangeSource.Edge, ChangeOperation.Update):
+            case (ChangeSource.Edge, ActionOperator.Delete):
+            case (ChangeSource.Edge, ActionOperator.Update):
                 return UndoUpdate(map, entry, logger).ThrowOnError().ToTaskResult();
         }
 

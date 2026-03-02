@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Telemetry;
@@ -23,11 +24,13 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     private readonly ITelemetryCounter<long>? _updatedCounter;
     private readonly ITelemetryCounter<long>? _indexScanCounter;
     private readonly ITelemetryRecorder<long>? _countGauge;
+    private readonly ILogger _logger;
 
-    internal GraphEdgeIndex(GraphMap map, object syncLock, ITelemetry? telemetry = null, IEqualityComparer<string>? keyComparer = null)
+    internal GraphEdgeIndex(GraphMap map, object syncLock, ILogger logger, ITelemetry? telemetry = null, IEqualityComparer<string>? keyComparer = null)
     {
         _map = map.NotNull();
         _lock = syncLock.NotNull();
+        _logger = logger.NotNull();
 
         _index = new ConcurrentDictionary<GraphEdgePrimaryKey, GraphEdge>(GraphEdgePrimaryKeyComparer.Default);
         _edgesFrom = new SecondaryIndex<string, GraphEdgePrimaryKey>(keyComparer);
@@ -67,7 +70,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _edgesEdges.Set(edge.EdgeType, pk);
             _tagIndex.Set(pk, edge.Tags);
 
-            graphContext?.TransactionScope.EdgeAdd(edge);
+            graphContext?.Recorder?.Add(edge.Key, edge);
             _addedCounter?.Increment();
             return StatusCode.OK;
         }
@@ -112,7 +115,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _edgesEdges.Remove(edgeKey.EdgeType, edgeKey);
             _tagIndex.Remove(edgeKey);
 
-            graphContext?.TransactionScope.EdgeDelete(edgeValue);
+            graphContext?.Recorder?.Delete(edgeValue.Key, edgeValue);
             _deletedCounter?.Increment();
             RecordCount();
             return StatusCode.OK;
@@ -161,7 +164,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _edgesEdges.Set(edge.EdgeType, pk);
             _tagIndex.Set(pk, edge.Tags);
 
-            graphContext?.TransactionScope.EdgeAdd(edge);
+            graphContext?.Recorder?.Add(edge.Key, edge);
             _addedCounter?.Increment();
             return StatusCode.OK;
         }
@@ -198,7 +201,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
                     _edgesTo.Set(edge.EdgeType, pk);
                 }
 
-                graphContext?.TransactionScope.EdgeChange(readEdge, edge);
+                graphContext?.Recorder?.Update(edge.Key, readEdge, edge);
                 _updatedCounter?.Increment();
                 return StatusCode.OK;
             }

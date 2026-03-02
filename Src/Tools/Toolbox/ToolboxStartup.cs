@@ -10,6 +10,8 @@ namespace Toolbox;
 
 public static class ToolboxStartup
 {
+    private sealed record DataSpaceConfigRegistration(Action<DataSpaceConfig> Configure);
+
     public static IServiceCollection AddTelemetry(this IServiceCollection services, Action<TelemetryOption>? options = null)
     {
         services.NotNull();
@@ -44,13 +46,22 @@ public static class ToolboxStartup
         services.NotNull();
         config.NotNull();
 
-        var c = new DataSpaceConfig();
-        config(c);
+        services.AddSingleton(new DataSpaceConfigRegistration(config));
 
-        services.AddSingleton<DataSpace>(services =>
+        services.TryAddSingleton<DataSpace>(service =>
         {
-            var option = c.Build(services);
-            return ActivatorUtilities.CreateInstance<DataSpace>(services, option);
+            var dataSpace = ActivatorUtilities.CreateInstance<DataSpace>(service);
+
+            foreach (var registration in service.GetServices<DataSpaceConfigRegistration>())
+            {
+                var c = new DataSpaceConfig();
+                registration.Configure(c);
+
+                var option = c.Build(service);
+                dataSpace.AddSpace(option);
+            }
+
+            return dataSpace;
         });
 
         return services;
@@ -97,43 +108,6 @@ public static class ToolboxStartup
 
         return services;
     }
-
-    //public static IServiceCollection AddSequenceStore<T>(this IServiceCollection services, string spaceName)
-    //{
-    //    services.NotNull();
-    //    spaceName.NotEmpty();
-
-    //    services.AddSingleton<ISequenceStore<T>>(services =>
-    //    {
-    //        var dataSpace = services.GetRequiredService<DataSpace>();
-    //        return dataSpace.GetSequenceStore<T>(spaceName);
-    //    });
-
-    //    return services;
-    //}
-
-    //public static IServiceCollection AddSequenceLimit<T>(this IServiceCollection services, Action<SequenceSizeLimitOption<T>> config)
-    //{
-    //    services.NotNull();
-    //    config.NotNull();
-
-    //    var option = new SequenceSizeLimitOption<T>();
-    //    config?.Invoke(option);
-
-    //    services.AddSingleton<SequenceSizeLimitOption<T>>(option);
-    //    services.AddSingleton<SequenceSizeLimit<T>>(service =>
-    //    {
-    //        var sequenceStore = service.GetRequiredService<ISequenceStore<T>>();
-    //        var limiter = ActivatorUtilities.CreateInstance<SequenceSizeLimit<T>>(service, sequenceStore);
-
-    //        var space = service.GetRequiredService<ISequenceStore<T>>() as SequenceSpace<T> ?? throw new ArgumentException("ISequenceStore<T> is not SequenceSpace<T>");
-    //        space.SetLimiter(limiter);
-    //        return limiter;
-    //    });
-
-    //    return services;
-    //}
-
     public static IServiceCollection AddTransaction(this IServiceCollection services, string name, Action<TransactionOption> config)
     {
         name.NotEmpty();

@@ -56,7 +56,7 @@
 //        await fileStore.ClearStore(context);
 
 //        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-//        await graphEngine.DataManager.LoadDatabase(context);
+//        await graphEngine.GraphMapStore.LoadDatabase(context);
 
 //        return host;
 //    }
@@ -76,7 +76,7 @@
 //        var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
 //        var fileStore = host.Services.GetRequiredService<IFileStore>();
-//        var dbRecoveryFileStore = host.Services.GetRequiredKeyedService<IKeyStore<DataETag>>(_dbCopyKeyedName);
+//        var dbRecoveryFileStore = host.Services.GetRequiredService<IGraphKeyStore>(_dbCopyKeyedName);
 
 //        var tracking = new ConcurrentQueue<int>();
 //        var nodesTracking = new ConcurrentQueue<(string node, Payload? payload)>();
@@ -136,7 +136,7 @@
 //            .OrderBy(x => x.Index)
 //            .ForEach(x => context.LogInformation("Pattern '{Index}'={indexName}, Count={count} times, tps={tps}", x.Index, patterns[x.Index].name, x.Count, x.Count / totalSeconds));
 
-//        graphEngine.DataManager.GetMap().Action(x =>
+//        graphEngine.GraphMapStore.GetMap().Action(x =>
 //        {
 //            context.LogInformation("Map: rows={rows}, edges={edges}, lastLogSequenceNumber={lastLogSequenceNumber}", x.Nodes.Count, x.Edges.Count, x.LastLogSequenceNumber);
 //        });
@@ -145,11 +145,11 @@
 //        {
 //            context.LogInformation("Recovering database...");
 
-//            var recoveredMapOption = await graphEngine.DataManager.BuildFromJournals(dbRecoveryFileStore);
+//            var recoveredMapOption = await graphEngine.GraphMapStore.BuildFromJournals(dbRecoveryFileStore);
 //            GraphMap recoveredMap = recoveredMapOption.BeOk().Return();
 
-//            recoveredMap.LastLogSequenceNumber.NotEmpty().Be(graphEngine.DataManager.GetMap().LastLogSequenceNumber);
-//            var compareMap = GraphCommandTools.CompareMap(recoveredMap, graphEngine.DataManager.GetMap());
+//            recoveredMap.LastLogSequenceNumber.NotEmpty().Be(graphEngine.GraphMapStore.GetMap().LastLogSequenceNumber);
+//            var compareMap = GraphCommandTools.CompareMap(recoveredMap, graphEngine.GraphMapStore.GetMap());
 //            compareMap.Count.Be(0);
 
 //            int nodes = recoveredMap.Nodes.Count;

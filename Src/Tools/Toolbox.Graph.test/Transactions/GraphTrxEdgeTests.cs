@@ -41,7 +41,7 @@
 //        await list.ForEachAsync(async x => await fileStore.File(x.Path).Delete(context));
 
 //        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-//        await graphEngine.DataManager.LoadDatabase(context);
+//        await graphEngine.GraphMapStore.LoadDatabase(context);
 
 //        return host;
 //    }
@@ -65,8 +65,8 @@
 
 //        (await graphClient.ExecuteBatch(q)).IsOk().BeTrue();
 
-//        graphEngine.DataManager.GetMap().Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).BeTrue();
-//        graphEngine.DataManager.GetMap().Edges.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1:node2:default"]).BeTrue();
+//        graphEngine.GraphMapStore.GetMap().Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).BeTrue();
+//        graphEngine.GraphMapStore.GetMap().Edges.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1:node2:default"]).BeTrue();
 
 //        // should fail, adding node3 because it already exist
 //        string q2 = """
@@ -81,8 +81,8 @@
 //            x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
 //        });
 
-//        graphEngine.DataManager.GetMap().Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).BeTrue();
-//        graphEngine.DataManager.GetMap().Edges.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1:node2:default"]).BeTrue();
+//        graphEngine.GraphMapStore.GetMap().Nodes.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1", "node2", "node3"]).BeTrue();
+//        graphEngine.GraphMapStore.GetMap().Edges.Select(x => x.Key).OrderBy(x => x).SequenceEqual(["node1:node2:default"]).BeTrue();
 //    }
 
 //    [Theory]
@@ -105,8 +105,8 @@
 
 //        (await graphClient.ExecuteBatch(q)).IsOk().BeTrue();
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(2);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(3);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(2);
 
 //        string q2 = """
 //            set edge from=node2, to=node3, type=default set t1;
@@ -120,8 +120,8 @@
 //            x.Value.Items[1].Action(y => TestReturn(y, StatusCode.Conflict));
 //        });
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(2);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(3);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(2);
 //    }
 
 //    [Theory]
@@ -145,8 +145,8 @@
 
 //        (await graphClient.ExecuteBatch(q)).IsOk().BeTrue();
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(2);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(3);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(2);
 
 //        string q2 = """
 //            delete edge from=node2, to=node3, type=default;
@@ -161,8 +161,8 @@
 //        });
 
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(2);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(3);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(2);
 //    }
 
 //    private void TestReturn(QueryResult graphResult, StatusCode statusCode)

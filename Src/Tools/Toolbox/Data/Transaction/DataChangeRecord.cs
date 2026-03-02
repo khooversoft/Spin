@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Data;
 
-public static class ChangeOperation
+public static class ActionOperator
 {
     public const string Add = "add";
     public const string Delete = "delete";
@@ -81,10 +81,9 @@ public static class DataChangeRecordTool
     }
 }
 
-[JsonSourceGenerationOptions(
-    WriteIndented = false,
-    DefaultIgnoreCondition = JsonIgnoreCondition.Never
-)]
+[JsonRegister(typeof(DataChangeRecord))]
+[JsonRegister(typeof(DataChangeEntry))]
+[JsonSourceGenerationOptions(WriteIndented = false, DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
 [JsonSerializable(typeof(DataChangeRecord))]
 [JsonSerializable(typeof(DataChangeEntry))]
 public partial class DataChangeRecordJsonContext : JsonSerializerContext

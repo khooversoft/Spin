@@ -16,7 +16,7 @@ public sealed class TrxRecorder
         sourceName.NotEmpty();
         var id = objectId.ToString().NotEmpty();
         var nv = newValue.ToDataETagWithHash();
-        _transaction.Enqueue<T>(sourceName, id, ChangeOperation.Add, null, nv);
+        _transaction.Enqueue<T>(sourceName, id, ActionOperator.Add, null, nv);
     }
 
     public void Delete<K, T>(string sourceName, K objectId, T currentValue) where K : notnull where T : notnull
@@ -24,7 +24,7 @@ public sealed class TrxRecorder
         sourceName.NotEmpty();
         var id = objectId.ToString().NotEmpty();
         var current = currentValue.ToDataETagWithHash();
-        _transaction.Enqueue<T>(sourceName, id, ChangeOperation.Delete, current, null);
+        _transaction.Enqueue<T>(sourceName, id, ActionOperator.Delete, current, null);
     }
 
     public void Update<K, T>(string sourceName, K objectId, T currentValue, T newValue) where K : notnull where T : notnull
@@ -33,13 +33,13 @@ public sealed class TrxRecorder
         var id = objectId.ToString().NotEmpty();
         var nv = newValue.ToDataETagWithHash();
         var current = currentValue.ToDataETagWithHash();
-        _transaction.Enqueue<T>(sourceName, id, ChangeOperation.Update, current, nv);
+        _transaction.Enqueue<T>(sourceName, id, ActionOperator.Update, current, nv);
     }
 
     public void Checkpoint<T>(string sourceName, T currentValue) where T : notnull
     {
         sourceName.NotEmpty();
         var current = currentValue.ToDataETagWithHash();
-        _transaction.Enqueue<T>(sourceName, "checkpoint", ChangeOperation.Checkpoint, current, null);
+        _transaction.Enqueue<T>(sourceName, "checkpoint", ActionOperator.Checkpoint, current, null);
     }
 }

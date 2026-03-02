@@ -1,15 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
-using Toolbox.Data;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Toolbox.Store;
 using Toolbox.Tools;
-using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
 public interface IGraphEngine
 {
-    GraphMapManager DataManager { get; }
-    IKeyStore<DataETag> DataClient { get; }
+    GraphMapStore GraphMapStore { get; }
+    IKeyStore DataClient { get; }
     GraphLanguageParser LanguageParser { get; }
 }
 
@@ -17,23 +16,19 @@ public class GraphEngine : IGraphEngine
 {
     private readonly ILogger<GraphEngine> _logger;
 
-    public GraphEngine(GraphMapManager dataManager, IKeyStore<DataETag> dataClient, GraphLanguageParser languageParser, ILogger<GraphEngine> logger)
+    public GraphEngine(
+        GraphMapStore graphMapStore,
+        [FromKeyedServices(GraphConstants.File.Key)] IKeyStore dataFileClient,
+        GraphLanguageParser languageParser,
+        ILogger<GraphEngine> logger)
     {
-        DataManager = dataManager.NotNull();
-        DataClient = dataClient.NotNull();
+        GraphMapStore = graphMapStore.NotNull();
+        DataClient = dataFileClient.NotNull();
+        LanguageParser = languageParser.NotNull();
         _logger = logger.NotNull();
-        LanguageParser = languageParser;
     }
 
-    public GraphMapManager DataManager { get; }
-    public IKeyStore<DataETag> DataClient { get; }
+    public GraphMapStore GraphMapStore { get; }
+    public IKeyStore DataClient { get; }
     public GraphLanguageParser LanguageParser { get; }
-
-    public string StoreName => DataManager.StoreName;
-    public Task<string> GetSnapshot() => DataManager.GetSnapshot();
-    public string? GetLogSequenceNumber() => DataManager.GetLogSequenceNumber();
-    public Task<Option> Recovery(IEnumerable<DataChangeRecord> records) => DataManager.Recovery(records);
-    public void SetLogSequenceNumber(string lsn) => DataManager.SetLogSequenceNumber(lsn);
-    public Task<Option> Checkpoint() => DataManager.Checkpoint();
-    public Task<Option> Restore(string json) => DataManager.Restore(json);
 }

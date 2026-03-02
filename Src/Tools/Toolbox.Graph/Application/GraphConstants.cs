@@ -8,10 +8,10 @@ public static class GraphConstants
         public const string BasePath = "graphDb";
     }
 
-    public static class GraphSecurity
+    public static class File
     {
-        public const string Key = "graphSecurity";
-        public const string BasePath = "graphDb";
+        public const string Key = "graphFile";
+        public const string BasePath = "graphFile";
     }
 
     public static class Journal
@@ -20,9 +20,9 @@ public static class GraphConstants
         public const string BasePath = "log";
     }
 
-    public static class Data
+    public static class Transaction
     {
-        public const string BasePath = "data";
+        public const string Name = "graphTransaction";
     }
 
     public const string EntityFileIdPrefix = "entity:";

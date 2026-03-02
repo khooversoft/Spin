@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +11,7 @@ namespace Toolbox.Extensions;
 
 public static class SerializationExtensions
 {
+    [DebuggerStepThrough]
     public static string ToJson<T>(this T subject)
     {
         if (subject is null) return "null";
@@ -27,6 +29,7 @@ public static class SerializationExtensions
         };
     }
 
+    [DebuggerStepThrough]
     public static T ToObject<T>(this object? source)
     {
         source.NotNull();

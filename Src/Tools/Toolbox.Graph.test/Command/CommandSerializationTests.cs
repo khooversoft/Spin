@@ -28,7 +28,7 @@ public class CommandSerializationTests
         var map = CreateGraphMap(host);
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        await graphEngine.DataManager.SetMap(map);
+        await graphEngine.GraphMapStore.SetMap(map);
 
         return host;
     }

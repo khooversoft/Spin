@@ -24,7 +24,7 @@ public class ParallelStressTests
             .Build();
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        await graphEngine.DataManager.LoadDatabase();
+        await graphEngine.GraphMapStore.LoadDatabase();
 
         return host;
     }
@@ -40,8 +40,8 @@ public class ParallelStressTests
         await ActionParallel.Run(x => AddNodes(graphClient, x), Enumerable.Range(0, count), 5);
         await ActionParallel.Run(x => AddEdges(graphClient, x), Enumerable.Range(0, count - 1), 5);
 
-        graphEngine.DataManager.GetMap().Nodes.Count.Be(count);
-        graphEngine.DataManager.GetMap().Edges.Count.Be(count - 1);
+        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(count);
+        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(count - 1);
     }
 
     private async Task AddNodes(IGraphClient graphClient, int index)

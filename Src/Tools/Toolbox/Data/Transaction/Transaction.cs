@@ -13,6 +13,7 @@ public enum TrxRunState
     Active,
     Committing,
     RollingBack,
+    Reverted,
     Recovery,
     Failed,
 }
@@ -55,6 +56,7 @@ public partial class Transaction
         _providers.Count.Assert(x => x > 0, "No providers registered");
         _queue.Count.Assert(x => x == 0, "Transaction queue is not empty");
 
+        _runState.TryMove(TrxRunState.Reverted, TrxRunState.None);
         _runState.TryMove(TrxRunState.None, TrxRunState.Active).BeTrue("Active is already in progress");
         TransactionId = Guid.NewGuid().ToString();
         await Providers.Start();
@@ -100,6 +102,12 @@ public partial class Transaction
 
     public async Task<Option> Commit()
     {
+        if (_runState.TryMove(TrxRunState.Reverted, TrxRunState.None))
+        {
+            _queue.Count.Be(0);
+            return StatusCode.OK;
+        }
+
         _runState.TryMove(TrxRunState.Active, TrxRunState.Committing).BeTrue("Transaction is not in progress");
         _logger.LogTrace("Committing transaction with count={count}", _queue.Count);
 
@@ -143,7 +151,7 @@ public partial class Transaction
             }
         }
 
-        _runState.TryMove(TrxRunState.RollingBack, TrxRunState.None).BeTrue("Transaction is rollback");
+        _runState.TryMove(TrxRunState.RollingBack, TrxRunState.Reverted).BeTrue("Transaction is rollback");
         _logger.LogTrace("Completed rollback");
         return StatusCode.OK;
     }

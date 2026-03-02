@@ -52,7 +52,7 @@ public class NodeForeignKeyTests
         _map = CreateGraphMap(host);
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        await graphEngine.DataManager.SetMap(_map);
+        await graphEngine.GraphMapStore.SetMap(_map);
 
         return host;
     }
@@ -75,7 +75,7 @@ public class NodeForeignKeyTests
         queryResult.Edges.Count.Be(0);
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
         compareMap.Count.Be(1);
     }
 
@@ -97,7 +97,7 @@ public class NodeForeignKeyTests
         queryResult.Edges.Count.Be(0);
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
         compareMap.Count.Be(1);
         compareMap.OfType<GraphNode>().Select(x => x.Key).Contains("node8").BeTrue();
     }

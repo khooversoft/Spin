@@ -48,7 +48,7 @@
 //        (await keyStore.Search($"{basePath}/***")).Count().Be(0);
 
 //        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-//        await graphEngine.DataManager.LoadDatabase();
+//        await graphEngine.GraphMapStore.LoadDatabase();
 
 //        return host;
 //    }
@@ -69,8 +69,8 @@
 
 //        var addResult = await graphClient.Execute($"add node key=node1 set contract {{ '{recBase64}' }};");
 //        addResult.BeOk();
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(1);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(1);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 //        await CheckFileStoreCount(keyStore, 1);
 
 //        string dataFilePath = "basepath/data/d1/da/nodes/node1/node1___contract.json";
@@ -108,8 +108,8 @@
 //        var deleteResult = await graphClient.Execute("delete (key=node1);");
 //        deleteResult.BeOk();
 //        await CheckFileStoreCount(keyStore, 0);
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(0);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 //        readDataOption = (await keyStore.Get(dataFilePath)).BeNotFound();
 
 //        selectResultOption = (await graphClient.Execute("select (key=node1) return contract;")).BeOk();
@@ -141,8 +141,8 @@
 //        (testPath == dataFilePath).BeTrue();
 
 //        var addResult = (await graphClient.Execute($"add node key=node2 set contract {{ '{recBase64}' }};")).BeOk();
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(1);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(1);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 //        await CheckFileStoreCount(keyStore, 1);
 
 //        // Verify data was written correctly
@@ -155,8 +155,8 @@
 //        // Remove data from node and verify
 //        var removeData = (await graphClient.Execute("set node key=node2 set -contract;")).BeOk();
 //        await CheckFileStoreCount(keyStore, 0);
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(1);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(1);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 
 //        // Verify data has been deleted
 //        (await keyStore.Get(dataFilePath)).BeNotFound();
@@ -211,8 +211,8 @@
 
 //        var addResult = await graphClient.Execute($"add node key=node1 set lease {{ '{leaseBase64}' }}, contract {{ '{contractBase64}' }};");
 //        addResult.BeOk();
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(1);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(1);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 //        await CheckFileStoreCount(keyStore, 2);
 
 //        (await keyStore.Get(contractPath)).Action((Action<Option<DataETag>>)(x =>
@@ -276,8 +276,8 @@
 //        deleteResult.BeOk();
 
 //        await CheckFileStoreCount(keyStore, 0);
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(0);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 
 //        selectResultOption = (await graphClient.Execute("select (key=node1) return contract;")).BeOk();
 
@@ -315,8 +315,8 @@
 
 //        var addResult = await graphClient.Execute($"add node key=node1 set lease {{ '{leaseBase64}' }}, contract {{ '{contractBase64}' }};");
 //        addResult.BeOk();
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(1);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(1);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 //        await CheckFileStoreCount(keyStore, 2);
 
 //        (await keyStore.Get(contractPath)).Action(x =>
@@ -341,15 +341,15 @@
 //        var removeDataOption = await graphClient.Execute("set node key=node1 set -contract, t2=v2;");
 //        removeDataOption.BeOk(removeDataOption.ToString());
 //        await CheckFileStoreCount(keyStore, 1);
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(1);
-//        graphEngine.DataManager.GetMap().Nodes["node1"].Action(x =>
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(1);
+//        graphEngine.GraphMapStore.GetMap().Nodes["node1"].Action(x =>
 //        {
 //            x.DataMap.Count.Be(1);
 //            x.Tags.Count.Be(1);
 //            x.Tags.TryGetValue("t2", out var value).BeTrue();
 //            value.Be("v2");
 //        });
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 
 //        // Verify data has been deleted
 //        (await keyStore.Get(contractPath)).IsNotFound().BeTrue();
@@ -379,8 +379,8 @@
 //        var deleteResult = (await graphClient.Execute("delete node key=node1;")).BeOk();
 
 //        await CheckFileStoreCount(keyStore, 0);
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(0);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(0);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(0);
 
 //        var selectResultOption = (await graphClient.Execute("select (key=node1) return contract;")).BeOk();
 //        selectResultOption.Return().Action(x =>

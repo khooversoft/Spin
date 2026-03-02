@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -15,23 +15,27 @@ namespace Toolbox.Store;
 /// </summary>
 public class DataSpace
 {
-    private readonly FrozenDictionary<string, SpaceDefinition> _spaces;
-    private readonly FrozenDictionary<string, IStoreProvider> _providers;
+    private readonly ConcurrentDictionary<string, SpaceDefinition> _spaces = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, IStoreProvider> _providers = new(StringComparer.OrdinalIgnoreCase);
     private readonly ILogger<DataSpace> _logger;
 
-    public DataSpace(DataSpaceOption option, ILogger<DataSpace> logger)
+    public DataSpace(ILogger<DataSpace> logger) => _logger = logger.NotNull();
+
+    public void AddSpace(DataSpaceOption definition)
     {
-        option.NotNull().Validate().ThrowOnError();
-        _logger = logger.NotNull();
+        definition.NotNull().Validate().ThrowOnError();
 
-        _spaces = option.Spaces
-            .Select(x => new KeyValuePair<string, SpaceDefinition>(x.Name, x))
-            .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+        foreach (var space in definition.Spaces)
+        {
+            _spaces.TryAdd(space.Name, space).BeTrue($"space={space.Name} already exists");
+        }
 
-        _providers = option.Providers
-            .Select(x => new KeyValuePair<string, IStoreProvider>(x.Name, x))
-            .ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+        foreach (var provider in definition.Providers)
+        {
+            _providers.TryAdd(provider.Name, provider).BeTrue($"provider={provider.Name} already exists");
+        }
     }
+
 
     public IKeyStore GetFileStore(string path)
     {
@@ -66,18 +70,6 @@ public class DataSpace
 
         return keyStore.GetStore<T>(definition).NotNull();
     }
-
-    //public ISequenceStore<T> GetSequenceStore<T>(string key)
-    //{
-    //    (IStoreProvider provider, SpaceDefinition definition) = GetProvider(key);
-
-    //    var keyStore = provider as IStoreSequenceProvider ??
-    //        throw new ArgumentException($"provider={definition.ProviderName} does not implement IStoreSequenceProvider");
-
-    //    _logger.LogTrace("Getting list store for key={key}, provider={provider}", key, provider.Name);
-
-    //    return keyStore.GetStore<T>(definition).NotNull();
-    //}
 
     public SpaceDefinition GetSpaceDefinition(string key)
     {

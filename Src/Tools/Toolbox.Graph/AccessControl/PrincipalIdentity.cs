@@ -1,4 +1,6 @@
 ﻿using System.Text.Json.Serialization;
+using Toolbox.Data;
+using Toolbox.Extensions;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -6,13 +8,21 @@ namespace Toolbox.Graph;
 
 public record PrincipalIdentity
 {
-    public PrincipalIdentity(string nameIdentifier, string userName, string email, bool emailConfirmed = false)
+    public const string NodeType = "principal";
+    public const string NodeReferenceType = "principal-ref";
+    public const string NameIdentifierClaimType = "nameidentifier";
+    public const string UserNameClaimType = "username";
+    public const string EmailClaimType = "email";
+
+    public PrincipalIdentity(string principalId, string userName, string email, bool emailConfirmed = false)
     {
-        PrincipalId = $"user:{RandomTool.GenerateRandomSequence()}";
-        NameIdentifier = nameIdentifier.NotEmpty();
+        PrincipalId = principalId.NotEmpty();
+        NameIdentifier = principalId.NotEmpty();
         UserName = userName.NotEmpty();
         Email = email.NotEmpty();
         EmailConfirmed = emailConfirmed;
+
+        NodeKey = NodeTool.CreateKey(PrincipalId, NodeType);
     }
 
     [JsonConstructor]
@@ -23,9 +33,11 @@ public record PrincipalIdentity
         UserName = userName.NotEmpty();
         Email = email.NotEmpty();
         EmailConfirmed = emailConfirmed;
+
+        NodeKey = NodeTool.CreateKey(PrincipalId, NodeType);
     }
 
-    // Id - GetById e.g. 'user:9b0d4bed' - IdentityTool.GeneratedNodeKey() - this is the ID used for security
+    public string NodeKey { get; }
     public string PrincipalId { get; init; }              // Id of the principal
     public string NameIdentifier { get; init; }           // Identity provider's PK for the user
     public string UserName { get; init; }
@@ -33,6 +45,7 @@ public record PrincipalIdentity
     public bool EmailConfirmed { get; init; }
 
     public static IValidator<PrincipalIdentity> Validator { get; } = new Validator<PrincipalIdentity>()
+        .RuleFor(x => x.NodeKey).NotEmpty()
         .RuleFor(x => x.PrincipalId).NotEmpty()
         .RuleFor(x => x.NameIdentifier).NotEmpty()
         .RuleFor(x => x.UserName).NotEmpty()
@@ -48,10 +61,15 @@ public static class PrincipalIdentityTool
     {
         return subject with
         {
-            NameIdentifier = nameIdentifier ?? subject.NameIdentifier,
-            UserName = userName ?? subject.UserName,
-            Email = email ?? subject.Email,
+            NameIdentifier = nameIdentifier.ToNullIfEmpty() ?? subject.NameIdentifier,
+            UserName = userName.ToNullIfEmpty() ?? subject.UserName,
+            Email = email.ToNullIfEmpty() ?? subject.Email,
             EmailConfirmed = emailConfirmed ?? subject.EmailConfirmed,
         };
     }
+
+    public static string CreateNameIdentifierNodeKey(this PrincipalIdentity subject) => NodeTool.CreateKey(subject.NameIdentifier, PrincipalIdentity.NameIdentifierClaimType);
+    public static string CreateUserNameNodeKey(this PrincipalIdentity subject) => NodeTool.CreateKey(subject.UserName, PrincipalIdentity.UserNameClaimType);
+    public static string CreateEmailNodeKey(this PrincipalIdentity subject) => NodeTool.CreateKey(subject.Email, PrincipalIdentity.EmailClaimType);
+    public static bool IsNodeType(string nodeKey) => NodeTool.ParseKey(nodeKey).NodeType.EqualsIgnoreCase(PrincipalIdentity.NodeType);
 }

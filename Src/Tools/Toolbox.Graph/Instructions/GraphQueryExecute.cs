@@ -7,27 +7,55 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-public class GraphQueryExecute : IGraphClient
+/// <summary>
+/// Executes the Toolbox.Graph query language against a <see cref="IGraphEngine"/>.
+/// </summary>
+/// <remarks>
+/// <para>
+/// This type parses a graph query string into intermediate instructions and executes them as a single
+/// transactional batch using <see cref="GraphMapStore.Transaction"/>.
+/// </para>
+/// <para>
+/// Concurrency: non-mutating instructions are executed under a reader lock; mutating instructions
+/// (add/set/delete) are executed under a writer lock.
+/// </para>
+/// <para>
+/// Results: <see cref="ExecuteBatch(string)"/> returns a <see cref="QueryBatchResult"/> with one
+/// <see cref="QueryResult"/> per instruction; <see cref="Execute(string)"/> returns only the last
+/// <see cref="QueryResult"/>.
+/// </para>
+/// </remarks>
+public partial class GraphQueryExecute : IGraphClient
 {
     private readonly IGraphEngine _graphEngine;
     private readonly ILogger<GraphQueryExecute> _logger;
     private readonly string _instanceId = Guid.NewGuid().ToString();
     private readonly AsyncReaderWriterLock _rwLock = new AsyncReaderWriterLock();
-    private readonly GraphMapManager _graphDataManager;
+    private readonly GraphMapStore _graphMapStore;
 
-    public GraphQueryExecute(IGraphEngine graphEngine, GraphMapManager graphDataManager, ILogger<GraphQueryExecute> logger)
+    public GraphQueryExecute(IGraphEngine graphEngine, GraphMapStore graphDataManager, ILogger<GraphQueryExecute> logger)
     {
         _graphEngine = graphEngine.NotNull();
-        _graphDataManager = graphDataManager.NotNull();
+        _graphMapStore = graphDataManager.NotNull();
         _logger = logger.NotNull();
     }
 
+    /// <summary>
+    /// Executes a graph query and returns the results for each instruction in the batch.
+    /// </summary>
+    /// <param name="command">Graph query language text.</param>
+    /// <returns>A batch result containing one <see cref="QueryResult"/> per instruction.</returns>
     public async Task<Option<QueryBatchResult>> ExecuteBatch(string command)
     {
         var result = await InternalExecute(_graphEngine, command);
         return result;
     }
 
+    /// <summary>
+    /// Executes a graph query and returns only the last instruction result.
+    /// </summary>
+    /// <param name="command">Graph query language text.</param>
+    /// <returns>The last <see cref="QueryResult"/> produced by the batch.</returns>
     public async Task<Option<QueryResult>> Execute(string command)
     {
         var result = await InternalExecute(_graphEngine, command);
@@ -75,9 +103,9 @@ public class GraphQueryExecute : IGraphClient
         using var metric = _logger.LogDuration($"queryExecution-executionInstruction, iKey={_instanceId}");
 
         using var releaseWriteReadLock = isMutating ? (await _rwLock.WriterLockAsync()) : (await _rwLock.ReaderLockAsync());
-        await using var scopeLease = _graphDataManager.StartTransaction();
+        await using var scopeLease = await _graphMapStore.Transaction.Start();
 
-        var pContext = new GraphTrxContext(graphQuery, instructions, graphEngine, scopeLease, _logger);
+        var pContext = new GraphTrxContext(graphQuery, instructions, _graphMapStore.Recorder);
 
         while (pContext.Cursor.TryGetValue(out var graphInstruction))
         {
@@ -85,10 +113,10 @@ public class GraphQueryExecute : IGraphClient
 
             var queryResult = graphInstruction switch
             {
-                GiNode giNode => await NodeInstruction.Process(giNode, pContext),
-                GiEdge giEdge => EdgeInstruction.Process(giEdge, pContext),
-                GiSelect giSelect => await SelectInstruction.Process(giSelect, pContext),
-                GiDelete giDelete => await DeleteInstruction.Process(giDelete, pContext),
+                GiNode giNode => await ProcessNode(giNode, pContext),
+                GiEdge giEdge => ProcessEdge(giEdge, pContext),
+                GiSelect giSelect => await ProcessSelect(giSelect, pContext),
+                GiDelete giDelete => await ProcessDelete(giDelete, pContext),
                 _ => throw new UnreachableException(),
             };
 
@@ -100,7 +128,7 @@ public class GraphQueryExecute : IGraphClient
             {
                 _logger.LogStatus(queryResult, "Graph batch failed - rolling back: query={graphQuery}", [graphQuery]);
                 _logger.LogError("Graph batch failed - rolling back: query={graphQuery}, error={error}", graphQuery, queryResult.ToString());
-                await scopeLease.Rollback();
+                await _graphMapStore.Transaction.Rollback();
                 return itemResult;
             }
         }
@@ -110,13 +138,13 @@ public class GraphQueryExecute : IGraphClient
         if (pContext.IsMutating)
         {
             _logger.LogDebug("Committing transaction: query={graphQuery}, iKey={iKey}", pContext.GraphQuery, _instanceId);
-            var commitOption = await pContext.TransactionScope.Commit();
+            var commitOption = await _graphMapStore.Transaction.Commit();
             _logger.LogStatus(commitOption, "Commit transaction: query={graphQuery}, iKey={iKey}", [pContext.GraphQuery, _instanceId]);
 
             if (commitOption.IsError())
             {
                 _logger.LogError("Failed to commit, Checkpoint failed - attempting to roll back");
-                await pContext.TransactionScope.Rollback();
+                await _graphMapStore.Transaction.Rollback();
                 return commitOption.ToOptionStatus<QueryBatchResult>();
             }
         }

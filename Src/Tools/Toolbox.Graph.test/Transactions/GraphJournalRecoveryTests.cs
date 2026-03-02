@@ -41,7 +41,7 @@
 //        await fileStore.ClearStore(context);
 
 //        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-//        await graphEngine.DataManager.LoadDatabase(context);
+//        await graphEngine.GraphMapStore.LoadDatabase(context);
 
 //        return host;
 //    }
@@ -70,11 +70,11 @@
 //            x.Value.Items[1].Action(y => TestReturn(y, StatusCode.OK));
 //        });
 
-//        var recoveredMapOption = await graphEngine.DataManager.BuildFromJournals(context);
+//        var recoveredMapOption = await graphEngine.GraphMapStore.BuildFromJournals(context);
 //        GraphMap recoveredMap = recoveredMapOption.BeOk().Return();
 
-//        recoveredMap.LastLogSequenceNumber.NotEmpty().Be(graphEngine.DataManager.GetMap().LastLogSequenceNumber);
-//        var compareMap = GraphCommandTools.CompareMap(recoveredMap, graphEngine.DataManager.GetMap());
+//        recoveredMap.LastLogSequenceNumber.NotEmpty().Be(graphEngine.GraphMapStore.GetMap().LastLogSequenceNumber);
+//        var compareMap = GraphCommandTools.CompareMap(recoveredMap, graphEngine.GraphMapStore.GetMap());
 //        compareMap.Count.Be(0);
 //    }
 
@@ -139,11 +139,11 @@
 //            x.Value.Items[index++].Action(y => TestReturn(y, StatusCode.OK));
 //        });
 
-//        var recoveredMapOption = await graphEngine.DataManager.BuildFromJournals(context);
+//        var recoveredMapOption = await graphEngine.GraphMapStore.BuildFromJournals(context);
 //        GraphMap recoveredMap = recoveredMapOption.BeOk().Return();
 
-//        recoveredMap.LastLogSequenceNumber.Be(graphEngine.DataManager.GetMap().LastLogSequenceNumber);
-//        var compareMap = GraphCommandTools.CompareMap(recoveredMap, graphEngine.DataManager.GetMap());
+//        recoveredMap.LastLogSequenceNumber.Be(graphEngine.GraphMapStore.GetMap().LastLogSequenceNumber);
+//        var compareMap = GraphCommandTools.CompareMap(recoveredMap, graphEngine.GraphMapStore.GetMap());
 //        compareMap.Count.Be(0);
 //    }
 

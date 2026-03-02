@@ -1,155 +1,155 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using System.Text;
-using Microsoft.Extensions.Logging;
-using Toolbox.Data;
-using Toolbox.Extensions;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿//using System.Collections.Concurrent;
+//using System.Collections.Immutable;
+//using System.Text;
+//using Microsoft.Extensions.Logging;
+//using Toolbox.Data;
+//using Toolbox.Extensions;
+//using Toolbox.Tools;
+//using Toolbox.Types;
 
-namespace Toolbox.Graph;
+//namespace Toolbox.Graph;
 
-public class TransactionScope : IAsyncDisposable
-{
-    private readonly Func<DataChangeRecord, Task<Option>> _commitFunc;
-    private readonly Func<DataChangeRecord, Task<Option>> _rollback;
-    private readonly ILogger _logger;
-    private readonly ConcurrentQueue<DataChangeEntry> _queue = new();
-    private bool _isCommitted = false;
+//public class TransactionScope : IAsyncDisposable
+//{
+//    private readonly Func<DataChangeRecord, Task<Option>> _commitFunc;
+//    private readonly Func<DataChangeRecord, Task<Option>> _rollback;
+//    private readonly ILogger _logger;
+//    private readonly ConcurrentQueue<DataChangeEntry> _queue = new();
+//    private bool _isCommitted = false;
 
-    internal TransactionScope(
-        Func<DataChangeRecord, Task<Option>> commitFunc,
-        Func<DataChangeRecord, Task<Option>> rollback,
-        LogSequenceNumber logSequenceNumber,
-        ILogger logger
-        )
-    {
-        _commitFunc = commitFunc.NotNull();
-        _rollback = rollback.NotNull();
-        _logger = logger.NotNull();
+//    internal TransactionScope(
+//        Func<DataChangeRecord, Task<Option>> commitFunc,
+//        Func<DataChangeRecord, Task<Option>> rollback,
+//        LogSequenceNumber logSequenceNumber,
+//        ILogger logger
+//        )
+//    {
+//        _commitFunc = commitFunc.NotNull();
+//        _rollback = rollback.NotNull();
+//        _logger = logger.NotNull();
 
-        LogSequenceNumber = logSequenceNumber.NotNull();
-    }
+//        LogSequenceNumber = logSequenceNumber.NotNull();
+//    }
 
-    public string TransactionId { get; } = Guid.NewGuid().ToString();
-    public LogSequenceNumber LogSequenceNumber { get; }
+//    public string TransactionId { get; } = Guid.NewGuid().ToString();
+//    public LogSequenceNumber LogSequenceNumber { get; }
 
-    public void Enqueue(DataChangeEntry entry) => _queue.Enqueue(entry);
+//    public void Enqueue(DataChangeEntry entry) => _queue.Enqueue(entry);
 
-    public async Task<Option> Commit()
-    {
-        var committed = Interlocked.CompareExchange(ref _isCommitted, true, false);
-        if (committed) throw new InvalidOperationException();
+//    public async Task<Option> Commit()
+//    {
+//        var committed = Interlocked.CompareExchange(ref _isCommitted, true, false);
+//        if (committed) throw new InvalidOperationException();
 
-        _logger.LogDebug("Committing changes for transaction");
-        var commitOption = await _commitFunc(GetChangeRecords());
-        if (commitOption.IsError())
-        {
-            _logger.LogStatus(commitOption, "Failed to commit changes");
-            throw new InvalidOperationException($"Failed to commit changes: statusCode={commitOption.StatusCode}, error={commitOption.Error}");
-        }
+//        _logger.LogDebug("Committing changes for transaction");
+//        var commitOption = await _commitFunc(GetChangeRecords());
+//        if (commitOption.IsError())
+//        {
+//            _logger.LogStatus(commitOption, "Failed to commit changes");
+//            throw new InvalidOperationException($"Failed to commit changes: statusCode={commitOption.StatusCode}, error={commitOption.Error}");
+//        }
 
-        _queue.Clear();
-        return commitOption;
-    }
+//        _queue.Clear();
+//        return commitOption;
+//    }
 
-    public async Task Rollback()
-    {
-        var current = Interlocked.CompareExchange(ref _isCommitted, true, false);
-        if (current)
-        {
-            if (_queue.Count == 0) return;
-            var str = new StringBuilder(Environment.NewLine);
+//    public async Task Rollback()
+//    {
+//        var current = Interlocked.CompareExchange(ref _isCommitted, true, false);
+//        if (current)
+//        {
+//            if (_queue.Count == 0) return;
+//            var str = new StringBuilder(Environment.NewLine);
 
-            foreach (var item in _queue)
-            {
-                _logger.LogDebug("Rollback entry: {Entry}", item);
-                str.Append(item.ToString() + Environment.NewLine);
-            }
+//            foreach (var item in _queue)
+//            {
+//                _logger.LogDebug("Rollback entry: {Entry}", item);
+//                str.Append(item.ToString() + Environment.NewLine);
+//            }
 
-            throw new InvalidOperationException($"Commit or rollback already executed, queue.count={_queue.Count}, details={str}");
-        }
+//            throw new InvalidOperationException($"Commit or rollback already executed, queue.count={_queue.Count}, details={str}");
+//        }
 
-        if (_queue.Count == 0) return;
+//        if (_queue.Count == 0) return;
 
-        _logger.LogDebug("Rolling back changes for transaction");
-        var rollbackOption = await _rollback(GetChangeRecords());
-        if (rollbackOption.IsError())
-        {
-            _logger.LogError("Failed to rollback changes: {Error}", rollbackOption.Error);
-            throw new InvalidOperationException($"Failed to rollback changes: {rollbackOption.Error}");
-        }
+//        _logger.LogDebug("Rolling back changes for transaction");
+//        var rollbackOption = await _rollback(GetChangeRecords());
+//        if (rollbackOption.IsError())
+//        {
+//            _logger.LogError("Failed to rollback changes: {Error}", rollbackOption.Error);
+//            throw new InvalidOperationException($"Failed to rollback changes: {rollbackOption.Error}");
+//        }
 
-        _queue.Clear();
-    }
+//        _queue.Clear();
+//    }
 
-    public async ValueTask DisposeAsync() => await Rollback();
+//    public async ValueTask DisposeAsync() => await Rollback();
 
-    private DataChangeRecord GetChangeRecords() => new DataChangeRecord
-    {
-        TransactionId = TransactionId,
-        Entries = _queue.ToImmutableArray()
-    };
-}
-
-
-public static class TransactionScopeExtensions
-{
-    public static void NodeAdd(this TransactionScope subject, GraphNode newNode) =>
-        subject.Enqueue<GraphNode>(ChangeSource.Node, newNode.Key, ChangeOperation.Add, null, newNode.ToDataETag());
-    public static void NodeDelete(this TransactionScope subject, GraphNode currentNode) =>
-        subject.Enqueue<GraphNode>(ChangeSource.Node, currentNode.Key, ChangeOperation.Delete, currentNode.ToDataETag(), null);
-    public static void NodeChange(this TransactionScope subject, GraphNode currentNode, GraphNode updatedNode) =>
-        subject.Enqueue<GraphNode>(ChangeSource.Node, currentNode.Key, ChangeOperation.Delete, currentNode.ToDataETag(), updatedNode.ToDataETag());
-
-    public static void EdgeAdd(this TransactionScope subject, GraphEdge newNode) =>
-        subject.Enqueue<GraphEdge>(ChangeSource.Edge, newNode.Key, ChangeOperation.Add, null, newNode.ToDataETag());
-
-    public static void EdgeDelete(this TransactionScope subject, GraphEdge currentNode) =>
-        subject.Enqueue<GraphEdge>(ChangeSource.Edge, currentNode.Key, ChangeOperation.Delete, currentNode.ToDataETag(), null);
-
-    public static void EdgeChange(this TransactionScope subject, GraphEdge currentNode, GraphEdge updatedNode) =>
-        subject.Enqueue<GraphEdge>(ChangeSource.Edge, currentNode.Key, ChangeOperation.Delete, currentNode.ToDataETag(), updatedNode.ToDataETag());
-
-    public static void PrincipalAdd(this TransactionScope subject, PrincipalIdentity newPrincipal) =>
-        subject.Enqueue<PrincipalIdentity>(ChangeSource.Principal, newPrincipal.PrincipalId, ChangeOperation.Add, null, newPrincipal.ToDataETag());
-
-    public static void PrincipalUpdate(this TransactionScope subject, PrincipalIdentity currentPrincipal, PrincipalIdentity updatedPrincipal) =>
-        subject.Enqueue<PrincipalIdentity>(ChangeSource.Principal, currentPrincipal.PrincipalId, ChangeOperation.Delete, currentPrincipal.ToDataETag(), updatedPrincipal.ToDataETag());
-
-    public static void PrincipalDelete(this TransactionScope subject, PrincipalIdentity currentPrincipal) =>
-        subject.Enqueue<PrincipalIdentity>(ChangeSource.Principal, currentPrincipal.PrincipalId, ChangeOperation.Delete, currentPrincipal.ToDataETag(), null);
-
-    public static void GroupAdd(this TransactionScope subject, GroupPolicy newGroup) =>
-        subject.Enqueue<GroupPolicy>(ChangeSource.Group, newGroup.NameIdentifier, ChangeOperation.Add, null, newGroup.ToDataETag());
+//    private DataChangeRecord GetChangeRecords() => new DataChangeRecord
+//    {
+//        TransactionId = TransactionId,
+//        Entries = _queue.ToImmutableArray()
+//    };
+//}
 
 
-    public static void DataAdd(this TransactionScope subject, string fileId, DataETag newData) =>
-        subject.Enqueue<DataETag>(ChangeSource.Data, fileId, ChangeOperation.Add, null, newData);
+//public static class TransactionScopeExtensions
+//{
+//    public static void NodeAdd(this TransactionScope subject, GraphNode newNode) =>
+//        subject.Enqueue<GraphNode>(ChangeSource.Node, newNode.Key, ChangeOperation.Add, null, newNode.ToDataETag());
+//    public static void NodeDelete(this TransactionScope subject, GraphNode currentNode) =>
+//        subject.Enqueue<GraphNode>(ChangeSource.Node, currentNode.Key, ChangeOperation.Delete, currentNode.ToDataETag(), null);
+//    public static void NodeChange(this TransactionScope subject, GraphNode currentNode, GraphNode updatedNode) =>
+//        subject.Enqueue<GraphNode>(ChangeSource.Node, currentNode.Key, ChangeOperation.Delete, currentNode.ToDataETag(), updatedNode.ToDataETag());
 
-    public static void DataDelete(this TransactionScope subject, string fileId, DataETag currentData) =>
-        subject.Enqueue<GraphNode>(ChangeSource.Data, fileId, ChangeOperation.Delete, currentData, null);
+//    public static void EdgeAdd(this TransactionScope subject, GraphEdge newNode) =>
+//        subject.Enqueue<GraphEdge>(ChangeSource.Edge, newNode.Key, ChangeOperation.Add, null, newNode.ToDataETag());
 
-    public static void DataChange(this TransactionScope subject, string fileId, DataETag currentNode, DataETag updatedNode) =>
-        subject.Enqueue<DataETag>(ChangeSource.Data, fileId, ChangeOperation.Delete, currentNode, updatedNode);
+//    public static void EdgeDelete(this TransactionScope subject, GraphEdge currentNode) =>
+//        subject.Enqueue<GraphEdge>(ChangeSource.Edge, currentNode.Key, ChangeOperation.Delete, currentNode.ToDataETag(), null);
 
-    private static void Enqueue<T>(this TransactionScope subject, string sourceName, string objectId, string action, DataETag? before, DataETag? after)
-    {
-        subject.NotNull();
+//    public static void EdgeChange(this TransactionScope subject, GraphEdge currentNode, GraphEdge updatedNode) =>
+//        subject.Enqueue<GraphEdge>(ChangeSource.Edge, currentNode.Key, ChangeOperation.Delete, currentNode.ToDataETag(), updatedNode.ToDataETag());
 
-        var entry = new DataChangeEntry
-        {
-            LogSequenceNumber = subject.LogSequenceNumber.Next(),
-            TransactionId = subject.TransactionId,
-            Date = DateTime.UtcNow,
-            TypeName = typeof(T).Name,
-            SourceName = sourceName.NotEmpty(),
-            //ObjectId = objectId.NotEmpty(),
-            Action = action,
-            Before = before,
-            After = after,
-        };
+//    public static void PrincipalAdd(this TransactionScope subject, PrincipalIdentity newPrincipal) =>
+//        subject.Enqueue<PrincipalIdentity>(ChangeSource.Principal, newPrincipal.PrincipalId, ChangeOperation.Add, null, newPrincipal.ToDataETag());
 
-        subject.Enqueue(entry);
-    }
-}
+//    public static void PrincipalUpdate(this TransactionScope subject, PrincipalIdentity currentPrincipal, PrincipalIdentity updatedPrincipal) =>
+//        subject.Enqueue<PrincipalIdentity>(ChangeSource.Principal, currentPrincipal.PrincipalId, ChangeOperation.Delete, currentPrincipal.ToDataETag(), updatedPrincipal.ToDataETag());
+
+//    public static void PrincipalDelete(this TransactionScope subject, PrincipalIdentity currentPrincipal) =>
+//        subject.Enqueue<PrincipalIdentity>(ChangeSource.Principal, currentPrincipal.PrincipalId, ChangeOperation.Delete, currentPrincipal.ToDataETag(), null);
+
+//    public static void GroupAdd(this TransactionScope subject, GroupPolicy newGroup) =>
+//        subject.Enqueue<GroupPolicy>(ChangeSource.Group, newGroup.NameIdentifier, ChangeOperation.Add, null, newGroup.ToDataETag());
+
+
+//    public static void DataAdd(this TransactionScope subject, string fileId, DataETag newData) =>
+//        subject.Enqueue<DataETag>(ChangeSource.Data, fileId, ChangeOperation.Add, null, newData);
+
+//    public static void DataDelete(this TransactionScope subject, string fileId, DataETag currentData) =>
+//        subject.Enqueue<GraphNode>(ChangeSource.Data, fileId, ChangeOperation.Delete, currentData, null);
+
+//    public static void DataChange(this TransactionScope subject, string fileId, DataETag currentNode, DataETag updatedNode) =>
+//        subject.Enqueue<DataETag>(ChangeSource.Data, fileId, ChangeOperation.Delete, currentNode, updatedNode);
+
+//    private static void Enqueue<T>(this TransactionScope subject, string sourceName, string objectId, string action, DataETag? before, DataETag? after)
+//    {
+//        subject.NotNull();
+
+//        var entry = new DataChangeEntry
+//        {
+//            LogSequenceNumber = subject.LogSequenceNumber.Next(),
+//            TransactionId = subject.TransactionId,
+//            Date = DateTime.UtcNow,
+//            TypeName = typeof(T).Name,
+//            SourceName = sourceName.NotEmpty(),
+//            //ObjectId = objectId.NotEmpty(),
+//            Action = action,
+//            Before = before,
+//            After = after,
+//        };
+
+//        subject.Enqueue(entry);
+//    }
+//}

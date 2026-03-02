@@ -15,13 +15,13 @@ public static class NodeBuild
 
         switch (entry.SourceName, entry.Action)
         {
-            case (ChangeSource.Node, ChangeOperation.Add):
+            case (ChangeSource.Node, ActionOperator.Add):
                 return Add(map, entry, logger).ThrowOnError().ToTaskResult();
 
-            case (ChangeSource.Node, ChangeOperation.Delete):
+            case (ChangeSource.Node, ActionOperator.Delete):
                 return Delete(map, entry, logger).ThrowOnError().ToTaskResult();
 
-            case (ChangeSource.Node, ChangeOperation.Update):
+            case (ChangeSource.Node, ActionOperator.Update):
                 return Update(map, entry, logger).ThrowOnError().ToTaskResult();
         }
 

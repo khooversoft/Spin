@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.Json.Serialization;
 using Toolbox.Extensions;
 using Toolbox.Tools;
@@ -13,7 +14,7 @@ public sealed record DataETag : IEquatable<DataETag>
     [JsonConstructor]
     public DataETag(ImmutableArray<byte> data, string? eTag) => (Data, ETag) = (data, eTag);
 
-    public ImmutableArray<byte> Data { get; init; } = ImmutableArray<byte>.Empty;
+    public ImmutableArray<byte> Data { get; init; }
     public string? ETag { get; init; }
 
     public DataETag Append(DataETag append) => Data.Concat(append.Data).ToDataETag();
@@ -34,8 +35,10 @@ public static class DataETagExtensions
 {
     public static Option Validate(this DataETag subject) => DataETag.Validator.Validate(subject).ToOptionStatus();
 
+    [DebuggerStepThrough]
     public static string DataToString(this DataETag subject) => subject.Data.BytesToString();
 
+    [DebuggerStepThrough]
     public static DataETag ToDataETag<T>(this T value, string? currentETag = null)
     {
         value.NotNull();
@@ -45,6 +48,7 @@ public static class DataETagExtensions
         return new DataETag(bytes, currentETag);
     }
 
+    [DebuggerStepThrough]
     public static DataETag ToDataETagWithHash<T>(this T value)
     {
         value.NotNull();
@@ -54,6 +58,7 @@ public static class DataETagExtensions
         return new DataETag(bytes, bytes.ToHexHash());
     }
 
+    [DebuggerStepThrough]
     private static byte[] ConvertToBytes<T>(this T value)
     {
         value.NotNull();
@@ -76,6 +81,7 @@ public static class DataETagExtensions
     public static DataETag WithETag(this DataETag data, string eTag) => new DataETag(data.Data, eTag.NotEmpty());
 }
 
+[JsonRegister(typeof(DataETag))]
 [JsonSourceGenerationOptions(
     WriteIndented = false,
     DefaultIgnoreCondition = JsonIgnoreCondition.Never,
@@ -83,7 +89,6 @@ public static class DataETagExtensions
     Converters = new[] { typeof(ImmutableByteArrayConverter) })
     ]
 [JsonSerializable(typeof(DataETag))]
-[JsonRegister(typeof(DataETag))]
 internal partial class DataETagJsonContext : JsonSerializerContext
 {
 }

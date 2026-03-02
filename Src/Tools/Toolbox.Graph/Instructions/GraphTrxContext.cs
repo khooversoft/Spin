@@ -1,7 +1,6 @@
 ﻿using System.Collections.Immutable;
-using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Extensions;
-using Toolbox.Store;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -10,32 +9,27 @@ namespace Toolbox.Graph;
 public class GraphTrxContext
 {
     private int _queryNumber = -1;
-    private readonly IGraphEngine _graphEngine;
     private readonly Sequence<QueryResult> _queryResult = new Sequence<QueryResult>();
 
-    internal GraphTrxContext(string graphQuery, IEnumerable<IGraphInstruction> graphInstructions, IGraphEngine graphEngine, TransactionScope transactionScope, ILogger logger)
+    internal GraphTrxContext(string graphQuery, IEnumerable<IGraphInstruction> graphInstructions, TrxSourceRecorder? recorder)
     {
         GraphQuery = graphQuery.NotEmpty();
         Instructions = graphInstructions.NotNull().ToList();
+
         Cursor = new Cursor<IGraphInstruction>(Instructions);
-        _graphEngine = graphEngine.NotNull();
-        TransactionScope = transactionScope.NotNull();
-        Logger = logger.NotNull();
+        Recorder = recorder;
     }
 
     public string GraphQuery { get; }
     public List<IGraphInstruction> Instructions { get; }
     public Cursor<IGraphInstruction> Cursor { get; }
     public bool IsMutating => Instructions.Any(x => x is GiNode || x is GiEdge || x is GiDelete);
-    public int NextQueryNumber() => Interlocked.Increment(ref _queryNumber);
     public IReadOnlyList<QueryResult> QueryResult => _queryResult;
     public JoinInstructionSwitch LastJoin { get; } = new JoinInstructionSwitch();
-    public TransactionScope TransactionScope { get; }
-    public ILogger Logger { get; }
-    public IKeyStore<DataETag> DataClient => _graphEngine.DataClient;
-    public GraphMap GetMap() => _graphEngine.DataManager.GetMap();
+    public TrxSourceRecorder? Recorder { get; }
 
     public void AddQueryResult(Option subject) => _queryResult.Add(new QueryResult { QueryNumber = NextQueryNumber(), Option = subject });
+
     public void AddQueryResult(QueryResult subject) => _queryResult.Add(subject.NotNull() with
     {
         QueryNumber = NextQueryNumber(),
@@ -54,6 +48,8 @@ public class GraphTrxContext
 
         _queryResult[_queryResult.Count - 1] = queryResult;
     }
+
+    private int NextQueryNumber() => Interlocked.Increment(ref _queryNumber);
 
 
     public class JoinInstructionSwitch

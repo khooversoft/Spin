@@ -8,7 +8,7 @@ namespace Toolbox.Graph;
 
 public static class DataBuild
 {
-    public static async Task<Option> Build(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ILogger logger)
+    public static async Task<Option> Build(GraphMap map, DataChangeEntry entry, IKeyStore dataFileClient, ILogger logger)
     {
         map.NotNull();
         entry.NotNull();
@@ -16,18 +16,18 @@ public static class DataBuild
 
         switch (entry.SourceName, entry.Action)
         {
-            case (ChangeSource.Data, ChangeOperation.Add):
-            case (ChangeSource.Data, ChangeOperation.Update):
+            case (ChangeSource.Data, ActionOperator.Add):
+            case (ChangeSource.Data, ActionOperator.Update):
                 return await Add(map, entry, dataFileClient, logger).ThrowOnError();
 
-            case (ChangeSource.Data, ChangeOperation.Delete):
+            case (ChangeSource.Data, ActionOperator.Delete):
                 return await Delete(map, entry, dataFileClient, logger).ThrowOnError();
         }
 
         return StatusCode.NotFound;
     }
 
-    private static async Task<Option> Add(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ILogger logger)
+    private static async Task<Option> Add(GraphMap map, DataChangeEntry entry, IKeyStore dataFileClient, ILogger logger)
     {
         if (entry.After == null) throw new InvalidOperationException($"{entry.Action} command does not have 'Before' DataETag data");
 
@@ -43,7 +43,7 @@ public static class DataBuild
         return StatusCode.OK;
     }
 
-    private static async Task<Option> Delete(GraphMap map, DataChangeEntry entry, IKeyStore<DataETag> dataFileClient, ILogger logger)
+    private static async Task<Option> Delete(GraphMap map, DataChangeEntry entry, IKeyStore dataFileClient, ILogger logger)
     {
         var deleteOption = await dataFileClient.Delete(entry.ObjectId);
         if (deleteOption.IsError())

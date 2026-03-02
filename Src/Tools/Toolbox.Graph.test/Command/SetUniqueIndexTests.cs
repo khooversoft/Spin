@@ -24,7 +24,7 @@ public class SetUniqueIndexTests
             .Build();
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        await graphEngine.DataManager.LoadDatabase();
+        await graphEngine.GraphMapStore.LoadDatabase();
 
         return host;
     }
@@ -39,30 +39,30 @@ public class SetUniqueIndexTests
         var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;");
         e1.IsOk().BeTrue(e1.ToString());
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node1");
         });
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t3", "v3").IsOk().BeFalse();
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t3", "v3").IsOk().BeFalse();
 
         var e2 = await graphClient.Execute("set node key=node2 set t3=v3 index t3 ;");
         e2.IsOk().BeTrue(e1.ToString());
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node1");
         });
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t3", "v3").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t3", "v3").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node2");
         });
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t3", "v1").IsOk().BeFalse();
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t3", "v1").IsOk().BeFalse();
     }
 
     [Fact]
@@ -75,24 +75,24 @@ public class SetUniqueIndexTests
         var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;");
         e1.IsOk().BeTrue(e1.ToString());
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node1");
         });
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t3", "v3").IsOk().BeFalse();
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t3", "v3").IsOk().BeFalse();
 
         var e2 = await graphClient.Execute("set node key=node2 set t1=v2 index t1 ;");
         e2.IsOk().BeTrue(e1.ToString());
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node1");
         });
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v2").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v2").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node2");
@@ -109,7 +109,7 @@ public class SetUniqueIndexTests
         var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;");
         e1.IsOk().BeTrue(e1.ToString());
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node1");
@@ -118,10 +118,10 @@ public class SetUniqueIndexTests
         var e2 = await graphClient.Execute("set node key=node2 set t1=v1 index t1 ;");
         e2.IsError().BeTrue(e1.ToString());
 
-        graphEngine.DataManager.GetMap().Nodes.ContainsKey("node1").BeTrue();
-        graphEngine.DataManager.GetMap().Nodes.ContainsKey("node2").BeFalse();
+        graphEngine.GraphMapStore.GetMap().Nodes.ContainsKey("node1").BeTrue();
+        graphEngine.GraphMapStore.GetMap().Nodes.ContainsKey("node2").BeFalse();
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node1");
@@ -138,7 +138,7 @@ public class SetUniqueIndexTests
         var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;");
         e1.IsOk().BeTrue(e1.ToString());
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node1");
@@ -150,11 +150,11 @@ public class SetUniqueIndexTests
         var e3 = await graphClient.Execute("set node key=node2 set t1=v1 index t1 ;");
         e3.IsError().BeTrue(e1.ToString());
 
-        graphEngine.DataManager.GetMap().Nodes.ContainsKey("node1").BeTrue();
-        graphEngine.DataManager.GetMap().Nodes.ContainsKey("node3").BeTrue();
-        graphEngine.DataManager.GetMap().Nodes.ContainsKey("node2").BeFalse();
+        graphEngine.GraphMapStore.GetMap().Nodes.ContainsKey("node1").BeTrue();
+        graphEngine.GraphMapStore.GetMap().Nodes.ContainsKey("node3").BeTrue();
+        graphEngine.GraphMapStore.GetMap().Nodes.ContainsKey("node2").BeFalse();
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node1");
@@ -171,20 +171,20 @@ public class SetUniqueIndexTests
         var e1 = await graphClient.Execute("set node key=node1 set t1=v1, t2=v2 index t1, t2 ;");
         e1.IsOk().BeTrue(e1.ToString());
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v1").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node1");
         });
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v2").IsError().BeTrue();
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v2").IsError().BeTrue();
 
         var e2 = await graphClient.Execute("set node key=node1 set t1=v2 ;");
         e2.IsOk().BeTrue(e1.ToString());
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v1").IsError().BeTrue();
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v1").IsError().BeTrue();
 
-        graphEngine.DataManager.GetMap().Nodes.LookupIndex("t1", "v2").Action(x =>
+        graphEngine.GraphMapStore.GetMap().Nodes.LookupIndex("t1", "v2").Action(x =>
         {
             x.IsOk().BeTrue();
             x.Return().NodeKey.Be("node1");

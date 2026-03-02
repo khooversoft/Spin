@@ -10,6 +10,7 @@ public interface IGraphClient
     Task<Option<QueryBatchResult>> ExecuteBatch(string command);
 }
 
+
 public static class GraphClientTool
 {
     public static async Task<Option<T>> GetNode<T>(this IGraphClient graphClient, string nodeKey, ILogger logger)

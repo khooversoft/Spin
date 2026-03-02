@@ -1,0 +1,183 @@
+﻿using Microsoft.Extensions.Logging;
+using Toolbox.Data;
+using Toolbox.Extensions;
+using Toolbox.Telemetry;
+using Toolbox.Tools;
+using Toolbox.Types;
+
+namespace Toolbox.Graph;
+
+public class PrincipalRegistry
+{
+    private readonly ILogger _logger;
+    private readonly Func<GraphCore?> _getGraph;
+    private readonly ReaderWriterLockSlim _slimLock;
+    private readonly ITelemetry? _telemetry;
+
+    public PrincipalRegistry(Func<GraphCore?> getGraph, ReaderWriterLockSlim slimLock, ILogger logger, ITelemetry? telemetry = null)
+    {
+        _getGraph = getGraph.NotNull();
+        _logger = logger.NotNull();
+        _slimLock = slimLock.NotNull();
+        _telemetry = telemetry;
+    }
+
+    public Option AddOrUpdate(PrincipalIdentity principalIdentity)
+    {
+        principalIdentity.NotNull().Validate().ThrowOnError();
+        var graph = _getGraph().NotNull("Graph not loaded");
+        var node = new Node(principalIdentity.NodeKey, principalIdentity.ToDataETag());
+
+        _slimLock.EnterWriteLock();
+        try
+        {
+            var result = graph.Nodes.AddOrUpdate(node);
+            if (result.IsError()) return result;
+
+            var updateOption = AddOrUpdateReferenceNode(graph, principalIdentity);
+            if (updateOption.IsError()) return updateOption;
+
+            return result;
+        }
+        finally { _slimLock.ExitWriteLock(); }
+    }
+
+    public bool Contains(string principalId)
+    {
+        _slimLock.EnterReadLock();
+        try
+        {
+            var graph = _getGraph().NotNull("Graph not loaded");
+
+            var nodeKey = NodeTool.CreateKey(principalId, PrincipalIdentity.NodeType);
+            return graph.Nodes.ContainsKey(nodeKey);
+        }
+        finally { _slimLock.ExitReadLock(); }
+    }
+
+    public Option<PrincipalIdentity> Get(string principalId)
+    {
+        _slimLock.EnterReadLock();
+        try
+        {
+            var graph = _getGraph().NotNull("Graph not loaded");
+
+            var nodeKey = NodeTool.CreateKey(principalId, PrincipalIdentity.NodeType);
+            if (!graph.Nodes.TryGetValue(nodeKey, out var node)) return StatusCode.NotFound;
+
+            var result = node.NotNull().Payload.ToObject<PrincipalIdentity>();
+            return result;
+        }
+        finally { _slimLock.ExitReadLock(); }
+    }
+
+    public IReadOnlyList<PrincipalIdentity> GetAll()
+    {
+        _slimLock.EnterReadLock();
+        try
+        {
+            var graph = _getGraph().NotNull("Graph not loaded");
+
+            var items = graph.Nodes
+                .Where(x => NodeTool.ParseKey(x.NodeKey).NodeType == PrincipalIdentity.NodeType)
+                .Select(x => x.Payload.ToObject<PrincipalIdentity>())
+                .ToArray();
+
+            return items;
+        }
+        finally { _slimLock.ExitReadLock(); }
+    }
+
+    public Option Remove(string principalId)
+    {
+        _slimLock.EnterWriteLock();
+        try
+        {
+            var graph = _getGraph().NotNull("Graph not loaded");
+
+            var nodeKey = NodeTool.CreateKey(principalId, PrincipalIdentity.NodeType);
+            var result = graph.Nodes.Remove(nodeKey);
+            if (result.IsError()) return result;
+
+            RemoveAllReferenceNodes(graph, nodeKey);
+            return result;
+        }
+        finally { _slimLock.ExitWriteLock(); }
+    }
+
+    public Option TryAdd(PrincipalIdentity principalIdentity)
+    {
+        _slimLock.EnterWriteLock();
+        try
+        {
+            var graph = _getGraph().NotNull("Graph not loaded");
+            principalIdentity.NotNull().Validate().ThrowOnError();
+
+            if (graph.Nodes.TryGetValue(principalIdentity.NodeKey, out _)) return StatusCode.Conflict;
+
+            var result = graph.Nodes.Add(principalIdentity.NodeKey, principalIdentity.ToDataETag());
+            if (result.IsError()) return result;
+
+            var updateOption = AddOrUpdateReferenceNode(graph, principalIdentity);
+            if (updateOption.IsError()) return updateOption;
+
+            return result;
+        }
+        finally { _slimLock.ExitWriteLock(); }
+    }
+
+    /// <summary>
+    /// Reference nodes are owned by parent (i.e. 'FromKey' in edges)
+    /// </summary>
+    private Option AddOrUpdateReferenceNode(GraphCore graph, PrincipalIdentity principalIdentity)
+    {
+        var currentReferenceKeys = graph.Nodes.GetNodes(principalIdentity.NodeKey)
+            .SelectMany(x => graph.Edges.GetByFrom(x.NodeKey, PrincipalIdentity.NodeReferenceType))
+            .SelectMany(x => graph.Nodes.GetNodes(x.ToKey))
+            .ToArray();
+
+        var shouldBeReferenceKeys = new string[]
+        {
+            principalIdentity.CreateNameIdentifierNodeKey(),
+            principalIdentity.CreateUserNameNodeKey(),
+            principalIdentity.CreateEmailNodeKey()
+        }.ToArray();
+
+        // Delete edges
+        var deleteNodes = currentReferenceKeys.Select(n => n.NodeKey)
+            .Except(shouldBeReferenceKeys)
+            .ToArray();
+        foreach (var nodeKey in deleteNodes) graph.Nodes.Remove(nodeKey);
+
+        // Add missing
+        var missingNodes = shouldBeReferenceKeys
+            .Except(currentReferenceKeys.Select(n => n.NodeKey))
+            .ToArray();
+
+        foreach (var nodeKey in missingNodes)
+        {
+            var refLinkPayload = new NodeReference(principalIdentity.NodeKey);
+
+            var node = new Node(nodeKey, refLinkPayload.ToDataETag());
+            var result = graph.Nodes.Add(node.NodeKey, node.Payload);
+            if (result.IsError()) return result;
+
+            var edge = new Edge(principalIdentity.NodeKey, node.NodeKey, PrincipalIdentity.NodeReferenceType);
+            var edgeResult = graph.Edges.TryAdd(edge);
+            if (edgeResult.IsError()) return edgeResult;
+        }
+
+        return StatusCode.OK;
+    }
+
+    private Option RemoveAllReferenceNodes(GraphCore graph, string nodeKey)
+    {
+        var referenceNodes = graph.Nodes.GetNodes(nodeKey)
+            .SelectMany(x => graph.Edges.GetByFrom(x.NodeKey, PrincipalIdentity.NodeReferenceType))
+            .SelectMany(x => graph.Nodes.GetNodes(x.ToKey))
+            .ToArray();
+
+        foreach (var node in referenceNodes) graph.Nodes.Remove(node.NodeKey);
+        return StatusCode.OK;
+    }
+}

@@ -44,6 +44,7 @@ public static class DataObjectValidator
 }
 
 
+[JsonRegister(typeof(DataObject))]
 [JsonSourceGenerationOptions(
     WriteIndented = false,
     DefaultIgnoreCondition = JsonIgnoreCondition.Never,
@@ -51,7 +52,6 @@ public static class DataObjectValidator
     Converters = new[] { typeof(ImmutableByteArrayConverter) })
     ]
 [JsonSerializable(typeof(DataObject))]
-[JsonRegister(typeof(DataObject))]
 internal partial class DataObjectJsonContext : JsonSerializerContext
 {
 }

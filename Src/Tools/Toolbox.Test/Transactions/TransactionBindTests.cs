@@ -119,7 +119,7 @@ public class TransactionBindTests
                 y.TypeName.Be(typeof(DirectoryDetail).Name);
                 y.SourceName.Be("memoryStore");
                 y.ObjectId.Be("transactionbindtests/singletransactionwithcommit/keystore/key1");
-                y.Action.Be(ChangeOperation.Add);
+                y.Action.Be(ActionOperator.Add);
                 (y.Before == null).BeTrue();
 
                 var jread = y.After?.ToObject<DirectoryDetail>() ?? throw new ArgumentException();
@@ -159,7 +159,7 @@ public class TransactionBindTests
         var entry = records.Return()[0].Entries[0];
         entry.Action(y =>
         {
-            y.Action.Be(ChangeOperation.Update);
+            y.Action.Be(ActionOperator.Update);
             y.SourceName.Be("memoryStore");
             y.ObjectId.Be("transactionbindtests/updatetransactionwithcommit/keystore/key1");
 
@@ -200,7 +200,7 @@ public class TransactionBindTests
         var entry = records.Return()[0].Entries[0];
         entry.Action(y =>
         {
-            y.Action.Be(ChangeOperation.Delete);
+            y.Action.Be(ActionOperator.Delete);
             y.SourceName.Be("memoryStore");
             y.ObjectId.Be("transactionbindtests/deletetransactionwithcommit/keystore/key1");
             (y.After == null).BeTrue();

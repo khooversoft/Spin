@@ -53,7 +53,7 @@ public class EdgeInstructionTests
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
         var context = host.Services.GetRequiredService<ILogger<EdgeInstructionTests>>();
-        await graphEngine.DataManager.SetMap(_map);
+        await graphEngine.GraphMapStore.SetMap(_map);
 
         return host;
     }
@@ -126,18 +126,17 @@ public class EdgeInstructionTests
 
         var pk = new GraphEdgePrimaryKey { FromKey = "node7", ToKey = "node1", EdgeType = "newEdgeType" };
 
-        var fromLookup = graphEngine.DataManager.GetMap().Edges.LookupByFromKey(["node7"]);
+        var fromLookup = graphEngine.GraphMapStore.GetMap().Edges.LookupByFromKey(["node7"]);
         Enumerable.SequenceEqual(fromLookup, [pk]).BeTrue();
 
-        var toLookup = graphEngine.DataManager.GetMap().Edges.LookupByToKey(["node1"]);
+        var toLookup = graphEngine.GraphMapStore.GetMap().Edges.LookupByToKey(["node1"]);
         Enumerable.SequenceEqual(toLookup, [pk]).BeTrue();
 
-        var edgeType = graphEngine.DataManager.GetMap().Edges.LookupByEdgeType(["newEdgeType"]);
+        var edgeType = graphEngine.GraphMapStore.GetMap().Edges.LookupByEdgeType(["newEdgeType"]);
         Enumerable.SequenceEqual(edgeType, [pk]).BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
-
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
         {
@@ -170,7 +169,7 @@ public class EdgeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
@@ -195,7 +194,7 @@ public class EdgeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
@@ -220,7 +219,7 @@ public class EdgeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
@@ -252,7 +251,7 @@ public class EdgeInstructionTests
         QueryBatchResult commandResults = newMapOption.Return();
         commandResults.Items.Count.Be(1);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
         compareMap.Count.Be(0);
     }
 
@@ -267,7 +266,7 @@ public class EdgeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>
@@ -292,7 +291,7 @@ public class EdgeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphEdge>().Action(x =>

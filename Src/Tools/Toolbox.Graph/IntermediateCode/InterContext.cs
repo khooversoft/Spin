@@ -5,14 +5,14 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-internal class InterContext
+public class InterContext
 {
     public InterContext(IEnumerable<SyntaxPair> syntaxPairs) => Cursor = new List<SyntaxPair>(syntaxPairs.NotNull()).ToCursor();
 
     public Cursor<SyntaxPair> Cursor { get; }
 }
 
-internal static class InterContextExtensions
+public static class InterContextExtensions
 {
     public static Option ProcessSymbols(this InterContext ic, params string[] symbolNames)
     {

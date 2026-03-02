@@ -122,7 +122,7 @@ public class TransactionRecorderTests
                 y.TypeName.Be(typeof(JournalEntry).Name);
                 y.SourceName.Be("source1");
                 y.ObjectId.Be("id1");
-                y.Action.Be(ChangeOperation.Add);
+                y.Action.Be(ActionOperator.Add);
                 (y.Before == null).BeTrue();
 
                 var jread = y.After?.ToObject<JournalEntry>() ?? throw new ArgumentException();
@@ -148,7 +148,7 @@ public class TransactionRecorderTests
             entry.TypeName.Be(typeof(JournalEntry).Name);
             entry.SourceName.Be("source1");
             entry.ObjectId.Be("id1");
-            entry.Action.Be(ChangeOperation.Add);
+            entry.Action.Be(ActionOperator.Add);
             (entry.Before == null).BeTrue();
 
             var jread = entry.After?.ToObject<JournalEntry>() ?? throw new ArgumentException();
@@ -197,7 +197,7 @@ public class TransactionRecorderTests
         list.Select(x => x.TypeName).SequenceEqual(["JournalEntry", "JournalEntry", "JournalEntry"]);
         list.Select(x => x.SourceName).SequenceEqual(["source1", "source2", "source3"]);
         list.Select(x => x.ObjectId).SequenceEqual(["id1", "id2", "id3"]);
-        list.Select(x => x.Action).SequenceEqual([ChangeOperation.Add, ChangeOperation.Add, ChangeOperation.Add]);
+        list.Select(x => x.Action).SequenceEqual([ActionOperator.Add, ActionOperator.Add, ActionOperator.Add]);
         list.Count(x => x.Before == null).Be(3);
         list.Count(x => x.After != null).Be(3);
         list.Select(x => x.After.ToObject<JournalEntry>()).SequenceEqual([j1, j2, j3]).BeTrue();
@@ -348,7 +348,7 @@ public class TransactionRecorderTests
         transaction.TrxRecorder.Add("source1", "id1", new JournalEntry("Alice", 30));
 
         await transaction.Rollback();
-        transaction.RunState.Be(TrxRunState.None);
+        transaction.RunState.Be(TrxRunState.Reverted);
     }
 
     [Fact]
@@ -569,7 +569,7 @@ public class TransactionRecorderTests
                 y.TypeName.Be(typeof(JournalEntry).Name);
                 y.SourceName.Be("source1");
                 y.ObjectId.Be("id1");
-                y.Action.Be(ChangeOperation.Delete);
+                y.Action.Be(ActionOperator.Delete);
                 (y.After == null).BeTrue();
 
                 var jread = y.Before?.ToObject<JournalEntry>() ?? throw new ArgumentException();
@@ -594,7 +594,7 @@ public class TransactionRecorderTests
             entry.TypeName.Be(typeof(JournalEntry).Name);
             entry.SourceName.Be("source1");
             entry.ObjectId.Be("id1");
-            entry.Action.Be(ChangeOperation.Delete);
+            entry.Action.Be(ActionOperator.Delete);
             (entry.After == null).BeTrue();
 
             var jread = entry.Before?.ToObject<JournalEntry>() ?? throw new ArgumentException();
@@ -643,7 +643,7 @@ public class TransactionRecorderTests
                 y.TypeName.Be(typeof(JournalEntry).Name);
                 y.SourceName.Be("source1");
                 y.ObjectId.Be("id1");
-                y.Action.Be(ChangeOperation.Update);
+                y.Action.Be(ActionOperator.Update);
 
                 var beforeRead = y.Before?.ToObject<JournalEntry>() ?? throw new ArgumentException();
                 beforeRead.Name.Be("Alice");
@@ -671,7 +671,7 @@ public class TransactionRecorderTests
             entry.TypeName.Be(typeof(JournalEntry).Name);
             entry.SourceName.Be("source1");
             entry.ObjectId.Be("id1");
-            entry.Action.Be(ChangeOperation.Update);
+            entry.Action.Be(ActionOperator.Update);
 
             var beforeRead = entry.Before?.ToObject<JournalEntry>() ?? throw new ArgumentException();
             beforeRead.Name.Be("Alice");
@@ -717,7 +717,7 @@ public class TransactionRecorderTests
         var data = records.Return();
         var list = data.SelectMany(x => x.Entries).ToList();
         list.Count.Be(3);
-        list.Select(x => x.Action).SequenceEqual([ChangeOperation.Add, ChangeOperation.Delete, ChangeOperation.Update]);
+        list.Select(x => x.Action).SequenceEqual([ActionOperator.Add, ActionOperator.Delete, ActionOperator.Update]);
         list[0].Before.BeNull();
         list[0].After.NotNull();
         list[1].Before.NotNull();
@@ -737,7 +737,7 @@ public class TransactionRecorderTests
         transaction.EnlistLambda("source", entry =>
         {
             rollbackOrder.Add(entry.ObjectId);
-            entry.Action.Be(ChangeOperation.Delete);
+            entry.Action.Be(ActionOperator.Delete);
             return new Option(StatusCode.OK).ToTaskResult();
         });
 
@@ -778,7 +778,7 @@ public class TransactionRecorderTests
         var data = records.Return();
         var list = data.SelectMany(x => x.Entries).ToList();
         list.Count.Be(3);
-        list.All(x => x.Action == ChangeOperation.Update).BeTrue();
+        list.All(x => x.Action == ActionOperator.Update).BeTrue();
         list.All(x => x.Before != null && x.After != null).BeTrue();
     }
 
@@ -808,6 +808,6 @@ public class TransactionRecorderTests
 
         // After rollback
         await transaction.Rollback();
-        transaction.RunState.Be(TrxRunState.None);
+        transaction.RunState.Be(TrxRunState.Reverted);
     }
 }

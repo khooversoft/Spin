@@ -50,12 +50,14 @@ public static class StringToolExtensions
     }
 
     /// <summary>
-    /// Match input against wildcard pattern
+    /// Matches input string against a wildcard pattern with case-insensitive comparison.
+    /// Supports '*' (matches zero or more characters) and '?' (matches exactly one character).
+    /// All other characters are matched literally.
     /// </summary>
-    /// <param name="pattern"></param>
-    /// <param name="input"></param>
-    /// <param name="useContains">if no wildcard characters, use contains instead of equals</param>
-    /// <returns></returns>
+    /// <param name="input">The string to match against the pattern. Returns false if null or empty.</param>
+    /// <param name="pattern">The wildcard pattern to match. Returns false if null or empty.</param>
+    /// <param name="useContains">If true and pattern contains no wildcards, uses Contains instead of Equals for matching.</param>
+    /// <returns>True if the input matches the pattern; otherwise, false.</returns>
     public static bool Like(this string? input, string? pattern, bool useContains = false)
     {
         if (input.IsEmpty() || pattern.IsEmpty()) return false;
@@ -68,19 +70,19 @@ public static class StringToolExtensions
 
         var builder = new StringBuilder("^");
 
-        foreach (Char c in pattern)
+        foreach (char c in pattern)
         {
             switch (c)
             {
                 case '*': builder.Append(".*"); break;
                 case '?': builder.Append('.'); break;
-                default: builder.Append("[" + c + "]"); break;
+                default: builder.Append(Regex.Escape(c.ToString())); break;
             }
         }
 
         builder.Append('$');
 
-        bool result = new Regex(builder.ToString(), RegexOptions.IgnoreCase).IsMatch(input);
+        bool result = Regex.IsMatch(input, builder.ToString(), RegexOptions.IgnoreCase);
         return result;
     }
 
@@ -118,4 +120,15 @@ public static class StringToolExtensions
             _ => char.ToUpper(input[0]) + input[1..],
         };
     }
+
+    /// <summary>
+    /// Test if string has wildcard characters '*' or '?'
+    /// </summary>
+    public static bool HasWildCard(this string? value) => value switch
+    {
+        null => false,
+        string v when v.IsEmpty() => false,
+        string v when v.IndexOfAny(['*', '?'], 0) >= 0 => true,
+        _ => false,
+    };
 }

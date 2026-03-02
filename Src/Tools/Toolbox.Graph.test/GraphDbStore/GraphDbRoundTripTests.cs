@@ -41,7 +41,7 @@
 //        await list.ForEachAsync(async x => await fileStore.File(x.Path).Delete(context));
 
 //        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-//        await graphEngine.DataManager.LoadDatabase(context);
+//        await graphEngine.GraphMapStore.LoadDatabase(context);
 
 //        return host;
 //    }

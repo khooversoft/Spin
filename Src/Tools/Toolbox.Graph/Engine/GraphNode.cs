@@ -25,14 +25,14 @@ public sealed record GraphNode : IGraphCommon
 
         ForeignKeys = TagsTool.Parse(foreignKeys).ThrowOnError().Return().ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
-        Grants = grants switch
-        {
-            null => FrozenSet<GrantPolicy>.Empty,
-            string v => v
-                .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => GrantPolicyTool.Parse(x))
-                .ToFrozenSet(),
-        };
+        //Grants = grants switch
+        //{
+        //    null => FrozenSet<GrantPolicy>.Empty,
+        //    string v => v
+        //        .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+        //        .Select(x => GrantPolicyTool.Parse(x))
+        //        .ToFrozenSet(),
+        //};
     }
 
     public GraphNode(

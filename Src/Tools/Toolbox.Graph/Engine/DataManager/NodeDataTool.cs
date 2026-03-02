@@ -1,120 +1,120 @@
-﻿using System.Collections.Immutable;
-using Microsoft.Extensions.Logging;
-using Toolbox.Extensions;
-using Toolbox.Tools;
-using Toolbox.Types;
+﻿//using System.Collections.Immutable;
+//using Microsoft.Extensions.Logging;
+//using Toolbox.Extensions;
+//using Toolbox.Tools;
+//using Toolbox.Types;
 
-namespace Toolbox.Graph;
+//namespace Toolbox.Graph;
 
-internal static class NodeDataTool
-{
-    public static async Task<Option<IReadOnlyList<GraphLink>>> AddData(GiNode giNode, GraphTrxContext pContext)
-    {
-        giNode.NotNull();
-        pContext.NotNull();
+//internal static class NodeDataTool
+//{
+//    //public static async Task<Option<IReadOnlyList<GraphLink>>> AddData(GiNode giNode, GraphTrxContext pContext)
+//    //{
+//    //    giNode.NotNull();
+//    //    pContext.NotNull();
 
-        var dataMap = giNode.GetLinkData();
+//    //    var dataMap = giNode.GetLinkData();
 
-        foreach (var item in dataMap)
-        {
-            var writeResult = await SetNodeData(pContext, item.FileId, item.Data);
-            if (writeResult.IsError()) return writeResult.ToOptionStatus<IReadOnlyList<GraphLink>>();
-        }
+//    //    foreach (var item in dataMap)
+//    //    {
+//    //        var writeResult = await SetNodeData(pContext, item.FileId, item.Data);
+//    //        if (writeResult.IsError()) return writeResult.ToOptionStatus<IReadOnlyList<GraphLink>>();
+//    //    }
 
-        return dataMap.Select(x => x.ConvertTo()).ToImmutableArray();
-    }
+//    //    return dataMap.Select(x => x.ConvertTo()).ToImmutableArray();
+//    //}
 
-    public static async Task<Option> DeleteData(IReadOnlyList<GraphNode> nodes, GraphTrxContext graphContext)
-    {
-        var linksToDelete = nodes.SelectMany(x => x.DataMap.Values.Select(y => y.FileId));
-        foreach (var fileId in linksToDelete)
-        {
-            var result = await NodeDataTool.DeleteNodeData(fileId, graphContext);
-            if (result.IsError()) return result;
-        }
+//    public static async Task<Option> DeleteData(IReadOnlyList<GraphNode> nodes, GraphTrxContext graphContext)
+//    {
+//        var linksToDelete = nodes.SelectMany(x => x.DataMap.Values.Select(y => y.FileId));
+//        foreach (var fileId in linksToDelete)
+//        {
+//            var result = await NodeDataTool.DeleteNodeData(fileId, graphContext);
+//            if (result.IsError()) return result;
+//        }
 
-        return StatusCode.OK;
-    }
+//        return StatusCode.OK;
+//    }
 
-    public static async Task<Option<GraphLinkData>> GetData(GraphLink graphLink, GraphTrxContext pContext)
-    {
-        var readOption = await GetData(graphLink.FileId, pContext);
-        if (readOption.IsError()) return readOption.ToOptionStatus<GraphLinkData>();
+//    public static async Task<Option<GraphLinkData>> GetData(GraphLink graphLink, GraphTrxContext pContext)
+//    {
+//        var readOption = await GetData(graphLink.FileId, pContext);
+//        if (readOption.IsError()) return readOption.ToOptionStatus<GraphLinkData>();
 
-        var result = graphLink.ConvertTo(readOption.Return());
-        return result;
-    }
+//        var result = graphLink.ConvertTo(readOption.Return());
+//        return result;
+//    }
 
-    public static async Task<Option<DataETag>> GetData(string fileId, GraphTrxContext pContext)
-    {
-        var readOption = await pContext.DataClient.Get(fileId);
-        pContext.Logger.LogStatus(readOption, "Get node data fileId={fileId}", [fileId]);
-        return readOption;
-    }
+//    public static async Task<Option<DataETag>> GetData(string fileId, GraphTrxContext pContext)
+//    {
+//        var readOption = await pContext.DataClient.Get(fileId);
+//        pContext.Logger.LogStatus(readOption, "Get node data fileId={fileId}", [fileId]);
+//        return readOption;
+//    }
 
-    public static async Task<Option<IReadOnlyList<GraphLink>>> MergeData(GiNode giNode, GraphNode graphNode, GraphTrxContext pContext)
-    {
-        giNode.NotNull();
-        graphNode.NotNull();
-        pContext.NotNull();
+//    public static async Task<Option<IReadOnlyList<GraphLink>>> MergeData(GiNode giNode, GraphNode graphNode, GraphTrxContext pContext)
+//    {
+//        giNode.NotNull();
+//        graphNode.NotNull();
+//        pContext.NotNull();
 
-        var dataMapOption = await AddData(giNode, pContext);
-        if (dataMapOption.IsError()) return dataMapOption;
+//        var dataMapOption = await AddData(giNode, pContext);
+//        if (dataMapOption.IsError()) return dataMapOption;
 
-        var removeDataNames = giNode.Tags.GetTagDeleteCommands();
-        var addedData = dataMapOption.Return();
-        var currentData = graphNode.DataMap.Values.Where(x => !addedData.Any(y => y.Name.EqualsIgnoreCase(x.Name)));
+//        var removeDataNames = giNode.Tags.GetTagDeleteCommands();
+//        var addedData = dataMapOption.Return();
+//        var currentData = graphNode.DataMap.Values.Where(x => !addedData.Any(y => y.Name.EqualsIgnoreCase(x.Name)));
 
-        var dataLinks = currentData
-            .Concat(addedData)
-            .Select(x => (graphLink: x, remove: removeDataNames.Contains(x.Name)))
-            .ToArray();
+//        var dataLinks = currentData
+//            .Concat(addedData)
+//            .Select(x => (graphLink: x, remove: removeDataNames.Contains(x.Name)))
+//            .ToArray();
 
-        foreach (var dataLink in dataLinks.Where(x => x.remove))
-        {
-            var deleteOption = await DeleteNodeData(dataLink.graphLink.FileId, pContext);
-            if (deleteOption.IsError())
-            {
-                return pContext.Logger.LogStatus(deleteOption, "Cannot delete fileId={fieldId}").ToOptionStatus<IReadOnlyList<GraphLink>>();
-            }
-        }
+//        foreach (var dataLink in dataLinks.Where(x => x.remove))
+//        {
+//            var deleteOption = await DeleteNodeData(dataLink.graphLink.FileId, pContext);
+//            if (deleteOption.IsError())
+//            {
+//                return pContext.Logger.LogStatus(deleteOption, "Cannot delete fileId={fieldId}").ToOptionStatus<IReadOnlyList<GraphLink>>();
+//            }
+//        }
 
-        var result = dataLinks.Where(x => !x.remove)
-            .Select(x => x.graphLink)
-            .ToImmutableArray();
+//        var result = dataLinks.Where(x => !x.remove)
+//            .Select(x => x.graphLink)
+//            .ToImmutableArray();
 
-        return result;
-    }
+//        return result;
+//    }
 
-    public static async Task<Option> DeleteNodeData(string fileId, GraphTrxContext pContext)
-    {
-        var readOption = await pContext.DataClient.Get(fileId);
-        if (readOption.IsNotFound()) return StatusCode.OK;
-        if (readOption.IsError()) return readOption.ToOptionStatus();
+//    public static async Task<Option> DeleteNodeData(string fileId, GraphTrxContext pContext)
+//    {
+//        var readOption = await pContext.DataClient.Get(fileId);
+//        if (readOption.IsNotFound()) return StatusCode.OK;
+//        if (readOption.IsError()) return readOption.ToOptionStatus();
 
-        pContext.TransactionScope.DataDelete(fileId, readOption.Return());
+//        pContext.TransactionScope.DataDelete(fileId, readOption.Return());
 
-        pContext.Logger.LogTrace("Deleting data map={fileId}", fileId);
-        var deleteOption = await pContext.DataClient.Delete(fileId);
-        pContext.Logger.LogStatus(deleteOption, "Deleted data map");
+//        pContext.Logger.LogTrace("Deleting data map={fileId}", fileId);
+//        var deleteOption = await pContext.DataClient.Delete(fileId);
+//        pContext.Logger.LogStatus(deleteOption, "Deleted data map");
 
-        return deleteOption;
-    }
+//        return deleteOption;
+//    }
 
-    private static async Task<Option> SetNodeData(GraphTrxContext pContext, string fileId, DataETag dataETag)
-    {
-        pContext.Logger.LogTrace("Writing node data fileId={fileId}", fileId);
-        var currentOption = await pContext.DataClient.Get(fileId);
+//    //private static async Task<Option> SetNodeData(GraphTrxContext pContext, string fileId, DataETag dataETag)
+//    //{
+//    //    pContext.Logger.LogTrace("Writing node data fileId={fileId}", fileId);
+//    //    var currentOption = await pContext.DataClient.Get(fileId);
 
-        var writeOption = await pContext.DataClient.Set(fileId, dataETag);
+//    //    var writeOption = await pContext.DataClient.Set(fileId, dataETag);
 
-        if (writeOption.IsError()) return pContext.Logger.LogStatus(writeOption, "Write node data fileId={fileId} failed", [fileId]).ToOptionStatus();
+//    //    if (writeOption.IsError()) return pContext.Logger.LogStatus(writeOption, "Write node data fileId={fileId} failed", [fileId]).ToOptionStatus();
 
-        if (currentOption.IsNotFound())
-            pContext.TransactionScope.DataAdd(fileId, dataETag);
-        else
-            pContext.TransactionScope.DataChange(fileId, currentOption.Return(), dataETag);
+//    //    if (currentOption.IsNotFound())
+//    //        pContext.TransactionScope.DataAdd(fileId, dataETag);
+//    //    else
+//    //        pContext.TransactionScope.DataChange(fileId, currentOption.Return(), dataETag);
 
-        return StatusCode.OK;
-    }
-}
+//    //    return StatusCode.OK;
+//    //}
+//}

@@ -17,8 +17,8 @@ public class GraphMap : IEnumerable<IGraphCommon>
         _logger = logger.NotNull();
         _telemetry = telemetry;
 
-        Nodes = new GraphNodeIndex(this, _lock, telemetry);
-        Edges = new GraphEdgeIndex(this, _lock, telemetry);
+        Nodes = new GraphNodeIndex(this, _lock, _logger, telemetry);
+        Edges = new GraphEdgeIndex(this, _lock, _logger, telemetry);
     }
 
     public GraphMap(GraphSerialization graphSerialization, ILogger<GraphMap> logger, ITelemetry? telemetry = null)
@@ -28,14 +28,14 @@ public class GraphMap : IEnumerable<IGraphCommon>
         LoadRowsAndEdges(graphSerialization.Nodes, graphSerialization.Edges);
         LastLogSequenceNumber = graphSerialization.LastLogSequenceNumber;
 
-        foreach (var item in graphSerialization.PrincipalIdentities) GrantControl.Principals.Add(item);
-        foreach (var item in graphSerialization.SecurityGroups) GrantControl.Groups.Add(item);
+        //foreach (var item in graphSerialization.PrincipalIdentities) GrantControl.Principals.Set(item);
+        //foreach (var item in graphSerialization.SecurityPolicies) GrantControl.Groups.Set(item);
     }
 
     public string? LastLogSequenceNumber { get; private set; } = null;
     public GraphNodeIndex Nodes { get; }
     public GraphEdgeIndex Edges { get; }
-    public GrantControl GrantControl { get; } = new GrantControl();
+    public GrantControl GrantControl { get; } // = new GrantControl();
 
     public void SetLastLogSequenceNumber(string? lsn) => LastLogSequenceNumber = lsn;
 

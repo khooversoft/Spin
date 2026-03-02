@@ -21,10 +21,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
         get
         {
             _rwLock.EnterReadLock();
-            try
-            {
-                return _index.Count;
-            }
+            try { return _index.Count; }
             finally { _rwLock.ExitReadLock(); }
         }
     }
@@ -34,10 +31,7 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
         get
         {
             _rwLock.EnterReadLock();
-            try
-            {
-                return _index.Get(key);
-            }
+            try { return _index.Get(key); }
             finally { _rwLock.ExitReadLock(); }
         }
     }
@@ -52,6 +46,10 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
         }
         finally { _rwLock.ExitWriteLock(); }
     }
+
+    public bool ContainsKey(TKey key) => _index.ContainsKey(key);
+
+    public bool Contains(TKey key, TPrimaryKey primaryKey) => _index.Contains(key, primaryKey);
 
     public bool Remove(TKey key)
     {
@@ -105,14 +103,13 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
         finally { _rwLock.ExitWriteLock(); }
     }
 
-    public SecondaryIndex<TKey, TPrimaryKey> Set(TKey key, TPrimaryKey primaryKey)
+    public void Set(TKey key, TPrimaryKey primaryKey)
     {
         _rwLock.EnterWriteLock();
         try
         {
             _index.Set(key, primaryKey);
             _reverseLookup.Set(primaryKey, key);
-            return this;
         }
         finally { _rwLock.ExitWriteLock(); }
     }
@@ -120,20 +117,14 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
     public IReadOnlyList<TPrimaryKey> Lookup(TKey key)
     {
         _rwLock.EnterReadLock();
-        try
-        {
-            return _index.Get(key);
-        }
+        try { return _index.Get(key); }
         finally { _rwLock.ExitReadLock(); }
     }
 
     public IReadOnlyList<TKey> LookupPrimaryKey(TPrimaryKey pkey)
     {
         _rwLock.EnterReadLock();
-        try
-        {
-            return _reverseLookup.Get(pkey);
-        }
+        try { return _reverseLookup.Get(pkey); }
         finally { _rwLock.ExitReadLock(); }
     }
 
@@ -141,11 +132,9 @@ public class SecondaryIndex<TKey, TPrimaryKey> : IEnumerable<KeyValuePair<TKey, 
     {
         // Snapshot to avoid holding read lock during potentially long enumerations
         List<KeyValuePair<TKey, TPrimaryKey>> snapshot;
+
         _rwLock.EnterReadLock();
-        try
-        {
-            snapshot = _index.ToList();
-        }
+        try { snapshot = _index.ToList(); }
         finally { _rwLock.ExitReadLock(); }
 
         return snapshot.GetEnumerator();

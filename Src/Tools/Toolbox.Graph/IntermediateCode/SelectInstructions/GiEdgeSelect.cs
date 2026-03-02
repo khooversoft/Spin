@@ -5,7 +5,7 @@ using Toolbox.Types;
 
 namespace Toolbox.Graph;
 
-internal sealed record GiEdgeSelect : ISelectInstruction
+public sealed record GiEdgeSelect : ISelectInstruction
 {
     public string? From { get; init; }
     public string? To { get; init; }
@@ -30,7 +30,7 @@ internal sealed record GiEdgeSelect : ISelectInstruction
     public override int GetHashCode() => HashCode.Combine(From, To, Type, Tags, Alias);
 }
 
-internal static class GiEdgeSelectTool
+public static class GiEdgeSelectTool
 {
     public static Option<ISelectInstruction> Build(InterContext interContext)
     {

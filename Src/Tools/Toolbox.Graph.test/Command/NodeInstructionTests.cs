@@ -52,7 +52,7 @@ public class NodeInstructionTests
         _map = CreateGraphMap(host);
 
         IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-        await graphEngine.DataManager.SetMap(_map);
+        await graphEngine.GraphMapStore.SetMap(_map);
 
         return host;
     }
@@ -69,8 +69,8 @@ public class NodeInstructionTests
         var newMapOption = await graphClient.Execute(query);
         newMapOption.IsError().BeTrue();
 
-        graphEngine.DataManager.GetMap().Nodes.Count.Be(7);
-        graphEngine.DataManager.GetMap().Edges.Count.Be(5);
+        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(7);
+        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(5);
     }
 
     [Theory]
@@ -98,7 +98,7 @@ public class NodeInstructionTests
         var newMapOption = await graphClient.Execute("add node key=node8;");
         newMapOption.IsOk().BeTrue();
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -121,7 +121,7 @@ public class NodeInstructionTests
         QueryBatchResult commandResults = newMapOption.Return();
         commandResults.Items.Count.Be(1);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -144,7 +144,7 @@ public class NodeInstructionTests
         QueryBatchResult commandResults = newMapOption.Return();
         commandResults.Items.Count.Be(1);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -165,7 +165,7 @@ public class NodeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -188,7 +188,7 @@ public class NodeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(3);
         compareMap.OfType<GraphNode>().First().Action(x =>
@@ -234,7 +234,7 @@ public class NodeInstructionTests
         QueryBatchResult commandResults = newMapOption.Return();
         commandResults.Items.Count.Be(1);
 
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
         compareMap.Count.Be(0);
     }
 
@@ -249,7 +249,7 @@ public class NodeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -272,7 +272,7 @@ public class NodeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -295,7 +295,7 @@ public class NodeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -318,7 +318,7 @@ public class NodeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>
@@ -341,7 +341,7 @@ public class NodeInstructionTests
         newMapOption.IsOk().BeTrue();
 
         QueryBatchResult commandResults = newMapOption.Return();
-        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.DataManager.GetMap());
+        var compareMap = GraphCommandTools.CompareMap(_map, graphEngine.GraphMapStore.GetMap());
 
         compareMap.Count.Be(1);
         compareMap[0].Cast<GraphNode>().Action(x =>

@@ -32,7 +32,7 @@
 //        _logger = host.Services.GetRequiredService<ILogger<GraphCommandStressTests>>();
 
 //        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-//        await graphEngine.DataManager.LoadDatabase();
+//        await graphEngine.GraphMapStore.LoadDatabase();
 //        return host;
 //    }
 

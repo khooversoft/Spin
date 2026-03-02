@@ -41,7 +41,7 @@
 //        await list.ForEachAsync(async x => await fileStore.File(x.Path).Delete(context));
 
 //        IGraphEngine graphEngine = host.Services.GetRequiredService<IGraphEngine>();
-//        await graphEngine.DataManager.LoadDatabase(context);
+//        await graphEngine.GraphMapStore.LoadDatabase(context);
 
 //        return host;
 //    }
@@ -64,8 +64,8 @@
 
 //        (await graphClient.ExecuteBatch(q)).IsOk().BeTrue();
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(1);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(2);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(1);
 
 //        string q2 = """
 //            add node key=node3;
@@ -100,8 +100,8 @@
 
 //        (await graphClient.ExecuteBatch(q)).IsOk().BeTrue();
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(2);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(1);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(2);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(1);
 
 //        string q2 = """
 //            set node key=node2 set t2;
@@ -136,8 +136,8 @@
 
 //        (await graphClient.ExecuteBatch(q)).IsOk().BeTrue();
 
-//        graphEngine.DataManager.GetMap().Nodes.Count.Be(3);
-//        graphEngine.DataManager.GetMap().Edges.Count.Be(1);
+//        graphEngine.GraphMapStore.GetMap().Nodes.Count.Be(3);
+//        graphEngine.GraphMapStore.GetMap().Edges.Count.Be(1);
 
 //        string q2 = """
 //            delete node key=node3;

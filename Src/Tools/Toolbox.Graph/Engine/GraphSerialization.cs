@@ -11,13 +11,13 @@ public class GraphSerialization
     public string? LastLogSequenceNumber { get; init; } = null;
     public IEnumerable<GraphNode> Nodes { get; init; } = Array.Empty<GraphNode>();
     public IEnumerable<GraphEdge> Edges { get; init; } = Array.Empty<GraphEdge>();
-    public IEnumerable<GroupPolicy> SecurityGroups { get; init; } = Array.Empty<GroupPolicy>();
+    public GrantPolicy GrantPolicies { get; init; } = null!;
     public IEnumerable<PrincipalIdentity> PrincipalIdentities { get; init; } = Array.Empty<PrincipalIdentity>();
 
     public static IValidator<GraphSerialization> Validator { get; } = new Validator<GraphSerialization>()
         .RuleFor(x => x.Nodes).NotNull()
         .RuleFor(x => x.Edges).NotNull()
-        .RuleFor(x => x.SecurityGroups).NotNull()
+        //.RuleFor(x => x.SecurityPolicies).NotNull()
         .RuleFor(x => x.PrincipalIdentities).NotNull()
         .Build();
 }
@@ -43,8 +43,8 @@ public static class GraphSerializationTool
         LastLogSequenceNumber = subject.LastLogSequenceNumber,
         Nodes = subject.Nodes,
         Edges = subject.Edges,
-        SecurityGroups = subject.GrantControl.Groups,
-        PrincipalIdentities = subject.GrantControl.Principals
+        //SecurityPolicies = subject.GrantControl.Pol,
+        //PrincipalIdentities = subject.GrantControl.Principals
     };
 
     public static GraphMap FromSerialization(this GraphSerialization subject, IServiceProvider service)
@@ -57,11 +57,17 @@ public static class GraphSerializationTool
 }
 
 
+[JsonRegister(typeof(GraphSerialization))]
+[JsonRegister(typeof(GraphNode))]
+[JsonRegister(typeof(GraphEdge))]
+//[JsonRegister(typeof(GroupPolicy))]
+[JsonRegister(typeof(PrincipalIdentity))]
+[JsonRegister(typeof(GraphLink))]
 [JsonSourceGenerationOptions(WriteIndented = false, DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
 [JsonSerializable(typeof(GraphSerialization))]
 [JsonSerializable(typeof(GraphNode))]
 [JsonSerializable(typeof(GraphEdge))]
-[JsonSerializable(typeof(GroupPolicy))]
+//[JsonSerializable(typeof(GroupPolicy))]
 [JsonSerializable(typeof(PrincipalIdentity))]
 [JsonSerializable(typeof(GraphLink))]
 internal partial class GraphJsonContext : JsonSerializerContext

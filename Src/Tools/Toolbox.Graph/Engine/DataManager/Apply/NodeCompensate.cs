@@ -16,11 +16,11 @@ public static class NodeCompensate
 
         switch (entry.SourceName, entry.Action)
         {
-            case (ChangeSource.Node, ChangeOperation.Add):
+            case (ChangeSource.Node, ActionOperator.Add):
                 return UndoAdd(map, entry, logger).ThrowOnError().ToTaskResult();
 
-            case (ChangeSource.Node, ChangeOperation.Delete):
-            case (ChangeSource.Node, ChangeOperation.Update):
+            case (ChangeSource.Node, ActionOperator.Delete):
+            case (ChangeSource.Node, ActionOperator.Update):
                 return UndoUpdate(map, entry, logger).ThrowOnError().ToTaskResult();
         }
 

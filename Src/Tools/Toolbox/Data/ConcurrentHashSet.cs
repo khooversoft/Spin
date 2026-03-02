@@ -10,6 +10,7 @@ public class ConcurrentHashSet<T> : IEnumerable<T> where T : notnull
 
     public ConcurrentHashSet() => _dict = new();
     public ConcurrentHashSet(IEqualityComparer<T>? comparer) => _dict = new(comparer);
+    public ConcurrentHashSet(IEnumerable<T> values, IEqualityComparer<T>? comparer) => _dict = new(values.Select(x => new KeyValuePair<T, byte>(x, 0)), comparer);
 
     public int Count => _dict.Count;
 
@@ -20,6 +21,11 @@ public class ConcurrentHashSet<T> : IEnumerable<T> where T : notnull
     public ImmutableArray<T> ToImmutableArray() => _dict.Keys.ToImmutableArray();
     public bool IsEmpty => _dict.IsEmpty;
 
-    public IEnumerator<T> GetEnumerator() => _dict.Keys.GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => _dict.Keys.GetEnumerator();
+    public IEnumerator<T> GetEnumerator()
+    {
+        var list = _dict.Keys.ToList();
+        return list.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
