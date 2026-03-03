@@ -17,7 +17,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesTo;
     private readonly SecondaryIndex<string, GraphEdgePrimaryKey> _edgesEdges;
     private readonly TagIndex<GraphEdgePrimaryKey> _tagIndex;
-    private readonly object _lock;
+    private readonly ReaderWriterLockSlim _graphGlobalLock = new();
     private readonly GraphMap _map;
     private readonly ITelemetryCounter<long>? _addedCounter;
     private readonly ITelemetryCounter<long>? _deletedCounter;
@@ -26,10 +26,9 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     private readonly ITelemetryRecorder<long>? _countGauge;
     private readonly ILogger _logger;
 
-    internal GraphEdgeIndex(GraphMap map, object syncLock, ILogger logger, ITelemetry? telemetry = null, IEqualityComparer<string>? keyComparer = null)
+    internal GraphEdgeIndex(GraphMap map, ILogger logger, ITelemetry? telemetry = null, IEqualityComparer<string>? keyComparer = null)
     {
         _map = map.NotNull();
-        _lock = syncLock.NotNull();
         _logger = logger.NotNull();
 
         _index = new ConcurrentDictionary<GraphEdgePrimaryKey, GraphEdge>(GraphEdgePrimaryKeyComparer.Default);
@@ -57,7 +56,8 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
     {
         if (edge.Validate().IsError(out var v1)) return v1;
 
-        lock (_lock)
+        _graphGlobalLock.EnterWriteLock();
+        try
         {
             if (!ValidateNodes(edge, out var v2)) return v2;
 
@@ -74,6 +74,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             _addedCounter?.Increment();
             return StatusCode.OK;
         }
+        finally { _graphGlobalLock.ExitWriteLock(); }
     }
     public void AddIndexScan(int count = 1) => _indexScanCounter?.Add(count);
 
@@ -85,28 +86,51 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
         .OfType<GraphEdge>()
         .ToImmutableArray();
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupTag(string tag) => _tagIndex.Lookup(tag);
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupTag(string tag)
+    {
+        _graphGlobalLock.EnterReadLock();
+        try { return _tagIndex.Lookup(tag); }
+        finally { _graphGlobalLock.ExitReadLock(); }
+    }
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupByNodeKey(IEnumerable<string> nodeKeys) => nodeKeys
-        .SelectMany(x => _edgesFrom.Lookup(x))
-        .Concat(nodeKeys.SelectMany(x => _edgesTo.Lookup(x)))
-        .ToImmutableArray();
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByNodeKey(IEnumerable<string> nodeKeys)
+    {
+        _graphGlobalLock.EnterReadLock();
+        try
+        {
+            return nodeKeys
+                .SelectMany(x => _edgesFrom.Lookup(x))
+                .Concat(nodeKeys.SelectMany(x => _edgesTo.Lookup(x)))
+                .ToImmutableArray();
+        }
+        finally { _graphGlobalLock.ExitReadLock(); }
+    }
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupByFromKey(IEnumerable<string> fromNodesKeys) => fromNodesKeys
-        .SelectMany(x => _edgesFrom.Lookup(x))
-        .ToImmutableArray();
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByFromKey(IEnumerable<string> fromNodesKeys)
+    {
+        _graphGlobalLock.EnterReadLock();
+        try { return fromNodesKeys.SelectMany(x => _edgesFrom.Lookup(x)).ToImmutableArray(); }
+        finally { _graphGlobalLock.ExitReadLock(); }
+    }
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupByToKey(IEnumerable<string> toNodesKeys) => toNodesKeys
-        .SelectMany(x => _edgesTo.Lookup(x))
-        .ToImmutableArray();
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByToKey(IEnumerable<string> toNodesKeys)
+    {
+        _graphGlobalLock.EnterReadLock();
+        try { return toNodesKeys.SelectMany(x => _edgesTo.Lookup(x)).ToImmutableArray(); }
+        finally { _graphGlobalLock.ExitReadLock(); }
+    }
 
-    public IReadOnlyList<GraphEdgePrimaryKey> LookupByEdgeType(IEnumerable<string> edgeTypes) => edgeTypes
-        .SelectMany(x => _edgesEdges.Lookup(x))
-        .ToImmutableArray();
+    public IReadOnlyList<GraphEdgePrimaryKey> LookupByEdgeType(IEnumerable<string> edgeTypes)
+    {
+        _graphGlobalLock.EnterReadLock();
+        try { return edgeTypes.SelectMany(x => _edgesEdges.Lookup(x)).ToImmutableArray(); }
+        finally { _graphGlobalLock.ExitReadLock(); }
+    }
 
     public Option Remove(GraphEdgePrimaryKey edgeKey, GraphTrxContext? graphContext = null)
     {
-        lock (_lock)
+        _graphGlobalLock.EnterWriteLock();
+        try
         {
             if (!_index.Remove(edgeKey, out var edgeValue)) return (StatusCode.NotFound, $"Key={edgeKey} does not exist");
 
@@ -120,11 +144,13 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             RecordCount();
             return StatusCode.OK;
         }
+        finally { _graphGlobalLock.ExitWriteLock(); }
     }
 
     public Option RemoveNodes(IEnumerable<string> nodeKeys, GraphTrxContext? graphContext = null)
     {
-        lock (_lock)
+        _graphGlobalLock.EnterWriteLock();
+        try
         {
             var edgePrimaryKeys = LookupByNodeKey(nodeKeys.ToArray());
 
@@ -134,11 +160,13 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
             return StatusCode.OK;
         }
+        finally { _graphGlobalLock.ExitWriteLock(); }
     }
 
     public Option Set(GraphEdge edge, GraphTrxContext? graphContext = null)
     {
-        lock (_lock)
+        _graphGlobalLock.EnterWriteLock();
+        try
         {
             if (!ValidateNodes(edge, out var v2)) return v2;
 
@@ -154,6 +182,7 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
             RecordCount();
             return updateResult;
         }
+        finally { _graphGlobalLock.ExitWriteLock(); }
 
         StatusCode tryAdd(GraphEdgePrimaryKey pk, GraphEdge edge)
         {
@@ -171,40 +200,37 @@ public class GraphEdgeIndex : IEnumerable<GraphEdge>
 
         Option update(GraphEdge edge, GraphTrxContext? graphContext = null)
         {
-            lock (_lock)
+            if (!ValidateNodes(edge, out var v2)) return v2;
+
+            var pk = edge.GetPrimaryKey();
+            if (!_index.ContainsKey(pk)) return (StatusCode.NotFound, $"Key={pk} does not exist");
+
+            var readEdge = _index[pk];
+
+            _index[pk] = edge;
+            _tagIndex.Set(pk, edge.Tags);
+
+            if (edge.FromKey != readEdge.FromKey)
             {
-                if (!ValidateNodes(edge, out var v2)) return v2;
-
-                var pk = edge.GetPrimaryKey();
-                if (!_index.ContainsKey(pk)) return (StatusCode.NotFound, $"Key={pk} does not exist");
-
-                var readEdge = _index[pk];
-
-                _index[pk] = edge;
-                _tagIndex.Set(pk, edge.Tags);
-
-                if (edge.FromKey != readEdge.FromKey)
-                {
-                    _edgesFrom.Remove(readEdge.FromKey, pk);
-                    _edgesFrom.Set(edge.FromKey, pk);
-                }
-
-                if (edge.ToKey != readEdge.ToKey)
-                {
-                    _edgesTo.Remove(readEdge.ToKey, pk);
-                    _edgesTo.Set(edge.ToKey, pk);
-                }
-
-                if (edge.EdgeType != readEdge.EdgeType)
-                {
-                    _edgesTo.Remove(readEdge.EdgeType, pk);
-                    _edgesTo.Set(edge.EdgeType, pk);
-                }
-
-                graphContext?.Recorder?.Update(edge.Key, readEdge, edge);
-                _updatedCounter?.Increment();
-                return StatusCode.OK;
+                _edgesFrom.Remove(readEdge.FromKey, pk);
+                _edgesFrom.Set(edge.FromKey, pk);
             }
+
+            if (edge.ToKey != readEdge.ToKey)
+            {
+                _edgesTo.Remove(readEdge.ToKey, pk);
+                _edgesTo.Set(edge.ToKey, pk);
+            }
+
+            if (edge.EdgeType != readEdge.EdgeType)
+            {
+                _edgesTo.Remove(readEdge.EdgeType, pk);
+                _edgesTo.Set(edge.EdgeType, pk);
+            }
+
+            graphContext?.Recorder?.Update(edge.Key, readEdge, edge);
+            _updatedCounter?.Increment();
+            return StatusCode.OK;
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using Microsoft.Extensions.Logging;
+using Toolbox.Data;
 using Toolbox.Telemetry;
 using Toolbox.Tools;
 using Toolbox.Types;
@@ -8,7 +9,7 @@ namespace Toolbox.Graph;
 
 public class GraphMap : IEnumerable<IGraphCommon>
 {
-    private readonly object _lock = new object();
+    private readonly ReaderWriterLockSlim _gate = new();
     private readonly ILogger<GraphMap> _logger;
     private readonly ITelemetry? _telemetry;
 
@@ -17,8 +18,9 @@ public class GraphMap : IEnumerable<IGraphCommon>
         _logger = logger.NotNull();
         _telemetry = telemetry;
 
-        Nodes = new GraphNodeIndex(this, _lock, _logger, telemetry);
-        Edges = new GraphEdgeIndex(this, _lock, _logger, telemetry);
+        Nodes = new GraphNodeIndex(this, _logger, telemetry);
+        Edges = new GraphEdgeIndex(this, _logger, telemetry);
+        GrantControl = new GrantControl(logger, telemetry);
     }
 
     public GraphMap(GraphSerialization graphSerialization, ILogger<GraphMap> logger, ITelemetry? telemetry = null)
@@ -28,14 +30,14 @@ public class GraphMap : IEnumerable<IGraphCommon>
         LoadRowsAndEdges(graphSerialization.Nodes, graphSerialization.Edges);
         LastLogSequenceNumber = graphSerialization.LastLogSequenceNumber;
 
-        //foreach (var item in graphSerialization.PrincipalIdentities) GrantControl.Principals.Set(item);
-        //foreach (var item in graphSerialization.SecurityPolicies) GrantControl.Groups.Set(item);
+        GraphCore core = graphSerialization.GrantControl.FromSerialization();
+        GrantControl.SetGraph(core);
     }
 
     public string? LastLogSequenceNumber { get; private set; } = null;
     public GraphNodeIndex Nodes { get; }
     public GraphEdgeIndex Edges { get; }
-    public GrantControl GrantControl { get; } // = new GrantControl();
+    public GrantControl GrantControl { get; }
 
     public void SetLastLogSequenceNumber(string? lsn) => LastLogSequenceNumber = lsn;
 

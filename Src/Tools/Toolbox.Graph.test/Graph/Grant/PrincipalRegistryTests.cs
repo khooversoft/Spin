@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using Microsoft.Extensions.Logging.Abstractions;
 using Toolbox.Data;
 using Toolbox.Extensions;
 using Toolbox.Tools;
+using Toolbox.Types;
 
 namespace Toolbox.Graph.test.Graph.Grant;
 
@@ -15,28 +11,25 @@ public class PrincipalRegistryTests
     [Fact]
     public void Empty()
     {
-        ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
         var core = new GraphCore();
 
-        var registry = new PrincipalRegistry(() => core, slimLock, NullLogger.Instance);
+        var registry = new PrincipalRegistry(() => core, NullLogger.Instance);
         registry.NotNull();
         registry.GetAll().Count.Be(0);
-        registry.Contains("missing").BeFalse();
         registry.Get("missing").BeNotFound();
     }
 
     [Fact]
     public void AddOrUpdate_AddsPrincipalAndReferenceNodes()
     {
-        ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
         var core = new GraphCore();
-        var registry = new PrincipalRegistry(() => core, slimLock, NullLogger.Instance);
+        var registry = new PrincipalRegistry(() => core, NullLogger.Instance);
 
         var principal = new PrincipalIdentity("user1", "nameId1", "userName1", "email1@domain.com", true);
 
         registry.AddOrUpdate(principal).BeOk();
 
-        registry.Contains(principal.PrincipalId).BeTrue();
+        registry.Get(principal.PrincipalId).BeOk();
 
         var stored = registry.Get(principal.PrincipalId).BeOk();
         stored.HasValue.BeTrue();
@@ -69,9 +62,8 @@ public class PrincipalRegistryTests
     [Fact]
     public void AddOrUpdate_UpdatePrincipal_ReplacesReferenceNodes()
     {
-        ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
         var core = new GraphCore();
-        var registry = new PrincipalRegistry(() => core, slimLock, NullLogger.Instance);
+        var registry = new PrincipalRegistry(() => core, NullLogger.Instance);
 
         var original = new PrincipalIdentity("user1", "nameId1", "userName1", "email1@domain.com", false);
         registry.TryAdd(original).BeOk();
@@ -111,16 +103,14 @@ public class PrincipalRegistryTests
     [Fact]
     public void Remove_RemovesPrincipalAndReferenceNodes()
     {
-        ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
         var core = new GraphCore();
-        var registry = new PrincipalRegistry(() => core, slimLock, NullLogger.Instance);
+        var registry = new PrincipalRegistry(() => core, NullLogger.Instance);
 
         var principal = new PrincipalIdentity("user1", "nameId1", "userName1", "email1@domain.com", false);
         registry.AddOrUpdate(principal).BeOk();
 
         registry.Remove(principal.PrincipalId).BeOk();
 
-        registry.Contains(principal.PrincipalId).BeFalse();
         registry.Get(principal.PrincipalId).BeNotFound();
 
         core.Nodes.ContainsKey(principal.NodeKey).BeFalse();
@@ -132,13 +122,28 @@ public class PrincipalRegistryTests
     }
 
     [Fact]
+    public void Remove_MissingPrincipal_ReturnsNotFound()
+    {
+        var core = new GraphCore();
+        var registry = new PrincipalRegistry(() => core, NullLogger.Instance);
+
+        var otherNode = new Node(NodeTool.CreateKey("otherUser", "other"), new DataETag("payload".ToBytes()));
+        core.Nodes.Add(otherNode.NodeKey, otherNode.Payload).BeOk();
+
+        registry.Remove("missing").BeNotFound();
+
+        core.Nodes.ContainsKey(otherNode.NodeKey).BeTrue();
+        core.Nodes.Count.Be(1);
+    }
+
+    [Fact]
     public void TryAdd_ReturnsConflict()
     {
-        ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
         var core = new GraphCore();
-        var registry = new PrincipalRegistry(() => core, slimLock, NullLogger.Instance);
+        var registry = new PrincipalRegistry(() => core, NullLogger.Instance);
 
         var principal = new PrincipalIdentity("user1", "nameId1", "userName1", "email1@domain.com", false);
+        registry.TryAdd(principal).BeOk();
 
         registry.TryAdd(principal).BeConflict();
 
@@ -147,11 +152,38 @@ public class PrincipalRegistryTests
     }
 
     [Fact]
+    public void TryAdd_AddsPrincipalAndReferenceNodes()
+    {
+        var core = new GraphCore();
+        var registry = new PrincipalRegistry(() => core, NullLogger.Instance);
+
+        var principal = new PrincipalIdentity("user1", "nameId1", "userName1", "email1@domain.com", true);
+
+        registry.TryAdd(principal).BeOk();
+
+        registry.Get(principal.PrincipalId).BeOk();
+
+        var stored = registry.Get(principal.PrincipalId).BeOk();
+        stored.Value.Be(principal);
+
+        var edges = core.Edges.GetByFrom(principal.NodeKey, PrincipalIdentity.NodeReferenceType);
+        edges.Count.Be(3);
+
+        var expected = new[]
+        {
+            principal.CreateEmailNodeKey(),
+            principal.CreateNameIdentifierNodeKey(),
+            principal.CreateUserNameNodeKey(),
+        }.OrderBy(x => x).ToArray();
+
+        edges.Select(x => x.ToKey).OrderBy(x => x).ToArray().Be(expected);
+    }
+
+    [Fact]
     public void GetAll_ReturnsAllPrincipals()
     {
-        ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
         var core = new GraphCore();
-        var registry = new PrincipalRegistry(() => core, slimLock, NullLogger.Instance);
+        var registry = new PrincipalRegistry(() => core, NullLogger.Instance);
 
         var principal1 = new PrincipalIdentity("user1", "nameId1", "userName1", "email1@domain.com", false);
         var principal2 = new PrincipalIdentity("user2", "nameId2", "userName2", "email2@domain.com", true);
@@ -166,11 +198,29 @@ public class PrincipalRegistryTests
     }
 
     [Fact]
+    public void GetAll_IgnoresNonPrincipalNodes()
+    {
+        var core = new GraphCore();
+        var registry = new PrincipalRegistry(() => core, NullLogger.Instance);
+
+        var principal = new PrincipalIdentity("user1", "nameId1", "userName1", "email1@domain.com", false);
+        registry.AddOrUpdate(principal).BeOk();
+
+        var unrelatedNode = new Node(NodeTool.CreateKey("other", "custom"), new DataETag("value".ToBytes()));
+        core.Nodes.Add(unrelatedNode.NodeKey, unrelatedNode.Payload).BeOk();
+
+        var principals = registry.GetAll().ToArray();
+
+        principals.Length.Be(1);
+        principals[0].Be(principal);
+        core.Nodes.ContainsKey(unrelatedNode.NodeKey).BeTrue();
+    }
+
+    [Fact]
     public void Serialization_RoundTripsPrincipalRegistryState()
     {
-        ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
         var core = new GraphCore();
-        var registry = new PrincipalRegistry(() => core, slimLock, NullLogger.Instance);
+        var registry = new PrincipalRegistry(() => core, NullLogger.Instance);
 
         var principals = new[]
         {
@@ -185,7 +235,7 @@ public class PrincipalRegistryTests
 
         core.Be(restoredGraph);
 
-        var restoredRegistry = new PrincipalRegistry(() => restoredGraph, new ReaderWriterLockSlim(), NullLogger.Instance);
+        var restoredRegistry = new PrincipalRegistry(() => restoredGraph, NullLogger.Instance);
         var restoredPrincipals = restoredRegistry.GetAll().OrderBy(x => x.PrincipalId).ToArray();
 
         restoredPrincipals.Length.Be(principals.Length);
@@ -201,4 +251,5 @@ public class PrincipalRegistryTests
             edges.Count.Be(3);
         }
     }
+
 }

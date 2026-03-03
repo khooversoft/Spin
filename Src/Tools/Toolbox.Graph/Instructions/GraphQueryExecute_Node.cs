@@ -150,7 +150,7 @@ public partial class GraphQueryExecute
         var missingEdges = fkTags
             .Where(x => x.Value.IsNotEmpty())
             .Select(x => new GraphEdgePrimaryKey(fromKey, x.Value.NotEmpty(), x.Key))
-            .Where(x => _graphMapStore.GetMap().Edges.ContainsKey(x))
+            .Where(x => !_graphMapStore.GetMap().Edges.ContainsKey(x))
             .Select(x => new GraphEdge(x.FromKey, x.ToKey, x.EdgeType))
             .ToArray();
 

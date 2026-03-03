@@ -72,8 +72,9 @@ public class EdgeInstructionTests
     }
 
     [Fact]
-    public void LookupByFromKey()
+    public async Task LookupByFromKey()
     {
+        using var host = await CreateService();
         var copyMap = _map.Clone();
 
         GraphEdgePrimaryKey[] edges = [
@@ -86,8 +87,9 @@ public class EdgeInstructionTests
     }
 
     [Fact]
-    public void LookupByToKey()
+    public async Task LookupByToKey()
     {
+        using var host = await CreateService();
         var copyMap = _map.Clone();
 
         GraphEdgePrimaryKey[] edges = [
@@ -101,8 +103,9 @@ public class EdgeInstructionTests
     }
 
     [Fact]
-    public void LookupByEdgeTypes()
+    public async Task LookupByEdgeTypes()
     {
+        using var host = await CreateService();
         var copyMap = _map.Clone();
 
         GraphEdgePrimaryKey[] edges = [

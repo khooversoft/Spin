@@ -24,23 +24,16 @@ namespace Toolbox.Graph;
 public class GrantControl
 {
     private readonly ILogger _logger;
-    private readonly ReaderWriterLockSlim _slimLock;
     private readonly ITelemetry? _telemetry;
     private GraphCore? _graph = new();
 
-    public GrantControl(ReaderWriterLockSlim slimLock, ILogger logger, ITelemetry? telemetry = null)
+    public GrantControl(ILogger logger, ITelemetry? telemetry = null)
     {
         _logger = logger.NotNull();
-        _slimLock = slimLock;
         _telemetry = telemetry;
 
-        PrincipalRegistry = new PrincipalRegistry(() => _graph, slimLock, logger, telemetry);
-        GrantPolicyRegistry = new GrantPolicyRegistry(() => _graph, slimLock, logger, telemetry);
-    }
-
-    public GrantControl(GraphSerialization graphSerialization, ReaderWriterLockSlim slimLock, ILogger logger, ITelemetry? telemetry = null)
-        : this(slimLock, logger, telemetry)
-    {
+        PrincipalRegistry = new PrincipalRegistry(() => _graph, logger, telemetry);
+        GrantPolicyRegistry = new GrantPolicyRegistry(() => _graph, logger, telemetry);
     }
 
     public GraphCore GetGraph() => _graph.NotNull("Graph has not been set");
@@ -55,7 +48,7 @@ public class GrantControl
         if (getOption.IsError()) return true;
 
         var policies = getOption.Return();
-        if( policies.CanRead(principalIdentifier)) return true; // User has direct access
+        if (policies.CanRead(principalIdentifier)) return true; // User has direct access
 
         return false;
     }

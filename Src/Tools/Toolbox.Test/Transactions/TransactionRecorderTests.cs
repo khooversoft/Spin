@@ -799,7 +799,7 @@ public class TransactionRecorderTests
 
         // After commit
         await transaction.Commit();
-        transaction.RunState.Be(TrxRunState.None);
+        transaction.RunState.Be(TrxRunState.Committed);
 
         // Start again for rollback test
         await transaction.Start();

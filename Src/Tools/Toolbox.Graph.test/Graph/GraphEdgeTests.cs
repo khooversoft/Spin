@@ -1,5 +1,4 @@
 ﻿using Toolbox.Extensions;
-using Toolbox.Graph;
 using Toolbox.Tools;
 
 namespace Toolbox.Graph.test.Graph;

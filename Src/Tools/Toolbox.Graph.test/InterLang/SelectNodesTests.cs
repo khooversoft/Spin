@@ -12,7 +12,7 @@ namespace Toolbox.Graph.test.InterLang;
 
 public class SelectNodesTests
 {
-    private readonly SyntaxParser _parser;
+    private readonly GraphLanguageParser _parser;
 
     public SelectNodesTests(ITestOutputHelper output)
     {
@@ -25,7 +25,7 @@ public class SelectNodesTests
             })
             .Build();
 
-        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
+        _parser = ActivatorUtilities.CreateInstance<GraphLanguageParser>(host.Services);
     }
 
     [Fact]

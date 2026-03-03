@@ -9,6 +9,8 @@ public partial class Transaction
 {
     public async Task<Option> Recovery()
     {
+        TryResetState();
+
         _runState.TryMove(TrxRunState.None, TrxRunState.Recovery).BeTrue("Transaction is not in progress");
         _logger.LogTrace("Recoverying databases");
 

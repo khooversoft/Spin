@@ -8,16 +8,9 @@ namespace Toolbox.Store;
 
 public partial class MemoryStore : ITrxProvider
 {
-    public enum RunState
-    {
-        Ready,
-        TransactionRunning,
-    };
-
     public const string SourceNameText = "memoryStore";
     private TrxSourceRecorder? _recorder;
     private string? _logSequenceNumber;
-    private EnumState<RunState> _runState = new(RunState.Ready);
 
     public string SourceName => SourceNameText;
     public string StoreName => SourceNameText;
@@ -28,7 +21,6 @@ public partial class MemoryStore : ITrxProvider
     public Task<Option> Start()
     {
         _recorder.NotNull("Record not attached");
-        _runState.TryMove(RunState.Ready, RunState.TransactionRunning).BeTrue("MemoryStore is already in transaction.");
         return new Option(StatusCode.OK).ToTaskResult();
     }
 
@@ -36,7 +28,6 @@ public partial class MemoryStore : ITrxProvider
     {
         dcr.NotNull();
         _recorder.NotNull("Record not attached");
-        _runState.TryMove(RunState.TransactionRunning, RunState.Ready).BeTrue("MemoryStore is not in transaction.");
 
         _logSequenceNumber = dcr.GetLastLogSequenceNumber();
         return new Option(StatusCode.OK).ToTaskResult();
@@ -130,7 +121,4 @@ public partial class MemoryStore : ITrxProvider
             return new Option<string>(json).ToTaskResult();
         }
     }
-
-    private bool CanModify => _recorder is null || _runState.IfValue(RunState.TransactionRunning);
-    public void TestModify() => CanModify.BeTrue("MemoryStore has a record attached and transaction not started.");
 }

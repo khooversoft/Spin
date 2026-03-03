@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -99,7 +100,7 @@ public class NodeIndex : IEnumerable<Node>
         finally { _lock.ExitWriteLock(); }
     }
 
-    public bool TryGetValue(string nodeKey, out Node? value)
+    public bool TryGetValue(string nodeKey, [NotNullWhen(true)] out Node? value)
     {
         _lock.EnterReadLock();
         try { return _nodes.TryGetValue(nodeKey.NotEmpty(), out value); }

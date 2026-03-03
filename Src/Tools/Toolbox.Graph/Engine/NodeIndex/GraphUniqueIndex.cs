@@ -14,77 +14,103 @@ namespace Toolbox.Graph;
 /// </summary>
 internal class GraphUniqueIndex
 {
-    private readonly object _syncLock;
+    private readonly ReaderWriterLockSlim _gate = new();
 
     private readonly TagValueIndex _tagIndex = new TagValueIndex(); // Master index
     private readonly ILogger _logger;
 
-    public GraphUniqueIndex(object syncLock, ILogger logger)
+    public GraphUniqueIndex(ILogger logger)
     {
-        _syncLock = syncLock.NotNull();
         _logger = logger.NotNull();
     }
 
-    public Option Set(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
-    {
-        newNode.NotNull();
-
-        lock (_syncLock)
-        {
-            var verifyOption = Verify(newNode, currentNode, trxContext);
-            if (verifyOption.IsError()) return verifyOption;
-
-            AddToIndex(newNode, currentNode, trxContext);
-            return StatusCode.OK;
-        }
-    }
 
     public void Clear() => _tagIndex.Clear();
-    public Option<UniqueIndex> Lookup(string indexName, string value) => _tagIndex.Lookup(indexName, value);
-    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _tagIndex.LookupByNodeKey(nodeKey);
+    public Option<UniqueIndex> Lookup(string indexName, string value)
+    {
+        _gate.EnterReadLock();
+        try
+        {
+            return _tagIndex.Lookup(indexName, value);
+        }
+        finally { _gate.ExitReadLock(); }
+    }
 
-    public Option Verify(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
+    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey)
+    {
+        _gate.EnterReadLock();
+        try
+        {
+            return _tagIndex.LookupByNodeKey(nodeKey);
+        }
+        finally { _gate.ExitReadLock(); }
+    }
+
+    internal Option InternalSet(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
     {
         newNode.NotNull();
 
-        if (currentNode != null && !newNode.Key.EqualsIgnoreCase(currentNode.Key)) return (StatusCode.BadRequest, "Node keys do not match");
-
-        // Verify that unique constraints are not violated
-        lock (_syncLock)
+        _gate.EnterWriteLock();
+        try
         {
-            // Node cannot have an indexed value that another node has
-            var indexedTags = GetIndexedTags(newNode, currentNode);
+            var verifyOption = InternalVerify(newNode, currentNode, trxContext);
+            if (verifyOption.IsError()) return verifyOption;
 
-            var lookupResult = indexedTags
-                .Select(x => _tagIndex.Lookup(x.Key, x.Value))
-                .Where(x => x.IsOk())
-                .Select(x => x.Return())
-                .ToArray();
-
-            var indexedTagsByOtherNodes = lookupResult
-                .Where(x => !x.NodeKey.EqualsIgnoreCase(newNode.Key))
-                .ToArray();
-
-            if (indexedTagsByOtherNodes.Length != 0)
-            {
-                string msg = indexedTagsByOtherNodes.Select(x => $"NodeKey={newNode.Key}, {x.IndexName}={x.Value}").Join(",");
-                return (StatusCode.BadRequest, msg);
-            }
-
+            InternalAddToIndex(newNode, currentNode, trxContext);
             return StatusCode.OK;
         }
+        finally { _gate.ExitWriteLock(); }
     }
 
     public void RemoveNodeKey(string nodeKey, GraphTrxContext? trxContext)
     {
-        lock (_syncLock)
+        _gate.EnterWriteLock();
+        try
         {
             Option status = _tagIndex.RemoveNodeKey(nodeKey);
             _logger.LogStatus(status, "nodeKey={nodeKey}", [nodeKey]);
         }
+        finally { _gate.ExitWriteLock(); }
     }
 
-    private void AddToIndex(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
+    public Option Verify(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
+    {
+        _gate.EnterReadLock();
+        try
+        {
+            return InternalVerify(newNode, currentNode, trxContext);
+        }
+        finally { _gate.ExitReadLock(); }
+    }
+
+    private Option InternalVerify(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
+    {
+        newNode.NotNull();
+        if (currentNode != null && !newNode.Key.EqualsIgnoreCase(currentNode.Key)) return (StatusCode.BadRequest, "Node keys do not match");
+
+        // Node cannot have an indexed value that another node has
+        var indexedTags = GetIndexedTags(newNode, currentNode);
+
+        var lookupResult = indexedTags
+            .Select(x => _tagIndex.Lookup(x.Key, x.Value))
+            .Where(x => x.IsOk())
+            .Select(x => x.Return())
+            .ToArray();
+
+        var indexedTagsByOtherNodes = lookupResult
+            .Where(x => !x.NodeKey.EqualsIgnoreCase(newNode.Key))
+            .ToArray();
+
+        if (indexedTagsByOtherNodes.Length != 0)
+        {
+            string msg = indexedTagsByOtherNodes.Select(x => $"NodeKey={newNode.Key}, {x.IndexName}={x.Value}").Join(",");
+            return (StatusCode.BadRequest, msg);
+        }
+
+        return StatusCode.OK;
+    }
+
+    private void InternalAddToIndex(GraphNode newNode, GraphNode? currentNode, GraphTrxContext? trxContext)
     {
         var indexedTags = GetIndexedTags(newNode, currentNode);
 

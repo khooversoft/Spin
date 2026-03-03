@@ -7,16 +7,9 @@ namespace Toolbox.Graph;
 
 public partial class GraphMapStore : ITrxProvider
 {
-    public enum RunState
-    {
-        Ready,
-        TransactionRunning,
-    };
-
     public const string SourceNameText = "graphMapStore";
     private TrxSourceRecorder? _recorder;
     private string? _logSequenceNumber;
-    private EnumState<RunState> _runState = new(RunState.Ready);
     private readonly object _lock = new object();
 
     public string SourceName => SourceNameText;
@@ -29,7 +22,6 @@ public partial class GraphMapStore : ITrxProvider
     public Task<Option> Start()
     {
         _recorder.NotNull("Record not attached");
-        _runState.TryMove(RunState.Ready, RunState.TransactionRunning).BeTrue("MemoryStore is already in transaction.");
         return new Option(StatusCode.OK).ToTaskResult();
     }
 
@@ -37,7 +29,6 @@ public partial class GraphMapStore : ITrxProvider
     {
         dcr.NotNull();
         _recorder.NotNull("Record not attached");
-        _runState.TryMove(RunState.TransactionRunning, RunState.Ready).BeTrue("MemoryStore is not in transaction.");
 
         _logSequenceNumber = dcr.GetLastLogSequenceNumber();
         return new Option(StatusCode.OK).ToTaskResult();

@@ -53,10 +53,10 @@ public class KeyStoreTests
     }
 
     [Theory]
-    //[InlineData(false, false)]
+    [InlineData(false, false)]
     [InlineData(true, false)]
-    //[InlineData(false, true)]
-    //[InlineData(true, true)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
     public async Task SimpleWriteAndRead(bool useHash, bool useCache)
     {
         using var host = await BuildService(useHash, useCache);

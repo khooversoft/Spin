@@ -11,20 +11,19 @@ public class GrantPolicyRegistry
 {
     private readonly ILogger _logger;
     private readonly Func<GraphCore?> _getGraph;
-    private readonly ReaderWriterLockSlim _slimLock;
+    private readonly ReaderWriterLockSlim _gate = new();
     private readonly ITelemetry? _telemetry;
 
-    public GrantPolicyRegistry(Func<GraphCore?> getGraph, ReaderWriterLockSlim slimLock, ILogger logger, ITelemetry? telemetry)
+    public GrantPolicyRegistry(Func<GraphCore?> getGraph, ILogger logger, ITelemetry? telemetry = null)
     {
         _getGraph = getGraph.NotNull();
         _logger = logger.NotNull();
-        _slimLock = slimLock.NotNull();
         _telemetry = telemetry;
     }
 
     public Option AddOrUpdate(GrantPolicy grantPolicy)
     {
-        _slimLock.EnterWriteLock();
+        _gate.EnterWriteLock();
         try
         {
             var graph = _getGraph().NotNull("Graph not loaded");
@@ -36,12 +35,12 @@ public class GrantPolicyRegistry
             var result = graph.Nodes.AddOrUpdate(node);
             return result;
         }
-        finally { _slimLock.ExitWriteLock(); }
+        finally { _gate.ExitWriteLock(); }
     }
 
     public Option<GrantPolicy> Get(string nodeKey)
     {
-        _slimLock.EnterReadLock();
+        _gate.EnterReadLock();
         try
         {
             var graph = _getGraph().NotNull("Graph not loaded");
@@ -49,54 +48,53 @@ public class GrantPolicyRegistry
             var resolvedNodeKey = NodeTool.CreateKey(nodeKey, GrantPolicy.NodeType);
             if (!graph.Nodes.TryGetValue(resolvedNodeKey, out var node)) return StatusCode.NotFound;
 
-            var result = node.ToObject<GrantPolicy>();
+            var result = node.Payload.ToObject<GrantPolicy>();
             return result;
         }
-        finally { _slimLock.ExitReadLock(); }
+        finally { _gate.ExitReadLock(); }
     }
 
     public IReadOnlyList<GrantPolicy> GetAll()
     {
-        _slimLock.EnterReadLock();
+        _gate.EnterReadLock();
         try
         {
             var graph = _getGraph().NotNull("Graph not loaded");
 
             var items = graph.Nodes
-                .Where(x => NodeTool.ParseKey(x.NodeKey).NodeType == GrantPolicy.NodeType)
-                .Select(x => x.ToObject<GrantPolicy>())
+                .Where(x => NodeTool.ParseKey(x.NodeKey).NodeType.EqualsIgnoreCase(GrantPolicy.NodeType))
+                .Select(x => x.Payload.ToObject<GrantPolicy>())
                 .ToArray();
 
             return items;
         }
-        finally { _slimLock.ExitReadLock(); }
+        finally { _gate.ExitReadLock(); }
     }
 
     public Option Remove(string groupName)
     {
-        _slimLock.EnterWriteLock();
+        _gate.EnterWriteLock();
         try
         {
             var graph = _getGraph().NotNull("Graph not loaded");
             var result = graph.Nodes.Remove(groupName);
             return result;
         }
-        finally { _slimLock.ExitWriteLock(); }
+        finally { _gate.ExitWriteLock(); }
     }
 
     public Option TryAdd(GrantPolicy grantPolicy)
     {
-        _slimLock.EnterWriteLock();
+        _gate.EnterWriteLock();
         try
         {
             var graph = _getGraph().NotNull("Graph not loaded");
             grantPolicy.NotNull().Validate().ThrowOnError();
 
-            if (!graph.Nodes.TryGetValue(grantPolicy.NodeKey, out var node)) return StatusCode.Conflict;
-
-            var addOption = graph.Nodes.Add(grantPolicy.NodeKey, node.ToDataETag());
+            var node = new Node(grantPolicy.NodeKey, grantPolicy.ToDataETag());
+            var addOption = graph.Nodes.TryAdd(node);
             return addOption;
         }
-        finally { _slimLock.ExitWriteLock(); }
+        finally { _gate.ExitWriteLock(); }
     }
 }

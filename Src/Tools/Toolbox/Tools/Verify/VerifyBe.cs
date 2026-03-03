@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Collections;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Toolbox.Tools;
@@ -62,4 +61,3 @@ public static class VerifyBe
         return subject;
     }
 }
-    

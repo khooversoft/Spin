@@ -9,7 +9,7 @@ namespace Toolbox.Graph.test.InterLang;
 
 public class GroupTests
 {
-    private readonly SyntaxParser _parser;
+    private readonly GraphLanguageParser _parser;
 
     public GroupTests(ITestOutputHelper output)
     {
@@ -22,7 +22,7 @@ public class GroupTests
             })
             .Build();
 
-        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
+        _parser = ActivatorUtilities.CreateInstance<GraphLanguageParser>(host.Services);
     }
 
     [Theory]

@@ -11,14 +11,12 @@ public class TransactionProviders : IEnumerable<ITrxProvider>
 {
     private readonly ConcurrentDictionary<string, ITrxProvider> _providers = new(StringComparer.OrdinalIgnoreCase);
     private readonly Transaction _parent;
-    private readonly Action _testOpen;
     private readonly ILogger _logger;
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    public TransactionProviders(Transaction parent, Action testOpen, ILogger logger)
+    public TransactionProviders(Transaction parent, ILogger logger)
     {
         _parent = parent.NotNull();
-        _testOpen = testOpen.NotNull();
         _logger = logger;
     }
 
@@ -27,7 +25,6 @@ public class TransactionProviders : IEnumerable<ITrxProvider>
     public void Enlist(ITrxProvider provider)
     {
         provider.NotNull();
-        _testOpen();
         _providers.TryAdd(provider.SourceName, provider).BeTrue($"Provider with sourceName={provider.SourceName} is already enlisted");
 
         provider.AttachRecorder(_parent.TrxRecorder);
@@ -35,7 +32,6 @@ public class TransactionProviders : IEnumerable<ITrxProvider>
 
     public void Delist(ITrxProvider provider)
     {
-        _testOpen();
         provider.NotNull();
         _providers.TryRemove(provider.SourceName, out var _).BeTrue($"Provider with sourceName={provider.SourceName} is not enlisted");
 
@@ -47,8 +43,6 @@ public class TransactionProviders : IEnumerable<ITrxProvider>
 
     public void DelistAll()
     {
-        _testOpen();
-
         lock (_providers)
         {
             var providers = _providers.Values.ToList();

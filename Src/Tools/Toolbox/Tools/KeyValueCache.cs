@@ -6,7 +6,7 @@ namespace Toolbox.Tools;
 public class KeyValueCache<T>
 {
     private readonly ConcurrentDictionary<string, CacheObject<T>> _cache = new(StringComparer.OrdinalIgnoreCase);
-    private readonly object _lock = new object();
+    private readonly ReaderWriterLockSlim _gate = new();
     private readonly TimeSpan _lifeTime;
 
     public KeyValueCache(TimeSpan lifeTime) => _lifeTime = lifeTime;
@@ -15,26 +15,31 @@ public class KeyValueCache<T>
     {
         get
         {
-            lock (_lock)
+            _gate.EnterReadLock();
+            try
             {
                 return _cache.Count;
             }
+            finally { _gate.ExitReadLock(); }
         }
     }
 
     public void ClearAll()
     {
-        lock (_lock)
+        _gate.EnterWriteLock();
+        try
         {
             _cache.Clear();
         }
+        finally { _gate.ExitWriteLock(); }
     }
 
     public Option<T> TryGetValue(string key)
     {
         key.NotEmpty();
 
-        lock (_lock)
+        _gate.EnterReadLock();
+        try
         {
             if (!_cache.TryGetValue(key, out CacheObject<T>? cacheObject)) return StatusCode.NotFound;
 
@@ -44,28 +49,34 @@ public class KeyValueCache<T>
             _cache.TryRemove(key, out _);
             return hasValue ? new Option<T>(true, staleValue!, StatusCode.Conflict) : StatusCode.NotFound;
         }
+        finally { _gate.ExitReadLock(); }
     }
 
     public void AddOrUpdate(string key, T value)
     {
         key.NotEmpty();
 
-        lock (_lock)
+        _gate.EnterWriteLock();
+        try
         {
             _cache.AddOrUpdate(
                 key,
                 new CacheObject<T>(_lifeTime).Set(value),
-                (_, current) => current.Set(value));
+                (_, current) => current.Set(value)
+            );
         }
+        finally { _gate.ExitWriteLock(); }
     }
 
     public void Clear(string path)
     {
         path.NotEmpty();
 
-        lock (_lock)
+        _gate.EnterWriteLock();
+        try
         {
             _cache.TryRemove(path, out _);
         }
+        finally { _gate.ExitWriteLock(); }
     }
 }

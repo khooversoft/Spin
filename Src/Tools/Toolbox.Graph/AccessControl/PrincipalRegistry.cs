@@ -11,14 +11,13 @@ public class PrincipalRegistry
 {
     private readonly ILogger _logger;
     private readonly Func<GraphCore?> _getGraph;
-    private readonly ReaderWriterLockSlim _slimLock;
+    private readonly ReaderWriterLockSlim _gate = new();
     private readonly ITelemetry? _telemetry;
 
-    public PrincipalRegistry(Func<GraphCore?> getGraph, ReaderWriterLockSlim slimLock, ILogger logger, ITelemetry? telemetry = null)
+    public PrincipalRegistry(Func<GraphCore?> getGraph, ILogger logger, ITelemetry? telemetry = null)
     {
         _getGraph = getGraph.NotNull();
         _logger = logger.NotNull();
-        _slimLock = slimLock.NotNull();
         _telemetry = telemetry;
     }
 
@@ -28,7 +27,7 @@ public class PrincipalRegistry
         var graph = _getGraph().NotNull("Graph not loaded");
         var node = new Node(principalIdentity.NodeKey, principalIdentity.ToDataETag());
 
-        _slimLock.EnterWriteLock();
+        _gate.EnterWriteLock();
         try
         {
             var result = graph.Nodes.AddOrUpdate(node);
@@ -39,25 +38,12 @@ public class PrincipalRegistry
 
             return result;
         }
-        finally { _slimLock.ExitWriteLock(); }
-    }
-
-    public bool Contains(string principalId)
-    {
-        _slimLock.EnterReadLock();
-        try
-        {
-            var graph = _getGraph().NotNull("Graph not loaded");
-
-            var nodeKey = NodeTool.CreateKey(principalId, PrincipalIdentity.NodeType);
-            return graph.Nodes.ContainsKey(nodeKey);
-        }
-        finally { _slimLock.ExitReadLock(); }
+        finally { _gate.ExitWriteLock(); }
     }
 
     public Option<PrincipalIdentity> Get(string principalId)
     {
-        _slimLock.EnterReadLock();
+        _gate.EnterReadLock();
         try
         {
             var graph = _getGraph().NotNull("Graph not loaded");
@@ -68,12 +54,12 @@ public class PrincipalRegistry
             var result = node.NotNull().Payload.ToObject<PrincipalIdentity>();
             return result;
         }
-        finally { _slimLock.ExitReadLock(); }
+        finally { _gate.ExitReadLock(); }
     }
 
     public IReadOnlyList<PrincipalIdentity> GetAll()
     {
-        _slimLock.EnterReadLock();
+        _gate.EnterReadLock();
         try
         {
             var graph = _getGraph().NotNull("Graph not loaded");
@@ -85,29 +71,35 @@ public class PrincipalRegistry
 
             return items;
         }
-        finally { _slimLock.ExitReadLock(); }
+        finally { _gate.ExitReadLock(); }
     }
 
     public Option Remove(string principalId)
     {
-        _slimLock.EnterWriteLock();
+        _gate.EnterWriteLock();
         try
         {
             var graph = _getGraph().NotNull("Graph not loaded");
-
             var nodeKey = NodeTool.CreateKey(principalId, PrincipalIdentity.NodeType);
+
+            // Get a list of refernece nodes
+            var referenceNodes = graph.Nodes.GetNodes(nodeKey)
+                .SelectMany(x => graph.Edges.GetByFrom(x.NodeKey, PrincipalIdentity.NodeReferenceType))
+                .SelectMany(x => graph.Nodes.GetNodes(x.ToKey))
+                .ToArray();
+
             var result = graph.Nodes.Remove(nodeKey);
             if (result.IsError()) return result;
 
-            RemoveAllReferenceNodes(graph, nodeKey);
+            foreach (var node in referenceNodes) graph.Nodes.Remove(node.NodeKey);
             return result;
         }
-        finally { _slimLock.ExitWriteLock(); }
+        finally { _gate.ExitWriteLock(); }
     }
 
     public Option TryAdd(PrincipalIdentity principalIdentity)
     {
-        _slimLock.EnterWriteLock();
+        _gate.EnterWriteLock();
         try
         {
             var graph = _getGraph().NotNull("Graph not loaded");
@@ -123,7 +115,7 @@ public class PrincipalRegistry
 
             return result;
         }
-        finally { _slimLock.ExitWriteLock(); }
+        finally { _gate.ExitWriteLock(); }
     }
 
     /// <summary>
@@ -167,17 +159,6 @@ public class PrincipalRegistry
             if (edgeResult.IsError()) return edgeResult;
         }
 
-        return StatusCode.OK;
-    }
-
-    private Option RemoveAllReferenceNodes(GraphCore graph, string nodeKey)
-    {
-        var referenceNodes = graph.Nodes.GetNodes(nodeKey)
-            .SelectMany(x => graph.Edges.GetByFrom(x.NodeKey, PrincipalIdentity.NodeReferenceType))
-            .SelectMany(x => graph.Nodes.GetNodes(x.ToKey))
-            .ToArray();
-
-        foreach (var node in referenceNodes) graph.Nodes.Remove(node.NodeKey);
         return StatusCode.OK;
     }
 }

@@ -1,6 +1,6 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using Toolbox.Data;
 using Toolbox.Tools;
 using Toolbox.Types;
 
@@ -11,14 +11,12 @@ public class GraphSerialization
     public string? LastLogSequenceNumber { get; init; } = null;
     public IEnumerable<GraphNode> Nodes { get; init; } = Array.Empty<GraphNode>();
     public IEnumerable<GraphEdge> Edges { get; init; } = Array.Empty<GraphEdge>();
-    public GrantPolicy GrantPolicies { get; init; } = null!;
-    public IEnumerable<PrincipalIdentity> PrincipalIdentities { get; init; } = Array.Empty<PrincipalIdentity>();
+    public GraphCoreSerialization GrantControl { get; init; } = null!;
 
     public static IValidator<GraphSerialization> Validator { get; } = new Validator<GraphSerialization>()
         .RuleFor(x => x.Nodes).NotNull()
         .RuleFor(x => x.Edges).NotNull()
-        //.RuleFor(x => x.SecurityPolicies).NotNull()
-        .RuleFor(x => x.PrincipalIdentities).NotNull()
+        .RuleFor(x => x.GrantControl).NotNull()
         .Build();
 }
 
@@ -26,25 +24,12 @@ public static class GraphSerializationTool
 {
     public static Option Validate(this GraphSerialization subject) => GraphSerialization.Validator.Validate(subject).ToOptionStatus();
 
-    public static string ToJson(this GraphMap subject)
-    {
-        var payload = subject.ToSerialization();
-        return JsonSerializer.Serialize(subject, GraphJsonContext.Default.GraphSerialization);
-    }
-
-    public static GraphMap FromJson(string json, IServiceProvider serviceProvider)
-    {
-        var gs = JsonSerializer.Deserialize(json, GraphJsonContext.Default.GraphSerialization).NotNull("Deserialization failed");
-        return gs.FromSerialization(serviceProvider);
-    }
-
     public static GraphSerialization ToSerialization(this GraphMap subject) => new GraphSerialization
     {
         LastLogSequenceNumber = subject.LastLogSequenceNumber,
         Nodes = subject.Nodes,
         Edges = subject.Edges,
-        //SecurityPolicies = subject.GrantControl.Pol,
-        //PrincipalIdentities = subject.GrantControl.Principals
+        GrantControl = subject.GrantControl.GetGraph().ToSerialization(),
     };
 
     public static GraphMap FromSerialization(this GraphSerialization subject, IServiceProvider service)
@@ -57,17 +42,17 @@ public static class GraphSerializationTool
 }
 
 
+[JsonSourceGenerationOptions(WriteIndented = false, DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
 [JsonRegister(typeof(GraphSerialization))]
 [JsonRegister(typeof(GraphNode))]
 [JsonRegister(typeof(GraphEdge))]
-//[JsonRegister(typeof(GroupPolicy))]
+[JsonRegister(typeof(PrincipalGrant))]
 [JsonRegister(typeof(PrincipalIdentity))]
 [JsonRegister(typeof(GraphLink))]
-[JsonSourceGenerationOptions(WriteIndented = false, DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
 [JsonSerializable(typeof(GraphSerialization))]
 [JsonSerializable(typeof(GraphNode))]
 [JsonSerializable(typeof(GraphEdge))]
-//[JsonSerializable(typeof(GroupPolicy))]
+[JsonSerializable(typeof(PrincipalGrant))]
 [JsonSerializable(typeof(PrincipalIdentity))]
 [JsonSerializable(typeof(GraphLink))]
 internal partial class GraphJsonContext : JsonSerializerContext

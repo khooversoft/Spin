@@ -12,6 +12,7 @@ public enum TrxRunState
     None,
     Active,
     Committing,
+    Committed,
     RollingBack,
     Reverted,
     Recovery,
@@ -40,10 +41,8 @@ public partial class Transaction
         _changeClient = changeClient.NotNull();
         _logger = logger.NotNull();
 
-        Action testRunning = () => _runState.IfValue(TrxRunState.None).BeTrue("Transaction most not be started");
-
         TrxRecorder = new TrxRecorder(this);
-        _providers = new TransactionProviders(this, testRunning, _logger);
+        _providers = new TransactionProviders(this, _logger);
     }
 
     public string TransactionId { get; private set; } = Guid.NewGuid().ToString();
@@ -56,7 +55,7 @@ public partial class Transaction
         _providers.Count.Assert(x => x > 0, "No providers registered");
         _queue.Count.Assert(x => x == 0, "Transaction queue is not empty");
 
-        _runState.TryMove(TrxRunState.Reverted, TrxRunState.None);
+        TryResetState();
         _runState.TryMove(TrxRunState.None, TrxRunState.Active).BeTrue("Active is already in progress");
         TransactionId = Guid.NewGuid().ToString();
         await Providers.Start();
@@ -102,7 +101,7 @@ public partial class Transaction
 
     public async Task<Option> Commit()
     {
-        if (_runState.TryMove(TrxRunState.Reverted, TrxRunState.None))
+        if (_runState.TryMove(TrxRunState.Reverted, TrxRunState.None) || _runState.TryMove(TrxRunState.Committed, TrxRunState.None))
         {
             _queue.Count.Be(0);
             return StatusCode.OK;
@@ -119,7 +118,7 @@ public partial class Transaction
 
         _queue.Clear();
         var r1 = await CommitJournal(dataChangeRecord);
-        _runState.TryMove(TrxRunState.Committing, TrxRunState.None).BeTrue("Transaction is not in finalized");
+        _runState.TryMove(TrxRunState.Committing, TrxRunState.Committed).BeTrue("Transaction is not in finalized");
         if (r1.IsError()) return r1;
 
         await Providers.Commit(dataChangeRecord);
@@ -176,5 +175,12 @@ public partial class Transaction
         private readonly Transaction _trx;
         public CommitTrxDispose(Transaction trx) => _trx = trx;
         public async ValueTask DisposeAsync() => await _trx.Commit();
+    }
+
+    private void TryResetState()
+    {
+        _runState.TryMove(TrxRunState.Reverted, TrxRunState.None);
+        _runState.TryMove(TrxRunState.Committed, TrxRunState.None);
+        _runState.TryMove(TrxRunState.Failed, TrxRunState.None);
     }
 }

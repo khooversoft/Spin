@@ -11,7 +11,7 @@ namespace Toolbox.Graph.test.InterLang;
 
 public class SelectNodesAndEdges
 {
-    private readonly SyntaxParser _parser;
+    private readonly GraphLanguageParser _parser;
 
     public SelectNodesAndEdges(ITestOutputHelper output)
     {
@@ -24,7 +24,7 @@ public class SelectNodesAndEdges
             })
             .Build();
 
-        _parser = ActivatorUtilities.CreateInstance<SyntaxParser>(host.Services);
+        _parser = ActivatorUtilities.CreateInstance<GraphLanguageParser>(host.Services);
     }
 
     [Fact]

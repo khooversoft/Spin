@@ -66,7 +66,6 @@ public static class GraphStartup
             config.ListSpaceName = GraphConstants.Journal.Key;
             config.JournalKey = GraphConstants.Journal.Key;
             config.TrxProviders.Add(x => (ITrxProvider)x.GetRequiredKeyedService<IKeyStore>(GraphConstants.File.Key));
-            config.TrxProviders.Add(x => (ITrxProvider)x.GetRequiredService<GraphMapStore>());
         });
 
         return services;

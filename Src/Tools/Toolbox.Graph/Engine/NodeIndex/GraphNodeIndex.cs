@@ -18,7 +18,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     private readonly ConcurrentDictionary<string, GraphNode> _index;
     private readonly TagIndex<string> _tagIndex;
     private readonly GraphUniqueIndex _uniqueIndex;
-    private readonly object _lock;
+    private readonly ReaderWriterLockSlim _gate = new();
     private readonly GraphMap _map;
     private readonly ITelemetryCounter<long>? _addedCounter;
     private readonly ITelemetryCounter<long>? _deletedCounter;
@@ -27,14 +27,13 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     private readonly ITelemetryRecorder<long>? _countGauge;
     private readonly ILogger _logger;
 
-    internal GraphNodeIndex(GraphMap map, object syncLock, ILogger logger, ITelemetry? telemetry = null)
+    internal GraphNodeIndex(GraphMap map, ILogger logger, ITelemetry? telemetry = null)
     {
         _map = map.NotNull();
-        _lock = syncLock.NotNull();
 
         _index = new ConcurrentDictionary<string, GraphNode>(StringComparer.OrdinalIgnoreCase);
         _tagIndex = new TagIndex<string>(StringComparer.OrdinalIgnoreCase);
-        _uniqueIndex = new GraphUniqueIndex(_lock, logger);
+        _uniqueIndex = new GraphUniqueIndex(logger);
 
         _addedCounter = telemetry?.CreateCounter<long>("graph.node.add", "Number of nodes added", unit: "count");
         _deletedCounter = telemetry?.CreateCounter<long>("graph.node.delete", "Number of nodes deleted", unit: "count");
@@ -52,21 +51,48 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
     public int Count => _index.Count;
     public void AddIndexScan(int count = 1) => _indexScanCounter?.Add(count);
-    public bool ContainsKey(string key) => _index.ContainsKey(key);
 
-    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value) => _index.TryGetValue(key, out value);
+    public bool ContainsKey(string key)
+    {
+        _gate.EnterReadLock();
+        try { return _index.ContainsKey(key); }
+        finally { _gate.ExitReadLock(); }
+    }
 
-    public IReadOnlyList<string> LookupTag(string tag) => _tagIndex.Lookup(tag);
+    public bool TryGetValue(string key, [NotNullWhen(true)] out GraphNode? value)
+    {
+        _gate.EnterReadLock();
+        try { return _index.TryGetValue(key, out value); }
+        finally { _gate.ExitReadLock(); }
+    }
 
-    public Option<UniqueIndex> LookupIndex(string indexName, string indexValue) => _uniqueIndex.Lookup(indexName, indexValue);
+    public IReadOnlyList<string> LookupTag(string tag)
+    {
+        _gate.EnterReadLock();
+        try { return _tagIndex.Lookup(tag); }
+        finally { _gate.ExitReadLock(); }
+    }
 
-    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey) => _uniqueIndex.LookupByNodeKey(nodeKey);
+    public Option<UniqueIndex> LookupIndex(string indexName, string indexValue)
+    {
+        _gate.EnterReadLock();
+        try { return _uniqueIndex.Lookup(indexName, indexValue); }
+        finally { _gate.ExitReadLock(); }
+    }
+
+    public IReadOnlyList<UniqueIndex> LookupByNodeKey(string nodeKey)
+    {
+        _gate.EnterReadLock();
+        try { return _uniqueIndex.LookupByNodeKey(nodeKey); }
+        finally { _gate.ExitReadLock(); }
+    }
 
     public Option Add(GraphNode node, GraphTrxContext? trxContext = null)
     {
         if (node.Validate().IsError(out var v)) return v;
 
-        lock (_lock)
+        _gate.EnterWriteLock();
+        try
         {
             Option activeIndexesOption = _uniqueIndex.Verify(node, null, trxContext);
             if (activeIndexesOption.IsError()) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
@@ -84,27 +110,31 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             GaugePostRecordCount();
 
             _tagIndex.Set(node.Key, node.Tags);
-            _uniqueIndex.Set(node, null, trxContext).ThrowOnError();
+            _uniqueIndex.InternalSet(node, null, trxContext).ThrowOnError();
 
             _addedCounter?.Increment();
             trxContext?.Recorder?.Add(newNode.Key, newNode);
             return StatusCode.OK;
         }
+        finally { _gate.ExitWriteLock(); }
     }
 
     public IReadOnlyList<GraphNode> LookupTaggedNodes(string tag)
     {
-        lock (_lock)
+        _gate.EnterReadLock();
+        try
         {
             var nodes = _tagIndex.Lookup(tag);
             var list = nodes.Select(x => _index[x]).ToImmutableArray();
             return list;
         }
+        finally { _gate.ExitReadLock(); }
     }
 
     internal Option Remove(string key, GraphTrxContext? trxContext = null)
     {
-        lock (_lock)
+        _gate.EnterWriteLock();
+        try
         {
             if (!_index.Remove(key, out GraphNode? oldValue)) return StatusCode.NotFound;
 
@@ -117,6 +147,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             GaugePostRecordCount();
             return StatusCode.OK;
         }
+        finally { _gate.ExitWriteLock(); }
 
         void removedNodeFromEdges(GraphNode graphNode, GraphTrxContext? graphContext)
         {
@@ -129,7 +160,8 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
     {
         if (node.Validate().IsError(out var v)) return v;
 
-        lock (_lock)
+        _gate.EnterWriteLock();
+        try
         {
             Option activeIndexesOption = _uniqueIndex.Verify(node, null, trxContext);
             if (activeIndexesOption.IsError()) return (StatusCode.Conflict, $"Node key={node.Key} already exist");
@@ -142,7 +174,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
 
             _index[node.Key] = updatedNode;
             _tagIndex.Set(node.Key, node.Tags);
-            _uniqueIndex.Set(node, current, trxContext).ThrowOnError();
+            _uniqueIndex.InternalSet(node, current, trxContext).ThrowOnError();
 
             trxContext?.Action(x =>
             {
@@ -157,6 +189,7 @@ public class GraphNodeIndex : IEnumerable<GraphNode>
             GaugePostRecordCount();
             return StatusCode.OK;
         }
+        finally { _gate.ExitWriteLock(); }
 
         GraphNode build(IReadOnlyDictionary<string, string?> tags, IReadOnlyCollection<string> indexes, IReadOnlyDictionary<string, string?> foreignKeys, IReadOnlyCollection<GrantPolicy> policies) =>
             new GraphNode(node.Key, tags, node.CreatedDate, node.DataMap, indexes, foreignKeys, policies);

@@ -110,10 +110,10 @@ public class NodeForeignKeyTests
         var graphEngine = host.Services.GetRequiredService<IGraphEngine>();
 
         var newMapOption = await graphClient.ExecuteBatch("add node key=node8 set email=email:name@domain.com foreignkey email;");
-        newMapOption.IsOk().BeFalse();
+        newMapOption.BeError();
 
         var result = await graphClient.Execute("select (key=node8) -> [*] ;");
-        result.IsOk().BeTrue();
+        result.BeOk();
 
         var queryResult = result.Return();
         queryResult.Nodes.Count.Be(0);

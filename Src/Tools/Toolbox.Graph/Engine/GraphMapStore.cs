@@ -34,6 +34,9 @@ public partial class GraphMapStore
         _transaction = transaction.NotNull();
         _logger = logger.NotNull();
         _serviceProvider = serviceProvider.NotNull();
+
+        // Registered trx provider
+        _transaction.Providers.Enlist(this);
     }
 
     public GraphMap GetMap() => _map.NotNull("Database has not been loaded");
