@@ -16,6 +16,10 @@ public enum RolePolicy
     Owner,
 }
 
+/// <summary>
+/// Specify that a user or group (identified by the principal identifier) has
+/// a specific role (reader, contributor, owner) on a node in the graph.
+/// </summary>
 public record PrincipalGrant
 {
     [JsonConstructor]

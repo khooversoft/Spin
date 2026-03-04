@@ -108,6 +108,8 @@ user-delete-command     = delete-sym, user-sym, pi, term ;
 // Grant and revoke security commands  
 //  grant user1 reader on user:user1 ;
 //  revoke user1 contributor on user:user1 ;
+// ni = nameIdentifier, can be principalIdentifier or groupName
+//
 grant-opr               = ( grant-sym | revoke-sym ) ;
 grant-type              = ( reader-sym | contributor-sym | owner-sym ) ;
 grant-command           = grant-opr, pi, grant-type, on-sym, ni, term ;                                                         // [ grant | revoke ] user1 reader on user:user1 ;
@@ -122,4 +124,4 @@ group-delete-command    = delete-sym, group-name, group-sym, term ;             
 
 // General system data query
 //  select-sym object where columnName = object-value ;
-select-mgnt             = select-sym, object-name, where-sym, attribute-name, equal, object-value, term ;                       
+select-mgnt             = select-sym, object-name, where-sym, attribute-name, equal, object-value, term ;
